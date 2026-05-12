@@ -12,6 +12,7 @@ import { calculateLiabilityGap } from "@/features/risk-modules/liability/calcula
 import { DisclaimerBlock } from "@/components/global/DisclaimerBlock"
 import { RiskModuleType, ScenarioModuleRecords, useAppStore } from "@/lib/store"
 import { formatGapCurrency, getModuleGapValue } from "@/lib/scenarioMetrics"
+import "@/styles/print.css"
 
 const moduleCopy: Record<RiskModuleType, { title: string }> = {
   life: { title: "Premature Death - Protection Gap" },
@@ -61,17 +62,27 @@ export function Presentation() {
               <ArrowLeft className="h-4 w-4" /> Back to Builder
             </Link>
           </Button>
-          <Button variant="outline" className="gap-2" onClick={() => window.print()}>
-            <Printer className="h-4 w-4" /> Print / PDF
+          <Button variant="outline" className="gap-2" onClick={() => { window.focus(); setTimeout(() => window.print(), 150) }}>
+            <Printer className="h-4 w-4" /> Save as PDF
           </Button>
         </div>
 
         <div className="overflow-hidden rounded-xl border border-gray-800 bg-[#090E1A] shadow-lg print:border-none print:shadow-none">
           <div className="border-b border-gray-800 bg-[#0a1628] p-12 text-white">
+            <div className="mb-6 hidden items-center gap-3 print:flex">
+              <img
+                src={`${import.meta.env.BASE_URL}northstar-logo.svg`}
+                alt="North Star Resource Group"
+                className="h-8 w-auto object-contain"
+              />
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">{scenario.name}</h1>
             <p className="mt-2 text-lg text-gray-400">{client.displayName}</p>
             <p className="mt-1 text-sm text-gray-500">
               Advisor-facing risk review presentation based on saved scenario state.
+            </p>
+            <p className="mt-3 hidden text-xs text-gray-500 print:block">
+              Generated {new Date().toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })} &nbsp;·&nbsp; North Star Resource Group &nbsp;·&nbsp; Confidential
             </p>
           </div>
 

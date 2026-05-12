@@ -384,7 +384,7 @@ export function Dashboard() {
       <div className="flex items-center justify-between gap-6">
         <div>
           <h1 className="text-2xl font-semibold text-gray-50">Client Setup</h1>
-          <p className="mt-1 text-sm text-gray-400">Enter client information to generate a personalized gap analysis across all risk modules.</p>
+          <p className="mt-1 text-sm text-gray-400">Enter client information to generate a personalized income gap analysis across all risk modules.</p>
         </div>
         <AddClientDrawer />
       </div>
@@ -420,8 +420,7 @@ export function Dashboard() {
                         <RiEyeLine className="size-3.5" aria-hidden="true" />
                       </Link>
                     </div>
-                    <p className="text-xs text-gray-500">{client.profile.clientType === "couple" ? "Couple" : "Individual"} · Age {client.profile.currentAge ?? "—"} · Income ${Math.round(client.profile.annualEarnedIncome ?? 0).toLocaleString()}</p>
-                    <p className="text-xs text-gray-600">Updated {formatDate(client.updatedAt)}</p>
+                    <p className="text-xs text-gray-500">Updated {formatDate(client.updatedAt)}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     {firstScenarioId ? <Link to={`/scenarios/${firstScenarioId}/life`} className="text-sm text-blue-400 hover:text-blue-300">Open Review</Link> : null}
