@@ -79,6 +79,21 @@ export function ScenarioDetailShell() {
   }
 
   const includedTabs = scenario.includedModules
+  if (!includedTabs.length) {
+    return (
+      <div className="space-y-4 rounded-xl border border-dashed border-gray-800 p-8 text-center">
+        <p className="text-lg font-semibold text-gray-100">No modules selected</p>
+        <p className="text-sm text-gray-500">
+          This scenario has no included modules. Start a new risk review from Dashboard.
+        </p>
+        <div>
+          <Button asChild>
+            <Link to="/">Back to Dashboard</Link>
+          </Button>
+        </div>
+      </div>
+    )
+  }
   const firstTab = includedTabs[0]
   const activeTab = includedTabs.find((module) => location.pathname.endsWith(`/${module}`))
   if (!activeTab && firstTab) {

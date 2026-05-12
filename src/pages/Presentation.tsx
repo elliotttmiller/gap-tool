@@ -10,7 +10,8 @@ import { calculateUnemploymentGap } from "@/features/risk-modules/unemployment/c
 import { LiabilityOutputView } from "@/features/risk-modules/liability/components/LiabilityOutputView"
 import { calculateLiabilityGap } from "@/features/risk-modules/liability/calculations/calculateLiabilityGap"
 import { DisclaimerBlock } from "@/components/global/DisclaimerBlock"
-import { RiskModuleType, useAppStore } from "@/lib/store"
+import { RiskModuleType, ScenarioModuleRecords, useAppStore } from "@/lib/store"
+import { formatGapCurrency, getModuleGapValue } from "@/lib/scenarioMetrics"
 
 const moduleCopy: Record<RiskModuleType, { title: string }> = {
   life: { title: "Premature Death - Protection Gap" },
@@ -19,22 +20,8 @@ const moduleCopy: Record<RiskModuleType, { title: string }> = {
   liability: { title: "Liability / Lawsuit - Asset Exposure" },
 }
 
-function formatModuleGap(module: RiskModuleType, record: ReturnType<typeof useAppStore.getState>["moduleRecordsByScenarioId"][string]) {
-  if (!record) return "Not calculated"
-  if (module === "life") {
-    const value = record.life?.output?.remainingGap
-    return typeof value === "number" ? `$${Math.round(value).toLocaleString()}` : "Not calculated"
-  }
-  if (module === "disability") {
-    const value = record.disability?.output?.totalUncoveredGap
-    return typeof value === "number" ? `$${Math.round(value).toLocaleString()}` : "Not calculated"
-  }
-  if (module === "unemployment") {
-    const value = record.unemployment?.output?.totalUncoveredShortfall
-    return typeof value === "number" ? `$${Math.round(value).toLocaleString()}` : "Not calculated"
-  }
-  const value = record.liability?.output?.exposureGap
-  return typeof value === "number" ? `$${Math.round(value).toLocaleString()}` : "Not calculated"
+function formatModuleGap(module: RiskModuleType, record: ScenarioModuleRecords) {
+  return formatGapCurrency(getModuleGapValue(module, record))
 }
 
 export function Presentation() {
@@ -90,7 +77,7 @@ export function Presentation() {
 
           <div className="space-y-16 p-12">
             {scenario.includedModules.map((module) => (
-              <div key={module} className={module === "unemployment" ? "break-before-page" : ""}>
+              <div key={module}>
                 <h2 className="mb-2 border-b border-gray-800 pb-2 text-xl font-semibold text-gray-50">
                   {moduleCopy[module].title}
                 </h2>

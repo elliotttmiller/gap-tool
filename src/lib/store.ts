@@ -106,7 +106,7 @@ interface LiabilityModuleRecord {
   lastCalculatedAt?: string
 }
 
-interface ScenarioModuleRecords {
+export interface ScenarioModuleRecords {
   life?: LifeModuleRecord
   disability?: DisabilityModuleRecord
   unemployment?: UnemploymentModuleRecord
@@ -151,7 +151,7 @@ interface AppState {
   saveLiabilityCalculation: (scenarioId: string, output: LiabilityOutputs) => void
 }
 
-const OWNER_ID = "local-advisor"
+const DEFAULT_ADVISOR_ID = "local-advisor"
 
 const defaultLifeAssumptions: LifeAssumptions = {
   inflationRateAnnual: 0.03,
@@ -171,6 +171,8 @@ const defaultDisabilityAssumptions: DisabilityAssumptions = {
   ssdiModelingMode: "excluded",
 }
 
+const DEFAULT_LAWSUIT_EXPOSURE = 1_500_000
+
 function nowIso() {
   return new Date().toISOString()
 }
@@ -187,9 +189,13 @@ function getProfileCompletion(profile: ClientFinancialProfile): ProfileCompletio
   return "ready_basic_analysis"
 }
 
+/**
+ * Prefills life module inputs from reusable client profile baseline fields.
+ * clientId and scenarioId are attached to each input record for traceability and save/replay consistency.
+ */
 function prefillLifeInputs(profile: ClientFinancialProfile, clientId: string, scenarioId: string): LifeInputs {
   return {
-    advisorId: OWNER_ID,
+    advisorId: DEFAULT_ADVISOR_ID,
     clientId,
     scenarioId,
     currentAge: profile.currentAge ?? 40,
@@ -207,15 +213,18 @@ function prefillLifeInputs(profile: ClientFinancialProfile, clientId: string, sc
   }
 }
 
+/**
+ * Prefills disability inputs from profile values, converting spouse annual income to monthly.
+ */
 function prefillDisabilityInputs(profile: ClientFinancialProfile, clientId: string, scenarioId: string): DisabilityInputs {
   return {
-    advisorId: OWNER_ID,
+    advisorId: DEFAULT_ADVISOR_ID,
     clientId,
     scenarioId,
     annualEarnedIncome: profile.annualEarnedIncome ?? 0,
     monthlyExpenses: profile.monthlyHouseholdExpenses ?? 0,
     emergencySavings: profile.emergencySavings ?? 0,
-    spouseMonthlyIncome: Math.round((profile.spouseAnnualIncome ?? 0) / 12),
+    spouseMonthlyIncome: (profile.spouseAnnualIncome ?? 0) / 12,
     stdBenefitMonthly: profile.employerStdBenefitMonthly ?? 0,
     stdWaitingPeriodDays: 14,
     stdDurationMonths: 6,
@@ -242,6 +251,10 @@ function prefillDisabilityInputs(profile: ClientFinancialProfile, clientId: stri
   }
 }
 
+/**
+ * Prefills unemployment inputs from profile values with safe unemployment defaults.
+ * This module input shape does not include clientId/scenarioId metadata fields.
+ */
 function prefillUnemploymentInputs(profile: ClientFinancialProfile): UnemploymentInputs {
   return {
     annualIncome: profile.annualEarnedIncome ?? 0,
@@ -255,6 +268,10 @@ function prefillUnemploymentInputs(profile: ClientFinancialProfile): Unemploymen
   }
 }
 
+/**
+ * Prefills liability inputs from profile values with a conservative default lawsuit exposure.
+ * This module input shape does not include clientId/scenarioId metadata fields.
+ */
 function prefillLiabilityInputs(profile: ClientFinancialProfile): LiabilityInputs {
   return {
     homeValue: profile.homeValue ?? 0,
@@ -264,7 +281,7 @@ function prefillLiabilityInputs(profile: ClientFinancialProfile): LiabilityInput
     autoLiabilityLimit: profile.autoLiabilityLimit ?? 0,
     homeLiabilityLimit: profile.homeLiabilityLimit ?? 0,
     umbrellaCoverage: profile.umbrellaCoverage ?? 0,
-    estimatedLawsuitExposure: 1_500_000,
+    estimatedLawsuitExposure: DEFAULT_LAWSUIT_EXPOSURE,
   }
 }
 
@@ -322,7 +339,7 @@ export const useAppStore = create<AppState>()(
         }
         const record: ClientRecord = {
           id,
-          ownerId: OWNER_ID,
+          ownerId: DEFAULT_ADVISOR_ID,
           firstName,
           lastName,
           displayName: toDisplayName(firstName, lastName, payload.displayName),
@@ -392,7 +409,7 @@ export const useAppStore = create<AppState>()(
         const scenario: ScenarioRecord = {
           id: scenarioId,
           clientId: payload.clientId,
-          advisorId: OWNER_ID,
+          advisorId: DEFAULT_ADVISOR_ID,
           name: payload.name.trim() || `${client.lastName} Household Risk Review`,
           notes: payload.notes?.trim(),
           includedModules,

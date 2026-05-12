@@ -18,11 +18,13 @@ import {
   ScenarioStatus,
   useAppStore,
 } from "@/lib/store"
+import { formatGapCurrency, getLargestScenarioGap } from "@/lib/scenarioMetrics"
 import { cx } from "@/lib/utils"
 import {
   RiAddLine,
   RiArrowRightSLine,
   RiCalendarLine,
+  RiCloseLine,
   RiExternalLinkLine,
   RiHeartPulseLine,
   RiMailLine,
@@ -34,7 +36,7 @@ import {
   RiUserLine,
   RiUmbrellaLine,
 } from "@remixicon/react"
-import React, { useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 
 const moduleLabel: Record<RiskModuleType, string> = {
@@ -43,6 +45,10 @@ const moduleLabel: Record<RiskModuleType, string> = {
   unemployment: "Unemployment",
   liability: "Liability / Lawsuit",
 }
+
+const ALL_MODULE_TYPES: RiskModuleType[] = ["disability", "life", "unemployment", "liability"]
+const NO_EMAIL_TEXT = "No email on file"
+const NO_PHONE_TEXT = "No phone on file"
 
 const moduleIcon: Record<RiskModuleType, React.ElementType> = {
   disability: RiUmbrellaLine,
@@ -73,6 +79,13 @@ function formatStatus(status: string) {
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ")
+}
+
+function formatCompletionStatus(status: string) {
+  if (status === "missing_required_info") return "Missing Required Info"
+  if (status === "ready_basic_analysis") return "Ready for Basic Analysis"
+  if (status === "ready_full_analysis") return "Ready for Full Analysis"
+  return formatStatus(status)
 }
 
 function toDateLabel(value?: string) {
@@ -214,17 +227,20 @@ function StartRiskReviewDrawer({ client }: { client: ClientRecord }) {
   const navigate = useNavigate()
   const createScenario = useAppStore((state) => state.createScenario)
   const [open, setOpen] = useState(false)
-  const [scenarioName, setScenarioName] = useState(`${client.lastName} Household Risk Review`)
+  const [scenarioName, setScenarioName] = useState("")
   const [notes, setNotes] = useState("")
   const [includedModules, setIncludedModules] = useState<RiskModuleType[]>([
-    "disability",
-    "life",
-    "unemployment",
-    "liability",
+    ...ALL_MODULE_TYPES,
   ])
   const [activeModule, setActiveModule] = useState<RiskModuleType>("disability")
 
   const canSubmit = Boolean(scenarioName.trim() && includedModules.length)
+
+  useEffect(() => {
+    if (open) {
+      setScenarioName(`${client.lastName} Household Risk Review`)
+    }
+  }, [client.lastName, open])
 
   const toggleModule = (module: RiskModuleType) => {
     setIncludedModules((prev) => {
@@ -261,7 +277,7 @@ function StartRiskReviewDrawer({ client }: { client: ClientRecord }) {
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-gray-500">Included modules</p>
             <div className="space-y-2">
-              {(["disability", "life", "unemployment", "liability"] as RiskModuleType[]).map((module) => (
+              {ALL_MODULE_TYPES.map((module) => (
                 <label
                   key={module}
                   className="flex items-center justify-between rounded-md border border-gray-800 bg-gray-900/40 px-3 py-2 text-sm text-gray-300"
@@ -363,7 +379,7 @@ function ClientDetailPanel({
             className="flex size-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-800 hover:text-gray-200"
             aria-label="Close"
           >
-            ×
+            <RiCloseLine className="size-5" />
           </button>
         </div>
 
@@ -373,16 +389,16 @@ function ClientDetailPanel({
             <dl className="space-y-3.5">
               <div className="flex items-center gap-3">
                 <RiMailLine className="size-4 shrink-0 text-gray-600" aria-hidden="true" />
-                <dd className="text-sm text-gray-300">{client.email || "No email"}</dd>
+                <dd className="text-sm text-gray-300">{client.email || NO_EMAIL_TEXT}</dd>
               </div>
               <div className="flex items-center gap-3">
                 <RiPhoneLine className="size-4 shrink-0 text-gray-600" aria-hidden="true" />
-                <dd className="text-sm text-gray-300">{client.phone || "No phone"}</dd>
+                <dd className="text-sm text-gray-300">{client.phone || NO_PHONE_TEXT}</dd>
               </div>
               <div className="flex items-center gap-3">
                 <RiUser3Line className="size-4 shrink-0 text-gray-600" aria-hidden="true" />
                 <dd className="text-sm text-gray-300">
-                  Age {client.profile.currentAge ?? "—"} · {formatStatus(client.profileCompletionStatus)}
+                  Age {client.profile.currentAge ?? "—"} · {formatCompletionStatus(client.profileCompletionStatus)}
                 </dd>
               </div>
               <div className="flex items-center gap-3">
@@ -410,14 +426,7 @@ function ClientDetailPanel({
                 {scenarios.map((scenario) => {
                   const Icon = moduleIcon[scenario.activeModule]
                   const href = `/scenarios/${scenario.id}/${scenario.activeModule}`
-                  const record = moduleRecordsByScenarioId[scenario.id]
-                  const values = [
-                    record?.life?.output?.remainingGap ?? 0,
-                    record?.disability?.output?.totalUncoveredGap ?? 0,
-                    record?.unemployment?.output?.totalUncoveredShortfall ?? 0,
-                    record?.liability?.output?.exposureGap ?? 0,
-                  ].filter((value) => value > 0)
-                  const gap = values.length ? Math.max(...values) : null
+                  const gap = getLargestScenarioGap(moduleRecordsByScenarioId[scenario.id])
                   return (
                     <li key={scenario.id}>
                       <Link
@@ -431,11 +440,11 @@ function ClientDetailPanel({
                             <p className="truncate text-sm font-medium text-gray-100">{scenario.name}</p>
                             <div className="mt-0.5 flex items-center gap-1.5">
                               <span className="text-xs text-gray-500">{moduleLabel[scenario.activeModule]}</span>
-                              {gap ? (
+                              {typeof gap === "number" ? (
                                 <>
                                   <span className="text-gray-700">·</span>
                                   <span className="text-xs font-semibold text-gray-300">
-                                    Largest gap ${Math.round(gap).toLocaleString()}
+                                    Largest gap {formatGapCurrency(gap)}
                                   </span>
                                 </>
                               ) : null}
@@ -522,7 +531,7 @@ export function Dashboard() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <AddClientDrawer />
-          {clients[0] ? <StartRiskReviewDrawer client={clients[0]} /> : null}
+          {selectedClient ? <StartRiskReviewDrawer client={selectedClient} /> : null}
         </div>
       </div>
 
@@ -612,7 +621,7 @@ export function Dashboard() {
                           <div className="min-w-0">
                             <p className="truncate text-sm font-medium text-gray-100">{client.displayName}</p>
                             <p className="truncate text-xs text-gray-500">
-                              {client.email || "No email on file"}
+                              {client.email || NO_EMAIL_TEXT}
                             </p>
                           </div>
                         </div>
