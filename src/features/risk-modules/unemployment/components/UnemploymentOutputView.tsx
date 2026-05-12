@@ -60,30 +60,48 @@ function ReserveBucketGauge({ outputs }: { outputs: UnemploymentOutputs }) {
 
         <text x={bucket.x + bucket.width / 2} y={svg.height - 4} textAnchor="middle" fill="#4b5563" fontSize={10} fontWeight="600" letterSpacing="1">EMERGENCY RESERVE SAVINGS BUCKET</text>
       </svg>
-
-      <div className="mt-3 text-left w-full px-2">
-        <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Monthly Income</div>
-        <div className="text-3xl font-bold tracking-tight text-gray-50 mt-0.5">{formatCurrency(outputs.monthlyIncome)}</div>
-      </div>
     </div>
+  )
+}
+
+function MetricCard({ label, value, hint, delay }: { label: string; value: string; hint: string; delay: number }) {
+  return (
+    <AnimatedSection delay={delay}>
+      <Card className="border-gray-800 h-full">
+        <CardContent className="p-5 flex flex-col justify-between h-full">
+          <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">{label}</div>
+          <div className="text-2xl font-bold tracking-tight text-gray-50">{value}</div>
+          <p className="text-xs text-gray-400 mt-2">{hint}</p>
+        </CardContent>
+      </Card>
+    </AnimatedSection>
   )
 }
 
 export function UnemploymentOutputView({ outputs }: UnemploymentOutputViewProps) {
   return (
     <div className="space-y-6 flex flex-col h-full w-full">
-      <AnimatedSection delay={0}>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard label="Monthly Income" value={formatCurrency(outputs.monthlyIncome)} hint="Annual income divided by 12" delay={0} />
+        <MetricCard label="Minimum Reserve" value={formatCurrency(outputs.minimumReserveTarget)} hint="3 months of income" delay={0.08} />
+        <MetricCard label="Optimal Reserve" value={formatCurrency(outputs.optimalReserveTarget)} hint="6 months of income" delay={0.16} />
+        <MetricCard label="Annual Income at Risk" value={formatCurrency(outputs.annualIncomeAtRisk)} hint="Advisor-reference income exposure" delay={0.24} />
+      </div>
+
+      <AnimatedSection delay={0.3}>
         <Card className="border-gray-800 bg-[#090E1A]">
           <CardHeader><CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-wider">Emergency Reserve Savings Bucket</CardTitle></CardHeader>
           <CardContent className="flex justify-center py-2"><ReserveBucketGauge outputs={outputs} /></CardContent>
         </Card>
       </AnimatedSection>
+
       <div className="grid gap-4 sm:grid-cols-3">
-        <AnimatedSection delay={0.18}><Card className="border-gray-800 h-full"><CardContent className="p-5 flex flex-col justify-between h-full"><div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Current Reserve</div><div className="text-2xl font-bold tracking-tight text-gray-50">{formatCurrency(outputs.currentReserveLevel)}</div><p className="text-xs text-gray-400 mt-2">Emergency savings on hand</p></CardContent></Card></AnimatedSection>
-        <AnimatedSection delay={0.26}><Card className="border-gray-800 h-full"><CardContent className="p-5 flex flex-col justify-between h-full"><div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Cash Depletion</div><div className="text-2xl font-bold tracking-tight text-gray-50">{outputs.reserveDepletionMonth < 0 ? "Never" : `Month ${outputs.reserveDepletionMonth}`}</div><p className="text-xs text-gray-400 mt-2">Months until $0 savings</p></CardContent></Card></AnimatedSection>
-        <AnimatedSection delay={0.34}><Card className="border-gray-800 h-full"><CardContent className="p-5 flex flex-col justify-between h-full"><div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Total Shortfall</div><div className="text-2xl font-bold tracking-tight text-gray-50">{formatCurrency(outputs.totalUncoveredShortfall)}</div><p className="text-xs text-gray-400 mt-2">Unfunded gap across search</p></CardContent></Card></AnimatedSection>
+        <MetricCard label="Current Reserve" value={formatCurrency(outputs.currentReserveLevel)} hint={`${outputs.reserveMonthsCurrent.toFixed(1)} months of income currently held`} delay={0.38} />
+        <MetricCard label="Cash Depletion" value={outputs.reserveDepletionMonth < 0 ? "Never" : `Month ${outputs.reserveDepletionMonth}`} hint="Months until $0 savings" delay={0.46} />
+        <MetricCard label="Total Shortfall" value={formatCurrency(outputs.totalUncoveredShortfall)} hint="Unfunded gap across modeled period" delay={0.54} />
       </div>
-      <AnimatedSection delay={0.44}>
+
+      <AnimatedSection delay={0.62}>
         <Card className="bg-[#090E1A] border border-gray-800"><CardContent className="p-6"><h4 className="font-semibold text-blue-400 mb-2 uppercase tracking-wider text-xs">Advisor Narrative</h4><p className="text-sm text-gray-300 leading-relaxed">{getUnemploymentNarrative(outputs)}</p></CardContent></Card>
       </AnimatedSection>
     </div>
