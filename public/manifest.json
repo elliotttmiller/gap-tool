@@ -2,19 +2,19 @@
   "name": "NorthStar Gap Analysis",
   "short_name": "NorthStar",
   "description": "Deterministic risk gap analysis for life, disability, unemployment, and liability coverage.",
-  "start_url": "/",
+  "start_url": "/gap-tool/",
   "display": "standalone",
   "background_color": "#090E1A",
   "theme_color": "#0a1628",
   "icons": [
     {
-      "src": "/pwa-icon.png",
+      "src": "/gap-tool/pwa-icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/favicon.png",
+      "src": "/gap-tool/favicon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"

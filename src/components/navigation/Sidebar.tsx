@@ -21,7 +21,7 @@ export function Sidebar() {
         {/* Logo */}
         <div className="flex items-center px-1 pb-3 pt-1">
           <img
-            src="/northstar-logo.svg"
+            src={`${import.meta.env.BASE_URL}northstar-logo.svg`}
             alt="North Star Resource Group"
             className="h-20 w-auto max-w-full object-contain"
           />

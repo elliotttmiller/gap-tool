@@ -12,7 +12,7 @@ export function AppShell() {
         <MobileSidebar />
         <div className="flex items-center gap-x-3">
           <img
-            src="/northstar-logo.svg"
+            src={`${import.meta.env.BASE_URL}northstar-logo.svg`}
             alt="North Star Resource Group"
             className="h-8 w-auto object-contain"
           />
