@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/Input"
 import { ClientRecord, RiskModuleType, useAppStore } from "@/lib/store"
 import { cx } from "@/lib/utils"
-import { RiAddLine, RiArrowRightSLine, RiSearchLine, RiUserLine } from "@remixicon/react"
+import { RiAddLine, RiAlertLine, RiArrowRightSLine, RiDeleteBinLine, RiSearchLine, RiUserLine } from "@remixicon/react"
 import { useMemo, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 
@@ -288,6 +288,70 @@ function StartRiskReviewDrawer({ client }: { client: ClientRecord }) {
   )
 }
 
+function RemoveClientDrawer({ client, scenarioCount }: { client: ClientRecord; scenarioCount: number }) {
+  const archiveClient = useAppStore((state) => state.archiveClient)
+  const [open, setOpen] = useState(false)
+
+  return (
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger asChild>
+        <Button
+          variant="ghost"
+          className="border-red-950/60 text-red-400 hover:bg-red-950/30 hover:text-red-300"
+          aria-label={`Remove ${client.displayName}`}
+        >
+          <RiDeleteBinLine className="size-4" aria-hidden="true" />
+          Remove
+        </Button>
+      </DrawerTrigger>
+      <DrawerContent className="max-w-[460px]">
+        <DrawerHeader>
+          <DrawerTitle>Remove Client</DrawerTitle>
+        </DrawerHeader>
+        <DrawerBody className="space-y-5">
+          <div className="rounded-2xl border border-red-900/60 bg-red-950/20 p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-red-950 text-red-300 ring-1 ring-red-800/80">
+                <RiAlertLine className="size-5" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="font-semibold text-red-100">Remove {client.displayName} from the dashboard?</p>
+                <p className="mt-1 text-sm leading-6 text-red-200/70">
+                  This will archive the client profile and hide it from active client setup and review workflows.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-gray-800 bg-gray-950/70 p-4">
+            <p className="text-sm font-medium text-gray-100">{client.displayName}</p>
+            <p className="mt-1 text-xs text-gray-500">
+              {client.profile.clientType === "couple" ? "Couple" : "Individual"} · {scenarioCount} risk review{scenarioCount === 1 ? "" : "s"}
+            </p>
+          </div>
+
+          <p className="text-xs leading-5 text-gray-500">
+            This is a soft remove for MVP/local usage. Existing persisted data is marked archived rather than permanently deleted.
+          </p>
+        </DrawerBody>
+        <DrawerFooter>
+          <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="destructive"
+            onClick={() => {
+              archiveClient(client.id)
+              setOpen(false)
+            }}
+          >
+            <RiDeleteBinLine className="size-4" aria-hidden="true" />
+            Remove Client
+          </Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  )
+}
+
 export function Dashboard() {
   const allClients = useAppStore((state) => state.clients)
   const allScenarios = useAppStore((state) => state.scenarios)
@@ -295,6 +359,10 @@ export function Dashboard() {
   const clients = useMemo(() => allClients.filter((client) => client.status !== "archived"), [allClients])
   const scenarios = useMemo(() => allScenarios.filter((scenario) => scenario.status !== "archived"), [allScenarios])
   const scenariosByClientId = useMemo(() => scenarios.reduce<Record<string, number>>((acc, scenario) => ({ ...acc, [scenario.clientId]: (acc[scenario.clientId] ?? 0) + 1 }), {}), [scenarios])
+  const firstScenarioByClientId = useMemo(() => scenarios.reduce<Record<string, string>>((acc, scenario) => {
+    if (!acc[scenario.clientId]) acc[scenario.clientId] = scenario.id
+    return acc
+  }, {}), [scenarios])
   const filteredClients = useMemo(() => {
     const query = search.trim().toLowerCase()
     if (!query) return clients
@@ -303,7 +371,7 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center justify-between gap-6">
         <div>
           <h1 className="text-2xl font-semibold text-gray-50">Client Setup</h1>
           <p className="mt-1 text-sm text-gray-400">Enter client information to generate a personalized gap analysis across all risk modules.</p>
@@ -328,21 +396,27 @@ export function Dashboard() {
       ) : (
         <Card className="overflow-hidden p-0">
           <ul className="divide-y divide-gray-800/60">
-            {filteredClients.map((client) => (
-              <li key={client.id} className="grid gap-4 px-6 py-4 md:grid-cols-[1fr_auto_auto] md:items-center">
-                <div>
-                  <p className="font-medium text-gray-100">{client.displayName}</p>
-                  <p className="text-xs text-gray-500">{client.profile.clientType === "couple" ? "Couple" : "Individual"} · Age {client.profile.currentAge ?? "—"} · Income ${Math.round(client.profile.annualEarnedIncome ?? 0).toLocaleString()}</p>
-                  <p className="text-xs text-gray-600">Updated {formatDate(client.updatedAt)}</p>
-                </div>
-                <Badge variant={client.status === "active" ? "success" : "neutral"}>{formatStatus(client.status)}</Badge>
-                <div className="flex items-center gap-2">
-                  {scenariosByClientId[client.id] ? <Link to={`/scenarios/${allScenarios.find((scenario) => scenario.clientId === client.id)?.id}/life`} className="text-sm text-blue-400 hover:text-blue-300">Open Review</Link> : null}
-                  <StartRiskReviewDrawer client={client} />
-                  <RiArrowRightSLine className="hidden size-4 text-gray-700 md:block" />
-                </div>
-              </li>
-            ))}
+            {filteredClients.map((client) => {
+              const scenarioCount = scenariosByClientId[client.id] ?? 0
+              const firstScenarioId = firstScenarioByClientId[client.id]
+
+              return (
+                <li key={client.id} className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-6 py-4">
+                  <div>
+                    <p className="font-medium text-gray-100">{client.displayName}</p>
+                    <p className="text-xs text-gray-500">{client.profile.clientType === "couple" ? "Couple" : "Individual"} · Age {client.profile.currentAge ?? "—"} · Income ${Math.round(client.profile.annualEarnedIncome ?? 0).toLocaleString()}</p>
+                    <p className="text-xs text-gray-600">Updated {formatDate(client.updatedAt)}</p>
+                  </div>
+                  <Badge variant={client.status === "active" ? "success" : "neutral"}>{formatStatus(client.status)}</Badge>
+                  <div className="flex items-center gap-2">
+                    {firstScenarioId ? <Link to={`/scenarios/${firstScenarioId}/life`} className="text-sm text-blue-400 hover:text-blue-300">Open Review</Link> : null}
+                    <StartRiskReviewDrawer client={client} />
+                    <RemoveClientDrawer client={client} scenarioCount={scenarioCount} />
+                  </div>
+                  <RiArrowRightSLine className="size-4 text-gray-700" />
+                </li>
+              )
+            })}
           </ul>
         </Card>
       )}
