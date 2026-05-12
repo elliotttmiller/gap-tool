@@ -31,9 +31,9 @@ export function AppShell() {
   }, [])
 
   return (
-    <div className="min-h-screen min-w-[1280px] bg-gray-950">
+    <div className="min-h-screen min-w-7xl bg-gray-950">
       <header className="fixed inset-x-0 top-0 z-50 h-16 border-b border-gray-800 bg-[#0a1628]/95 backdrop-blur-sm">
-        <div className="mx-auto flex h-full max-w-[1600px] items-center px-8">
+        <div className="mx-auto flex h-full max-w-400 items-center px-8">
           <div className="flex flex-1 justify-start">
             <Link
               to="/"
@@ -95,7 +95,7 @@ export function AppShell() {
       )}
 
       <main className="pt-16">
-        <div className="mx-auto max-w-[1600px] px-8 py-8">
+        <div className="mx-auto max-w-400 px-8 py-8">
           <Outlet />
         </div>
       </main>
