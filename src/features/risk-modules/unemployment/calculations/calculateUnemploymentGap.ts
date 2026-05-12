@@ -78,9 +78,13 @@ export function calculateUnemploymentGap(inputs: UnemploymentInputs): Unemployme
   return {
     monthlyBurnRate: expenses,
     monthlyAvailableIncomeBase: spouseMonthly,
+    monthlyIncome: monthlySalary,
     severanceTotal,
     reserveDepletionMonth: depletionMonth,
     totalUncoveredShortfall: totalShortfall,
+    currentReserveLevel: inputs.emergencySavings,
+    optimalReserveTarget: monthlySalary * 6,
+    minimumReserveTarget: monthlySalary * 3,
     timeline,
   };
 }

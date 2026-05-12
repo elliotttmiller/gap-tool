@@ -1,80 +1,155 @@
 ﻿import { LifeOutputs } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency, formatPercent } from "@/lib/utils"
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts"
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts"
 import { getLifeInsuranceNarrative } from "../constants/moduleCopy"
+import { useMemo } from "react"
+import { AnimatedSection } from "@/components/ui/animated-section"
+import { useOnceAnimation } from "@/lib/use-once-animation"
 
 interface LifeOutputViewProps {
   outputs: LifeOutputs
 }
 
+// Defined outside component — never recreated on re-render
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="bg-gray-900 p-3 border border-gray-700 rounded-lg shadow-lg text-sm min-w-45">
+      <p className="font-semibold text-gray-100 mb-2">Age {label}</p>
+      {payload.map((entry: any) => (
+        <div key={entry.name} className="flex justify-between gap-4 mb-1">
+          <span style={{ color: entry.color }} className="text-xs">{entry.name}:</span>
+          <span className="font-semibold text-xs text-gray-100">{formatCurrency(entry.value)}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+const legendFormatter = (value: string) => (
+  <span style={{ color: "#9ca3af", fontSize: 12 }}>{value}</span>
+)
+
 export function LifeOutputView({ outputs }: LifeOutputViewProps) {
-  const chartData = [
-    { name: "Total Need", value: outputs.baseProtectionNeed, color: "#334155" }, // slate-700
-    { name: "Existing", value: outputs.existingCoverageTotal, color: "#22c55e" }, // green-500
-    { name: "Uncovered Gap", value: outputs.remainingGap, color: "#f59e0b" }, // amber-500
-  ]
+  const anim = useOnceAnimation()
+
+  // Memoized — only recomputes when yearlyBreakdown changes
+  const tickSet = useMemo(
+    () => new Set(outputs.yearlyBreakdown.filter((_, i) => i % 2 === 0).map((d) => d.age)),
+    [outputs.yearlyBreakdown]
+  )
+
+  const chartTitle = useMemo(
+    () => `Household Income to Age ${(outputs.yearlyBreakdown.at(-1)?.age ?? 64) + 1} — Life Insurance Coverage`,
+    [outputs.yearlyBreakdown]
+  )
 
   return (
     <div className="space-y-6 flex flex-col h-full">
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="border-gray-800">
-          <CardContent className="p-6">
-            <div className="text-sm font-medium text-gray-500 mb-1">Total Remaining Gap</div>
-            <div className="text-3xl font-bold tracking-tight text-amber-600">
-              {formatCurrency(outputs.remainingGap)}
-            </div>
+      {/* KPI row — staggered entrance */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <AnimatedSection delay={0}>
+          <Card className="border-gray-800">
+            <CardContent className="p-5">
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Survivor Income Gap</div>
+              <div className="text-2xl font-bold tracking-tight text-amber-500">
+                {formatCurrency(outputs.remainingGap)}
+              </div>
+              <p className="text-[10px] text-gray-600 mt-1">Uncovered protection need</p>
+            </CardContent>
+          </Card>
+        </AnimatedSection>
+        <AnimatedSection delay={0.08}>
+          <Card className="border-gray-800">
+            <CardContent className="p-5">
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Group Life (GLI)</div>
+              <div className="text-2xl font-bold tracking-tight text-blue-400">
+                {formatCurrency(outputs.existingCoverageTotal)}
+              </div>
+              <p className="text-[10px] text-gray-600 mt-1">Total existing coverage</p>
+            </CardContent>
+          </Card>
+        </AnimatedSection>
+        <AnimatedSection delay={0.16}>
+          <Card className="border-gray-800">
+            <CardContent className="p-5">
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Coverage Offset</div>
+              <div className="text-2xl font-bold tracking-tight text-gray-50">
+                {formatPercent(outputs.coverageOffsetPercentage)}
+              </div>
+              <p className="text-[10px] text-gray-600 mt-1">Of total protection need</p>
           </CardContent>
-        </Card>
-        <Card className="border-gray-800">
-          <CardContent className="p-6">
-            <div className="text-sm font-medium text-gray-500 mb-1">Coverage Offset</div>
-            <div className="text-3xl font-bold tracking-tight text-gray-50">
-              {formatPercent(outputs.coverageOffsetPercentage)}
-            </div>
-          </CardContent>
-        </Card>
+          </Card>
+        </AnimatedSection>
       </div>
 
-      <Card>
+      {/* Year-by-year stacked bar */}
+      <AnimatedSection delay={0.26}>
+        <Card className="border-gray-800">
         <CardHeader>
-          <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">Protection Gap Analysis</CardTitle>
+          <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">
+            {chartTitle}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-75 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 12 }} axisLine={false} tickLine={false} />
-              <YAxis 
-                tickFormatter={(val) => `$${val / 1000}k`} 
-                tick={{ fill: "#64748b", fontSize: 12 }} 
-                axisLine={false} 
-                tickLine={false} 
-              />
-              <Tooltip 
-                formatter={(value: number) => formatCurrency(value)}
-                cursor={{ fill: "transparent" }}
-                contentStyle={{ borderRadius: '8px', border: '1px solid #1f2937', boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)' }}
-              />
-              <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={60}>
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={outputs.yearlyBreakdown}
+                margin={{ top: 10, right: 20, left: 10, bottom: 5 }}
+                barCategoryGap="8%"
+              >
+                <XAxis
+                  dataKey="age"
+                  tick={({ x, y, payload }) =>
+                    tickSet.has(payload.value) ? (
+                      <text x={x} y={y + 12} textAnchor="middle" fill="#64748b" fontSize={11}>
+                        {payload.value}
+                      </text>
+                    ) : <g />
+                  }
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tickFormatter={(v) => `$${Math.round(v / 1000)}k`}
+                  tick={{ fill: "#64748b", fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={52}
+                />
+                <Tooltip content={CustomTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+                <Legend wrapperStyle={{ paddingTop: "12px" }} formatter={legendFormatter} />
+                <Bar dataKey="gliCovered"     name="Covered by Group Life (GLI)"       stackId="a" fill="#3b82f6" isAnimationActive={anim.active} animationBegin={0}   animationDuration={900} animationEasing="ease-out" />
+                <Bar dataKey="privateCovered" name="Covered by Private Life Insurance"  stackId="a" fill="#06b6d4" isAnimationActive={anim.active} animationBegin={150} animationDuration={900} animationEasing="ease-out" />
+                <Bar dataKey="survivorGap"    name="Survivor Income Gap"                stackId="a" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={anim.active} animationBegin={300} animationDuration={900} animationEasing="ease-out" onAnimationEnd={anim.done} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </CardContent>
-      </Card>
-      
-      <Card className="bg-[#090E1A] text-white border border-gray-800">
-        <CardContent className="p-6">
-          <h4 className="font-semibold text-blue-400 mb-2 uppercase tracking-wider text-xs">Advisor Narrative</h4>
-          <p className="text-sm text-gray-300 leading-relaxed">
-            {getLifeInsuranceNarrative(outputs)}
-          </p>
-        </CardContent>
-      </Card>
+        </Card>
+      </AnimatedSection>
+
+      {/* Advisor narrative */}
+      <AnimatedSection delay={0.38}>
+        <Card className="bg-[#090E1A] border border-gray-800">
+          <CardContent className="p-6">
+            <h4 className="font-semibold text-blue-400 mb-2 uppercase tracking-wider text-xs">Advisor Narrative</h4>
+            <p className="text-sm text-gray-300 leading-relaxed">
+              {getLifeInsuranceNarrative(outputs)}
+            </p>
+          </CardContent>
+        </Card>
+      </AnimatedSection>
     </div>
   )
 }

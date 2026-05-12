@@ -14,10 +14,10 @@ export function ScenarioDetailShell() {
   const { scenarioId } = useParams()
 
   const tabs = [
-    { name: "Disability",   href: `/scenarios/${scenarioId}/disability`,   icon: RiUmbrellaLine },
-    { name: "Life Insurance", href: `/scenarios/${scenarioId}/life`,        icon: RiHeartPulseLine },
-    { name: "Unemployment", href: `/scenarios/${scenarioId}/unemployment`,  icon: RiShieldCheckLine },
-    { name: "Liability",    href: `/scenarios/${scenarioId}/liability`,     icon: RiScalesLine },
+    { name: "Disability",     href: `/scenarios/${scenarioId}/disability`,   icon: RiUmbrellaLine },
+    { name: "Life Insurance", href: `/scenarios/${scenarioId}/life`,         icon: RiHeartPulseLine },
+    { name: "Unemployment",   href: `/scenarios/${scenarioId}/unemployment`, icon: RiShieldCheckLine },
+    { name: "Liability",      href: `/scenarios/${scenarioId}/liability`,    icon: RiScalesLine },
   ]
 
   return (

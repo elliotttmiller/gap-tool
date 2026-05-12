@@ -1,8 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom"
 import { 
   LayoutDashboard, 
-  Users, 
-  Layers, 
   FileText, 
   Settings, 
   X,
@@ -22,19 +20,17 @@ export function SidebarNav({ onClose }: { onClose?: () => void }) {
 
   const routes = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
-    { name: "Clients", href: "/clients", icon: Users },
-    { name: "Scenarios", href: "/scenarios/list", icon: Layers },
   ]
 
   const riskModules = [
-    { name: "Disability", href: "/scenarios/1/disability", icon: Umbrella },
-    { name: "Life Insurance", href: "/scenarios/1/life", icon: Heart },
-    { name: "Unemployment", href: "/scenarios/1/unemployment", icon: Briefcase },
-    { name: "Liability", href: "/scenarios/1/liability", icon: Scale },
+    { name: "Disability",     href: "/scenarios/1/disability",   icon: Umbrella },
+    { name: "Life Insurance", href: "/scenarios/1/life",         icon: Heart },
+    { name: "Unemployment",   href: "/scenarios/1/unemployment", icon: Briefcase },
+    { name: "Liability",      href: "/scenarios/1/liability",    icon: Scale },
   ]
 
   return (
-    <aside className="w-full h-full bg-slate-900 text-slate-300 flex flex-col flex-shrink-0 border-r border-white/5">
+    <aside className="w-full h-full bg-slate-900 text-slate-300 flex flex-col shrink-0 border-r border-white/5">
       <div className="lg:hidden flex items-center justify-between p-4 border-b border-slate-800">
         <span className="text-xs font-bold tracking-widest text-slate-400 uppercase">Navigation</span>
         <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">

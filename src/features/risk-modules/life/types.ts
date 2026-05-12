@@ -29,6 +29,14 @@ export interface LifeAssumptions {
   deathBenefitTaxTreatment: "generally_income_tax_free" | "not_modeled";
 }
 
+export interface LifeYearlyBreakdown {
+  age: number;
+  totalNeed: number;
+  gliCovered: number;
+  privateCovered: number;
+  survivorGap: number;
+}
+
 export interface LifeOutputs {
   replacementYears: number;
   annualReplacementNeed: number;
@@ -39,4 +47,5 @@ export interface LifeOutputs {
   availableResources: number;
   remainingGap: number;
   coverageOffsetPercentage: number;
+  yearlyBreakdown: LifeYearlyBreakdown[];
 }

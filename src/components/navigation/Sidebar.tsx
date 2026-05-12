@@ -5,13 +5,11 @@ import {
   RiHome2Line,
   RiSettings5Line,
   RiEqualizerLine,
-  RiTeamLine,
 } from "@remixicon/react"
 import { NavLink } from "react-router-dom"
 
 const navigation = [
   { name: "Dashboard", href: siteConfig.baseLinks.home, icon: RiHome2Line },
-  { name: "Clients", href: siteConfig.baseLinks.clients, icon: RiTeamLine },
   { name: "Reports", href: "/reports", icon: RiBarChartBoxLine },
   { name: "Assumptions", href: siteConfig.baseLinks.assumptions, icon: RiEqualizerLine },
 ] as const

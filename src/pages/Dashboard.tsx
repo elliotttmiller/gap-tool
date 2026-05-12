@@ -290,8 +290,8 @@ export function Dashboard() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-50">Clients</h1>
-          <p className="mt-1 text-sm text-gray-400">Manage client profiles and open risk analysis scenarios.</p>
+          <h1 className="text-2xl font-semibold text-gray-50">Dashboard</h1>
+          <p className="mt-1 text-sm text-gray-400">Client roster and risk analysis workspace.</p>
         </div>
         <Button>
           <RiAddLine className="size-4" aria-hidden="true" />

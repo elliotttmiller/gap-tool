@@ -1,4 +1,4 @@
-import { LifeInputs, LifeAssumptions, LifeOutputs } from "../types";
+import { LifeInputs, LifeAssumptions, LifeOutputs, LifeYearlyBreakdown } from "../types";
 import { clamp, nonNegative, safeDivide, roundCurrency, roundPercent } from "@/lib/math";
 
 export function calculateLifeInsuranceGap(
@@ -47,6 +47,37 @@ export function calculateLifeInsuranceGap(
 
   const coverageOffsetPercentage = safeDivide(availableResources, baseProtectionNeed);
 
+  // Build year-by-year breakdown: for each age from currentAge to retirementAge-1,
+  // model "if death occurred at this age, what is the total income need vs coverage?"
+  const yearlyBreakdown: LifeYearlyBreakdown[] = [];
+  const gli = nonNegative(inputs.groupLifeCoverage);
+  const privateLife = nonNegative(inputs.privateLifeCoverage);
+
+  for (let age = inputs.currentAge; age < inputs.retirementAge; age++) {
+    const yearsRemaining = inputs.retirementAge - age;
+    let totalNeed: number;
+    if (assumptions.usePresentValue) {
+      let pv = 0;
+      for (let yr = 1; yr <= yearsRemaining; yr++) {
+        pv += (annualReplacementNeed * Math.pow(1 + assumptions.incomeGrowthRateAnnual, yr))
+          / Math.pow(1 + assumptions.discountRateAnnual, yr);
+      }
+      totalNeed = pv;
+    } else {
+      totalNeed = annualReplacementNeed * yearsRemaining;
+    }
+    const gliCovered = Math.min(gli, totalNeed);
+    const privateCovered = Math.min(privateLife, Math.max(0, totalNeed - gliCovered));
+    const survivorGap = Math.max(0, totalNeed - gliCovered - privateCovered);
+    yearlyBreakdown.push({
+      age,
+      totalNeed: roundCurrency(totalNeed),
+      gliCovered: roundCurrency(gliCovered),
+      privateCovered: roundCurrency(privateCovered),
+      survivorGap: roundCurrency(survivorGap),
+    });
+  }
+
   return {
     replacementYears,
     annualReplacementNeed: roundCurrency(annualReplacementNeed),
@@ -57,5 +88,6 @@ export function calculateLifeInsuranceGap(
     availableResources: roundCurrency(availableResources),
     remainingGap: roundCurrency(remainingGap),
     coverageOffsetPercentage: roundPercent(coverageOffsetPercentage),
+    yearlyBreakdown,
   };
 }

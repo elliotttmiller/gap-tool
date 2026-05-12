@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AppShell } from './components/global/AppShell';
 import { Dashboard } from './pages/Dashboard';
-import { Clients } from './pages/Clients';
 import { AssumptionsPage } from './pages/Assumptions';
 import { ScenarioDetailShell } from './pages/ScenarioDetail';
 import { LifeModulePage } from './pages/LifeModulePage';
@@ -16,11 +15,11 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<AppShell />}>
-          {/* Dashboard */}
+          {/* Dashboard — unified client roster + analysis hub */}
           <Route index element={<Dashboard />} />
 
-          {/* Clients */}
-          <Route path="clients" element={<Clients />} />
+          {/* Redirect legacy /clients route to Dashboard */}
+          <Route path="clients" element={<Navigate to="/" replace />} />
 
           {/* Scenario detail with nested module tabs */}
           <Route path="scenarios/:scenarioId" element={<ScenarioDetailShell />}>
@@ -31,9 +30,9 @@ export default function App() {
             <Route path="liability" element={<LiabilityModulePage />} />
           </Route>
 
-          {/* Scenarios list → redirect to clients for now */}
-          <Route path="scenarios" element={<Navigate to="/clients" replace />} />
-          <Route path="scenarios/list" element={<Navigate to="/clients" replace />} />
+          {/* Scenarios list → redirect to Dashboard */}
+          <Route path="scenarios" element={<Navigate to="/" replace />} />
+          <Route path="scenarios/list" element={<Navigate to="/" replace />} />
 
           {/* Reports stub */}
           <Route path="reports" element={

@@ -12,9 +12,13 @@ export interface UnemploymentInputs {
 export interface UnemploymentOutputs {
   monthlyBurnRate: number;
   monthlyAvailableIncomeBase: number;
+  monthlyIncome: number;
   severanceTotal: number;
   reserveDepletionMonth: number;
   totalUncoveredShortfall: number;
+  currentReserveLevel: number;
+  optimalReserveTarget: number;
+  minimumReserveTarget: number;
   timeline: Array<{
     month: number;
     availableIncome: number;
