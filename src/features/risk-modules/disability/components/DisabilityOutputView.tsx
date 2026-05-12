@@ -55,26 +55,26 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
       {/* Lead KPI — income replacement rate is the core advisor story for DI */}
       <div className="grid gap-4 sm:grid-cols-2">
         <AnimatedSection delay={0}>
-          <Card className="border-gray-800 bg-gray-900/60">
-            <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Income Replaced by Benefits</div>
-              <div className="text-3xl font-bold tracking-tight text-emerald-500">
+          <Card className="border-gray-800 bg-gray-900/60 h-full">
+            <CardContent className="p-5 flex flex-col justify-between h-full">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Income Replaced by Benefits</div>
+              <div className="text-3xl font-bold tracking-tight text-gray-50">
                 {formatPercent(outputs.peakIncomeReplacementRate)}
               </div>
-              <p className="text-[10px] text-gray-500 mt-1">
+              <p className="text-xs text-gray-400 mt-2">
                 {formatCurrency(outputs.existingBenefitsPeakMonthly)}/mo peak · of {formatCurrency(outputs.monthlyIncomePreDisability)}/mo pre-disability
               </p>
             </CardContent>
           </Card>
         </AnimatedSection>
         <AnimatedSection delay={0.08}>
-          <Card className="border-red-900/40 bg-gray-900/60">
-            <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Income Gap — Private DI Can Fill</div>
-              <div className="text-3xl font-bold tracking-tight text-rose-500">
+          <Card className="border-gray-800 bg-gray-900/60 h-full">
+            <CardContent className="p-5 flex flex-col justify-between h-full">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Income Gap — Private DI Can Fill</div>
+              <div className="text-3xl font-bold tracking-tight text-gray-50">
                 {formatPercent(outputs.incomeGapRate)}
               </div>
-              <p className="text-[10px] text-gray-500 mt-1">
+              <p className="text-xs text-gray-400 mt-2">
                 ≈ {formatCurrency(outputs.averageMonthlyGap)}/mo avg uncovered
               </p>
             </CardContent>
@@ -84,36 +84,36 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
 
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
         <AnimatedSection delay={0.14}>
-          <Card className="border-gray-800">
-            <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Avg Monthly Gap</div>
-              <div className="text-2xl font-bold tracking-tight text-amber-600">
-                {formatCurrency(outputs.averageMonthlyGap)}<span className="text-sm font-normal text-gray-500">/mo</span>
+          <Card className="border-gray-800 h-full">
+            <CardContent className="p-5 flex flex-col justify-between h-full">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Avg Monthly Gap</div>
+              <div className="text-2xl font-bold tracking-tight text-gray-50">
+                {formatCurrency(outputs.averageMonthlyGap)}<span className="text-sm font-normal text-gray-400">/mo</span>
               </div>
             </CardContent>
           </Card>
         </AnimatedSection>
 
         <AnimatedSection delay={0.20}>
-          <Card className="border-gray-800">
-            <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Total Uncovered Gap</div>
-              <div className="text-2xl font-bold tracking-tight text-amber-500">
+          <Card className="border-gray-800 h-full">
+            <CardContent className="p-5 flex flex-col justify-between h-full">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Total Uncovered Gap</div>
+              <div className="text-2xl font-bold tracking-tight text-gray-50">
                 {formatCurrency(outputs.totalUncoveredGap)}
               </div>
-              <p className="text-[10px] text-gray-500 mt-1">Across full modeled period</p>
+              <p className="text-xs text-gray-400 mt-2">Across full modeled period</p>
             </CardContent>
           </Card>
         </AnimatedSection>
 
         <AnimatedSection delay={0.26} className="sm:col-span-2 md:col-span-1">
           <Card className="border-gray-800 h-full">
-            <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Lifestyle Compression</div>
-              <div className="text-2xl font-bold tracking-tight text-rose-600">
+            <CardContent className="p-5 flex flex-col justify-between h-full">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Lifestyle Compression</div>
+              <div className="text-2xl font-bold tracking-tight text-gray-50">
                 {formatPercent(outputs.lifestyleCompressionRequired)}
               </div>
-              <p className="text-[10px] text-gray-500 mt-1">Required spending cut</p>
+              <p className="text-xs text-gray-400 mt-2">Required spending cut</p>
             </CardContent>
           </Card>
         </AnimatedSection>

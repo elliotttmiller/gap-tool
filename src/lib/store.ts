@@ -125,6 +125,10 @@ interface AppState {
   clients: ClientRecord[]
   scenarios: ScenarioRecord[]
   moduleRecordsByScenarioId: Record<string, ScenarioModuleRecords>
+  globalLifeAssumptions: LifeAssumptions
+  globalDisabilityAssumptions: DisabilityAssumptions
+  updateGlobalLifeAssumptions: (updates: Partial<LifeAssumptions>) => void
+  updateGlobalDisabilityAssumptions: (updates: Partial<DisabilityAssumptions>) => void
   createClient: (payload: CreateClientPayload) => string
   updateClient: (clientId: string, updates: Partial<CreateClientPayload>) => void
   archiveClient: (clientId: string) => void
@@ -253,6 +257,10 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       clients: [], scenarios: [], moduleRecordsByScenarioId: {},
+      globalLifeAssumptions: { ...defaultLifeAssumptions },
+      globalDisabilityAssumptions: { ...defaultDisabilityAssumptions },
+      updateGlobalLifeAssumptions: (updates) => set((state) => ({ globalLifeAssumptions: { ...state.globalLifeAssumptions, ...updates } })),
+      updateGlobalDisabilityAssumptions: (updates) => set((state) => ({ globalDisabilityAssumptions: { ...state.globalDisabilityAssumptions, ...updates } })),
       createClient: (payload) => {
         const timestamp = nowIso(); const id = crypto.randomUUID(); const firstName = payload.firstName.trim(); const lastName = payload.lastName.trim()
         const primaryName = `${firstName} ${lastName}`.trim()
@@ -310,8 +318,8 @@ export const useAppStore = create<AppState>()(
         const activeModule = includedModules.includes(payload.activeModule) ? payload.activeModule : includedModules[0]
         const scenario: ScenarioRecord = { id: scenarioId, clientId: payload.clientId, advisorId: DEFAULT_ADVISOR_ID, name: payload.name.trim() || `${client.lastName} Household Risk Review`, notes: payload.notes?.trim(), includedModules, activeModule, status: "inputs_needed", createdAt: timestamp, updatedAt: timestamp, reportStatus: "not_started" }
         const moduleRecords: ScenarioModuleRecords = {}
-        if (includedModules.includes("life")) moduleRecords.life = { inputs: prefillLifeInputs(client.profile, payload.clientId, scenarioId), assumptions: { ...defaultLifeAssumptions }, output: null, updatedAt: timestamp }
-        if (includedModules.includes("disability")) moduleRecords.disability = { inputs: prefillDisabilityInputs(client.profile, payload.clientId, scenarioId), assumptions: { ...defaultDisabilityAssumptions }, output: null, updatedAt: timestamp }
+        if (includedModules.includes("life")) moduleRecords.life = { inputs: prefillLifeInputs(client.profile, payload.clientId, scenarioId), assumptions: { ...get().globalLifeAssumptions }, output: null, updatedAt: timestamp }
+        if (includedModules.includes("disability")) moduleRecords.disability = { inputs: prefillDisabilityInputs(client.profile, payload.clientId, scenarioId), assumptions: { ...get().globalDisabilityAssumptions }, output: null, updatedAt: timestamp }
         if (includedModules.includes("unemployment")) moduleRecords.unemployment = { inputs: prefillUnemploymentInputs(client.profile), output: null, updatedAt: timestamp }
         if (includedModules.includes("liability")) moduleRecords.liability = { inputs: prefillLiabilityInputs(client.profile), output: null, updatedAt: timestamp }
         set((state) => ({ scenarios: [scenario, ...state.scenarios], moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: moduleRecords } })); return scenarioId
@@ -326,6 +334,6 @@ export const useAppStore = create<AppState>()(
       saveUnemploymentCalculation: (scenarioId, output) => { const timestamp = nowIso(); set((state) => { const record = state.moduleRecordsByScenarioId[scenarioId]?.unemployment; if (!record) return state; return { moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: { ...state.moduleRecordsByScenarioId[scenarioId], unemployment: { ...record, output, updatedAt: timestamp, lastCalculatedAt: timestamp } } }, scenarios: state.scenarios.map((scenario) => scenario.id === scenarioId ? updateScenarioForSave(scenario, timestamp) : scenario) } }) },
       saveLiabilityCalculation: (scenarioId, output) => { const timestamp = nowIso(); set((state) => { const record = state.moduleRecordsByScenarioId[scenarioId]?.liability; if (!record) return state; return { moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: { ...state.moduleRecordsByScenarioId[scenarioId], liability: { ...record, output, updatedAt: timestamp, lastCalculatedAt: timestamp } } }, scenarios: state.scenarios.map((scenario) => scenario.id === scenarioId ? updateScenarioForSave(scenario, timestamp) : scenario) } }) },
     }),
-    { name: "gap-tool-app-state-v1", storage: createJSONStorage(() => localStorage), version: 2, partialize: (state) => ({ clients: state.clients, scenarios: state.scenarios, moduleRecordsByScenarioId: state.moduleRecordsByScenarioId }) },
+    { name: "gap-tool-app-state-v1", storage: createJSONStorage(() => localStorage), version: 2, partialize: (state) => ({ clients: state.clients, scenarios: state.scenarios, moduleRecordsByScenarioId: state.moduleRecordsByScenarioId, globalLifeAssumptions: state.globalLifeAssumptions, globalDisabilityAssumptions: state.globalDisabilityAssumptions }) },
   ),
 )

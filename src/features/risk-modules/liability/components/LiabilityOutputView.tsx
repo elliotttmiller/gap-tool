@@ -34,38 +34,38 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
     <div className="space-y-6 flex flex-col h-full w-full">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <AnimatedSection delay={0}>
-          <Card className="border-gray-800">
-            <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Household Wage Garnishment Risk</div>
-              <div className="text-2xl font-bold tracking-tight text-rose-500">{formatCurrency(outputs.householdWageGarnishmentRisk)}</div>
-              <p className="text-[10px] text-gray-500 mt-1">25% of projected income to age 65 at 3%/yr</p>
+          <Card className="border-gray-800 h-full">
+            <CardContent className="p-5 flex flex-col justify-between h-full">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Household Wage Garnishment Risk</div>
+              <div className="text-2xl font-bold tracking-tight text-gray-50">{formatCurrency(outputs.householdWageGarnishmentRisk)}</div>
+              <p className="text-xs text-gray-400 mt-2">25% of projected income to age 65 at 3%/yr</p>
             </CardContent>
           </Card>
         </AnimatedSection>
         <AnimatedSection delay={0.08}>
-          <Card className="border-gray-800">
-            <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Non-Qualified Assets at Risk</div>
-              <div className="text-2xl font-bold tracking-tight text-orange-500">{formatCurrency(outputs.nonQualifiedAssetsAtRisk)}</div>
-              <p className="text-[10px] text-gray-500 mt-1">Combined taxable assets exposed to judgment</p>
+          <Card className="border-gray-800 h-full">
+            <CardContent className="p-5 flex flex-col justify-between h-full">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Non-Qualified Assets at Risk</div>
+              <div className="text-2xl font-bold tracking-tight text-gray-50">{formatCurrency(outputs.nonQualifiedAssetsAtRisk)}</div>
+              <p className="text-xs text-gray-400 mt-2">Combined taxable assets exposed to judgment</p>
             </CardContent>
           </Card>
         </AnimatedSection>
         <AnimatedSection delay={0.16}>
-          <Card className="border-gray-800">
-            <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Auto Liability Coverage</div>
-              <div className="text-2xl font-bold tracking-tight text-cyan-400">{formatCurrency(outputs.householdAutoLiabilityCoverage)}</div>
-              <p className="text-[10px] text-gray-500 mt-1">Underlying household auto policy limit</p>
+          <Card className="border-gray-800 h-full">
+            <CardContent className="p-5 flex flex-col justify-between h-full">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Auto Liability Coverage</div>
+              <div className="text-2xl font-bold tracking-tight text-gray-50">{formatCurrency(outputs.householdAutoLiabilityCoverage)}</div>
+              <p className="text-xs text-gray-400 mt-2">Underlying household auto policy limit</p>
             </CardContent>
           </Card>
         </AnimatedSection>
         <AnimatedSection delay={0.24}>
-          <Card className="border-gray-800">
-            <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Household Liability Gap</div>
-              <div className="text-2xl font-bold tracking-tight text-red-500">{formatCurrency(outputs.householdLiabilityGap)}</div>
-              <p className="text-[10px] text-gray-500 mt-1">Risk minus auto coverage</p>
+          <Card className="border-gray-800 h-full">
+            <CardContent className="p-5 flex flex-col justify-between h-full">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Household Liability Gap</div>
+              <div className="text-2xl font-bold tracking-tight text-gray-50">{formatCurrency(outputs.householdLiabilityGap)}</div>
+              <p className="text-xs text-gray-400 mt-2">Risk minus auto coverage</p>
             </CardContent>
           </Card>
         </AnimatedSection>

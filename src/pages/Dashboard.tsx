@@ -311,12 +311,6 @@ export function Dashboard() {
         <AddClientDrawer />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Card><p className="text-xs uppercase tracking-widest text-gray-500">Clients</p><p className="mt-2 text-2xl font-semibold text-gray-50">{clients.length}</p></Card>
-        <Card><p className="text-xs uppercase tracking-widest text-gray-500">Risk Reviews</p><p className="mt-2 text-2xl font-semibold text-gray-50">{scenarios.length}</p></Card>
-        <Card><p className="text-xs uppercase tracking-widest text-gray-500">Reference Modules</p><p className="mt-2 text-2xl font-semibold text-gray-50">3</p></Card>
-      </div>
-
       {clients.length ? (
         <div className="relative max-w-sm">
           <RiSearchLine className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />

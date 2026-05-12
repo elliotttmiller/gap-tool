@@ -1,5 +1,5 @@
 import { Card } from "@/components/Card"
-import { cx } from "@/lib/utils"
+import { useAppStore } from "@/lib/store"
 import {
   RiFileTextLine,
   RiHeartPulseLine,
@@ -9,81 +9,127 @@ import {
   RiUmbrellaLine,
 } from "@remixicon/react"
 
-// ─── Static default assumption sets (will connect to store/API) ──────────────
+// ─── Shared input components ──────────────────────────────────────────────────
 
-const moduleSets = [
-  {
-    module: "Disability Insurance",
-    icon: RiUmbrellaLine,
-    color: "text-blue-400",
-    borderColor: "border-blue-900/40",
-    version: "v1.0.0",
-    lastUpdated: "May 12, 2026",
-    assumptions: [
-      { label: "Income replacement ratio", value: "60%", editable: true, description: "Percentage of pre-disability earned income targeted for replacement." },
-      { label: "Modeled disability duration", value: "36 months", editable: true, description: "Total number of months modeled for income disruption scenario." },
-      { label: "Effective tax rate", value: "28%", editable: true, description: "Estimated marginal effective tax rate applied to taxable benefit streams." },
-      { label: "Employer STD waiting period", value: "14 days", editable: true, description: "Days before short-term disability benefits begin." },
-      { label: "SSDI inclusion", value: "Excluded", editable: true, description: "Whether Social Security Disability income is included as an offset. Must be advisor-entered; not predicted." },
-      { label: "Expense inflation rate", value: "0% (flat)", editable: true, description: "Annual rate applied to monthly expenses over the modeled period." },
-    ],
-  },
-  {
-    module: "Life Insurance",
-    icon: RiHeartPulseLine,
-    color: "text-emerald-400",
-    borderColor: "border-emerald-900/30",
-    version: "v1.0.0",
-    lastUpdated: "May 12, 2026",
-    assumptions: [
-      { label: "Income replacement ratio", value: "75%", editable: true, description: "Percentage of annual income to be replaced for the survivor household." },
-      { label: "Income replacement years", value: "20 years", editable: true, description: "Number of years of income replacement modeled." },
-      { label: "Discount rate", value: "0% (nominal)", editable: true, description: "Rate used to discount future income replacement need to present value." },
-      { label: "Inflation rate", value: "0% (nominal)", editable: true, description: "Annual income growth or inflation assumption." },
-      { label: "Liquid asset offset", value: "Included", editable: true, description: "Whether advisor-specified liquid assets reduce the modeled protection gap." },
-      { label: "Final expense estimate", value: "$15,000", editable: true, description: "Flat estimate for final expenses included in capital needs calculation." },
-    ],
-  },
-  {
-    module: "Unemployment",
-    icon: RiShieldCheckLine,
-    color: "text-indigo-400",
-    borderColor: "border-indigo-900/30",
-    version: "v1.0.0",
-    lastUpdated: "May 12, 2026",
-    assumptions: [
-      { label: "Modeled unemployment duration", value: "6 months", editable: true, description: "Total months of income disruption modeled for the scenario." },
-      { label: "State UI benefit inclusion", value: "Included", editable: true, description: "Whether state unemployment insurance benefits are included as an offset." },
-      { label: "Spouse income offset", value: "Included", editable: true, description: "Whether spouse/partner income is included as an available resource." },
-      { label: "Reserve drawdown priority", value: "Emergency savings first", editable: false, description: "Order in which reserves are drawn down during the modeled period." },
-    ],
-  },
-  {
-    module: "Liability / Lawsuit",
-    icon: RiScalesLine,
-    color: "text-orange-400",
-    borderColor: "border-orange-900/30",
-    version: "v1.0.0",
-    lastUpdated: "May 12, 2026",
-    assumptions: [
-      { label: "Existing liability coverage", value: "Advisor-entered", editable: true, description: "Current liability coverage limits entered by the advisor for this client." },
-      { label: "Asset exposure scope", value: "Liquid assets only", editable: true, description: "Which asset categories are included in the modeled exposure estimate." },
-      { label: "Umbrella policy inclusion", value: "Included if entered", editable: true, description: "Whether a personal umbrella policy is counted as an offset when entered." },
-    ],
-  },
-]
+function PercentInput({
+  value,
+  onChange,
+}: {
+  value: number
+  onChange: (v: number) => void
+}) {
+  return (
+    <input
+      type="number"
+      min={0}
+      max={100}
+      step={0.1}
+      value={+(value * 100).toFixed(2)}
+      onChange={(e) => onChange(parseFloat(e.target.value) / 100 || 0)}
+      className="w-24 rounded-md border border-gray-700 bg-gray-900 px-2.5 py-1 text-right text-sm font-semibold text-gray-100 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+    />
+  )
+}
+
+function ToggleSelect({
+  value,
+  onChange,
+  trueLabel,
+  falseLabel,
+}: {
+  value: boolean
+  onChange: (v: boolean) => void
+  trueLabel?: string
+  falseLabel?: string
+}) {
+  return (
+    <select
+      value={value ? "true" : "false"}
+      onChange={(e) => onChange(e.target.value === "true")}
+      className="rounded-md border border-gray-700 bg-gray-900 px-2.5 py-1 text-sm font-semibold text-gray-100 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+    >
+      <option value="true">{trueLabel ?? "Yes"}</option>
+      <option value="false">{falseLabel ?? "No"}</option>
+    </select>
+  )
+}
+
+function EnumSelect<T extends string>({
+  value,
+  options,
+  onChange,
+}: {
+  value: T
+  options: { value: T; label: string }[]
+  onChange: (v: T) => void
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value as T)}
+      className="rounded-md border border-gray-700 bg-gray-900 px-2.5 py-1 text-sm font-semibold text-gray-100 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+    >
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>{o.label}</option>
+      ))}
+    </select>
+  )
+}
+
+function LockedValue({ label }: { label: string }) {
+  return (
+    <span className="rounded-md bg-gray-800 px-2.5 py-1 text-sm font-semibold text-gray-400">
+      {label}
+    </span>
+  )
+}
+
+function Row({
+  label,
+  description,
+  locked,
+  children,
+}: {
+  label: string
+  description: string
+  locked?: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex flex-col gap-3 px-6 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium text-gray-200">{label}</p>
+          {locked && (
+            <span className="flex items-center gap-1 rounded bg-gray-800 px-1.5 py-0.5 text-[10px] text-gray-500">
+              <RiLockLine className="size-3" aria-hidden="true" />
+              Locked
+            </span>
+          )}
+        </div>
+        <p className="mt-0.5 text-xs text-gray-500">{description}</p>
+      </div>
+      <div className="shrink-0">{children}</div>
+    </div>
+  )
+}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function AssumptionsPage() {
+  const lifeA = useAppStore((s) => s.globalLifeAssumptions)
+  const disabilityA = useAppStore((s) => s.globalDisabilityAssumptions)
+  const updateLife = useAppStore((s) => s.updateGlobalLifeAssumptions)
+  const updateDisability = useAppStore((s) => s.updateGlobalDisabilityAssumptions)
+
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold text-gray-50">Assumptions & Model Governance</h1>
         <p className="text-sm text-gray-400">
-          Default modeling assumptions used across all NorthStar risk modules. These values are
-          applied to new scenarios unless the advisor specifies scenario-level overrides.
+          Default modeling assumptions applied to all new scenarios. Changes take effect for
+          scenarios created after saving — existing scenario calculations are unaffected.
         </p>
       </div>
 
@@ -95,53 +141,155 @@ export function AssumptionsPage() {
           <p className="text-xs text-gray-400">
             All NorthStar calculations are deterministic and version-controlled. Every calculation run
             records the formula version, input snapshot, and assumption snapshot used. Historical
-            scenarios remain reproducible even after assumptions or formulas are updated.
+            scenarios remain reproducible even after assumptions are updated.
           </p>
         </div>
       </div>
 
-      {/* Per-module assumption cards */}
-      <div className="space-y-6">
-        {moduleSets.map((mod) => (
-          <Card key={mod.module} className={cx("overflow-hidden p-0 border", mod.borderColor)}>
-            {/* Module header */}
-            <div className="flex items-center justify-between border-b border-gray-800 px-6 py-4">
-              <div className="flex items-center gap-3">
-                <mod.icon className={cx("size-5 shrink-0", mod.color)} aria-hidden="true" />
-                <div>
-                  <h2 className="text-sm font-semibold text-gray-100">{mod.module}</h2>
-                  <p className="text-xs text-gray-500">Formula {mod.version} · Updated {mod.lastUpdated}</p>
-                </div>
-              </div>
-            </div>
+      {/* ── Life Insurance ───────────────────────────────────────────────────── */}
+      <Card className="overflow-hidden border border-emerald-900/30 p-0">
+        <div className="flex items-center gap-3 border-b border-gray-800 px-6 py-4">
+          <RiHeartPulseLine className="size-5 shrink-0 text-emerald-400" aria-hidden="true" />
+          <div>
+            <h2 className="text-sm font-semibold text-gray-100">Life Insurance</h2>
+            <p className="text-xs text-gray-500">Formula v1.0.0</p>
+          </div>
+        </div>
+        <div className="divide-y divide-gray-800/50">
+          <Row label="Discount rate (annual)" description="Rate used to discount future income replacement need to present value.">
+            <PercentInput value={lifeA.discountRateAnnual} onChange={(v) => updateLife({ discountRateAnnual: v })} />
+          </Row>
+          <Row label="Income growth rate (annual)" description="Annual income growth / inflation assumption applied to projected income needs.">
+            <PercentInput value={lifeA.incomeGrowthRateAnnual} onChange={(v) => updateLife({ incomeGrowthRateAnnual: v })} />
+          </Row>
+          <Row label="Inflation rate (annual)" description="General inflation rate used for expense projections.">
+            <PercentInput value={lifeA.inflationRateAnnual} onChange={(v) => updateLife({ inflationRateAnnual: v })} />
+          </Row>
+          <Row label="Death benefit income yield (annual)" description="Annualized return used to translate a lump-sum death benefit into annual replacement income.">
+            <PercentInput
+              value={lifeA.deathBenefitIncomeYieldAnnual ?? 0.05}
+              onChange={(v) => updateLife({ deathBenefitIncomeYieldAnnual: v })}
+            />
+          </Row>
+          <Row label="Use present value discounting" description="When enabled, projects and discounts future income needs to present value.">
+            <ToggleSelect
+              value={lifeA.usePresentValue}
+              onChange={(v) => updateLife({ usePresentValue: v })}
+              trueLabel="Enabled"
+              falseLabel="Disabled (nominal)"
+            />
+          </Row>
+          <Row label="Liquid asset offset" description="When enabled, advisor-specified liquid assets reduce the modeled protection gap.">
+            <ToggleSelect
+              value={lifeA.includeLiquidAssetsOffset}
+              onChange={(v) => updateLife({ includeLiquidAssetsOffset: v })}
+              trueLabel="Included"
+              falseLabel="Excluded"
+            />
+          </Row>
+          <Row label="Death benefit tax treatment" description="How life insurance proceeds are treated for tax modeling.">
+            <EnumSelect
+              value={lifeA.deathBenefitTaxTreatment}
+              options={[
+                { value: "generally_income_tax_free", label: "Generally income-tax free" },
+                { value: "not_modeled", label: "Not modeled" },
+              ]}
+              onChange={(v) => updateLife({ deathBenefitTaxTreatment: v })}
+            />
+          </Row>
+        </div>
+      </Card>
 
-            {/* Assumption rows */}
-            <div className="divide-y divide-gray-800/50">
-              {mod.assumptions.map((a) => (
-                <div key={a.label} className="grid grid-cols-[1fr_auto_auto] items-start gap-4 px-6 py-3.5 sm:grid-cols-[1fr_auto_auto]">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-200">{a.label}</p>
-                    <p className="mt-0.5 text-xs text-gray-500">{a.description}</p>
-                  </div>
-                  <span className="whitespace-nowrap rounded-md bg-gray-800 px-2.5 py-1 text-sm font-semibold text-gray-100">
-                    {a.value}
-                  </span>
-                  <span className="flex items-center gap-1 text-xs text-gray-500">
-                    {a.editable ? (
-                      <span className="rounded bg-gray-800 px-1.5 py-0.5 text-[10px] text-gray-400">Editable</span>
-                    ) : (
-                      <span className="flex items-center gap-1 rounded bg-gray-800 px-1.5 py-0.5 text-[10px] text-gray-600">
-                        <RiLockLine className="size-3" aria-hidden="true" />
-                        Locked
-                      </span>
-                    )}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </Card>
-        ))}
-      </div>
+      {/* ── Disability Insurance ─────────────────────────────────────────────── */}
+      <Card className="overflow-hidden border border-blue-900/40 p-0">
+        <div className="flex items-center gap-3 border-b border-gray-800 px-6 py-4">
+          <RiUmbrellaLine className="size-5 shrink-0 text-blue-400" aria-hidden="true" />
+          <div>
+            <h2 className="text-sm font-semibold text-gray-100">Disability Insurance</h2>
+            <p className="text-xs text-gray-500">Formula v1.0.0</p>
+          </div>
+        </div>
+        <div className="divide-y divide-gray-800/50">
+          <Row label="Effective tax rate" description="Estimated marginal effective tax rate applied to taxable benefit streams.">
+            <PercentInput value={disabilityA.effectiveTaxRate} onChange={(v) => updateDisability({ effectiveTaxRate: v })} />
+          </Row>
+          <Row label="Expense inflation rate (annual)" description="Annual rate applied to monthly expenses over the modeled disability period.">
+            <PercentInput
+              value={disabilityA.expenseInflationRateAnnual}
+              onChange={(v) => updateDisability({ expenseInflationRateAnnual: v })}
+            />
+          </Row>
+          <Row label="Use after-tax benefits" description="When enabled, taxable benefits are reduced by the effective tax rate.">
+            <ToggleSelect
+              value={disabilityA.useAfterTaxBenefits}
+              onChange={(v) => updateDisability({ useAfterTaxBenefits: v })}
+              trueLabel="After-tax"
+              falseLabel="Gross (pre-tax)"
+            />
+          </Row>
+          <Row label="Default scenario type" description="Whether new disability scenarios model a partial or total disability event.">
+            <EnumSelect
+              value={disabilityA.scenarioType}
+              options={[
+                { value: "total", label: "Total disability" },
+                { value: "partial", label: "Partial disability" },
+              ]}
+              onChange={(v) => updateDisability({ scenarioType: v })}
+            />
+          </Row>
+          <Row label="SSDI modeling mode" description="Whether Social Security Disability income is included as an offset.">
+            <EnumSelect
+              value={disabilityA.ssdiModelingMode}
+              options={[
+                { value: "excluded", label: "Excluded" },
+                { value: "advisor_entered", label: "Advisor-entered" },
+              ]}
+              onChange={(v) => updateDisability({ ssdiModelingMode: v })}
+            />
+          </Row>
+          <Row label="Benefit timing mode" description="Unit of time used for benefit stream calculations." locked>
+            <LockedValue label="Monthly" />
+          </Row>
+        </div>
+      </Card>
+
+      {/* ── Unemployment ─────────────────────────────────────────────────────── */}
+      <Card className="overflow-hidden border border-indigo-900/30 p-0">
+        <div className="flex items-center gap-3 border-b border-gray-800 px-6 py-4">
+          <RiShieldCheckLine className="size-5 shrink-0 text-indigo-400" aria-hidden="true" />
+          <div>
+            <h2 className="text-sm font-semibold text-gray-100">Unemployment</h2>
+            <p className="text-xs text-gray-500">Formula v1.0.0</p>
+          </div>
+        </div>
+        <div className="divide-y divide-gray-800/50">
+          <Row label="Reserve drawdown priority" description="Order in which reserves are drawn down during the modeled period." locked>
+            <LockedValue label="Emergency savings first" />
+          </Row>
+          <Row label="Spouse income offset" description="Whether spouse/partner income is included as an available resource." locked>
+            <LockedValue label="Included if entered" />
+          </Row>
+        </div>
+      </Card>
+
+      {/* ── Liability / Lawsuit ──────────────────────────────────────────────── */}
+      <Card className="overflow-hidden border border-orange-900/30 p-0">
+        <div className="flex items-center gap-3 border-b border-gray-800 px-6 py-4">
+          <RiScalesLine className="size-5 shrink-0 text-orange-400" aria-hidden="true" />
+          <div>
+            <h2 className="text-sm font-semibold text-gray-100">Liability / Lawsuit</h2>
+            <p className="text-xs text-gray-500">Formula v1.0.0</p>
+          </div>
+        </div>
+        <div className="divide-y divide-gray-800/50">
+          <Row label="Existing liability coverage" description="Current liability coverage limits are advisor-entered per scenario." locked>
+            <LockedValue label="Advisor-entered" />
+          </Row>
+          <Row label="Umbrella policy inclusion" description="A personal umbrella policy is counted as an offset when entered." locked>
+            <LockedValue label="Included if entered" />
+          </Row>
+        </div>
+      </Card>
 
       {/* Compliance footer */}
       <div className="flex items-start gap-3 rounded-lg border border-gray-800 bg-gray-900/40 px-5 py-4">

@@ -46,46 +46,46 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
     <div className="space-y-6 flex flex-col h-full">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <AnimatedSection delay={0}>
-          <Card className="border-gray-800">
-            <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Cumulative Survivor Gap</div>
-              <div className="text-2xl font-bold tracking-tight text-rose-500">
+          <Card className="border-gray-800 h-full">
+            <CardContent className="p-5 flex flex-col justify-between h-full">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Cumulative Survivor Gap</div>
+              <div className="text-2xl font-bold tracking-tight text-gray-50">
                 {formatCurrency(outputs.cumulativeSurvivorGap)}
               </div>
-              <p className="text-[10px] text-gray-600 mt-1">{formatPercent(outputs.lifetimeIncomeUncoveredPercentage)} of lifetime income uncovered</p>
+              <p className="text-xs text-gray-400 mt-2">{formatPercent(outputs.lifetimeIncomeUncoveredPercentage)} of lifetime income uncovered</p>
             </CardContent>
           </Card>
         </AnimatedSection>
         <AnimatedSection delay={0.08}>
-          <Card className="border-gray-800">
-            <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Group Life (GLI)</div>
-              <div className="text-2xl font-bold tracking-tight text-blue-400">
-                {formatCurrency(outputs.groupLifeAnnualIncome)}<span className="text-xs font-normal text-gray-500">/yr</span>
+          <Card className="border-gray-800 h-full">
+            <CardContent className="p-5 flex flex-col justify-between h-full">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Group Life (GLI)</div>
+              <div className="text-2xl font-bold tracking-tight text-gray-50">
+                {formatCurrency(outputs.groupLifeAnnualIncome)}<span className="text-sm font-normal text-gray-400">/yr</span>
               </div>
-              <p className="text-[10px] text-gray-600 mt-1">Annualized from death benefit @ 5%</p>
+              <p className="text-xs text-gray-400 mt-2">Annualized from death benefit @ 5%</p>
             </CardContent>
           </Card>
         </AnimatedSection>
         <AnimatedSection delay={0.16}>
-          <Card className="border-gray-800">
-            <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Private Life Insurance</div>
-              <div className="text-2xl font-bold tracking-tight text-cyan-400">
-                {formatCurrency(outputs.privateLifeAnnualIncome)}<span className="text-xs font-normal text-gray-500">/yr</span>
+          <Card className="border-gray-800 h-full">
+            <CardContent className="p-5 flex flex-col justify-between h-full">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Private Life Insurance</div>
+              <div className="text-2xl font-bold tracking-tight text-gray-50">
+                {formatCurrency(outputs.privateLifeAnnualIncome)}<span className="text-sm font-normal text-gray-400">/yr</span>
               </div>
-              <p className="text-[10px] text-gray-600 mt-1">Modeled for {outputs.privateLifeCoverageYears} years</p>
+              <p className="text-xs text-gray-400 mt-2">Modeled for {outputs.privateLifeCoverageYears} years</p>
             </CardContent>
           </Card>
         </AnimatedSection>
         <AnimatedSection delay={0.24}>
-          <Card className="border-gray-800">
-            <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Total Death Benefit</div>
+          <Card className="border-gray-800 h-full">
+            <CardContent className="p-5 flex flex-col justify-between h-full">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Total Death Benefit</div>
               <div className="text-2xl font-bold tracking-tight text-gray-50">
                 {formatCurrency(outputs.totalDeathBenefit)}
               </div>
-              <p className="text-[10px] text-gray-600 mt-1">Invested at assumed annual return</p>
+              <p className="text-xs text-gray-400 mt-2">Invested at assumed annual return</p>
             </CardContent>
           </Card>
         </AnimatedSection>
