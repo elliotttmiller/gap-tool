@@ -13,17 +13,22 @@ export type LiabilityChartData = {
 
 /**
  * Converts deterministic Liability outputs into chart-ready display data.
- * This transformer owns visual grouping only and does not alter exposure logic.
+ * The primary chart now follows the advisor-reference lawsuit model: total
+ * household liability risk offset by household auto liability coverage.
  */
 export function transformLiabilityChartData(outputs: LiabilityOutputs): LiabilityChartData {
   return {
     protectionStackData: [
       {
-        name: "Total Asset Exposure",
-        Coverage: outputs.totalCoverage,
-        ExposureGap: outputs.exposureGap,
+        name: "Household Liability Risk",
+        Coverage: outputs.householdAutoLiabilityCoverage,
+        ExposureGap: outputs.householdLiabilityGap,
       },
     ],
-    animationKey: [outputs.totalCoverage, outputs.exposureGap, outputs.totalAtRiskAssets].join(":"),
+    animationKey: [
+      outputs.householdAutoLiabilityCoverage,
+      outputs.householdLiabilityGap,
+      outputs.totalHouseholdLiabilityRisk,
+    ].join(":"),
   }
 }
