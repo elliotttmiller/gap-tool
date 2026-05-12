@@ -19,6 +19,10 @@ export interface UnemploymentOutputs {
   currentReserveLevel: number;
   optimalReserveTarget: number;
   minimumReserveTarget: number;
+  /** Advisor-reference metric: current annual income exposed by job loss. */
+  annualIncomeAtRisk: number;
+  /** Advisor-reference metric: reserve target in months currently held. */
+  reserveMonthsCurrent: number;
   timeline: Array<{
     month: number;
     availableIncome: number;
