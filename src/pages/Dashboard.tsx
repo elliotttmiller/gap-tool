@@ -156,11 +156,13 @@ function AddClientDrawer() {
           <div className="grid gap-3 sm:grid-cols-2">
             <Input type="number" min={0} placeholder="Group Life death benefit ($)" value={form.groupLifeCoverage} onChange={(event) => setField("groupLifeCoverage", event.target.value)} />
             <Input type="number" min={0} placeholder="Private Life death benefit ($)" value={form.privateLifeCoverage} onChange={(event) => setField("privateLifeCoverage", event.target.value)} />
-            <select value={form.privateLifePolicyType} onChange={(event) => setField("privateLifePolicyType", event.target.value as "term" | "permanent")} className="h-9 rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50">
-              <option value="term">Term</option>
-              <option value="permanent">Permanent</option>
-            </select>
-            {form.privateLifePolicyType === "term" ? <Input type="number" min={0} placeholder="Term length (years)" value={form.privateLifeTermYears} onChange={(event) => setField("privateLifeTermYears", event.target.value)} /> : <div />}
+            <div className="col-span-2 grid grid-cols-2 gap-3">
+              <select value={form.privateLifePolicyType} onChange={(event) => setField("privateLifePolicyType", event.target.value as "term" | "permanent")} className="h-9 rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50">
+                <option value="term">Term</option>
+                <option value="permanent">Permanent</option>
+              </select>
+              {form.privateLifePolicyType === "term" ? <Input type="number" min={0} placeholder="Term length (years)" value={form.privateLifeTermYears} onChange={(event) => setField("privateLifeTermYears", event.target.value)} /> : <div />}
+            </div>
             <Input type="number" min={0} placeholder="Non-qualified assets ($)" value={form.nonQualifiedAssets} onChange={(event) => setField("nonQualifiedAssets", event.target.value)} />
           </div>
 
@@ -173,12 +175,14 @@ function AddClientDrawer() {
                 <Input type="number" min={0} placeholder="Secondary annual income ($)" value={form.spouseAnnualIncome} onChange={(event) => setField("spouseAnnualIncome", event.target.value)} />
                 <Input type="number" min={0} placeholder="Secondary Group Life ($)" value={form.spouseGroupLifeCoverage} onChange={(event) => setField("spouseGroupLifeCoverage", event.target.value)} />
                 <Input type="number" min={0} placeholder="Secondary Private Life ($)" value={form.spousePrivateLifeCoverage} onChange={(event) => setField("spousePrivateLifeCoverage", event.target.value)} />
-                <select value={form.spousePrivateLifePolicyType} onChange={(event) => setField("spousePrivateLifePolicyType", event.target.value as "term" | "permanent")} className="h-9 rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50">
-                  <option value="term">Term</option>
-                  <option value="permanent">Permanent</option>
-                </select>
-                {form.spousePrivateLifePolicyType === "term" ? <Input type="number" min={0} placeholder="Secondary term length" value={form.spousePrivateLifeTermYears} onChange={(event) => setField("spousePrivateLifeTermYears", event.target.value)} /> : <div />}
                 <Input type="number" min={0} placeholder="Secondary non-qualified assets ($)" value={form.spouseNonQualifiedAssets} onChange={(event) => setField("spouseNonQualifiedAssets", event.target.value)} />
+                <div className="col-span-2 grid grid-cols-2 gap-3">
+                  <select value={form.spousePrivateLifePolicyType} onChange={(event) => setField("spousePrivateLifePolicyType", event.target.value as "term" | "permanent")} className="h-9 rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50">
+                    <option value="term">Term</option>
+                    <option value="permanent">Permanent</option>
+                  </select>
+                  {form.spousePrivateLifePolicyType === "term" ? <Input type="number" min={0} placeholder="Secondary term length (years)" value={form.spousePrivateLifeTermYears} onChange={(event) => setField("spousePrivateLifeTermYears", event.target.value)} /> : <div />}
+                </div>
               </div>
             </>
           ) : null}
