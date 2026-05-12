@@ -186,12 +186,25 @@ export function aggregateDisabilityOutputs(timeline: DisabilityTimelinePoint[]):
 
   const lifestyleCompressionRequired = safeDivide(averageMonthlyGap, averageMonthlyExpenses);
 
+  // Core advisor KPI — what % of pre-disability income do existing benefits replace?
+  const monthlyIncomePreDisability = timeline.length > 0 ? timeline[0].baselineMonthlyIncome : 0;
+  const existingBenefitsPeakMonthly = timeline.reduce((peak, point) => {
+    const totalNetBenefits = point.activeBenefits.reduce((s, b) => s + b.netAmount, 0);
+    return Math.max(peak, totalNetBenefits);
+  }, 0);
+  const peakIncomeReplacementRate = roundPercent(safeDivide(existingBenefitsPeakMonthly, monthlyIncomePreDisability));
+  const incomeGapRate = roundPercent(Math.max(0, 1 - peakIncomeReplacementRate));
+
   return {
     totalUncoveredGap: roundCurrency(totalUncoveredGap),
     reserveDepletionMonth: reserveDepletionPoint?.month ?? null,
     totalBenefitsReceived: roundCurrency(totalBenefitsReceived),
     averageMonthlyGap: roundCurrency(averageMonthlyGap),
     lifestyleCompressionRequired: roundPercent(lifestyleCompressionRequired),
+    monthlyIncomePreDisability: roundCurrency(monthlyIncomePreDisability),
+    existingBenefitsPeakMonthly: roundCurrency(existingBenefitsPeakMonthly),
+    peakIncomeReplacementRate,
+    incomeGapRate,
     timeline,
   };
 }

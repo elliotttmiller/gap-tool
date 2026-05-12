@@ -14,7 +14,12 @@ export function calculateLifeInsuranceGap(
   );
 
   const incomeReplacementRatio = clamp(inputs.incomeReplacementRatio, 0, 1.25);
-  const annualReplacementNeed = nonNegative(inputs.annualIncome) * incomeReplacementRatio;
+
+  // Net annual income that must be replaced = client income × ratio, minus what the
+  // surviving spouse already earns (they continue earning regardless of the client's death).
+  const annualClientNeed = nonNegative(inputs.annualIncome) * incomeReplacementRatio;
+  const annualSpouseOffset = nonNegative(inputs.spouseAnnualIncome ?? 0);
+  const annualReplacementNeed = Math.max(0, annualClientNeed - annualSpouseOffset);
   
   let futureIncomeLost = 0;
   if (assumptions.usePresentValue) {
@@ -47,8 +52,8 @@ export function calculateLifeInsuranceGap(
 
   const coverageOffsetPercentage = safeDivide(availableResources, baseProtectionNeed);
 
-  // Build year-by-year breakdown: for each age from currentAge to retirementAge-1,
-  // model "if death occurred at this age, what is the total income need vs coverage?"
+  // Year-by-year breakdown: if death occurred at each age, what is the total income
+  // need (years remaining × net replacement need) vs. what existing coverage covers?
   const yearlyBreakdown: LifeYearlyBreakdown[] = [];
   const gli = nonNegative(inputs.groupLifeCoverage);
   const privateLife = nonNegative(inputs.privateLifeCoverage);

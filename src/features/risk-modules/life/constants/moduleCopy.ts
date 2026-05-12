@@ -3,8 +3,10 @@ import { formatCurrency } from "@/lib/utils"
 
 export function getLifeInsuranceNarrative(outputs: LifeOutputs): string {
   if (outputs.remainingGap <= 0) {
-    return "This scenario illustrates that current coverage appears sufficient to replace lost income and cover immediate final expenses or debt obligations based on the assumptions entered."
+    return "Based on the assumptions entered, existing Group Life and private coverage appear sufficient to replace lost income, retire outstanding debts, and fund education goals. Review this projection whenever income, coverage, or family circumstances change."
   }
 
-  return `This scenario illustrates a potential protection gap of ${formatCurrency(outputs.remainingGap)} after accounting for existing group and private coverage. In the event of a premature death, this shortfall could impact the household's ability to maintain its lifestyle, fund education goals, and retire debt. This is an illustrative planning estimate based on the assumptions entered.`
+  const coveragePct = Math.round(outputs.coverageOffsetPercentage * 100)
+
+  return `A protection gap of ${formatCurrency(outputs.remainingGap)} remains after applying existing coverage (${formatCurrency(outputs.existingCoverageTotal)} total — ${coveragePct}% of the need). This gap represents the income, debts, and goals that would go unfunded if the client passed away today. Private life insurance is designed to close exactly this shortfall — providing the household with the financial continuity to maintain its lifestyle and meet long-term obligations.`
 }

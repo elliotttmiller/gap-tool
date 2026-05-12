@@ -6,8 +6,11 @@ export interface LifeInputs {
   currentAge: number;
   retirementAge: number;
   annualIncome: number;
+  /** Annual income of surviving spouse/partner. Reduces the income replacement need. */
+  spouseAnnualIncome: number;
 
   incomeReplacementYears: number;
+  /** Fraction of client income to replace (e.g. 1.0 = 100%). Typical: 0.70–1.00 */
   incomeReplacementRatio: number;
 
   groupLifeCoverage: number;

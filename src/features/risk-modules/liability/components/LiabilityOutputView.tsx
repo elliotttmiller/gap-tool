@@ -27,8 +27,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
-  const animationKey = [outputs.totalCoverage, outputs.exposureGap, outputs.totalAtRiskAssets].join(":")
-  const anim = useOnceAnimation(animationKey)
+  const anim = useOnceAnimation()
   const chartData = useMemo(() => [
     {
       name: "Total Asset Exposure",
@@ -94,9 +93,9 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
                     tickLine={false}
                   />
                   <Tooltip content={CustomTooltip} cursor={{ fill: "transparent" }} />
-                  <Legend wrapperStyle={{ fontSize: "12px", color: "#64748b" }} />
-                  <Bar dataKey="Coverage" stackId="a" fill="#22c55e" radius={outputs.exposureGap > 0 ? [0, 0, 0, 0] : [4, 4, 0, 0]} isAnimationActive={anim.active} animationBegin={anim.begin(0)} animationDuration={anim.duration} animationEasing={anim.easing} />
-                  <Bar dataKey="ExposureGap" stackId="a" fill="#f43f5e" radius={[4, 4, 0, 0]} isAnimationActive={anim.active} animationBegin={anim.begin(1)} animationDuration={anim.duration} animationEasing={anim.easing} onAnimationEnd={anim.done} />
+                  <Legend wrapperStyle={{ fontSize: '12px', color: '#64748b' }} />
+                  <Bar dataKey="Coverage"    stackId="a" fill="#22c55e" radius={outputs.exposureGap > 0 ? [0, 0, 0, 0] : [4, 4, 0, 0]} isAnimationActive={anim.active} animationBegin={0}   animationDuration={900} animationEasing="ease-out" />
+                  <Bar dataKey="ExposureGap" stackId="a" fill="#f43f5e" radius={[4, 4, 0, 0]}                                                                              isAnimationActive={anim.active} animationBegin={180} animationDuration={900} animationEasing="ease-out" onAnimationEnd={anim.done} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

@@ -3,8 +3,8 @@ import { formatCurrency } from "@/lib/utils"
 
 export function getUnemploymentNarrative(outputs: UnemploymentOutputs): string {
   if (outputs.reserveDepletionMonth <= 0) {
-    return `In this scenario, severance, unemployment benefits, and existing emergency reserves appear sufficient to cover the household's monthly burn rate during the estimated job search period without depleting savings.`
+    return `Based on the entered assumptions, severance, unemployment benefits, and emergency reserves appear sufficient to sustain the household through the projected job search period. Income protection insurance provides an additional layer — ensuring the runway stays intact even if the search runs long.`
   }
 
-  return `This scenario illustrates the liquidity risk during a prolonged job loss. Based on the projected monthly burn rate and available offsets (severance, unemployment), emergency reserves are estimated to fully deplete in month ${outputs.reserveDepletionMonth}. The total projected shortfall over the assumed search period is ${formatCurrency(outputs.totalUncoveredShortfall)}.`
+  return `Reserves are projected to run dry in month ${outputs.reserveDepletionMonth} — before the household is likely to have returned to full income. The total shortfall over the modeled search period is ${formatCurrency(outputs.totalUncoveredShortfall)}. Closing this gap before a job loss occurs — through reserve building or income protection coverage — is significantly easier than managing it mid-crisis.`
 }

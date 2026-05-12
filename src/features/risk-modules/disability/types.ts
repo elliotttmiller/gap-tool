@@ -75,5 +75,15 @@ export type DisabilityOutputs = {
   totalBenefitsReceived: number;
   averageMonthlyGap: number;
   lifestyleCompressionRequired: number;
+
+  /** Monthly income before disability (annualEarnedIncome / 12) */
+  monthlyIncomePreDisability: number;
+  /** Highest combined net benefit amount received in any single month */
+  existingBenefitsPeakMonthly: number;
+  /** Peak month benefits ÷ pre-disability income — the core advisor KPI */
+  peakIncomeReplacementRate: number;
+  /** 1 − peakIncomeReplacementRate — the gap the advisor is solving */
+  incomeGapRate: number;
+
   timeline: DisabilityTimelinePoint[];
 };

@@ -19,6 +19,7 @@ interface LifeOutputViewProps {
   outputs: LifeOutputs
 }
 
+// Defined outside component — never recreated on re-render
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
   return (
@@ -39,14 +40,9 @@ const legendFormatter = (value: string) => (
 )
 
 export function LifeOutputView({ outputs }: LifeOutputViewProps) {
-  const animationKey = [
-    outputs.remainingGap,
-    outputs.existingCoverageTotal,
-    outputs.coverageOffsetPercentage,
-    outputs.yearlyBreakdown?.length ?? 0,
-  ].join(":")
-  const anim = useOnceAnimation(animationKey)
+  const anim = useOnceAnimation()
 
+  // Memoized — only recomputes when yearlyBreakdown changes
   const tickSet = useMemo(
     () => new Set(outputs.yearlyBreakdown.filter((_, i) => i % 2 === 0).map((d) => d.age)),
     [outputs.yearlyBreakdown]
@@ -59,6 +55,7 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
 
   return (
     <div className="space-y-6 flex flex-col h-full">
+      {/* KPI row — staggered entrance */}
       <div className="grid gap-4 md:grid-cols-3">
         <AnimatedSection delay={0}>
           <Card className="border-gray-800">
@@ -90,57 +87,59 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
                 {formatPercent(outputs.coverageOffsetPercentage)}
               </div>
               <p className="text-[10px] text-gray-600 mt-1">Of total protection need</p>
-            </CardContent>
+          </CardContent>
           </Card>
         </AnimatedSection>
       </div>
 
+      {/* Year-by-year stacked bar */}
       <AnimatedSection delay={0.26}>
         <Card className="border-gray-800">
-          <CardHeader>
-            <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">
-              {chartTitle}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-75 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={outputs.yearlyBreakdown}
-                  margin={{ top: 10, right: 20, left: 10, bottom: 5 }}
-                  barCategoryGap="8%"
-                >
-                  <XAxis
-                    dataKey="age"
-                    tick={({ x, y, payload }) =>
-                      tickSet.has(payload.value) ? (
-                        <text x={x} y={y + 12} textAnchor="middle" fill="#64748b" fontSize={11}>
-                          {payload.value}
-                        </text>
-                      ) : <g />
-                    }
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tickFormatter={(v) => `$${Math.round(v / 1000)}k`}
-                    tick={{ fill: "#64748b", fontSize: 11 }}
-                    axisLine={false}
-                    tickLine={false}
-                    width={52}
-                  />
-                  <Tooltip content={CustomTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-                  <Legend wrapperStyle={{ paddingTop: "12px" }} formatter={legendFormatter} />
-                  <Bar dataKey="gliCovered" name="Covered by Group Life (GLI)" stackId="a" fill="#3b82f6" isAnimationActive={anim.active} animationBegin={anim.begin(0)} animationDuration={anim.duration} animationEasing={anim.easing} />
-                  <Bar dataKey="privateCovered" name="Covered by Private Life Insurance" stackId="a" fill="#06b6d4" isAnimationActive={anim.active} animationBegin={anim.begin(1)} animationDuration={anim.duration} animationEasing={anim.easing} />
-                  <Bar dataKey="survivorGap" name="Survivor Income Gap" stackId="a" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={anim.active} animationBegin={anim.begin(2)} animationDuration={anim.duration} animationEasing={anim.easing} onAnimationEnd={anim.done} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
+        <CardHeader>
+          <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">
+            {chartTitle}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-75 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={outputs.yearlyBreakdown}
+                margin={{ top: 10, right: 20, left: 10, bottom: 5 }}
+                barCategoryGap="8%"
+              >
+                <XAxis
+                  dataKey="age"
+                  tick={({ x, y, payload }) =>
+                    tickSet.has(payload.value) ? (
+                      <text x={x} y={y + 12} textAnchor="middle" fill="#64748b" fontSize={11}>
+                        {payload.value}
+                      </text>
+                    ) : <g />
+                  }
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tickFormatter={(v) => `$${Math.round(v / 1000)}k`}
+                  tick={{ fill: "#64748b", fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={52}
+                />
+                <Tooltip content={CustomTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+                <Legend wrapperStyle={{ paddingTop: "12px" }} formatter={legendFormatter} />
+                <Bar dataKey="gliCovered"     name="Covered by Group Life (GLI)"       stackId="a" fill="#3b82f6" isAnimationActive={anim.active} animationBegin={0}   animationDuration={900} animationEasing="ease-out" />
+                <Bar dataKey="privateCovered" name="Covered by Private Life Insurance"  stackId="a" fill="#06b6d4" isAnimationActive={anim.active} animationBegin={150} animationDuration={900} animationEasing="ease-out" />
+                <Bar dataKey="survivorGap"    name="Survivor Income Gap"                stackId="a" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={anim.active} animationBegin={300} animationDuration={900} animationEasing="ease-out" onAnimationEnd={anim.done} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
         </Card>
       </AnimatedSection>
 
+      {/* Advisor narrative */}
       <AnimatedSection delay={0.38}>
         <Card className="bg-[#090E1A] border border-gray-800">
           <CardContent className="p-6">

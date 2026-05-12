@@ -1,45 +1,22 @@
-import { useEffect, useRef, useState } from "react"
-
-function prefersReducedMotion(): boolean {
-  if (typeof window === "undefined") return false
-  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false
-}
-
-export type ChartAnimationController = {
-  active: boolean
-  done: () => void
-  begin: (index?: number) => number
-  duration: number
-  easing: "ease" | "ease-in" | "ease-out" | "ease-in-out" | "linear"
-}
+import { useRef, useState } from "react"
 
 /**
- * Returns a consistent animation controller for Recharts series.
+ * Returns animation props for Recharts series (Bar, Area, Line).
+ * Charts animate once on mount with staggered series, then lock off
+ * so re-renders from input changes don't re-trigger the animation.
  *
- * Charts animate on first mount, then lock off after the final series reports
- * completion. If a `resetKey` is provided, the animation resets when that key
- * changes so newly selected clients/scenarios can animate naturally without
- * constantly replaying on minor state changes.
+ * Usage:
+ *   const anim = useOnceAnimation()
+ *   <Bar isAnimationActive={anim.active} animationBegin={0}   animationDuration={900} animationEasing="ease-out" />
+ *   <Bar isAnimationActive={anim.active} animationBegin={150} animationDuration={900} animationEasing="ease-out" />
+ *   <Bar isAnimationActive={anim.active} animationBegin={300} animationDuration={900} animationEasing="ease-out" onAnimationEnd={anim.done} />
+ *
+ * Attach `onAnimationEnd={anim.done}` to only the LAST series in each chart.
  */
-export function useOnceAnimation(resetKey?: string | number): ChartAnimationController {
-  const reduceMotion = prefersReducedMotion()
-  const [active, setActive] = useState(!reduceMotion)
-  const locked = useRef(reduceMotion)
-  const previousResetKey = useRef(resetKey)
-
-  useEffect(() => {
-    if (reduceMotion) {
-      locked.current = true
-      setActive(false)
-      return
-    }
-
-    if (previousResetKey.current !== resetKey) {
-      previousResetKey.current = resetKey
-      locked.current = false
-      setActive(true)
-    }
-  }, [reduceMotion, resetKey])
+export function useOnceAnimation() {
+  const [active, setActive] = useState(true)
+  // Guard so done() is a no-op after first call
+  const locked = useRef(false)
 
   function done() {
     if (locked.current) return
@@ -47,11 +24,5 @@ export function useOnceAnimation(resetKey?: string | number): ChartAnimationCont
     setActive(false)
   }
 
-  return {
-    active,
-    done,
-    begin: (index = 0) => index * 160,
-    duration: 950,
-    easing: "ease-out",
-  }
+  return { active, done }
 }

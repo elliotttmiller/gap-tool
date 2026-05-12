@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { motion } from "framer-motion"
 
 interface AnimatedSectionProps {
   children: React.ReactNode
@@ -7,46 +7,19 @@ interface AnimatedSectionProps {
   className?: string
 }
 
-function prefersReducedMotion(): boolean {
-  if (typeof window === "undefined") return false
-  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false
-}
-
 /**
- * Lightweight fade + slide-up entrance wrapper.
- *
- * This intentionally avoids a runtime animation dependency. It gives cards,
- * forms, narratives, and chart panels a calm staged entrance while preserving
- * full ownership over the app's performance profile.
+ * Wraps children in a Framer Motion fade + slide-up entrance on mount.
+ * Use `delay` (seconds) to stagger multiple sections.
  */
 export function AnimatedSection({ children, delay = 0, className }: AnimatedSectionProps) {
-  const reduceMotion = prefersReducedMotion()
-  const [visible, setVisible] = useState(reduceMotion)
-
-  useEffect(() => {
-    if (reduceMotion) {
-      setVisible(true)
-      return
-    }
-
-    const frame = window.requestAnimationFrame(() => setVisible(true))
-    return () => window.cancelAnimationFrame(frame)
-  }, [reduceMotion])
-
   return (
-    <div
+    <motion.div
       className={className}
-      style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(16px)",
-        transitionProperty: "opacity, transform",
-        transitionDuration: reduceMotion ? "0ms" : "520ms",
-        transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
-        transitionDelay: reduceMotion ? "0ms" : `${delay}s`,
-        willChange: visible ? "auto" : "opacity, transform",
-      }}
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
-    </div>
+    </motion.div>
   )
 }

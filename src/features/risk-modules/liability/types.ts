@@ -15,5 +15,7 @@ export interface LiabilityOutputs {
   primaryCoverage: number;
   totalCoverage: number;
   exposureGap: number;
+  /** Portion of at-risk assets that would be eroded to satisfy a judgment (min of gap vs assets) */
+  erodedAssets: number;
   wealthErosionPercentage: number;
 }

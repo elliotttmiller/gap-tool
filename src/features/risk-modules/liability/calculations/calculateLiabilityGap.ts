@@ -26,6 +26,7 @@ export function calculateLiabilityGap(inputs: LiabilityInputs): LiabilityOutputs
     primaryCoverage,
     totalCoverage,
     exposureGap: coverageGap,
+    erodedAssets,
     wealthErosionPercentage,
   };
 }
