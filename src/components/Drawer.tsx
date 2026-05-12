@@ -14,9 +14,7 @@ const DrawerContext = React.createContext<DrawerContextValue | null>(null)
 
 function useDrawerContext(componentName: string) {
   const context = React.useContext(DrawerContext)
-  if (!context) {
-    throw new Error(`${componentName} must be used inside <Drawer />`)
-  }
+  if (!context) throw new Error(`${componentName} must be used inside <Drawer />`)
   return context
 }
 
@@ -55,17 +53,18 @@ const DrawerTrigger = React.forwardRef<HTMLButtonElement, DrawerTriggerProps>(
   ({ asChild, children, onClick, ...props }, ref) => {
     const { setOpen } = useDrawerContext("DrawerTrigger")
 
-    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    function handleClick(event: React.MouseEvent<HTMLButtonElement>) {
       onClick?.(event)
       if (!event.defaultPrevented) setOpen(true)
     }
 
     if (asChild && React.isValidElement(children)) {
-      return React.cloneElement(children as React.ReactElement<any>, {
+      const child = children as React.ReactElement<any>
+      return React.cloneElement(child, {
         ...props,
         ref,
         onClick: (event: React.MouseEvent<HTMLButtonElement>) => {
-          ;(children.props as any).onClick?.(event)
+          child.props.onClick?.(event)
           handleClick(event)
         },
       })
@@ -89,17 +88,18 @@ const DrawerClose = React.forwardRef<HTMLButtonElement, DrawerCloseProps>(
   ({ asChild, children, onClick, ...props }, ref) => {
     const { setOpen } = useDrawerContext("DrawerClose")
 
-    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    function handleClick(event: React.MouseEvent<HTMLButtonElement>) {
       onClick?.(event)
       if (!event.defaultPrevented) setOpen(false)
     }
 
     if (asChild && React.isValidElement(children)) {
-      return React.cloneElement(children as React.ReactElement<any>, {
+      const child = children as React.ReactElement<any>
+      return React.cloneElement(child, {
         ...props,
         ref,
         onClick: (event: React.MouseEvent<HTMLButtonElement>) => {
-          ;(children.props as any).onClick?.(event)
+          child.props.onClick?.(event)
           handleClick(event)
         },
       })
@@ -116,11 +116,7 @@ DrawerClose.displayName = "Drawer.Close"
 
 function DrawerPortal({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
-
+  React.useEffect(() => setMounted(true), [])
   if (!mounted) return null
   return createPortal(children, document.body)
 }
@@ -146,19 +142,16 @@ DrawerOverlay.displayName = "DrawerOverlay"
 
 const DrawerContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, children, ...props }, forwardedRef) => {
-    const { open } = useDrawerContext("DrawerContent")
+    const { open, setOpen } = useDrawerContext("DrawerContent")
 
     React.useEffect(() => {
       if (!open) return
       const onKeyDown = (event: KeyboardEvent) => {
-        if (event.key === "Escape") {
-          const context = DrawerContext
-          void context
-        }
+        if (event.key === "Escape") setOpen(false)
       }
       window.addEventListener("keydown", onKeyDown)
       return () => window.removeEventListener("keydown", onKeyDown)
-    }, [open])
+    }, [open, setOpen])
 
     if (!open) return null
 
@@ -169,8 +162,7 @@ const DrawerContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTML
             ref={forwardedRef}
             className={cx(
               "fixed inset-y-2 mx-auto flex w-[95vw] flex-1 flex-col overflow-y-auto rounded-md border p-4 shadow-lg focus:outline-none max-sm:inset-x-2 sm:inset-y-2 sm:right-2 sm:max-w-lg sm:p-6",
-              "border-gray-800 bg-[#090E1A]",
-              "animate-drawerSlideLeftAndFade",
+              "border-gray-800 bg-[#090E1A] animate-drawerSlideLeftAndFade",
               focusRing,
               className,
             )}
@@ -189,18 +181,16 @@ const DrawerContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTML
 DrawerContent.displayName = "DrawerContent"
 
 const DrawerHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ children, className, ...props }, ref) => {
-    return (
-      <div ref={ref} className="flex items-start justify-between gap-x-4 border-b border-gray-800 pb-4" {...props}>
-        <div className={cx("mt-1 flex flex-col gap-y-1", className)}>{children}</div>
-        <DrawerClose asChild>
-          <Button variant="ghost" className="aspect-square p-1 hover:bg-gray-400/10">
-            <RiCloseLine className="size-6" aria-hidden="true" />
-          </Button>
-        </DrawerClose>
-      </div>
-    )
-  },
+  ({ children, className, ...props }, ref) => (
+    <div ref={ref} className="flex items-start justify-between gap-x-4 border-b border-gray-800 pb-4" {...props}>
+      <div className={cx("mt-1 flex flex-col gap-y-1", className)}>{children}</div>
+      <DrawerClose asChild>
+        <Button variant="ghost" className="aspect-square p-1 hover:bg-gray-400/10">
+          <RiCloseLine className="size-6" aria-hidden="true" />
+        </Button>
+      </DrawerClose>
+    </div>
+  ),
 )
 DrawerHeader.displayName = "Drawer.Header"
 
@@ -212,18 +202,14 @@ const DrawerTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HT
 DrawerTitle.displayName = "DrawerTitle"
 
 const DrawerBody = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => {
-    return <div ref={ref} className={cx("flex-1 py-4", className)} {...props} />
-  },
+  ({ className, ...props }, ref) => <div ref={ref} className={cx("flex-1 py-4", className)} {...props} />,
 )
 DrawerBody.displayName = "Drawer.Body"
 
 const DrawerFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => {
-    return (
-      <div ref={ref} className={cx("flex flex-col-reverse gap-2 border-t border-gray-800 pt-4 sm:flex-row sm:justify-end", className)} {...props} />
-    )
-  },
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cx("flex flex-col-reverse gap-2 border-t border-gray-800 pt-4 sm:flex-row sm:justify-end", className)} {...props} />
+  ),
 )
 DrawerFooter.displayName = "Drawer.Footer"
 
