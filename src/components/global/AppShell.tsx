@@ -31,8 +31,8 @@ export function AppShell() {
   }, [])
 
   return (
-    <div className="min-h-screen min-w-7xl bg-gray-950">
-      <header className="fixed inset-x-0 top-0 z-50 h-16 border-b border-gray-800 bg-[#0a1628]/95 backdrop-blur-sm">
+    <div className="min-h-screen min-w-7xl bg-[#0d1b2a]">
+      <header className="fixed inset-x-0 top-0 z-50 h-16 border-b border-brand-500/30 bg-linear-to-br from-[#0d1b2a] to-[#1e3248] shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
         <div className="mx-auto flex h-full max-w-400 items-center px-8">
           <div className="flex flex-1 justify-start">
             <Link
@@ -73,7 +73,7 @@ export function AppShell() {
       {settingsOpen && (
         <div
           ref={panelRef}
-          className="fixed inset-x-0 top-16 z-40 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-gray-800 bg-[#090E1A] shadow-2xl"
+          className="fixed inset-x-0 top-16 z-40 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-brand-500/30 bg-[#0d1b2a] shadow-2xl"
         >
           <div className="mx-auto max-w-5xl px-8 py-8">
             <div className="mb-6 flex items-center justify-between">
