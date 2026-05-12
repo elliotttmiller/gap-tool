@@ -44,43 +44,54 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
 
   return (
     <div className="space-y-6 flex flex-col h-full">
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <AnimatedSection delay={0}>
           <Card className="border-gray-800">
             <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Survivor Income Gap</div>
-              <div className="text-2xl font-bold tracking-tight text-amber-500">
-                {formatCurrency(outputs.remainingGap)}
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Cumulative Survivor Gap</div>
+              <div className="text-2xl font-bold tracking-tight text-rose-500">
+                {formatCurrency(outputs.cumulativeSurvivorGap)}
               </div>
-              <p className="text-[10px] text-gray-600 mt-1">Uncovered protection need</p>
+              <p className="text-[10px] text-gray-600 mt-1">{formatPercent(outputs.lifetimeIncomeUncoveredPercentage)} of lifetime income uncovered</p>
             </CardContent>
           </Card>
         </AnimatedSection>
         <AnimatedSection delay={0.08}>
           <Card className="border-gray-800">
             <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Total Protection Need</div>
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Group Life (GLI)</div>
               <div className="text-2xl font-bold tracking-tight text-blue-400">
-                {formatCurrency(outputs.baseProtectionNeed)}
+                {formatCurrency(outputs.groupLifeAnnualIncome)}<span className="text-xs font-normal text-gray-500">/yr</span>
               </div>
-              <p className="text-[10px] text-gray-600 mt-1">Income + debts + goals</p>
+              <p className="text-[10px] text-gray-600 mt-1">Annualized from death benefit @ 5%</p>
             </CardContent>
           </Card>
         </AnimatedSection>
         <AnimatedSection delay={0.16}>
           <Card className="border-gray-800">
             <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Coverage Offset</div>
-              <div className="text-2xl font-bold tracking-tight text-gray-50">
-                {formatPercent(outputs.coverageOffsetPercentage)}
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Private Life Insurance</div>
+              <div className="text-2xl font-bold tracking-tight text-cyan-400">
+                {formatCurrency(outputs.privateLifeAnnualIncome)}<span className="text-xs font-normal text-gray-500">/yr</span>
               </div>
-              <p className="text-[10px] text-gray-600 mt-1">Of total protection need</p>
+              <p className="text-[10px] text-gray-600 mt-1">Modeled for {outputs.privateLifeCoverageYears} years</p>
+            </CardContent>
+          </Card>
+        </AnimatedSection>
+        <AnimatedSection delay={0.24}>
+          <Card className="border-gray-800">
+            <CardContent className="p-5">
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Total Death Benefit</div>
+              <div className="text-2xl font-bold tracking-tight text-gray-50">
+                {formatCurrency(outputs.totalDeathBenefit)}
+              </div>
+              <p className="text-[10px] text-gray-600 mt-1">Invested at assumed annual return</p>
             </CardContent>
           </Card>
         </AnimatedSection>
       </div>
 
-      <AnimatedSection delay={0.26}>
+      <AnimatedSection delay={0.3}>
         <Card className="border-gray-800">
           <CardHeader>
             <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">
@@ -90,30 +101,16 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
           <CardContent>
             <div className="h-75 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={chartData.yearlyCoverageData}
-                  margin={{ top: 10, right: 20, left: 10, bottom: 5 }}
-                  barCategoryGap="8%"
-                >
+                <BarChart data={chartData.yearlyCoverageData} margin={{ top: 10, right: 20, left: 10, bottom: 5 }} barCategoryGap="8%">
                   <XAxis
                     dataKey="age"
-                    tick={({ x, y, payload }) =>
-                      chartData.tickAges.has(payload.value) ? (
-                        <text x={x} y={y + 12} textAnchor="middle" fill="#64748b" fontSize={11}>
-                          {payload.value}
-                        </text>
-                      ) : <g />
-                    }
+                    tick={({ x, y, payload }) => chartData.tickAges.has(payload.value) ? (
+                      <text x={x} y={y + 12} textAnchor="middle" fill="#64748b" fontSize={11}>{payload.value}</text>
+                    ) : <g />}
                     axisLine={false}
                     tickLine={false}
                   />
-                  <YAxis
-                    tickFormatter={(v) => `$${Math.round(v / 1000)}k`}
-                    tick={{ fill: "#64748b", fontSize: 11 }}
-                    axisLine={false}
-                    tickLine={false}
-                    width={52}
-                  />
+                  <YAxis tickFormatter={(v) => `$${Math.round(v / 1000)}k`} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} width={52} />
                   <Tooltip content={CustomTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
                   <Legend wrapperStyle={{ paddingTop: "12px" }} formatter={legendFormatter} />
                   <Bar dataKey="gliCovered" name="Covered by Group Life (GLI)" stackId="a" fill="#3b82f6" isAnimationActive={anim.active} animationBegin={anim.begin(0)} animationDuration={anim.duration} animationEasing={anim.easing} />
@@ -130,9 +127,7 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
         <Card className="bg-[#090E1A] border border-gray-800">
           <CardContent className="p-6">
             <h4 className="font-semibold text-blue-400 mb-2 uppercase tracking-wider text-xs">Advisor Narrative</h4>
-            <p className="text-sm text-gray-300 leading-relaxed">
-              {getLifeInsuranceNarrative(outputs)}
-            </p>
+            <p className="text-sm text-gray-300 leading-relaxed">{getLifeInsuranceNarrative(outputs)}</p>
           </CardContent>
         </Card>
       </AnimatedSection>
