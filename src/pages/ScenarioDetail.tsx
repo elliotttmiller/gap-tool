@@ -116,8 +116,8 @@ export function ScenarioDetailShell() {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-2xl border border-slate-800/90 bg-[linear-gradient(180deg,rgba(15,23,42,0.72),rgba(2,6,23,0.48))] px-5 py-5 shadow-xl shadow-black/10 sm:px-7 sm:py-6 lg:px-8">
-        <nav className="mb-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
+      <section className="rounded-2xl border border-slate-800/90 bg-[linear-gradient(180deg,rgba(15,23,42,0.72),rgba(2,6,23,0.48))] px-8 py-6 shadow-xl shadow-black/10">
+        <nav className="mb-6 flex items-center gap-x-2 text-sm text-slate-500">
           <Link to="/" className="inline-flex items-center gap-1.5 transition-colors hover:text-slate-200">
             <RiArrowLeftLine className="size-4" aria-hidden="true" />
             Dashboard
@@ -128,9 +128,9 @@ export function ScenarioDetailShell() {
           <span className="font-medium text-slate-200">{scenario.name}</span>
         </nav>
 
-        <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+        <div className="flex items-start justify-between gap-8">
           <div className="min-w-0 flex-1 space-y-4">
-            <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex items-center gap-3">
               <span className="inline-flex items-center rounded-full bg-blue-950/90 px-3 py-1 text-xs font-semibold text-blue-300 ring-1 ring-blue-800/80">
                 {formatStatus(scenario.status)}
               </span>
@@ -139,7 +139,7 @@ export function ScenarioDetailShell() {
             </div>
 
             <div className="space-y-2">
-              <h1 className="max-w-5xl text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl">
+              <h1 className="max-w-5xl text-4xl font-semibold tracking-tight text-slate-50">
                 {scenario.name}
               </h1>
               <p className="max-w-3xl text-base leading-7 text-slate-400">
@@ -148,7 +148,7 @@ export function ScenarioDetailShell() {
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center justify-start xl:justify-end">
+          <div className="flex shrink-0 items-center justify-end pt-1">
             <Button variant="secondary" asChild className="h-11 rounded-xl px-5 text-base">
               <Link to={`/present/${scenarioId}`}>
                 <RiPresentationLine className="size-4" aria-hidden="true" />
@@ -159,15 +159,13 @@ export function ScenarioDetailShell() {
         </div>
 
         <div className="mt-7 border-t border-slate-800/80 pt-5">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div>
+          <div className="flex items-center justify-between gap-8">
+            <div className="shrink-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600">Risk Modules</p>
-              {activeTab ? (
-                <p className="mt-1 text-sm text-slate-400">{tabConfig[activeTab].subtitle}</p>
-              ) : null}
+              {activeTab ? <p className="mt-1 text-sm text-slate-400">{tabConfig[activeTab].subtitle}</p> : null}
             </div>
 
-            <div className="flex w-full max-w-full flex-wrap items-center gap-1.5 rounded-2xl border border-slate-800 bg-slate-950/70 p-1.5 lg:w-auto">
+            <div className="flex max-w-full items-center gap-1.5 rounded-2xl border border-slate-800 bg-slate-950/70 p-1.5">
               {includedTabs.map((module) => {
                 const tab = tabConfig[module]
                 return (
@@ -177,7 +175,7 @@ export function ScenarioDetailShell() {
                     onClick={() => setActiveModule(scenarioId, module)}
                     className={({ isActive }) =>
                       cx(
-                        "inline-flex min-h-10 items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all sm:px-4",
+                        "inline-flex min-h-10 items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all",
                         isActive
                           ? "bg-blue-950/70 text-white shadow-sm ring-1 ring-blue-700/70"
                           : "text-slate-400 hover:bg-slate-900 hover:text-slate-100",
