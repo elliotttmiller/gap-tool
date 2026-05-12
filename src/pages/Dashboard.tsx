@@ -1,4 +1,3 @@
-import { Badge } from "@/components/Badge"
 import { Button } from "@/components/Button"
 import { Card } from "@/components/Card"
 import {
@@ -90,10 +89,6 @@ function formatDate(value?: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return "—"
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
-}
-
-function formatStatus(value: string) {
-  return value.split("_").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ")
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -295,16 +290,14 @@ function RemoveClientDrawer({ client, scenarioCount }: { client: ClientRecord; s
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button
-          variant="ghost"
-          className="border-red-950/60 text-red-400 hover:bg-red-950/30 hover:text-red-300"
+        <button
           aria-label={`Remove ${client.displayName}`}
+          className="rounded-md p-1.5 text-red-500/60 transition-colors hover:bg-red-950/30 hover:text-red-400"
         >
           <RiDeleteBinLine className="size-4" aria-hidden="true" />
-          Remove
-        </Button>
+        </button>
       </DrawerTrigger>
-      <DrawerContent className="max-w-[460px]">
+      <DrawerContent className="max-w-115">
         <DrawerHeader>
           <DrawerTitle>Remove Client</DrawerTitle>
         </DrawerHeader>
@@ -401,13 +394,11 @@ export function Dashboard() {
               const firstScenarioId = firstScenarioByClientId[client.id]
 
               return (
-                <li key={client.id} className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-6 py-4">
-                  <div>
-                    <p className="font-medium text-gray-100">{client.displayName}</p>
+                <li key={client.id} className="flex items-center gap-4 px-6 py-4">
+                  <div className="min-w-0 flex-1">
                     <p className="text-xs text-gray-500">{client.profile.clientType === "couple" ? "Couple" : "Individual"} · Age {client.profile.currentAge ?? "—"} · Income ${Math.round(client.profile.annualEarnedIncome ?? 0).toLocaleString()}</p>
                     <p className="text-xs text-gray-600">Updated {formatDate(client.updatedAt)}</p>
                   </div>
-                  <Badge variant={client.status === "active" ? "success" : "neutral"}>{formatStatus(client.status)}</Badge>
                   <div className="flex items-center gap-2">
                     {firstScenarioId ? <Link to={`/scenarios/${firstScenarioId}/life`} className="text-sm text-blue-400 hover:text-blue-300">Open Review</Link> : null}
                     <StartRiskReviewDrawer client={client} />
