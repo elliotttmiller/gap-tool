@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AppShell } from './components/global/AppShell';
 import { Dashboard } from './pages/Dashboard';
+import { ClientOverview } from './pages/ClientOverview';
 import { ScenarioDetailShell } from './pages/ScenarioDetail';
 import { LifeModulePage } from './pages/LifeModulePage';
 import { DisabilityModulePage } from './pages/DisabilityModulePage';
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/" element={<AppShell />}>
           {/* Dashboard */}
           <Route index element={<Dashboard />} />
+          <Route path="clients/:clientId/overview" element={<ClientOverview />} />
 
           {/* Redirect legacy routes */}
           <Route path="clients" element={<Navigate to="/" replace />} />
