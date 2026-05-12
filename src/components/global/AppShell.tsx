@@ -50,7 +50,7 @@ export function AppShell() {
               <img
                 src={`${import.meta.env.BASE_URL}northstar-logo.svg`}
                 alt="North Star Resource Group"
-                className="h-11 w-auto object-contain"
+                className="h-18 w-auto object-contain"
               />
             </Link>
           </div>
