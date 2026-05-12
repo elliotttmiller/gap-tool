@@ -3,15 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency, formatPercent } from "@/lib/utils"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from "recharts"
 import { getDisabilityNarrative } from "../constants/moduleCopy"
-import { useMemo } from "react"
 import { AnimatedSection } from "@/components/ui/animated-section"
 import { useOnceAnimation } from "@/lib/use-once-animation"
+import { transformDisabilityChartData } from "../transformers/transformDisabilityChartData"
 
 interface DisabilityOutputViewProps {
   outputs: DisabilityOutputs
 }
 
-// Defined outside component — stable reference, never recreated on re-render
 const CustomStackTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
   return (
@@ -47,36 +46,9 @@ const CustomTimelineTooltip = ({ active, payload, label }: any) => {
 const legendStyle = { fontSize: "12px", color: "#64748b" }
 
 export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
-  const barAnim = useOnceAnimation()
-  const areaAnim = useOnceAnimation()
-
-  const maxGapPoint = useMemo(
-    () =>
-      outputs.timeline.reduce(
-        (max, point) => (point.monthlyGap > max.monthlyGap ? point : max),
-        outputs.timeline[0] || { availableIncome: 0, monthlyGap: 0, monthlyExpenses: 0 }
-      ),
-    [outputs.timeline]
-  )
-
-  const gapStackData = useMemo(() => {
-    const monthlyAvailableIncome = maxGapPoint?.availableIncome ?? 0
-    const monthlyIncomeGap = maxGapPoint?.monthlyGap ?? 0
-    return [
-      { name: "Total Expense Need", Expenses: maxGapPoint?.monthlyExpenses ?? 0, Available: 0, Gap: 0 },
-      { name: "Available vs Gap",   Expenses: 0, Available: monthlyAvailableIncome, Gap: monthlyIncomeGap > 0 ? monthlyIncomeGap : 0 },
-    ]
-  }, [maxGapPoint])
-
-  const timelineData = useMemo(
-    () =>
-      outputs.timeline?.map((t) => ({
-        Month: `M${t.month}`,
-        ReserveBalance: t.endingReserve,
-        Shortfall: t.monthlyGap > 0 ? t.monthlyGap : 0,
-      })) ?? [],
-    [outputs.timeline]
-  )
+  const chartData = transformDisabilityChartData(outputs)
+  const barAnim = useOnceAnimation(`bar-${chartData.animationKey}`)
+  const areaAnim = useOnceAnimation(`area-${chartData.animationKey}`)
 
   return (
     <div className="space-y-6 flex flex-col h-full w-full">
@@ -126,14 +98,14 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
             <CardContent>
               <div className="h-75 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={gapStackData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} barSize={80}>
+                  <BarChart data={chartData.gapStackData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} barSize={80}>
                     <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 12 }} axisLine={false} tickLine={false} />
                     <YAxis tickFormatter={(val) => `$${val / 1000}k`} tick={{ fill: "#64748b", fontSize: 12 }} axisLine={false} tickLine={false} />
                     <Tooltip content={CustomStackTooltip} cursor={{ fill: "transparent" }} />
                     <Legend wrapperStyle={legendStyle} />
-                    <Bar dataKey="Expenses"  stackId="a" fill="#334155" isAnimationActive={barAnim.active} animationBegin={0}   animationDuration={800} animationEasing="ease-out" />
-                    <Bar dataKey="Available" stackId="a" fill="#22c55e" isAnimationActive={barAnim.active} animationBegin={120} animationDuration={800} animationEasing="ease-out" />
-                    <Bar dataKey="Gap"       stackId="a" fill="#f59e0b" radius={[4, 4, 0, 0]} isAnimationActive={barAnim.active} animationBegin={240} animationDuration={800} animationEasing="ease-out" onAnimationEnd={barAnim.done} />
+                    <Bar dataKey="Expenses" stackId="a" fill="#334155" isAnimationActive={barAnim.active} animationBegin={barAnim.begin(0)} animationDuration={barAnim.duration} animationEasing={barAnim.easing} />
+                    <Bar dataKey="Available" stackId="a" fill="#22c55e" isAnimationActive={barAnim.active} animationBegin={barAnim.begin(1)} animationDuration={barAnim.duration} animationEasing={barAnim.easing} />
+                    <Bar dataKey="Gap" stackId="a" fill="#f59e0b" radius={[4, 4, 0, 0]} isAnimationActive={barAnim.active} animationBegin={barAnim.begin(2)} animationDuration={barAnim.duration} animationEasing={barAnim.easing} onAnimationEnd={barAnim.done} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -149,14 +121,14 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
             <CardContent>
               <div className="h-75 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={timelineData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <AreaChart data={chartData.reserveTimelineData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <defs>
                       <linearGradient id="colorReserveDI" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%"  stopColor="#22c55e" stopOpacity={0.3} />
+                        <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
                         <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="colorShortfallDI" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%"  stopColor="#f43f5e" stopOpacity={0.3} />
+                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} />
                         <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
                       </linearGradient>
                     </defs>
@@ -164,8 +136,8 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
                     <YAxis tickFormatter={(val) => `$${val / 1000}k`} tick={{ fill: "#64748b", fontSize: 12 }} axisLine={false} tickLine={false} />
                     <Tooltip content={CustomTimelineTooltip} />
                     <Legend wrapperStyle={legendStyle} />
-                    <Area type="monotone" dataKey="ReserveBalance" name="Cash Reserves"      stroke="#22c55e" fillOpacity={1} fill="url(#colorReserveDI)"   isAnimationActive={areaAnim.active} animationBegin={0}   animationDuration={1000} animationEasing="ease-out" />
-                    <Area type="monotone" dataKey="Shortfall"      name="Unfunded Shortfall" stroke="#f43f5e" fillOpacity={1} fill="url(#colorShortfallDI)" isAnimationActive={areaAnim.active} animationBegin={200} animationDuration={1000} animationEasing="ease-out" onAnimationEnd={areaAnim.done} />
+                    <Area type="monotone" dataKey="ReserveBalance" name="Cash Reserves" stroke="#22c55e" fillOpacity={1} fill="url(#colorReserveDI)" isAnimationActive={areaAnim.active} animationBegin={areaAnim.begin(0)} animationDuration={areaAnim.duration + 120} animationEasing={areaAnim.easing} />
+                    <Area type="monotone" dataKey="Shortfall" name="Unfunded Shortfall" stroke="#f43f5e" fillOpacity={1} fill="url(#colorShortfallDI)" isAnimationActive={areaAnim.active} animationBegin={areaAnim.begin(1)} animationDuration={areaAnim.duration + 120} animationEasing={areaAnim.easing} onAnimationEnd={areaAnim.done} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -218,4 +190,3 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
     </div>
   )
 }
-
