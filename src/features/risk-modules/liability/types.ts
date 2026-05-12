@@ -1,4 +1,12 @@
 export interface LiabilityInputs {
+  /** Advisor-reference projected household income risk through retirement. */
+  annualIncome?: number;
+  spouseAnnualIncome?: number;
+  currentAge?: number;
+  spouseCurrentAge?: number;
+  retirementAge?: number;
+  nonQualifiedAssets?: number;
+
   homeValue: number;
   mortgageBalance: number;
   investmentAssets: number;
@@ -18,4 +26,11 @@ export interface LiabilityOutputs {
   /** Portion of at-risk assets that would be eroded to satisfy a judgment (min of gap vs assets) */
   erodedAssets: number;
   wealthErosionPercentage: number;
+
+  /** Advisor-reference lawsuit outputs from the original HTML prototype. */
+  householdWageGarnishmentRisk: number;
+  nonQualifiedAssetsAtRisk: number;
+  totalHouseholdLiabilityRisk: number;
+  householdAutoLiabilityCoverage: number;
+  householdLiabilityGap: number;
 }
