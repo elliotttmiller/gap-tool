@@ -9,11 +9,11 @@ import { cx, focusInput, focusRing, hasErrorInput } from "@/lib/utils"
 const inputStyles = tv({
   base: [
     "relative block w-full appearance-none truncate rounded-md border px-2.5 py-2 shadow-sm outline-none transition sm:text-sm",
-    "border-gray-300 dark:border-gray-800",
-    "text-gray-900 dark:text-gray-50",
-    "placeholder-gray-400 dark:placeholder-gray-500",
-    "bg-white dark:bg-gray-950",
-    "disabled:border-gray-300 disabled:bg-gray-100 disabled:text-gray-400",
+    "border-gray-700",
+    "text-gray-50",
+    "placeholder-gray-500",
+    "bg-gray-900",
+    "disabled:border-gray-700 disabled:bg-gray-800 disabled:text-gray-500",
     "disabled:dark:border-gray-700 disabled:dark:bg-gray-800 disabled:dark:text-gray-500",
     [
       "file:-my-2 file:-ml-2.5 file:cursor-pointer file:rounded-l-[5px] file:rounded-r-none file:border-0 file:px-3 file:py-2 file:outline-none focus:outline-none disabled:pointer-events-none file:disabled:pointer-events-none",

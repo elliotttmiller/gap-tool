@@ -8,7 +8,7 @@ export function AppShell() {
     <div className="mx-auto max-w-screen-2xl">
       <Sidebar />
       {/* Mobile top bar */}
-      <div className="sticky top-0 z-40 flex h-16 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm dark:border-gray-800 dark:bg-gray-950 sm:px-6 lg:hidden">
+      <div className="sticky top-0 z-40 flex h-16 items-center gap-x-4 border-b border-blue-950 bg-[#0a1628] px-4 shadow-sm sm:px-6 lg:hidden">
         <MobileSidebar />
         <div className="flex items-center gap-x-3">
           <img
@@ -16,7 +16,7 @@ export function AppShell() {
             alt="North Star Resource Group"
             className="h-8 w-auto object-contain"
           />
-          <span className="text-sm font-semibold text-gray-900 dark:text-gray-50">
+          <span className="text-sm font-semibold text-white">
             {siteConfig.name}
           </span>
         </div>

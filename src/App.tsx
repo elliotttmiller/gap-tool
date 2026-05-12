@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AppShell } from './components/global/AppShell';
 import { Dashboard } from './pages/Dashboard';
 import { Clients } from './pages/Clients';
+import { AssumptionsPage } from './pages/Assumptions';
 import { ScenarioDetailShell } from './pages/ScenarioDetail';
 import { LifeModulePage } from './pages/LifeModulePage';
 import { DisabilityModulePage } from './pages/DisabilityModulePage';
@@ -37,10 +38,13 @@ export default function App() {
           {/* Reports stub */}
           <Route path="reports" element={
             <div className="space-y-4">
-              <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-50">Reports</h1>
+              <h1 className="text-2xl font-semibold text-gray-50">Reports</h1>
               <p className="text-sm text-gray-500">Report generation coming soon.</p>
             </div>
           } />
+
+          {/* Assumptions */}
+          <Route path="assumptions" element={<AssumptionsPage />} />
 
           {/* Settings with sub-pages */}
           <Route path="settings" element={<SettingsLayout />}>

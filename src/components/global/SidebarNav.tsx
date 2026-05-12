@@ -82,7 +82,7 @@ export function SidebarNav({ onClose }: { onClose?: () => void }) {
                     `flex items-center gap-3 px-3 py-1.5 rounded-md transition-all text-sm ${
                       isActive
                         ? "text-blue-400 font-medium"
-                        : "text-slate-500 hover:text-slate-300 hover:bg-white/5"
+                        : "text-gray-600 hover:text-gray-300 hover:bg-white/5"
                     }`
                   }
                 >
@@ -134,11 +134,11 @@ export function SidebarNav({ onClose }: { onClose?: () => void }) {
           </NavLink>
         </div>
       </nav>
-      <div className="p-4 border-t border-white/5 bg-slate-900/50">
-        <div className="bg-slate-800/40 rounded-lg border border-white/5 p-3">
-          <div className="text-[10px] text-slate-500 uppercase font-bold mb-1 tracking-wider">NorthStar Engine</div>
+      <div className="p-4 border-t border-white/5 bg-gray-900/30">
+        <div className="bg-gray-800/40 rounded-lg border border-white/5 p-3">
+          <div className="text-[10px] text-gray-600 uppercase font-bold mb-1 tracking-wider">NorthStar Engine</div>
           <div className="flex items-center justify-between">
-            <div className="text-xs text-slate-400 font-mono">v1.2.0-stable</div>
+            <div className="text-xs text-gray-500 font-mono">v1.2.0-stable</div>
             <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50 animate-pulse"></div>
           </div>
         </div>

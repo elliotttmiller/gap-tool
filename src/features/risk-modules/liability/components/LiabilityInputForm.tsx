@@ -1,4 +1,4 @@
-import { LiabilityInputs } from "../types"
+﻿import { LiabilityInputs } from "../types"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
@@ -18,7 +18,7 @@ export function LiabilityInputForm({ inputs, onChange }: LiabilityInputFormProps
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-wider">At-Risk Assets</CardTitle>
+          <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-wider">At-Risk Assets</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
@@ -62,7 +62,7 @@ export function LiabilityInputForm({ inputs, onChange }: LiabilityInputFormProps
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-wider">Liability Protection & Exposure</CardTitle>
+          <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-wider">Liability Protection & Exposure</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">

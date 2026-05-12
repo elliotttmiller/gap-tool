@@ -15,10 +15,10 @@ export function DisabilityModulePage() {
 
   return (
     <div className="space-y-6 w-full max-w-full overflow-hidden">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-800 gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-slate-900">Disability Insurance Risk Analysis</h2>
-          <p className="text-sm text-slate-500 mt-1">If I cannot work due to illness or injury, how does my financial plan change?</p>
+          <h2 className="text-xl font-semibold text-gray-50">Disability Insurance Risk Analysis</h2>
+          <p className="text-sm text-gray-400 mt-1">If I cannot work due to illness or injury, how does my financial plan change?</p>
         </div>
         <Button variant="secondary" className="gap-2 w-full sm:w-auto">
           <RiSaveLine className="size-4" aria-hidden="true" /> Save Scenario

@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom"
+﻿import { useParams, Link } from "react-router-dom"
 import { ArrowLeft, Printer } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { LifeOutputView } from "@/features/risk-modules/life/components/LifeOutputView"
@@ -27,10 +27,10 @@ export function Presentation() {
   const liabilityOutputs = calculateLiabilityGap(liabilityInputs)
 
   return (
-    <div className="min-h-screen bg-slate-100 p-8">
+    <div className="min-h-screen bg-gray-950 p-8">
       <div className="max-w-5xl mx-auto space-y-8">
         {/* Presentation Toolbar - Hidden on print */}
-        <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-200 print:hidden">
+        <div className="flex items-center justify-between bg-[#090E1A] p-4 rounded-xl border border-gray-800 print:hidden">
           <Button variant="ghost" className="shadow-none" asChild>
             <Link to={`/scenarios/${scenarioId}/life`} className="gap-2">
               <ArrowLeft className="w-4 h-4" /> Back to Builder
@@ -42,30 +42,30 @@ export function Presentation() {
         </div>
 
         {/* Presentation Slide */}
-        <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden print:shadow-none print:border-none">
-          <div className="p-12 border-b border-slate-100 bg-slate-900 text-white">
+        <div className="bg-[#090E1A] rounded-xl shadow-lg border border-gray-800 overflow-hidden print:shadow-none print:border-none">
+          <div className="p-12 border-b border-gray-800 bg-[#0a1628] text-white">
             <h1 className="text-3xl font-bold tracking-tight">Financial Exposure Analysis</h1>
-            <p className="text-slate-400 mt-2 text-lg">Miller Household</p>
+            <p className="text-gray-400 mt-2 text-lg">Miller Household</p>
           </div>
           
           <div className="p-12 space-y-16">
             <div>
-              <h2 className="text-xl font-semibold text-slate-800 border-b border-slate-200 pb-2 mb-6">Premature Death - Protection Gap</h2>
+              <h2 className="text-xl font-semibold text-gray-50 border-b border-gray-800 pb-2 mb-6">Premature Death - Protection Gap</h2>
               <LifeOutputView outputs={lifeOutputs} />
             </div>
 
             <div>
-              <h2 className="text-xl font-semibold text-slate-800 border-b border-slate-200 pb-2 mb-6">Disability / Illness - Income Collapse</h2>
+              <h2 className="text-xl font-semibold text-gray-50 border-b border-gray-800 pb-2 mb-6">Disability / Illness - Income Collapse</h2>
               <DisabilityOutputView outputs={disabilityOutputs} />
             </div>
 
             <div className="break-before-page">
-              <h2 className="text-xl font-semibold text-slate-800 border-b border-slate-200 pb-2 mb-6">Liquidity & Unemployment Risk</h2>
+              <h2 className="text-xl font-semibold text-gray-50 border-b border-gray-800 pb-2 mb-6">Liquidity & Unemployment Risk</h2>
               <UnemploymentOutputView outputs={unemploymentOutputs} />
             </div>
 
             <div>
-              <h2 className="text-xl font-semibold text-slate-800 border-b border-slate-200 pb-2 mb-6">Asset Exposure & Liability</h2>
+              <h2 className="text-xl font-semibold text-gray-50 border-b border-gray-800 pb-2 mb-6">Asset Exposure & Liability</h2>
               <LiabilityOutputView outputs={liabilityOutputs} />
             </div>
 

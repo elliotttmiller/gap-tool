@@ -34,10 +34,10 @@ const DropdownMenuSubMenuTrigger = React.forwardRef<
     ref={forwardedRef}
     className={cx(
       "relative flex cursor-default select-none items-center rounded py-1.5 pl-2 pr-1 outline-none transition-colors data-[state=checked]:font-semibold sm:text-sm",
-      "text-gray-900 dark:text-gray-50",
+      "text-gray-50",
       "data-disabled:pointer-events-none data-disabled:text-gray-400 data-disabled:hover:bg-none dark:data-disabled:text-gray-600",
       "focus-visible:bg-gray-100 data-[state=open]:bg-gray-100 focus-visible:dark:bg-gray-900 data-[state=open]:dark:bg-gray-900",
-      "hover:bg-gray-100 hover:dark:bg-gray-900",
+      "hover:bg-gray-800",
       className,
     )}
     {...props}
@@ -60,9 +60,9 @@ const DropdownMenuSubMenuContent = React.forwardRef<
         "relative z-50 overflow-hidden rounded-md border p-1 shadow-xl shadow-black/2.5",
         "min-w-32",
         "max-h-(--radix-popper-available-height)",
-        "bg-white dark:bg-gray-950",
-        "text-gray-900 dark:text-gray-50",
-        "border-gray-200 dark:border-gray-800",
+        "bg-gray-900",
+        "text-gray-50",
+        "border-gray-700",
         "will-change-[transform,opacity]",
         "data-[state=closed]:animate-hide",
         "data-[side=bottom]:animate-slideDownAndFade data-[side=left]:animate-slideLeftAndFade data-[side=right]:animate-slideRightAndFade data-[side=top]:animate-slideUpAndFade",
@@ -89,9 +89,9 @@ const DropdownMenuContent = React.forwardRef<
           "relative z-50 overflow-hidden rounded-md border p-1 shadow-xl shadow-black/2.5",
           "min-w-[calc(var(--radix-dropdown-menu-trigger-width))]",
           "max-h-(--radix-popper-available-height)",
-          "bg-white dark:bg-gray-950",
-          "text-gray-900 dark:text-gray-50",
-          "border-gray-200 dark:border-gray-800",
+          "bg-gray-900",
+          "text-gray-50",
+          "border-gray-700",
           "will-change-[transform,opacity]",
           "data-[state=closed]:animate-hide",
           "data-[side=bottom]:animate-slideDownAndFade data-[side=left]:animate-slideLeftAndFade data-[side=right]:animate-slideRightAndFade data-[side=top]:animate-slideUpAndFade",
@@ -119,10 +119,10 @@ const DropdownMenuItem = React.forwardRef<
     ref={forwardedRef}
     className={cx(
       "group/DropdownMenuItem relative flex cursor-pointer select-none items-center rounded py-1.5 pl-2 pr-1 outline-none transition-colors data-[state=checked]:font-semibold sm:text-sm",
-      "text-gray-900 dark:text-gray-50",
+      "text-gray-50",
       "data-disabled:pointer-events-none data-disabled:text-gray-400 data-disabled:hover:bg-none dark:data-disabled:text-gray-600",
-      "focus-visible:bg-gray-100 focus-visible:dark:bg-gray-900",
-      "hover:bg-gray-100 hover:dark:bg-gray-900",
+      "focus-visible:bg-gray-800",
+      "hover:bg-gray-800",
       className,
     )}
     {...props}
@@ -149,10 +149,10 @@ const DropdownMenuCheckboxItem = React.forwardRef<
     ref={forwardedRef}
     className={cx(
       "relative flex cursor-pointer select-none items-center gap-x-2 rounded py-1.5 pl-8 pr-1 outline-none transition-colors data-[state=checked]:font-semibold sm:text-sm",
-      "text-gray-900 dark:text-gray-50",
+      "text-gray-50",
       "data-disabled:pointer-events-none data-disabled:text-gray-400 data-disabled:hover:bg-none dark:data-disabled:text-gray-600",
-      "focus-visible:bg-gray-100 focus-visible:dark:bg-gray-900",
-      "hover:bg-gray-100 hover:dark:bg-gray-900",
+      "focus-visible:bg-gray-800",
+      "hover:bg-gray-800",
       className,
     )}
     checked={checked}
@@ -186,10 +186,10 @@ const DropdownMenuRadioItem = React.forwardRef<
     ref={forwardedRef}
     className={cx(
       "group/DropdownMenuRadioItem relative flex cursor-pointer select-none items-center gap-x-2 rounded py-1.5 pl-8 pr-1 outline-none transition-colors data-[state=checked]:font-semibold sm:text-sm",
-      "text-gray-900 dark:text-gray-50",
+      "text-gray-50",
       "data-disabled:pointer-events-none data-disabled:text-gray-400 data-disabled:hover:bg-none dark:data-disabled:text-gray-600",
-      "focus-visible:bg-gray-100 focus-visible:dark:bg-gray-900",
-      "hover:bg-gray-100 hover:dark:bg-gray-900",
+      "focus-visible:bg-gray-800",
+      "hover:bg-gray-800",
       className,
     )}
     {...props}

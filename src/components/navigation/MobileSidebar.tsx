@@ -2,6 +2,7 @@ import { siteConfig } from "@/lib/siteConfig"
 import { cx, focusRing } from "@/lib/utils"
 import {
   RiBarChartBoxLine,
+  RiEqualizerLine,
   RiHome2Line,
   RiMenuLine,
   RiSettings5Line,
@@ -24,6 +25,7 @@ const navigation = [
   { name: "Dashboard", href: siteConfig.baseLinks.home, icon: RiHome2Line },
   { name: "Clients", href: siteConfig.baseLinks.clients, icon: RiTeamLine },
   { name: "Reports", href: "/reports", icon: RiBarChartBoxLine },
+  { name: "Assumptions", href: siteConfig.baseLinks.assumptions, icon: RiEqualizerLine },
 ] as const
 
 export default function MobileSidebar() {
@@ -33,14 +35,14 @@ export default function MobileSidebar() {
         <Button
           variant="ghost"
           aria-label="open sidebar"
-          className="group flex items-center rounded-md p-2 text-sm font-medium hover:bg-gray-100 data-[state=open]:bg-gray-100 hover:dark:bg-gray-800/80 data-[state=open]:dark:bg-gray-800/80 lg:hidden"
+          className="group flex items-center rounded-md p-2 text-sm font-medium text-blue-200/70 hover:bg-blue-900/30 hover:text-white lg:hidden"
         >
           <RiMenuLine className="size-6 shrink-0 sm:size-5" aria-hidden="true" />
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="sm:max-w-72">
+      <DrawerContent className="sm:max-w-72 bg-[#0a1628] border-blue-950">
         <DrawerHeader>
-          <DrawerTitle>{siteConfig.name}</DrawerTitle>
+          <DrawerTitle className="text-white">{siteConfig.name}</DrawerTitle>
         </DrawerHeader>
         <DrawerBody>
           <nav aria-label="core mobile navigation links" className="flex flex-1 flex-col space-y-8">
@@ -54,9 +56,9 @@ export default function MobileSidebar() {
                       className={({ isActive }) =>
                         cx(
                           isActive
-                            ? "text-indigo-600 dark:text-indigo-400"
-                            : "text-gray-600 hover:text-gray-900 dark:text-gray-400 hover:dark:text-gray-50",
-                          "flex items-center gap-x-2.5 rounded-md px-2 py-1.5 text-base font-medium transition hover:bg-gray-100 sm:text-sm hover:dark:bg-gray-900",
+                            ? "bg-blue-900/40 text-white"
+                            : "text-blue-200/70 hover:text-white hover:bg-blue-900/30",
+                          "flex items-center gap-x-2.5 rounded-md px-2 py-1.5 text-base font-medium transition sm:text-sm",
                           focusRing,
                         )
                       }
@@ -69,16 +71,16 @@ export default function MobileSidebar() {
               ))}
             </ul>
 
-            <div className="mt-auto border-t border-gray-200 pt-3 dark:border-gray-800">
+            <div className="mt-auto border-t border-blue-950 pt-3">
               <DrawerClose asChild>
                 <NavLink
                   to={siteConfig.baseLinks.settings.general}
                   className={({ isActive }) =>
                     cx(
                       isActive
-                        ? "text-indigo-600 dark:text-indigo-400"
-                        : "text-gray-600 hover:text-gray-900 dark:text-gray-400 hover:dark:text-gray-50",
-                      "flex items-center gap-x-2.5 rounded-md px-2 py-1.5 text-base font-medium transition hover:bg-gray-100 sm:text-sm hover:dark:bg-gray-900",
+                        ? "bg-blue-900/40 text-white"
+                        : "text-blue-200/70 hover:text-white hover:bg-blue-900/30",
+                      "flex items-center gap-x-2.5 rounded-md px-2 py-1.5 text-base font-medium transition sm:text-sm",
                       focusRing,
                     )
                   }

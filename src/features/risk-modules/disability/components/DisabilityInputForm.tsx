@@ -1,4 +1,4 @@
-import { DisabilityInputs } from "../types"
+﻿import { DisabilityInputs } from "../types"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
@@ -18,7 +18,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-wider">Income & Expenses</CardTitle>
+          <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-wider">Income & Expenses</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
@@ -62,7 +62,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-wider">Existing Protection</CardTitle>
+          <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-wider">Existing Protection</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
@@ -106,7 +106,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-xs font-bold text-slate-400 uppercase tracking-wider">Assumptions</CardTitle>
+          <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-wider">Assumptions</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">

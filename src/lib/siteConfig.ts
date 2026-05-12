@@ -12,6 +12,7 @@ export const siteConfig = {
     home: "/",
     dashboard: "/",
     clients: "/clients",
+    assumptions: "/assumptions",
     settings: {
       general: "/settings",
       billing: "/settings/billing",

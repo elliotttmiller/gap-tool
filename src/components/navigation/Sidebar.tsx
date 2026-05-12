@@ -4,6 +4,7 @@ import {
   RiBarChartBoxLine,
   RiHome2Line,
   RiSettings5Line,
+  RiEqualizerLine,
   RiTeamLine,
 } from "@remixicon/react"
 import { NavLink } from "react-router-dom"
@@ -12,25 +13,20 @@ const navigation = [
   { name: "Dashboard", href: siteConfig.baseLinks.home, icon: RiHome2Line },
   { name: "Clients", href: siteConfig.baseLinks.clients, icon: RiTeamLine },
   { name: "Reports", href: "/reports", icon: RiBarChartBoxLine },
+  { name: "Assumptions", href: siteConfig.baseLinks.assumptions, icon: RiEqualizerLine },
 ] as const
 
 export function Sidebar() {
   return (
     <nav className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
-      <aside className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-4 pb-4 pt-5 dark:border-gray-800 dark:bg-gray-950">
+      <aside className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-blue-950 bg-[#0a1628] px-4 pb-4 pt-5">
         {/* Logo */}
-        <div className="flex items-center gap-x-3 px-1">
-          <div className="flex size-9 items-center justify-center rounded-md bg-indigo-600 dark:bg-indigo-500">
-            <RiBarChartBoxLine className="size-5 text-white" aria-hidden="true" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-gray-900 dark:text-gray-50">
-              {siteConfig.name}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {siteConfig.advisor.firm}
-            </p>
-          </div>
+        <div className="flex items-center px-1 pb-3 pt-1">
+          <img
+            src="/northstar-logo.svg"
+            alt="North Star Resource Group"
+            className="h-20 w-auto max-w-full object-contain"
+          />
         </div>
 
         {/* Core navigation */}
@@ -44,9 +40,9 @@ export function Sidebar() {
                   className={({ isActive: active }) =>
                     cx(
                       active
-                        ? "text-indigo-600 dark:text-indigo-400"
-                        : "text-gray-700 hover:text-gray-900 dark:text-gray-400 hover:dark:text-gray-50",
-                      "flex items-center gap-x-2.5 rounded-md px-2 py-1.5 text-sm font-medium transition hover:bg-gray-100 hover:dark:bg-gray-900",
+                        ? "bg-blue-900/40 text-white"
+                        : "text-blue-200/70 hover:text-white hover:bg-blue-900/30",
+                      "flex items-center gap-x-2.5 rounded-md px-2 py-1.5 text-sm font-medium transition",
                       focusRing,
                     )
                   }
@@ -60,15 +56,15 @@ export function Sidebar() {
         </nav>
 
         {/* Settings at bottom */}
-        <div className="mt-auto border-t border-gray-200 pt-3 dark:border-gray-800">
+        <div className="mt-auto border-t border-blue-950 pt-3">
           <NavLink
             to={siteConfig.baseLinks.settings.general}
             className={({ isActive: active }) =>
               cx(
                 active
-                  ? "text-indigo-600 dark:text-indigo-400"
-                  : "text-gray-700 hover:text-gray-900 dark:text-gray-400 hover:dark:text-gray-50",
-                "flex items-center gap-x-2.5 rounded-md px-2 py-1.5 text-sm font-medium transition hover:bg-gray-100 hover:dark:bg-gray-900",
+                  ? "bg-blue-900/40 text-white"
+                  : "text-blue-200/70 hover:text-white hover:bg-blue-900/30",
+                "flex items-center gap-x-2.5 rounded-md px-2 py-1.5 text-sm font-medium transition",
                 focusRing,
               )
             }

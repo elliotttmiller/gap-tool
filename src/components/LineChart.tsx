@@ -164,7 +164,7 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
         ))}
       </div>
       {enableLegendSlider && (hasScroll?.right || hasScroll?.left) ? (
-        <div className={cx("absolute bottom-0 right-0 top-0 flex h-full items-center justify-center pr-1", "bg-white dark:bg-gray-950")}>
+        <div className={cx("absolute bottom-0 right-0 top-0 flex h-full items-center justify-center pr-1", "bg-gray-950")}>
           <ScrollButton icon={RiArrowLeftSLine} onClick={() => { setIsKeyDowned(null); scrollToTest("left") }} disabled={!hasScroll?.left} />
           <ScrollButton icon={RiArrowRightSLine} onClick={() => { setIsKeyDowned(null); scrollToTest("right") }} disabled={!hasScroll?.right} />
         </div>
@@ -214,7 +214,7 @@ const OverviewChartTooltip = ({ active, payload, categoryColors, valueFormatter 
   const evolution = payload[0]?.payload?.evolution
   if (!title) return null
   return (
-    <div className={cx("rounded-md border text-sm shadow-md", "border-gray-200 dark:border-gray-800", "bg-white dark:bg-gray-950")}>
+    <div className={cx("rounded-md border text-sm shadow-md", "border-gray-800", "bg-gray-950")}>
       <div className="flex items-start justify-between gap-2 border-b border-inherit p-2">
         <p className={cx("font-medium", "text-gray-900 dark:text-gray-50")}>{title}</p>
         {evolution !== undefined && <Badge variant={getBadgeType(evolution)}>{percentageFormatter(evolution)}</Badge>}

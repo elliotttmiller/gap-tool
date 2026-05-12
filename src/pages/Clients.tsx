@@ -1,8 +1,16 @@
 import { Badge } from "@/components/Badge"
 import { Button } from "@/components/Button"
 import { Card } from "@/components/Card"
-import { RiAddLine, RiArrowRightSLine } from "@remixicon/react"
+import { cx } from "@/lib/utils"
+import {
+  RiAddLine,
+  RiArrowRightSLine,
+  RiFileTextLine,
+  RiSearchLine,
+  RiUserLine,
+} from "@remixicon/react"
 import { Link } from "react-router-dom"
+
 
 const clients = [
   {
