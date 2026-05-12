@@ -2,8 +2,8 @@ import { LifeInputForm } from "@/features/risk-modules/life/components/LifeInput
 import { LifeOutputView } from "@/features/risk-modules/life/components/LifeOutputView"
 import { calculateLifeInsuranceGap } from "@/features/risk-modules/life/calculations/calculateLifeInsuranceGap"
 import { DisclaimerBlock } from "@/components/global/DisclaimerBlock"
-import { Button } from "@/components/ui/button"
-import { Save } from "lucide-react"
+import { Button } from "@/components/Button"
+import { RiSaveLine } from "@remixicon/react"
 import { useScenarioStore } from "@/lib/store"
 
 export function LifeModulePage() {
@@ -20,8 +20,8 @@ export function LifeModulePage() {
           <h2 className="text-xl font-semibold text-slate-900">Life Insurance Risk Analysis</h2>
           <p className="text-sm text-slate-500 mt-1">If I die prematurely, what financial support disappears for my family?</p>
         </div>
-        <Button variant="outline" className="gap-2 w-full sm:w-auto shadow-sm">
-          <Save className="w-4 h-4 text-slate-400" /> Save Scenario
+        <Button variant="secondary" className="gap-2 w-full sm:w-auto">
+          <RiSaveLine className="size-4" aria-hidden="true" /> Save Scenario
         </Button>
       </div>
 

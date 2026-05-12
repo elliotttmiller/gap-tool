@@ -1,60 +1,108 @@
+import { Badge } from "@/components/Badge"
+import { Button } from "@/components/Button"
+import { Card } from "@/components/Card"
+import { RiAddLine, RiArrowRightSLine } from "@remixicon/react"
 import { Link } from "react-router-dom"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+
+const clients = [
+  {
+    id: "1",
+    name: "Elliott Miller",
+    email: "elliott@example.com",
+    status: "Active" as const,
+    lastUpdated: "Today",
+    scenarios: 3,
+  },
+  {
+    id: "2",
+    name: "Sarah Davis",
+    email: "sarah@example.com",
+    status: "Draft" as const,
+    lastUpdated: "3 days ago",
+    scenarios: 1,
+  },
+  {
+    id: "3",
+    name: "Robert Chen",
+    email: "robert@example.com",
+    status: "Active" as const,
+    lastUpdated: "1 week ago",
+    scenarios: 2,
+  },
+]
+
+const statusVariant: Record<string, "success" | "neutral" | "warning"> = {
+  Active: "success",
+  Draft: "neutral",
+  Pending: "warning",
+}
 
 export function Clients() {
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6 sm:space-y-8 w-full">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Clients</h1>
-          <p className="text-slate-500 mt-1">Manage client profiles and generated scenarios.</p>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-50">Clients</h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            Manage client profiles and their risk scenarios.
+          </p>
         </div>
-        <Button className="w-full sm:w-auto">Add Client</Button>
+        <Button>
+          <RiAddLine className="size-4" aria-hidden="true" />
+          Add Client
+        </Button>
       </div>
 
-      <Card className="overflow-hidden">
-        <div className="overflow-x-auto w-full">
-          <table className="w-full text-sm text-left text-slate-500 whitespace-nowrap">
-            <thead className="text-[10px] text-slate-400 uppercase tracking-widest bg-slate-50 border-b border-slate-200">
+      {/* Table */}
+      <Card>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+            <thead>
               <tr>
-                <th scope="col" className="px-6 py-3 font-medium">Name</th>
-                <th scope="col" className="px-6 py-3 font-medium">Status</th>
-                <th scope="col" className="px-6 py-3 font-medium">Last Updated</th>
-                <th scope="col" className="px-6 py-3 font-medium text-right">Action</th>
+                {["Client", "Email", "Scenarios", "Last Updated", "Status", ""].map((h) => (
+                  <th
+                    key={h}
+                    className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 first:pl-6 last:pr-6 dark:text-gray-500"
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
-            <tbody>
-              <tr className="bg-white border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-6 py-4 font-medium text-slate-900">
-                  Elliott Miller
-                </td>
-                <td className="px-6 py-4">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Active</span>
-                </td>
-                <td className="px-6 py-4">
-                  Today
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <Button variant="outline" size="sm" asChild>
-                    <Link to="/scenarios/1/life">View Scenario</Link>
-                  </Button>
-                </td>
-              </tr>
-              <tr className="bg-white hover:bg-slate-50">
-                <td className="px-6 py-4 font-medium text-slate-900">
-                  Sarah Davis
-                </td>
-                <td className="px-6 py-4">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800">Draft</span>
-                </td>
-                <td className="px-6 py-4">
-                  3 days ago
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <Button variant="outline" size="sm">View Profile</Button>
-                </td>
-              </tr>
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+              {clients.map((client) => (
+                <tr
+                  key={client.id}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors"
+                >
+                  <td className="whitespace-nowrap px-4 py-4 pl-6 text-sm font-medium text-gray-900 dark:text-gray-50">
+                    {client.name}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400">
+                    {client.email}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400">
+                    {client.scenarios}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400">
+                    {client.lastUpdated}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4">
+                    <Badge variant={statusVariant[client.status] ?? "neutral"}>
+                      {client.status}
+                    </Badge>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4 pr-6 text-right">
+                    <Button variant="ghost" asChild className="gap-1 text-xs">
+                      <Link to={`/scenarios/${client.id}/disability`}>
+                        Open Scenario
+                        <RiArrowRightSLine className="size-4" aria-hidden="true" />
+                      </Link>
+                    </Button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

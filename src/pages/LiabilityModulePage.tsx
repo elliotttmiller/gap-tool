@@ -2,8 +2,8 @@ import { LiabilityInputForm } from "@/features/risk-modules/liability/components
 import { LiabilityOutputView } from "@/features/risk-modules/liability/components/LiabilityOutputView"
 import { calculateLiabilityGap } from "@/features/risk-modules/liability/calculations/calculateLiabilityGap"
 import { DisclaimerBlock } from "@/components/global/DisclaimerBlock"
-import { Button } from "@/components/ui/button"
-import { Save } from "lucide-react"
+import { Button } from "@/components/Button"
+import { RiSaveLine } from "@remixicon/react"
 import { useScenarioStore } from "@/lib/store"
 
 export function LiabilityModulePage() {
@@ -19,8 +19,8 @@ export function LiabilityModulePage() {
           <h2 className="text-xl font-semibold text-slate-900">Liability & Asset Protection</h2>
           <p className="text-sm text-slate-500 mt-1">If I am sued, how much of my wealth is exposed and unprotected?</p>
         </div>
-        <Button variant="outline" className="gap-2 w-full sm:w-auto shadow-sm">
-          <Save className="w-4 h-4 text-slate-400" /> Save Scenario
+        <Button variant="secondary" className="gap-2 w-full sm:w-auto">
+          <RiSaveLine className="size-4" aria-hidden="true" /> Save Scenario
         </Button>
       </div>
 

@@ -1,8 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AppShell } from './components/global/AppShell';
 import { Dashboard } from './pages/Dashboard';
@@ -13,33 +8,86 @@ import { DisabilityModulePage } from './pages/DisabilityModulePage';
 import { UnemploymentModulePage } from './pages/UnemploymentModulePage';
 import { LiabilityModulePage } from './pages/LiabilityModulePage';
 import { Presentation } from './pages/Presentation';
+import { SettingsLayout } from './pages/Settings';
 
 export default function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<AppShell />}>
+          {/* Dashboard */}
           <Route index element={<Dashboard />} />
+
+          {/* Clients */}
           <Route path="clients" element={<Clients />} />
+
+          {/* Scenario detail with nested module tabs */}
           <Route path="scenarios/:scenarioId" element={<ScenarioDetailShell />}>
-            <Route index element={<Navigate to="life" replace />} />
-            <Route path="life" element={<LifeModulePage />} />
+            <Route index element={<Navigate to="disability" replace />} />
             <Route path="disability" element={<DisabilityModulePage />} />
+            <Route path="life" element={<LifeModulePage />} />
             <Route path="unemployment" element={<UnemploymentModulePage />} />
             <Route path="liability" element={<LiabilityModulePage />} />
           </Route>
-          {/* Default catch-all */}
-          <Route path="reports" element={<div className="p-8">Reports coming soon</div>} />
-          <Route path="assumptions" element={<div className="p-8">Assumptions coming soon</div>} />
-          <Route path="settings" element={<div className="p-8">Settings coming soon</div>} />
-          <Route path="scenarios/list" element={<div className="p-8 text-slate-500">Scenarios list coming soon</div>} />
+
+          {/* Scenarios list → redirect to clients for now */}
+          <Route path="scenarios" element={<Navigate to="/clients" replace />} />
+          <Route path="scenarios/list" element={<Navigate to="/clients" replace />} />
+
+          {/* Reports stub */}
+          <Route path="reports" element={
+            <div className="space-y-4">
+              <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-50">Reports</h1>
+              <p className="text-sm text-gray-500">Report generation coming soon.</p>
+            </div>
+          } />
+
+          {/* Settings with sub-pages */}
+          <Route path="settings" element={<SettingsLayout />}>
+            <Route index element={<Navigate to="general" replace />} />
+            <Route path="general" element={
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50">General Settings</h2>
+                <p className="text-sm text-gray-500">Advisor profile and application preferences.</p>
+              </div>
+            } />
+            <Route path="billing" element={
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50">Billing</h2>
+                <p className="text-sm text-gray-500">Subscription and billing details.</p>
+              </div>
+            } />
+            <Route path="users" element={
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50">Users</h2>
+                <p className="text-sm text-gray-500">Team members and access control.</p>
+              </div>
+            } />
+          </Route>
+
+          {/* Assumptions stub */}
+          <Route path="assumptions" element={
+            <div className="space-y-4">
+              <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-50">Model Assumptions</h1>
+              <p className="text-sm text-gray-500">Assumption management coming soon.</p>
+            </div>
+          } />
+
+          {/* 404 inside app shell */}
+          <Route path="*" element={
+            <div className="flex flex-col items-center justify-center py-24 text-center">
+              <p className="text-5xl font-bold text-gray-200 dark:text-gray-800">404</p>
+              <p className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-50">Page not found</p>
+              <p className="mt-1 text-sm text-gray-500">The page you're looking for doesn't exist.</p>
+              <a href="/" className="mt-6 text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
+                ← Back to Dashboard
+              </a>
+            </div>
+          } />
         </Route>
-        
-        {/* Presentation view is outside the standard AppShell (no sidebar) */}
+
+        {/* Presentation — outside AppShell (no sidebar) */}
         <Route path="/present/:scenarioId" element={<Presentation />} />
-        
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

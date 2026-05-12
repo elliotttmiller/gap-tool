@@ -2,8 +2,8 @@ import { UnemploymentInputForm } from "@/features/risk-modules/unemployment/comp
 import { UnemploymentOutputView } from "@/features/risk-modules/unemployment/components/UnemploymentOutputView"
 import { calculateUnemploymentGap } from "@/features/risk-modules/unemployment/calculations/calculateUnemploymentGap"
 import { DisclaimerBlock } from "@/components/global/DisclaimerBlock"
-import { Button } from "@/components/ui/button"
-import { Save } from "lucide-react"
+import { Button } from "@/components/Button"
+import { RiSaveLine } from "@remixicon/react"
 import { useScenarioStore } from "@/lib/store"
 
 export function UnemploymentModulePage() {
@@ -19,8 +19,8 @@ export function UnemploymentModulePage() {
           <h2 className="text-xl font-semibold text-slate-900">Unemployment & Liquidity Risk</h2>
           <p className="text-sm text-slate-500 mt-1">If I lose my job, how long will my reserves last before I run out of cash?</p>
         </div>
-        <Button variant="outline" className="gap-2 w-full sm:w-auto shadow-sm">
-          <Save className="w-4 h-4 text-slate-400" /> Save Scenario
+        <Button variant="secondary" className="gap-2 w-full sm:w-auto">
+          <RiSaveLine className="size-4" aria-hidden="true" /> Save Scenario
         </Button>
       </div>
 
