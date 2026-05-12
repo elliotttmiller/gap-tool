@@ -52,8 +52,38 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
 
   return (
     <div className="space-y-6 flex flex-col h-full w-full">
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+      {/* Lead KPI — income replacement rate is the core advisor story for DI */}
+      <div className="grid gap-4 sm:grid-cols-2">
         <AnimatedSection delay={0}>
+          <Card className="border-gray-800 bg-gray-900/60">
+            <CardContent className="p-5">
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Income Replaced by Benefits</div>
+              <div className="text-3xl font-bold tracking-tight text-emerald-500">
+                {formatPercent(outputs.peakIncomeReplacementRate)}
+              </div>
+              <p className="text-[10px] text-gray-500 mt-1">
+                {formatCurrency(outputs.existingBenefitsPeakMonthly)}/mo peak · of {formatCurrency(outputs.monthlyIncomePreDisability)}/mo pre-disability
+              </p>
+            </CardContent>
+          </Card>
+        </AnimatedSection>
+        <AnimatedSection delay={0.08}>
+          <Card className="border-red-900/40 bg-gray-900/60">
+            <CardContent className="p-5">
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Income Gap — Private DI Can Fill</div>
+              <div className="text-3xl font-bold tracking-tight text-rose-500">
+                {formatPercent(outputs.incomeGapRate)}
+              </div>
+              <p className="text-[10px] text-gray-500 mt-1">
+                ≈ {formatCurrency(outputs.averageMonthlyGap)}/mo avg uncovered
+              </p>
+            </CardContent>
+          </Card>
+        </AnimatedSection>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+        <AnimatedSection delay={0.14}>
           <Card className="border-gray-800">
             <CardContent className="p-5">
               <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Avg Monthly Gap</div>
@@ -64,7 +94,7 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
           </Card>
         </AnimatedSection>
 
-        <AnimatedSection delay={0.08}>
+        <AnimatedSection delay={0.20}>
           <Card className="border-gray-800">
             <CardContent className="p-5">
               <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Total Uncovered Gap</div>
@@ -76,7 +106,7 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
           </Card>
         </AnimatedSection>
 
-        <AnimatedSection delay={0.16} className="sm:col-span-2 md:col-span-1">
+        <AnimatedSection delay={0.26} className="sm:col-span-2 md:col-span-1">
           <Card className="border-gray-800 h-full">
             <CardContent className="p-5">
               <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Lifestyle Compression</div>

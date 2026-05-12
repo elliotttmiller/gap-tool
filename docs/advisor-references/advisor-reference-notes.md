@@ -1,0 +1,8 @@
+As of now the idea is simply an input (client data / profile) output tool.  
+
+This is risk management focused. Life insurance (premature death from an income earner), unemployment, law suits, and disabilities (injury or illness that knocks you out of work). A tool for advisors to use with clients to help them conceptualize and understand potential risks and the solutions we can then implement, on a basic level (the actual products and depth comes later once they understand the needs). 
+
+The life insurance tab is a simple example. Part of the input is your income and trajectory. If you die what gap does that leave (then advisors can help clients visualize what that means for their financial plan and family). If you have group life insurance (benefit offered by employer usually a smaller amount) that fills some of the gap. But there is a need to fill more of that gap with private life insurance (what we sell). For example NS gives me 50k of group life for example, but I own $2M of private insurance on myself. 
+
+These tabs were the more simple ones to start. Disability insurance will be more complex (relative to these at least) so he hasn’t even started but that will be a key component and will probably have 4-5 visuals/outputs on its own, in some variation (tbd on setup). Disability (DI) is the department run and where I’d be most involved. Same idea as life, if you can’t work due to injury or illness (cancer, MS, accident) your income either goes away totally or partially and now your financial plan changes. How do you fill as much of the gap as possible to mitigate that financial risk.
+

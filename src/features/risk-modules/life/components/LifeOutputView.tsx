@@ -59,11 +59,11 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
         <AnimatedSection delay={0.08}>
           <Card className="border-gray-800">
             <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Group Life (GLI)</div>
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Total Protection Need</div>
               <div className="text-2xl font-bold tracking-tight text-blue-400">
-                {formatCurrency(outputs.existingCoverageTotal)}
+                {formatCurrency(outputs.baseProtectionNeed)}
               </div>
-              <p className="text-[10px] text-gray-600 mt-1">Total existing coverage</p>
+              <p className="text-[10px] text-gray-600 mt-1">Income + debts + goals</p>
             </CardContent>
           </Card>
         </AnimatedSection>

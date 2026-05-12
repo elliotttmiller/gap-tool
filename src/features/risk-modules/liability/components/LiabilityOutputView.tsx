@@ -60,11 +60,11 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
         <AnimatedSection delay={0.16} className="sm:col-span-2 md:col-span-1">
           <Card className="border-gray-800 h-full">
             <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Wealth Erosion</div>
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Assets at Risk</div>
               <div className="text-2xl font-bold tracking-tight text-rose-600">
-                {formatPercent(outputs.wealthErosionPercentage)}
+                {formatCurrency(outputs.erodedAssets)}
               </div>
-              <p className="text-[10px] text-gray-500 mt-1">Percent of assets lost</p>
+              <p className="text-[10px] text-gray-500 mt-1">{formatPercent(outputs.wealthErosionPercentage)} of at-risk net worth</p>
             </CardContent>
           </Card>
         </AnimatedSection>
