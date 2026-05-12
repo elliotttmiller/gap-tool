@@ -1,4 +1,4 @@
-﻿import { useParams, Link } from "react-router-dom"
+import { Link, useParams } from "react-router-dom"
 import { ArrowLeft, Printer } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { LifeOutputView } from "@/features/risk-modules/life/components/LifeOutputView"
@@ -9,65 +9,115 @@ import { UnemploymentOutputView } from "@/features/risk-modules/unemployment/com
 import { calculateUnemploymentGap } from "@/features/risk-modules/unemployment/calculations/calculateUnemploymentGap"
 import { LiabilityOutputView } from "@/features/risk-modules/liability/components/LiabilityOutputView"
 import { calculateLiabilityGap } from "@/features/risk-modules/liability/calculations/calculateLiabilityGap"
-
 import { DisclaimerBlock } from "@/components/global/DisclaimerBlock"
-import { useScenarioStore } from "@/lib/store"
+import { RiskModuleType, ScenarioModuleRecords, useAppStore } from "@/lib/store"
+import { formatGapCurrency, getModuleGapValue } from "@/lib/scenarioMetrics"
+
+const moduleCopy: Record<RiskModuleType, { title: string }> = {
+  life: { title: "Premature Death - Protection Gap" },
+  disability: { title: "Disability / Illness - Income Collapse" },
+  unemployment: { title: "Liquidity & Unemployment Risk" },
+  liability: { title: "Liability / Lawsuit - Asset Exposure" },
+}
+
+function formatModuleGap(module: RiskModuleType, record: ScenarioModuleRecords) {
+  return formatGapCurrency(getModuleGapValue(module, record))
+}
 
 export function Presentation() {
   const { scenarioId } = useParams()
+  const scenario = useAppStore((state) =>
+    scenarioId ? state.scenarios.find((item) => item.id === scenarioId) : undefined,
+  )
+  const client = useAppStore((state) =>
+    scenario ? state.clients.find((item) => item.id === scenario.clientId) : undefined,
+  )
+  const records = useAppStore((state) =>
+    scenarioId ? state.moduleRecordsByScenarioId[scenarioId] : undefined,
+  )
 
-  const lifeInputs = useScenarioStore(state => state.lifeInputs)
-  const disabilityInputs = useScenarioStore(state => state.disabilityInputs)
-  const unemploymentInputs = useScenarioStore(state => state.unemploymentInputs)
-  const liabilityInputs = useScenarioStore(state => state.liabilityInputs)
-
-  const lifeOutputs = calculateLifeInsuranceGap(lifeInputs, useScenarioStore(state => state.lifeAssumptions))
-  const disabilityOutputs = calculateDisabilityGap(disabilityInputs, useScenarioStore(state => state.disabilityAssumptions))
-  const unemploymentOutputs = calculateUnemploymentGap(unemploymentInputs)
-  const liabilityOutputs = calculateLiabilityGap(liabilityInputs)
+  if (!scenarioId || !scenario || !client || !records) {
+    return (
+      <div className="min-h-screen bg-gray-950 p-8">
+        <div className="mx-auto max-w-4xl rounded-xl border border-dashed border-gray-800 bg-[#090E1A] p-8 text-center">
+          <p className="text-lg font-semibold text-gray-100">Presentation unavailable</p>
+          <p className="mt-2 text-sm text-gray-400">
+            Open a saved scenario first so presentation mode can load real client data.
+          </p>
+          <Button asChild className="mt-6">
+            <Link to="/">Back to Dashboard</Link>
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 p-8">
-      <div className="max-w-5xl mx-auto space-y-8">
-        {/* Presentation Toolbar - Hidden on print */}
-        <div className="flex items-center justify-between bg-[#090E1A] p-4 rounded-xl border border-gray-800 print:hidden">
+      <div className="mx-auto max-w-5xl space-y-8">
+        <div className="flex items-center justify-between rounded-xl border border-gray-800 bg-[#090E1A] p-4 print:hidden">
           <Button variant="ghost" className="shadow-none" asChild>
-            <Link to={`/scenarios/${scenarioId}/life`} className="gap-2">
-              <ArrowLeft className="w-4 h-4" /> Back to Builder
+            <Link to={`/scenarios/${scenarioId}/${scenario.activeModule}`} className="gap-2">
+              <ArrowLeft className="h-4 w-4" /> Back to Builder
             </Link>
           </Button>
           <Button variant="outline" className="gap-2" onClick={() => window.print()}>
-            <Printer className="w-4 h-4" /> Print / PDF
+            <Printer className="h-4 w-4" /> Print / PDF
           </Button>
         </div>
 
-        {/* Presentation Slide */}
-        <div className="bg-[#090E1A] rounded-xl shadow-lg border border-gray-800 overflow-hidden print:shadow-none print:border-none">
-          <div className="p-12 border-b border-gray-800 bg-[#0a1628] text-white">
-            <h1 className="text-3xl font-bold tracking-tight">Financial Exposure Analysis</h1>
-            <p className="text-gray-400 mt-2 text-lg">Miller Household</p>
+        <div className="overflow-hidden rounded-xl border border-gray-800 bg-[#090E1A] shadow-lg print:border-none print:shadow-none">
+          <div className="border-b border-gray-800 bg-[#0a1628] p-12 text-white">
+            <h1 className="text-3xl font-bold tracking-tight">{scenario.name}</h1>
+            <p className="mt-2 text-lg text-gray-400">{client.displayName}</p>
+            <p className="mt-1 text-sm text-gray-500">
+              Advisor-facing risk review presentation based on saved scenario state.
+            </p>
           </div>
-          
-          <div className="p-12 space-y-16">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-50 border-b border-gray-800 pb-2 mb-6">Premature Death - Protection Gap</h2>
-              <LifeOutputView outputs={lifeOutputs} />
-            </div>
 
-            <div>
-              <h2 className="text-xl font-semibold text-gray-50 border-b border-gray-800 pb-2 mb-6">Disability / Illness - Income Collapse</h2>
-              <DisabilityOutputView outputs={disabilityOutputs} />
-            </div>
-
-            <div className="break-before-page">
-              <h2 className="text-xl font-semibold text-gray-50 border-b border-gray-800 pb-2 mb-6">Liquidity & Unemployment Risk</h2>
-              <UnemploymentOutputView outputs={unemploymentOutputs} />
-            </div>
-
-            <div>
-              <h2 className="text-xl font-semibold text-gray-50 border-b border-gray-800 pb-2 mb-6">Asset Exposure & Liability</h2>
-              <LiabilityOutputView outputs={liabilityOutputs} />
-            </div>
+          <div className="space-y-16 p-12">
+            {scenario.includedModules.map((module) => (
+              <div key={module}>
+                <h2 className="mb-2 border-b border-gray-800 pb-2 text-xl font-semibold text-gray-50">
+                  {moduleCopy[module].title}
+                </h2>
+                <p className="mb-6 text-sm text-gray-400">
+                  Modeled gap: {formatModuleGap(module, records)}
+                </p>
+                {module === "life" && records.life ? (
+                  <LifeOutputView
+                    outputs={
+                      records.life.output ??
+                      calculateLifeInsuranceGap(records.life.inputs, records.life.assumptions)
+                    }
+                  />
+                ) : null}
+                {module === "disability" && records.disability ? (
+                  <DisabilityOutputView
+                    outputs={
+                      records.disability.output ??
+                      calculateDisabilityGap(records.disability.inputs, records.disability.assumptions)
+                    }
+                  />
+                ) : null}
+                {module === "unemployment" && records.unemployment ? (
+                  <UnemploymentOutputView
+                    outputs={
+                      records.unemployment.output ??
+                      calculateUnemploymentGap(records.unemployment.inputs)
+                    }
+                  />
+                ) : null}
+                {module === "liability" && records.liability ? (
+                  <LiabilityOutputView
+                    outputs={
+                      records.liability.output ??
+                      calculateLiabilityGap(records.liability.inputs)
+                    }
+                  />
+                ) : null}
+              </div>
+            ))}
 
             <DisclaimerBlock />
           </div>

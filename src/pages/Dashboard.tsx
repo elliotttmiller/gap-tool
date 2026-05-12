@@ -1,6 +1,24 @@
 import { Badge } from "@/components/Badge"
 import { Button } from "@/components/Button"
 import { Card } from "@/components/Card"
+import {
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/Drawer"
+import { Input } from "@/components/Input"
+import {
+  ClientRecord,
+  RiskModuleType,
+  ScenarioRecord,
+  ScenarioStatus,
+  useAppStore,
+} from "@/lib/store"
+import { formatGapCurrency, getLargestScenarioGap } from "@/lib/scenarioMetrics"
 import { cx } from "@/lib/utils"
 import {
   RiAddLine,
@@ -14,159 +32,323 @@ import {
   RiScalesLine,
   RiSearchLine,
   RiShieldCheckLine,
-  RiUmbrellaLine,
   RiUser3Line,
   RiUserLine,
+  RiUmbrellaLine,
 } from "@remixicon/react"
-import React, { useState } from "react"
-import { Link } from "react-router-dom"
+import React, { useEffect, useMemo, useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
 
-type ScenarioStatus =
-  | "Draft"
-  | "Inputs Needed"
-  | "Calculated"
-  | "Ready for Review"
-  | "Presented"
-  | "Report Generated"
-
-type ClientStatus = "Active" | "Draft" | "Pending"
-
-interface Scenario {
-  id: string
-  name: string
-  module: "Disability" | "Life Insurance" | "Unemployment" | "Liability"
-  gap: string
-  status: ScenarioStatus
-  lastUpdated: string
+const moduleLabel: Record<RiskModuleType, string> = {
+  disability: "Disability",
+  life: "Life Insurance",
+  unemployment: "Unemployment",
+  liability: "Liability / Lawsuit",
 }
 
-interface Client {
-  id: string
-  name: string
-  initials: string
-  email: string
-  phone: string
-  age: number
-  household: string
-  status: ClientStatus
-  lastUpdated: string
-  scenarios: Scenario[]
+const ALL_MODULE_TYPES: RiskModuleType[] = ["disability", "life", "unemployment", "liability"]
+const NO_EMAIL_TEXT = "No email on file"
+const NO_PHONE_TEXT = "No phone on file"
+
+const moduleIcon: Record<RiskModuleType, React.ElementType> = {
+  disability: RiUmbrellaLine,
+  life: RiHeartPulseLine,
+  unemployment: RiShieldCheckLine,
+  liability: RiScalesLine,
 }
 
-const clients: Client[] = [
-  {
-    id: "1",
-    name: "Elliott Miller",
-    initials: "EM",
-    email: "elliott@example.com",
-    phone: "(415) 555-0192",
-    age: 42,
-    household: "Married, 2 dependents",
-    status: "Active",
-    lastUpdated: "Today",
-    scenarios: [
-      { id: "s1", name: "Miller Household Risk Review", module: "Disability", gap: "$8,150/mo", status: "Calculated", lastUpdated: "Today" },
-      { id: "s2", name: "Life Insurance Review", module: "Life Insurance", gap: "$5,200/mo", status: "Ready for Review", lastUpdated: "May 10" },
-      { id: "s3", name: "Liability Exposure", module: "Liability", gap: "—", status: "Draft", lastUpdated: "May 8" },
-    ],
-  },
-  {
-    id: "2",
-    name: "Sarah Davis",
-    initials: "SD",
-    email: "sarah@example.com",
-    phone: "(310) 555-0847",
-    age: 38,
-    household: "Single",
-    status: "Active",
-    lastUpdated: "Yesterday",
-    scenarios: [
-      { id: "s4", name: "Davis Protection Update", module: "Life Insurance", gap: "$5,400/mo", status: "Inputs Needed", lastUpdated: "Yesterday" },
-    ],
-  },
-  {
-    id: "3",
-    name: "Robert Chen",
-    initials: "RC",
-    email: "robert@example.com",
-    phone: "(212) 555-0365",
-    age: 55,
-    household: "Married, no dependents",
-    status: "Active",
-    lastUpdated: "May 10",
-    scenarios: [
-      { id: "s5", name: "Chen Retirement Income", module: "Disability", gap: "$3,100/mo", status: "Ready for Review", lastUpdated: "May 10" },
-      { id: "s6", name: "Unemployment Reserve", module: "Unemployment", gap: "$2,200/mo", status: "Calculated", lastUpdated: "May 9" },
-    ],
-  },
-  {
-    id: "4",
-    name: "Maria Lopez",
-    initials: "ML",
-    email: "maria@example.com",
-    phone: "(713) 555-0529",
-    age: 47,
-    household: "Married, 3 dependents",
-    status: "Draft",
-    lastUpdated: "May 8",
-    scenarios: [
-      { id: "s7", name: "Lopez Family Review", module: "Liability", gap: "—", status: "Draft", lastUpdated: "May 8" },
-    ],
-  },
-  {
-    id: "5",
-    name: "James Nguyen",
-    initials: "JN",
-    email: "james@example.com",
-    phone: "(617) 555-0731",
-    age: 34,
-    household: "Single",
-    status: "Pending",
-    lastUpdated: "May 6",
-    scenarios: [],
-  },
-]
-
-const clientStatusVariant: Record<ClientStatus, "success" | "neutral" | "warning"> = {
-  Active: "success",
-  Draft: "neutral",
-  Pending: "warning",
+const moduleColor: Record<RiskModuleType, string> = {
+  disability: "text-blue-400",
+  life: "text-emerald-400",
+  unemployment: "text-indigo-400",
+  liability: "text-orange-400",
 }
 
-const scenarioStatusVariant: Record<ScenarioStatus, "success" | "warning" | "default" | "neutral" | "error"> = {
-  Draft: "neutral",
-  "Inputs Needed": "warning",
-  Calculated: "success",
-  "Ready for Review": "default",
-  Presented: "success",
-  "Report Generated": "success",
+const scenarioStatusVariant: Record<ScenarioStatus, "success" | "warning" | "default" | "neutral"> = {
+  draft: "neutral",
+  inputs_needed: "warning",
+  calculated: "success",
+  ready_for_review: "default",
+  presented: "success",
+  report_generated: "success",
+  archived: "neutral",
 }
 
-const moduleIcon: Record<Scenario["module"], React.ElementType> = {
-  Disability: RiUmbrellaLine,
-  "Life Insurance": RiHeartPulseLine,
-  Unemployment: RiShieldCheckLine,
-  Liability: RiScalesLine,
+function formatStatus(status: string) {
+  return status
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ")
 }
 
-const moduleColor: Record<Scenario["module"], string> = {
-  Disability: "text-blue-400",
-  "Life Insurance": "text-emerald-400",
-  Unemployment: "text-indigo-400",
-  Liability: "text-orange-400",
+function formatCompletionStatus(status: string) {
+  if (status === "missing_required_info") return "Missing Required Info"
+  if (status === "ready_basic_analysis") return "Ready for Basic Analysis"
+  if (status === "ready_full_analysis") return "Ready for Full Analysis"
+  return formatStatus(status)
 }
 
-const moduleSlug: Record<Scenario["module"], string> = {
-  Disability: "disability",
-  "Life Insurance": "life",
-  Unemployment: "unemployment",
-  Liability: "liability",
+function toDateLabel(value?: string) {
+  if (!value) return "—"
+  return new Date(value).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
 }
 
-function ClientDetailPanel({ client, onClose }: { client: Client; onClose: () => void }) {
-  const firstHref = client.scenarios[0]
-    ? `/scenarios/${client.id}/${moduleSlug[client.scenarios[0].module]}`
-    : `/scenarios/${client.id}/disability`
+function AddClientDrawer() {
+  const createClient = useAppStore((state) => state.createClient)
+  const [open, setOpen] = useState(false)
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    displayName: "",
+    email: "",
+    phone: "",
+    age: "",
+    annualIncome: "",
+    monthlyExpenses: "",
+  })
+
+  const canSubmit = Boolean(form.firstName.trim() && form.lastName.trim())
+
+  return (
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger asChild>
+        <Button>
+          <RiAddLine className="size-4" aria-hidden="true" />
+          Add Client
+        </Button>
+      </DrawerTrigger>
+      <DrawerContent className="sm:max-w-xl">
+        <DrawerHeader>
+          <DrawerTitle className="text-gray-50">Add Client</DrawerTitle>
+        </DrawerHeader>
+        <DrawerBody className="space-y-4">
+          <p className="text-sm text-gray-400">
+            Add a real client profile to begin a risk review workflow.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Input
+              placeholder="First name *"
+              value={form.firstName}
+              onChange={(event) => setForm((prev) => ({ ...prev, firstName: event.target.value }))}
+            />
+            <Input
+              placeholder="Last name *"
+              value={form.lastName}
+              onChange={(event) => setForm((prev) => ({ ...prev, lastName: event.target.value }))}
+            />
+            <Input
+              placeholder="Household / display name"
+              value={form.displayName}
+              onChange={(event) => setForm((prev) => ({ ...prev, displayName: event.target.value }))}
+            />
+            <Input
+              placeholder="Email"
+              value={form.email}
+              onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
+            />
+            <Input
+              placeholder="Phone"
+              value={form.phone}
+              onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))}
+            />
+            <Input
+              type="number"
+              min={0}
+              placeholder="Current age (recommended)"
+              value={form.age}
+              onChange={(event) => setForm((prev) => ({ ...prev, age: event.target.value }))}
+            />
+            <Input
+              type="number"
+              min={0}
+              placeholder="Annual income (recommended)"
+              value={form.annualIncome}
+              onChange={(event) => setForm((prev) => ({ ...prev, annualIncome: event.target.value }))}
+            />
+            <Input
+              type="number"
+              min={0}
+              placeholder="Monthly expenses (recommended)"
+              value={form.monthlyExpenses}
+              onChange={(event) => setForm((prev) => ({ ...prev, monthlyExpenses: event.target.value }))}
+            />
+          </div>
+          <p className="text-xs text-gray-500">
+            Required: first and last name. Clients can be saved as draft and completed later.
+          </p>
+        </DrawerBody>
+        <DrawerFooter>
+          <Button
+            variant="secondary"
+            onClick={() => setOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            disabled={!canSubmit}
+            onClick={() => {
+              if (!canSubmit) return
+              createClient({
+                firstName: form.firstName,
+                lastName: form.lastName,
+                displayName: form.displayName,
+                email: form.email,
+                phone: form.phone,
+                age: form.age ? Number(form.age) : undefined,
+                annualIncome: form.annualIncome ? Number(form.annualIncome) : undefined,
+                monthlyExpenses: form.monthlyExpenses ? Number(form.monthlyExpenses) : undefined,
+              })
+              setOpen(false)
+              setForm({
+                firstName: "",
+                lastName: "",
+                displayName: "",
+                email: "",
+                phone: "",
+                age: "",
+                annualIncome: "",
+                monthlyExpenses: "",
+              })
+            }}
+          >
+            Save Client
+          </Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  )
+}
+
+function StartRiskReviewDrawer({ client }: { client: ClientRecord }) {
+  const navigate = useNavigate()
+  const createScenario = useAppStore((state) => state.createScenario)
+  const [open, setOpen] = useState(false)
+  const [scenarioName, setScenarioName] = useState("")
+  const [notes, setNotes] = useState("")
+  const [includedModules, setIncludedModules] = useState<RiskModuleType[]>([
+    ...ALL_MODULE_TYPES,
+  ])
+  const [activeModule, setActiveModule] = useState<RiskModuleType>("disability")
+
+  const canSubmit = Boolean(scenarioName.trim() && includedModules.length)
+
+  useEffect(() => {
+    if (open) {
+      setScenarioName(`${client.lastName} Household Risk Review`)
+    }
+  }, [client.lastName, open])
+
+  const toggleModule = (module: RiskModuleType) => {
+    setIncludedModules((prev) => {
+      if (prev.includes(module)) {
+        const next = prev.filter((value) => value !== module)
+        if (!next.length) return prev
+        if (!next.includes(activeModule)) setActiveModule(next[0])
+        return next
+      }
+      return [...prev, module]
+    })
+  }
+
+  return (
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger asChild>
+        <Button variant="secondary">Start Risk Review</Button>
+      </DrawerTrigger>
+      <DrawerContent className="sm:max-w-xl">
+        <DrawerHeader>
+          <DrawerTitle className="text-gray-50">Start Risk Review</DrawerTitle>
+        </DrawerHeader>
+        <DrawerBody className="space-y-4">
+          <p className="text-sm text-gray-400">
+            Initialize a scenario for {client.displayName} using profile-based module prefills.
+          </p>
+          <Input value={scenarioName} onChange={(event) => setScenarioName(event.target.value)} />
+          <textarea
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+            placeholder="Optional notes"
+            className="block h-24 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-gray-50 outline-none transition focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+          />
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-gray-500">Included modules</p>
+            <div className="space-y-2">
+              {ALL_MODULE_TYPES.map((module) => (
+                <label
+                  key={module}
+                  className="flex items-center justify-between rounded-md border border-gray-800 bg-gray-900/40 px-3 py-2 text-sm text-gray-300"
+                >
+                  <span>{moduleLabel[module]}</span>
+                  <input
+                    type="checkbox"
+                    checked={includedModules.includes(module)}
+                    onChange={() => toggleModule(module)}
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-gray-500">Starting module</p>
+            <select
+              value={activeModule}
+              onChange={(event) => setActiveModule(event.target.value as RiskModuleType)}
+              className="h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50 outline-none transition focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+            >
+              {includedModules.map((module) => (
+                <option key={module} value={module}>
+                  {moduleLabel[module]}
+                </option>
+              ))}
+            </select>
+          </div>
+        </DrawerBody>
+        <DrawerFooter>
+          <Button variant="secondary" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            disabled={!canSubmit}
+            onClick={() => {
+              if (!canSubmit) return
+              const scenarioId = createScenario({
+                clientId: client.id,
+                name: scenarioName,
+                notes,
+                includedModules,
+                activeModule,
+              })
+              if (!scenarioId) return
+              setOpen(false)
+              navigate(`/scenarios/${scenarioId}/${activeModule}`)
+            }}
+          >
+            Create and Start
+          </Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  )
+}
+
+function ClientDetailPanel({
+  client,
+  scenarios,
+  onClose,
+}: {
+  client: ClientRecord
+  scenarios: ScenarioRecord[]
+  onClose: () => void
+}) {
+  const moduleRecordsByScenarioId = useAppStore((state) => state.moduleRecordsByScenarioId)
+  const firstScenario = scenarios[0]
+  const firstHref = firstScenario
+    ? `/scenarios/${firstScenario.id}/${firstScenario.activeModule}`
+    : undefined
 
   return (
     <>
@@ -175,17 +357,28 @@ function ClientDetailPanel({ client, onClose }: { client: Client; onClose: () =>
         <div className="flex items-start justify-between border-b border-gray-800 px-6 py-5">
           <div className="flex items-center gap-4">
             <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-blue-950 ring-1 ring-blue-900">
-              <span className="text-sm font-semibold text-blue-300">{client.initials}</span>
+              <span className="text-sm font-semibold text-blue-300">
+                {client.firstName.charAt(0)}
+                {client.lastName.charAt(0)}
+              </span>
             </div>
             <div>
-              <h2 className="text-base font-semibold text-gray-50">{client.name}</h2>
+              <h2 className="text-base font-semibold text-gray-50">{client.displayName}</h2>
               <div className="mt-1.5 flex items-center gap-2">
-                <Badge variant={clientStatusVariant[client.status]}>{client.status}</Badge>
-                <span className="text-xs text-gray-600">{client.scenarios.length} scenario{client.scenarios.length !== 1 ? "s" : ""}</span>
+                <Badge variant={client.status === "active" ? "success" : "neutral"}>
+                  {formatStatus(client.status)}
+                </Badge>
+                <span className="text-xs text-gray-600">
+                  {scenarios.length} scenario{scenarios.length !== 1 ? "s" : ""}
+                </span>
               </div>
             </div>
           </div>
-          <button onClick={onClose} className="flex size-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-800 hover:text-gray-200" aria-label="Close">
+          <button
+            onClick={onClose}
+            className="flex size-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-800 hover:text-gray-200"
+            aria-label="Close"
+          >
             <RiCloseLine className="size-5" />
           </button>
         </div>
@@ -196,56 +389,72 @@ function ClientDetailPanel({ client, onClose }: { client: Client; onClose: () =>
             <dl className="space-y-3.5">
               <div className="flex items-center gap-3">
                 <RiMailLine className="size-4 shrink-0 text-gray-600" aria-hidden="true" />
-                <dd className="text-sm text-gray-300">{client.email}</dd>
+                <dd className="text-sm text-gray-300">{client.email || NO_EMAIL_TEXT}</dd>
               </div>
               <div className="flex items-center gap-3">
                 <RiPhoneLine className="size-4 shrink-0 text-gray-600" aria-hidden="true" />
-                <dd className="text-sm text-gray-300">{client.phone}</dd>
+                <dd className="text-sm text-gray-300">{client.phone || NO_PHONE_TEXT}</dd>
               </div>
               <div className="flex items-center gap-3">
                 <RiUser3Line className="size-4 shrink-0 text-gray-600" aria-hidden="true" />
-                <dd className="text-sm text-gray-300">Age {client.age} · {client.household}</dd>
+                <dd className="text-sm text-gray-300">
+                  Age {client.profile.currentAge ?? "—"} · {formatCompletionStatus(client.profileCompletionStatus)}
+                </dd>
               </div>
               <div className="flex items-center gap-3">
                 <RiCalendarLine className="size-4 shrink-0 text-gray-600" aria-hidden="true" />
-                <dd className="text-xs text-gray-500">Last updated {client.lastUpdated}</dd>
+                <dd className="text-xs text-gray-500">Updated {toDateLabel(client.updatedAt)}</dd>
               </div>
             </dl>
           </div>
 
           <div className="px-6 py-5">
-            <p className="mb-4 text-[10px] font-semibold uppercase tracking-widest text-gray-600">Risk Scenarios</p>
-            {client.scenarios.length === 0 ? (
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-600">Risk Reviews</p>
+              <StartRiskReviewDrawer client={client} />
+            </div>
+            {scenarios.length === 0 ? (
               <div className="rounded-xl border border-dashed border-gray-800 px-5 py-10 text-center">
                 <RiUserLine className="mx-auto mb-2.5 size-6 text-gray-700" />
                 <p className="text-sm font-medium text-gray-500">No scenarios yet</p>
-                <p className="mt-1 text-xs text-gray-600">Open the analysis workspace to begin modeling.</p>
+                <p className="mt-1 text-xs text-gray-600">
+                  Start a risk review to initialize prefilled module inputs.
+                </p>
               </div>
             ) : (
               <ul className="space-y-2">
-                {client.scenarios.map((scenario) => {
-                  const Icon = moduleIcon[scenario.module]
-                  const href = `/scenarios/${client.id}/${moduleSlug[scenario.module]}`
+                {scenarios.map((scenario) => {
+                  const Icon = moduleIcon[scenario.activeModule]
+                  const href = `/scenarios/${scenario.id}/${scenario.activeModule}`
+                  const gap = getLargestScenarioGap(moduleRecordsByScenarioId[scenario.id])
                   return (
                     <li key={scenario.id}>
-                      <Link to={href} onClick={onClose} className="flex items-center justify-between gap-3 rounded-xl border border-gray-800 px-4 py-3.5 transition hover:border-gray-700 hover:bg-white/2.5">
+                      <Link
+                        to={href}
+                        onClick={onClose}
+                        className="flex items-center justify-between gap-3 rounded-xl border border-gray-800 px-4 py-3.5 transition hover:border-gray-700 hover:bg-white/2.5"
+                      >
                         <div className="flex min-w-0 items-center gap-3">
-                          <Icon className={cx("size-4 shrink-0", moduleColor[scenario.module])} aria-hidden="true" />
+                          <Icon className={cx("size-4 shrink-0", moduleColor[scenario.activeModule])} aria-hidden="true" />
                           <div className="min-w-0">
                             <p className="truncate text-sm font-medium text-gray-100">{scenario.name}</p>
                             <div className="mt-0.5 flex items-center gap-1.5">
-                              <span className="text-xs text-gray-500">{scenario.module}</span>
-                              {scenario.gap !== "—" && (
+                              <span className="text-xs text-gray-500">{moduleLabel[scenario.activeModule]}</span>
+                              {typeof gap === "number" ? (
                                 <>
                                   <span className="text-gray-700">·</span>
-                                  <span className="text-xs font-semibold text-gray-300">{scenario.gap}</span>
+                                  <span className="text-xs font-semibold text-gray-300">
+                                    Largest gap {formatGapCurrency(gap)}
+                                  </span>
                                 </>
-                              )}
+                              ) : null}
                             </div>
                           </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
-                          <Badge variant={scenarioStatusVariant[scenario.status]}>{scenario.status}</Badge>
+                          <Badge variant={scenarioStatusVariant[scenario.status]}>
+                            {formatStatus(scenario.status)}
+                          </Badge>
                           <RiArrowRightSLine className="size-4 text-gray-600" />
                         </div>
                       </Link>
@@ -259,17 +468,20 @@ function ClientDetailPanel({ client, onClose }: { client: Client; onClose: () =>
 
         <div className="border-t border-gray-800 px-6 py-4">
           <div className="flex gap-3">
-            <Button asChild className="flex-1 justify-center">
-              <Link to={firstHref} onClick={onClose}>
-                <RiExternalLinkLine className="size-4" aria-hidden="true" />
-                Open Analysis
-              </Link>
+            {firstHref ? (
+              <Button asChild className="flex-1 justify-center">
+                <Link to={firstHref} onClick={onClose}>
+                  <RiExternalLinkLine className="size-4" aria-hidden="true" />
+                  Open Analysis
+                </Link>
+              </Button>
+            ) : (
+              <StartRiskReviewDrawer client={client} />
+            )}
+            <Button variant="secondary" onClick={onClose}>
+              Close
             </Button>
-            <Button variant="secondary" onClick={onClose}>Close</Button>
           </div>
-          <p className="mt-3 text-center text-[10px] leading-relaxed text-gray-700">
-            Outputs are illustrative planning scenarios only — not financial or insurance advice.
-          </p>
         </div>
       </div>
     </>
@@ -277,92 +489,170 @@ function ClientDetailPanel({ client, onClose }: { client: Client; onClose: () =>
 }
 
 export function Dashboard() {
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
+  const clients = useAppStore((state) => state.clients.filter((client) => client.status !== "archived"))
+  const scenarios = useAppStore((state) => state.scenarios.filter((scenario) => scenario.status !== "archived"))
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
   const [search, setSearch] = useState("")
 
-  const filtered = clients.filter(
-    (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.email.toLowerCase().includes(search.toLowerCase()),
-  )
+  const selectedClient = clients.find((client) => client.id === selectedClientId) ?? null
+
+  const filteredClients = useMemo(() => {
+    const query = search.trim().toLowerCase()
+    if (!query) return clients
+    return clients.filter((client) => {
+      return (
+        client.displayName.toLowerCase().includes(query) ||
+        client.email.toLowerCase().includes(query) ||
+        `${client.firstName} ${client.lastName}`.toLowerCase().includes(query)
+      )
+    })
+  }, [clients, search])
+
+  const scenariosByClientId = useMemo(() => {
+    return scenarios.reduce<Record<string, ScenarioRecord[]>>((accumulator, scenario) => {
+      if (!accumulator[scenario.clientId]) accumulator[scenario.clientId] = []
+      accumulator[scenario.clientId].push(scenario)
+      return accumulator
+    }, {})
+  }, [scenarios])
+
+  const draftClients = clients.filter((client) => client.status === "draft").length
+  const activeRiskReviews = scenarios.filter((scenario) => scenario.status !== "archived").length
+  const incompleteAnalyses = scenarios.filter(
+    (scenario) => scenario.status === "draft" || scenario.status === "inputs_needed",
+  ).length
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-gray-50">Dashboard</h1>
-          <p className="mt-1 text-sm text-gray-400">Client roster and risk analysis workspace.</p>
+          <p className="mt-1 text-sm text-gray-400">Real clients, real risk reviews, and saved scenario progress.</p>
         </div>
-        <Button>
-          <RiAddLine className="size-4" aria-hidden="true" />
-          Add Client
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <AddClientDrawer />
+          {selectedClient ? <StartRiskReviewDrawer client={selectedClient} /> : null}
+        </div>
       </div>
 
-      <div className="relative max-w-sm">
-        <RiSearchLine className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
-        <input
-          type="text"
-          placeholder="Search clients..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="h-9 w-full rounded-lg border border-gray-700 bg-gray-900 pl-9 pr-4 text-sm text-gray-100 placeholder-gray-600 outline-none transition focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
-        />
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Card>
+          <p className="text-xs uppercase tracking-widest text-gray-500">Total Clients</p>
+          <p className="mt-2 text-2xl font-semibold text-gray-50">{clients.length}</p>
+        </Card>
+        <Card>
+          <p className="text-xs uppercase tracking-widest text-gray-500">Draft Clients</p>
+          <p className="mt-2 text-2xl font-semibold text-gray-50">{draftClients}</p>
+        </Card>
+        <Card>
+          <p className="text-xs uppercase tracking-widest text-gray-500">Active Risk Reviews</p>
+          <p className="mt-2 text-2xl font-semibold text-gray-50">{activeRiskReviews}</p>
+        </Card>
+        <Card>
+          <p className="text-xs uppercase tracking-widest text-gray-500">Incomplete Analyses</p>
+          <p className="mt-2 text-2xl font-semibold text-gray-50">{incompleteAnalyses}</p>
+        </Card>
       </div>
 
-      <Card className="overflow-hidden p-0">
-        <div className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-4 border-b border-gray-800 px-6 py-3">
-          {(["Client", "Scenarios", "Last Updated", "Status", ""] as const).map((h, i) => (
-            <span key={i} className={cx("text-[10px] font-semibold uppercase tracking-widest text-gray-600", i === 1 && "hidden sm:block")}>
-              {h}
-            </span>
-          ))}
-        </div>
-
-        {filtered.length === 0 ? (
-          <div className="px-6 py-16 text-center">
-            <RiUserLine className="mx-auto mb-3 size-8 text-gray-700" />
-            <p className="text-sm text-gray-500">No clients match your search.</p>
-          </div>
-        ) : (
-          <ul className="divide-y divide-gray-800/60">
-            {filtered.map((client) => (
-              <li key={client.id}>
-                <button
-                  onClick={() => setSelectedClient(client)}
-                  className="grid w-full grid-cols-[1fr_auto_auto_auto_auto] items-center gap-4 px-6 py-4 text-left transition hover:bg-white/2.5"
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gray-800 ring-1 ring-gray-700">
-                      <span className="text-xs font-semibold text-gray-300">{client.initials}</span>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-gray-100">{client.name}</p>
-                      <p className="truncate text-xs text-gray-500">{client.email}</p>
-                    </div>
-                  </div>
-                  <span className="hidden whitespace-nowrap text-sm text-gray-400 sm:block">
-                    {client.scenarios.length} <span className="text-gray-600">scenario{client.scenarios.length !== 1 ? "s" : ""}</span>
-                  </span>
-                  <span className="whitespace-nowrap text-xs text-gray-500">{client.lastUpdated}</span>
-                  <Badge variant={clientStatusVariant[client.status]}>{client.status}</Badge>
-                  <RiArrowRightSLine className="size-4 shrink-0 text-gray-600" />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <div className="border-t border-gray-800 px-6 py-3">
-          <p className="text-xs text-gray-600">
-            {filtered.length} of {clients.length} clients — <span className="text-gray-700">click any row to view profile and scenarios</span>
+      {clients.length === 0 ? (
+        <Card className="border-dashed border-gray-800 px-6 py-16 text-center">
+          <RiUserLine className="mx-auto mb-3 size-8 text-gray-700" />
+          <h2 className="text-lg font-semibold text-gray-100">No clients yet.</h2>
+          <p className="mt-2 text-sm text-gray-500">
+            Create your first client profile to begin a gap analysis.
           </p>
-        </div>
-      </Card>
+          <div className="mt-6 flex justify-center">
+            <AddClientDrawer />
+          </div>
+        </Card>
+      ) : (
+        <>
+          <div className="relative max-w-sm">
+            <RiSearchLine className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search clients..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              className="h-9 w-full rounded-lg border border-gray-700 bg-gray-900 pl-9 pr-4 text-sm text-gray-100 placeholder-gray-600 outline-none transition focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+            />
+          </div>
 
-      {selectedClient && (
-        <ClientDetailPanel client={selectedClient} onClose={() => setSelectedClient(null)} />
+          <Card className="overflow-hidden p-0">
+            <div className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-4 border-b border-gray-800 px-6 py-3">
+              {(["Client", "Scenarios", "Updated", "Status", ""] as const).map((heading, index) => (
+                <span
+                  key={heading}
+                  className={cx(
+                    "text-[10px] font-semibold uppercase tracking-widest text-gray-600",
+                    index === 1 && "hidden sm:block",
+                  )}
+                >
+                  {heading}
+                </span>
+              ))}
+            </div>
+
+            {filteredClients.length === 0 ? (
+              <div className="space-y-4 px-6 py-16 text-center">
+                <RiUserLine className="mx-auto size-8 text-gray-700" />
+                <div>
+                  <p className="text-sm text-gray-400">No clients match your search.</p>
+                  <p className="text-xs text-gray-600">Create a client or clear the search query.</p>
+                </div>
+              </div>
+            ) : (
+              <ul className="divide-y divide-gray-800/60">
+                {filteredClients.map((client) => {
+                  const clientScenarios = scenariosByClientId[client.id] ?? []
+                  return (
+                    <li key={client.id}>
+                      <button
+                        onClick={() => setSelectedClientId(client.id)}
+                        className="grid w-full grid-cols-[1fr_auto_auto_auto_auto] items-center gap-4 px-6 py-4 text-left transition hover:bg-white/2.5"
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gray-800 ring-1 ring-gray-700">
+                            <span className="text-xs font-semibold text-gray-300">
+                              {client.firstName.charAt(0)}
+                              {client.lastName.charAt(0)}
+                            </span>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-gray-100">{client.displayName}</p>
+                            <p className="truncate text-xs text-gray-500">
+                              {client.email || NO_EMAIL_TEXT}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="hidden whitespace-nowrap text-sm text-gray-400 sm:block">
+                          {clientScenarios.length}{" "}
+                          <span className="text-gray-600">
+                            scenario{clientScenarios.length !== 1 ? "s" : ""}
+                          </span>
+                        </span>
+                        <span className="whitespace-nowrap text-xs text-gray-500">{toDateLabel(client.updatedAt)}</span>
+                        <Badge variant={client.status === "active" ? "success" : "neutral"}>
+                          {formatStatus(client.status)}
+                        </Badge>
+                        <RiArrowRightSLine className="size-4 shrink-0 text-gray-600" />
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </Card>
+        </>
       )}
+
+      {selectedClient ? (
+        <ClientDetailPanel
+          client={selectedClient}
+          scenarios={scenariosByClientId[selectedClient.id] ?? []}
+          onClose={() => setSelectedClientId(null)}
+        />
+      ) : null}
     </div>
   )
 }

@@ -23,7 +23,6 @@ export default function App() {
 
           {/* Scenario detail with nested module tabs */}
           <Route path="scenarios/:scenarioId" element={<ScenarioDetailShell />}>
-            <Route index element={<Navigate to="disability" replace />} />
             <Route path="disability" element={<DisabilityModulePage />} />
             <Route path="life" element={<LifeModulePage />} />
             <Route path="unemployment" element={<UnemploymentModulePage />} />
@@ -67,14 +66,6 @@ export default function App() {
               </div>
             } />
           </Route>
-
-          {/* Assumptions stub */}
-          <Route path="assumptions" element={
-            <div className="space-y-4">
-              <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-50">Model Assumptions</h1>
-              <p className="text-sm text-gray-500">Assumption management coming soon.</p>
-            </div>
-          } />
 
           {/* 404 inside app shell */}
           <Route path="*" element={
