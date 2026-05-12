@@ -1,12 +1,15 @@
+export type LifePolicyType = "term" | "permanent";
+
 export interface LifeInputs {
   advisorId?: string;
   clientId?: string;
   scenarioId?: string;
 
+  earnerName?: string;
   currentAge: number;
   retirementAge: number;
   annualIncome: number;
-  /** Annual income of surviving spouse/partner. Reduces the income replacement need. */
+  /** Annual income of surviving spouse/partner. Reduces the income replacement need in advanced mode. */
   spouseAnnualIncome: number;
 
   incomeReplacementYears: number;
@@ -15,6 +18,9 @@ export interface LifeInputs {
 
   groupLifeCoverage: number;
   privateLifeCoverage: number;
+  privateLifePolicyType?: LifePolicyType;
+  privateLifeTermYears?: number;
+  nonQualifiedAssets?: number;
 
   debtsTotal: number;
   educationGoal: number;
@@ -30,6 +36,8 @@ export interface LifeAssumptions {
   usePresentValue: boolean;
   includeLiquidAssetsOffset: boolean;
   deathBenefitTaxTreatment: "generally_income_tax_free" | "not_modeled";
+  /** Advisor-reference annualized return used to translate death benefit into annual replacement income. */
+  deathBenefitIncomeYieldAnnual?: number;
 }
 
 export interface LifeYearlyBreakdown {
@@ -51,4 +59,13 @@ export interface LifeOutputs {
   remainingGap: number;
   coverageOffsetPercentage: number;
   yearlyBreakdown: LifeYearlyBreakdown[];
+
+  /** Advisor-reference outputs from the original HTML prototype. */
+  projectedIncomeToRetirement: number;
+  groupLifeAnnualIncome: number;
+  privateLifeAnnualIncome: number;
+  privateLifeCoverageYears: number;
+  totalDeathBenefit: number;
+  cumulativeSurvivorGap: number;
+  lifetimeIncomeUncoveredPercentage: number;
 }
