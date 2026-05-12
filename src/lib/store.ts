@@ -93,7 +93,7 @@ export interface ScenarioModuleRecords {
   liability?: LiabilityModuleRecord
 }
 
-interface CreateClientPayload {
+export interface CreateClientPayload {
   firstName: string
   lastName: string
   displayName?: string
@@ -170,9 +170,36 @@ const defaultDisabilityAssumptions: DisabilityAssumptions = {
 function nowIso() { return new Date().toISOString() }
 function toDisplayName(firstName: string, lastName: string, displayName?: string) { return displayName?.trim() || `${firstName.trim()} ${lastName.trim()}`.trim() }
 function getProfileCompletion(profile: ClientFinancialProfile): ProfileCompletionStatus {
-  if (!profile.primaryIncomeEarnerName) return "missing_required_info"
-  if (profile.annualEarnedIncome && (profile.groupLifeCoverage !== undefined || profile.privateLifeCoverage !== undefined) && profile.autoLiabilityLimit !== undefined) return "ready_full_analysis"
+  if (!profile.primaryIncomeEarnerName || !profile.currentAge || !profile.annualEarnedIncome) return "missing_required_info"
+  if (profile.groupLifeCoverage !== undefined && profile.privateLifeCoverage !== undefined && profile.autoLiabilityLimit !== undefined) return "ready_full_analysis"
   return "ready_basic_analysis"
+}
+
+function buildUpdatedProfile(client: ClientRecord, updates: Partial<CreateClientPayload>, firstName: string, lastName: string): ClientFinancialProfile {
+  const nextClientType = updates.clientType ?? client.profile.clientType ?? "individual"
+  return {
+    ...client.profile,
+    clientType: nextClientType,
+    primaryIncomeEarnerName: `${firstName} ${lastName}`.trim(),
+    currentAge: updates.age ?? client.profile.currentAge,
+    annualEarnedIncome: updates.annualIncome ?? client.profile.annualEarnedIncome,
+    monthlyHouseholdExpenses: updates.monthlyExpenses ?? client.profile.monthlyHouseholdExpenses,
+    spouseIncomeEarnerName: nextClientType === "couple" ? updates.spouseName?.trim() ?? client.profile.spouseIncomeEarnerName : "",
+    spouseCurrentAge: nextClientType === "couple" ? updates.spouseAge ?? client.profile.spouseCurrentAge : undefined,
+    spouseAnnualIncome: nextClientType === "couple" ? updates.spouseAnnualIncome ?? client.profile.spouseAnnualIncome ?? 0 : 0,
+    groupLifeCoverage: updates.groupLifeCoverage ?? client.profile.groupLifeCoverage,
+    privateLifeCoverage: updates.privateLifeCoverage ?? client.profile.privateLifeCoverage,
+    privateLifePolicyType: updates.privateLifePolicyType ?? client.profile.privateLifePolicyType,
+    privateLifeTermYears: updates.privateLifeTermYears ?? client.profile.privateLifeTermYears,
+    nonQualifiedAssets: updates.nonQualifiedAssets ?? client.profile.nonQualifiedAssets,
+    spouseGroupLifeCoverage: nextClientType === "couple" ? updates.spouseGroupLifeCoverage ?? client.profile.spouseGroupLifeCoverage ?? 0 : 0,
+    spousePrivateLifeCoverage: nextClientType === "couple" ? updates.spousePrivateLifeCoverage ?? client.profile.spousePrivateLifeCoverage ?? 0 : 0,
+    spousePrivateLifePolicyType: updates.spousePrivateLifePolicyType ?? client.profile.spousePrivateLifePolicyType,
+    spousePrivateLifeTermYears: updates.spousePrivateLifeTermYears ?? client.profile.spousePrivateLifeTermYears,
+    spouseNonQualifiedAssets: nextClientType === "couple" ? updates.spouseNonQualifiedAssets ?? client.profile.spouseNonQualifiedAssets ?? 0 : 0,
+    investmentAssets: updates.nonQualifiedAssets ?? client.profile.investmentAssets ?? client.profile.nonQualifiedAssets ?? 0,
+    autoLiabilityLimit: updates.autoLiabilityLimit ?? client.profile.autoLiabilityLimit,
+  }
 }
 
 function prefillLifeInputs(profile: ClientFinancialProfile, clientId: string, scenarioId: string): LifeInputs {
@@ -249,6 +276,23 @@ function prefillLiabilityInputs(profile: ClientFinancialProfile): LiabilityInput
   }
 }
 
+function syncModuleRecordsForClientUpdate(state: AppState, clientId: string, profile: ClientFinancialProfile, timestamp: string) {
+  const updatedRecords = { ...state.moduleRecordsByScenarioId }
+  for (const scenario of state.scenarios) {
+    if (scenario.clientId !== clientId) continue
+    const existing = updatedRecords[scenario.id]
+    if (!existing) continue
+    updatedRecords[scenario.id] = {
+      ...existing,
+      life: existing.life ? { ...existing.life, inputs: prefillLifeInputs(profile, clientId, scenario.id), output: null, updatedAt: timestamp, lastCalculatedAt: undefined } : undefined,
+      disability: existing.disability ? { ...existing.disability, inputs: prefillDisabilityInputs(profile, clientId, scenario.id), output: null, updatedAt: timestamp, lastCalculatedAt: undefined } : undefined,
+      unemployment: existing.unemployment ? { ...existing.unemployment, inputs: prefillUnemploymentInputs(profile), output: null, updatedAt: timestamp, lastCalculatedAt: undefined } : undefined,
+      liability: existing.liability ? { ...existing.liability, inputs: prefillLiabilityInputs(profile), output: null, updatedAt: timestamp, lastCalculatedAt: undefined } : undefined,
+    }
+  }
+  return updatedRecords
+}
+
 function updateScenarioForSave(scenario: ScenarioRecord, timestamp: string): ScenarioRecord {
   return { ...scenario, status: scenario.status === "inputs_needed" || scenario.status === "draft" ? "calculated" : scenario.status, updatedAt: timestamp, lastCalculatedAt: timestamp }
 }
@@ -305,12 +349,35 @@ export const useAppStore = create<AppState>()(
         const record: ClientRecord = { id, ownerId: DEFAULT_ADVISOR_ID, firstName, lastName, displayName: toDisplayName(firstName, lastName, payload.displayName), email: payload.email?.trim() ?? "", phone: payload.phone?.trim() ?? "", status: payload.annualIncome ? "active" : "draft", profileCompletionStatus: getProfileCompletion(profile), createdAt: timestamp, updatedAt: timestamp, profile }
         set((state) => ({ clients: [record, ...state.clients] })); return id
       },
-      updateClient: (clientId, updates) => set((state) => ({ clients: state.clients.map((client) => {
-        if (client.id !== clientId) return client
-        const timestamp = nowIso(); const firstName = updates.firstName?.trim() ?? client.firstName; const lastName = updates.lastName?.trim() ?? client.lastName
-        const profile = { ...client.profile, currentAge: updates.age ?? client.profile.currentAge, annualEarnedIncome: updates.annualIncome ?? client.profile.annualEarnedIncome, monthlyHouseholdExpenses: updates.monthlyExpenses ?? client.profile.monthlyHouseholdExpenses, primaryIncomeEarnerName: `${firstName} ${lastName}`.trim(), clientType: updates.clientType ?? client.profile.clientType, groupLifeCoverage: updates.groupLifeCoverage ?? client.profile.groupLifeCoverage, privateLifeCoverage: updates.privateLifeCoverage ?? client.profile.privateLifeCoverage, privateLifePolicyType: updates.privateLifePolicyType ?? client.profile.privateLifePolicyType, privateLifeTermYears: updates.privateLifeTermYears ?? client.profile.privateLifeTermYears, nonQualifiedAssets: updates.nonQualifiedAssets ?? client.profile.nonQualifiedAssets, autoLiabilityLimit: updates.autoLiabilityLimit ?? client.profile.autoLiabilityLimit }
-        return { ...client, firstName, lastName, displayName: toDisplayName(firstName, lastName, updates.displayName ?? client.displayName), email: updates.email?.trim() ?? client.email, phone: updates.phone?.trim() ?? client.phone, profile, profileCompletionStatus: getProfileCompletion(profile), updatedAt: timestamp }
-      }) })),
+      updateClient: (clientId, updates) => set((state) => {
+        const timestamp = nowIso()
+        let updatedProfile: ClientFinancialProfile | null = null
+        const clients = state.clients.map((client) => {
+          if (client.id !== clientId) return client
+          const firstName = updates.firstName?.trim() ?? client.firstName
+          const lastName = updates.lastName?.trim() ?? client.lastName
+          const profile = buildUpdatedProfile(client, updates, firstName, lastName)
+          updatedProfile = profile
+          return {
+            ...client,
+            firstName,
+            lastName,
+            displayName: toDisplayName(firstName, lastName, updates.displayName ?? client.displayName),
+            email: updates.email?.trim() ?? client.email,
+            phone: updates.phone?.trim() ?? client.phone,
+            status: profile.annualEarnedIncome ? "active" : "draft",
+            profile,
+            profileCompletionStatus: getProfileCompletion(profile),
+            updatedAt: timestamp,
+          }
+        })
+        if (!updatedProfile) return state
+        return {
+          clients,
+          scenarios: state.scenarios.map((scenario) => scenario.clientId === clientId ? { ...scenario, status: "inputs_needed", updatedAt: timestamp, lastCalculatedAt: undefined } : scenario),
+          moduleRecordsByScenarioId: syncModuleRecordsForClientUpdate(state, clientId, updatedProfile, timestamp),
+        }
+      }),
       archiveClient: (clientId) => set((state) => ({ clients: state.clients.map((client) => client.id === clientId ? { ...client, status: "archived", updatedAt: nowIso() } : client) })),
       createScenario: (payload) => {
         const client = get().clients.find((item) => item.id === payload.clientId); if (!client) return ""
@@ -334,6 +401,6 @@ export const useAppStore = create<AppState>()(
       saveUnemploymentCalculation: (scenarioId, output) => { const timestamp = nowIso(); set((state) => { const record = state.moduleRecordsByScenarioId[scenarioId]?.unemployment; if (!record) return state; return { moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: { ...state.moduleRecordsByScenarioId[scenarioId], unemployment: { ...record, output, updatedAt: timestamp, lastCalculatedAt: timestamp } } }, scenarios: state.scenarios.map((scenario) => scenario.id === scenarioId ? updateScenarioForSave(scenario, timestamp) : scenario) } }) },
       saveLiabilityCalculation: (scenarioId, output) => { const timestamp = nowIso(); set((state) => { const record = state.moduleRecordsByScenarioId[scenarioId]?.liability; if (!record) return state; return { moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: { ...state.moduleRecordsByScenarioId[scenarioId], liability: { ...record, output, updatedAt: timestamp, lastCalculatedAt: timestamp } } }, scenarios: state.scenarios.map((scenario) => scenario.id === scenarioId ? updateScenarioForSave(scenario, timestamp) : scenario) } }) },
     }),
-    { name: "gap-tool-app-state-v1", storage: createJSONStorage(() => localStorage), version: 2, partialize: (state) => ({ clients: state.clients, scenarios: state.scenarios, moduleRecordsByScenarioId: state.moduleRecordsByScenarioId, globalLifeAssumptions: state.globalLifeAssumptions, globalDisabilityAssumptions: state.globalDisabilityAssumptions }) },
+    { name: "gap-tool-app-state-v1", storage: createJSONStorage(() => localStorage), version: 3, partialize: (state) => ({ clients: state.clients, scenarios: state.scenarios, moduleRecordsByScenarioId: state.moduleRecordsByScenarioId, globalLifeAssumptions: state.globalLifeAssumptions, globalDisabilityAssumptions: state.globalDisabilityAssumptions }) },
   ),
 )
