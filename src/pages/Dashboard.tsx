@@ -400,7 +400,6 @@ export function Dashboard() {
         <Card className="border-dashed border-gray-800 px-6 py-16 text-center">
           <RiUserLine className="mx-auto mb-3 size-8 text-gray-700" />
           <h2 className="text-lg font-semibold text-gray-100">No clients yet.</h2>
-          <p className="mt-2 text-sm text-gray-500">Create a client using the advisor-reference setup fields.</p>
           <div className="mt-6 flex justify-center"><AddClientDrawer /></div>
         </Card>
       ) : (
