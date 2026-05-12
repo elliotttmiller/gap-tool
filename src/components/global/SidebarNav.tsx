@@ -1,7 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom"
 import { 
   LayoutDashboard, 
-  FileText, 
   Settings, 
   X,
   ChevronDown,
@@ -92,18 +91,6 @@ export function SidebarNav({ onClose }: { onClose?: () => void }) {
 
         <div className="pt-4 space-y-1">
           <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-4 px-2">Workspace</div>
-          <NavLink
-            to="/reports"
-            onClick={onClose}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm ${
-                isActive ? "bg-white/10 text-white" : "text-slate-400 hover:text-white hover:bg-white/5"
-              }`
-            }
-          >
-            <FileText className="h-4 w-4" />
-            <span>Reports</span>
-          </NavLink>
           <NavLink
             to="/assumptions"
             onClick={onClose}

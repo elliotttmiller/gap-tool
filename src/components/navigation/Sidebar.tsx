@@ -1,7 +1,6 @@
 import { siteConfig } from "@/lib/siteConfig"
 import { cx, focusRing } from "@/lib/utils"
 import {
-  RiBarChartBoxLine,
   RiHome2Line,
   RiSettings5Line,
   RiEqualizerLine,
@@ -10,7 +9,6 @@ import { NavLink } from "react-router-dom"
 
 const navigation = [
   { name: "Dashboard", href: siteConfig.baseLinks.home, icon: RiHome2Line },
-  { name: "Reports", href: "/reports", icon: RiBarChartBoxLine },
   { name: "Assumptions", href: siteConfig.baseLinks.assumptions, icon: RiEqualizerLine },
 ] as const
 

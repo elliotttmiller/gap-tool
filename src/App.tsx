@@ -33,14 +33,6 @@ export default function App() {
           <Route path="scenarios" element={<Navigate to="/" replace />} />
           <Route path="scenarios/list" element={<Navigate to="/" replace />} />
 
-          {/* Reports stub */}
-          <Route path="reports" element={
-            <div className="space-y-4">
-              <h1 className="text-2xl font-semibold text-gray-50">Reports</h1>
-              <p className="text-sm text-gray-500">Report generation coming soon.</p>
-            </div>
-          } />
-
           {/* Assumptions */}
           <Route path="assumptions" element={<AssumptionsPage />} />
 
