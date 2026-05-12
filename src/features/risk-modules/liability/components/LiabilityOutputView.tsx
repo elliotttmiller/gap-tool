@@ -1,11 +1,11 @@
-﻿import { useMemo } from "react"
-import { LiabilityOutputs } from "../types"
+﻿import { LiabilityOutputs } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency, formatPercent } from "@/lib/utils"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { getLiabilityNarrative } from "../constants/moduleCopy"
 import { AnimatedSection } from "@/components/ui/animated-section"
 import { useOnceAnimation } from "@/lib/use-once-animation"
+import { transformLiabilityChartData } from "../transformers/transformLiabilityChartData"
 
 interface LiabilityOutputViewProps {
   outputs: LiabilityOutputs
@@ -27,14 +27,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
-  const anim = useOnceAnimation()
-  const chartData = useMemo(() => [
-    {
-      name: "Total Asset Exposure",
-      Coverage: outputs.totalCoverage,
-      ExposureGap: outputs.exposureGap,
-    }
-  ], [outputs.totalCoverage, outputs.exposureGap])
+  const chartData = transformLiabilityChartData(outputs)
+  const anim = useOnceAnimation(chartData.animationKey)
 
   return (
     <div className="space-y-6 flex flex-col h-full w-full">
@@ -84,18 +78,13 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
           <CardContent>
             <div className="h-75 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} barSize={80}>
+                <BarChart data={chartData.protectionStackData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} barSize={80}>
                   <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis
-                    tickFormatter={(val) => `$${val / 1000}k`}
-                    tick={{ fill: "#64748b", fontSize: 12 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
+                  <YAxis tickFormatter={(val) => `$${val / 1000}k`} tick={{ fill: "#64748b", fontSize: 12 }} axisLine={false} tickLine={false} />
                   <Tooltip content={CustomTooltip} cursor={{ fill: "transparent" }} />
-                  <Legend wrapperStyle={{ fontSize: '12px', color: '#64748b' }} />
-                  <Bar dataKey="Coverage"    stackId="a" fill="#22c55e" radius={outputs.exposureGap > 0 ? [0, 0, 0, 0] : [4, 4, 0, 0]} isAnimationActive={anim.active} animationBegin={0}   animationDuration={900} animationEasing="ease-out" />
-                  <Bar dataKey="ExposureGap" stackId="a" fill="#f43f5e" radius={[4, 4, 0, 0]}                                                                              isAnimationActive={anim.active} animationBegin={180} animationDuration={900} animationEasing="ease-out" onAnimationEnd={anim.done} />
+                  <Legend wrapperStyle={{ fontSize: "12px", color: "#64748b" }} />
+                  <Bar dataKey="Coverage" stackId="a" fill="#22c55e" radius={outputs.exposureGap > 0 ? [0, 0, 0, 0] : [4, 4, 0, 0]} isAnimationActive={anim.active} animationBegin={anim.begin(0)} animationDuration={anim.duration} animationEasing={anim.easing} />
+                  <Bar dataKey="ExposureGap" stackId="a" fill="#f43f5e" radius={[4, 4, 0, 0]} isAnimationActive={anim.active} animationBegin={anim.begin(1)} animationDuration={anim.duration} animationEasing={anim.easing} onAnimationEnd={anim.done} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
