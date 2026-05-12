@@ -14,10 +14,8 @@ export function calculateUnemploymentGap(inputs: UnemploymentInputs): Unemployme
   const timeline = [];
   
   for (let month = 1; month <= inputs.estimatedJobSearchMonths; month++) {
-    // Determine this month's income
     let availableIncome = spouseMonthly;
     
-    // Add unemployment benefits if still within duration
     if (month <= inputs.unemploymentBenefitDurationMonths) {
       availableIncome += inputs.unemploymentBenefitMonthly;
     }
@@ -31,12 +29,12 @@ export function calculateUnemploymentGap(inputs: UnemploymentInputs): Unemployme
       } else {
         shortfall = gap - currentSavings;
         if (depletionMonth === -1) {
-          depletionMonth = month; // Records the first month we completely run out of cash
+          depletionMonth = month;
         }
         currentSavings = 0;
       }
     } else {
-      currentSavings += Math.abs(gap); // Add surplus to savings
+      currentSavings += Math.abs(gap);
     }
     
     totalShortfall += shortfall;
@@ -50,28 +48,26 @@ export function calculateUnemploymentGap(inputs: UnemploymentInputs): Unemployme
     });
   }
 
-  // Also calculate depletion assuming we just keep burning indefinitely to find the absolute runway
   if (depletionMonth === -1) {
-    // if we haven't depleted in the search window, check if we EVER deplete assuming no job found
     let checkMonth = inputs.estimatedJobSearchMonths + 1;
     let simSavings = currentSavings;
-    while(simSavings > 0 && checkMonth < 120) { // arbitrary 10 year cap
-        let simIncome = spouseMonthly;
-        if (checkMonth <= inputs.unemploymentBenefitDurationMonths) {
-            simIncome += inputs.unemploymentBenefitMonthly;
-        }
-        const gap = expenses - simIncome;
-        if (gap > 0) {
-            if (simSavings >= gap) {
-                simSavings -= gap;
-            } else {
-                depletionMonth = checkMonth;
-                break;
-            }
+    while (simSavings > 0 && checkMonth < 120) {
+      let simIncome = spouseMonthly;
+      if (checkMonth <= inputs.unemploymentBenefitDurationMonths) {
+        simIncome += inputs.unemploymentBenefitMonthly;
+      }
+      const gap = expenses - simIncome;
+      if (gap > 0) {
+        if (simSavings >= gap) {
+          simSavings -= gap;
         } else {
-           break; // we will never deplete
+          depletionMonth = checkMonth;
+          break;
         }
-        checkMonth++;
+      } else {
+        break;
+      }
+      checkMonth++;
     }
   }
 
@@ -85,6 +81,8 @@ export function calculateUnemploymentGap(inputs: UnemploymentInputs): Unemployme
     currentReserveLevel: inputs.emergencySavings,
     optimalReserveTarget: monthlySalary * 6,
     minimumReserveTarget: monthlySalary * 3,
+    annualIncomeAtRisk: inputs.annualIncome,
+    reserveMonthsCurrent: monthlySalary > 0 ? inputs.emergencySavings / monthlySalary : 0,
     timeline,
   };
 }
