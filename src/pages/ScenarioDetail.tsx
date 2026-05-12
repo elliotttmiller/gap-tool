@@ -3,10 +3,12 @@ import { RiskModuleType, useAppStore } from "@/lib/store"
 import { cx } from "@/lib/utils"
 import {
   RiArrowLeftLine,
+  RiCalendarLine,
   RiHeartPulseLine,
   RiPresentationLine,
   RiScalesLine,
   RiShieldCheckLine,
+  RiTimeLine,
   RiUmbrellaLine,
 } from "@remixicon/react"
 import { Link, NavLink, Navigate, Outlet, useLocation, useParams } from "react-router-dom"
@@ -27,12 +29,12 @@ const tabConfig: Record<
   },
   unemployment: {
     label: "Unemployment",
-    subtitle: "Job loss runway",
+    subtitle: "Job loss reserve runway",
     icon: RiShieldCheckLine,
   },
   liability: {
     label: "Liability / Lawsuit",
-    subtitle: "Asset exposure",
+    subtitle: "Asset and income exposure",
     icon: RiScalesLine,
   },
 }
@@ -46,11 +48,23 @@ function formatStatus(status: string) {
 
 function toDateLabel(value?: string) {
   if (!value) return "—"
-  return new Date(value).toLocaleDateString(undefined, {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "—"
+  return date.toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric",
   })
+}
+
+function ScenarioMetaItem({ icon: Icon, label, value }: { icon: typeof RiCalendarLine; label: string; value: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-slate-500">
+      <Icon className="size-3.5 text-slate-600" aria-hidden="true" />
+      <span className="text-slate-600">{label}:</span>
+      <span className="text-slate-400">{value}</span>
+    </span>
+  )
 }
 
 export function ScenarioDetailShell() {
@@ -101,73 +115,86 @@ export function ScenarioDetailShell() {
   }
 
   return (
-    <div className="space-y-0">
-      <div className="mb-6">
-        <nav className="mb-4 flex items-center gap-1.5 text-sm text-gray-500">
-          <Link to="/" className="flex items-center gap-1 transition-colors hover:text-gray-200">
-            <RiArrowLeftLine className="size-3.5" aria-hidden="true" />
+    <div className="space-y-8">
+      <section className="rounded-2xl border border-slate-800/90 bg-[linear-gradient(180deg,rgba(15,23,42,0.72),rgba(2,6,23,0.48))] px-5 py-5 shadow-xl shadow-black/10 sm:px-7 sm:py-6 lg:px-8">
+        <nav className="mb-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
+          <Link to="/" className="inline-flex items-center gap-1.5 transition-colors hover:text-slate-200">
+            <RiArrowLeftLine className="size-4" aria-hidden="true" />
             Dashboard
           </Link>
-          <span className="text-gray-700">/</span>
-          <span>{client.displayName}</span>
-          <span className="text-gray-700">/</span>
-          <span className="font-medium text-gray-200">{scenario.name}</span>
+          <span className="text-slate-700">/</span>
+          <span className="text-slate-400">{client.displayName}</span>
+          <span className="text-slate-700">/</span>
+          <span className="font-medium text-slate-200">{scenario.name}</span>
         </nav>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <div className="mb-2 flex items-center gap-2">
-              <span className="inline-flex items-center rounded-full bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-blue-900">
+        <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+          <div className="min-w-0 flex-1 space-y-4">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="inline-flex items-center rounded-full bg-blue-950/90 px-3 py-1 text-xs font-semibold text-blue-300 ring-1 ring-blue-800/80">
                 {formatStatus(scenario.status)}
               </span>
-              <span className="text-xs text-gray-600">Updated: {toDateLabel(scenario.updatedAt)}</span>
-              <span className="text-xs text-gray-600">Calculated: {toDateLabel(scenario.lastCalculatedAt)}</span>
+              <ScenarioMetaItem icon={RiCalendarLine} label="Updated" value={toDateLabel(scenario.updatedAt)} />
+              <ScenarioMetaItem icon={RiTimeLine} label="Calculated" value={toDateLabel(scenario.lastCalculatedAt)} />
             </div>
-            <h1 className="text-2xl font-semibold text-gray-50">{scenario.name}</h1>
-            <p className="mt-1 text-sm text-gray-400">
-              {client.displayName} · Risk review modules selected for this client scenario.
-            </p>
+
+            <div className="space-y-2">
+              <h1 className="max-w-5xl text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl">
+                {scenario.name}
+              </h1>
+              <p className="max-w-3xl text-base leading-7 text-slate-400">
+                {client.displayName} · Advisor-guided risk review modules selected for this client scenario.
+              </p>
+            </div>
           </div>
-          <Button variant="secondary" asChild className="shrink-0">
-            <Link to={`/present/${scenarioId}`}>
-              <RiPresentationLine className="size-4" aria-hidden="true" />
-              Presentation Mode
-            </Link>
-          </Button>
+
+          <div className="flex shrink-0 items-center justify-start xl:justify-end">
+            <Button variant="secondary" asChild className="h-11 rounded-xl px-5 text-base">
+              <Link to={`/present/${scenarioId}`}>
+                <RiPresentationLine className="size-4" aria-hidden="true" />
+                Presentation Mode
+              </Link>
+            </Button>
+          </div>
         </div>
-      </div>
 
-      <div className="inline-flex max-w-full flex-wrap items-center gap-1 rounded-xl bg-gray-900 p-1 ring-1 ring-gray-800">
-        {includedTabs.map((module) => {
-          const tab = tabConfig[module]
-          return (
-            <NavLink
-              key={module}
-              to={`/scenarios/${scenarioId}/${module}`}
-              onClick={() => setActiveModule(scenarioId, module)}
-              className={({ isActive }) =>
-                cx(
-                  "flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-all",
-                  isActive
-                    ? "bg-[#0a1628] text-white shadow-sm ring-1 ring-blue-900"
-                    : "text-gray-400 hover:bg-gray-800 hover:text-gray-100",
+        <div className="mt-7 border-t border-slate-800/80 pt-5">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600">Risk Modules</p>
+              {activeTab ? (
+                <p className="mt-1 text-sm text-slate-400">{tabConfig[activeTab].subtitle}</p>
+              ) : null}
+            </div>
+
+            <div className="flex w-full max-w-full flex-wrap items-center gap-1.5 rounded-2xl border border-slate-800 bg-slate-950/70 p-1.5 lg:w-auto">
+              {includedTabs.map((module) => {
+                const tab = tabConfig[module]
+                return (
+                  <NavLink
+                    key={module}
+                    to={`/scenarios/${scenarioId}/${module}`}
+                    onClick={() => setActiveModule(scenarioId, module)}
+                    className={({ isActive }) =>
+                      cx(
+                        "inline-flex min-h-10 items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all sm:px-4",
+                        isActive
+                          ? "bg-blue-950/70 text-white shadow-sm ring-1 ring-blue-700/70"
+                          : "text-slate-400 hover:bg-slate-900 hover:text-slate-100",
+                      )
+                    }
+                  >
+                    <tab.icon className="size-4 shrink-0" aria-hidden="true" />
+                    <span>{tab.label}</span>
+                  </NavLink>
                 )
-              }
-            >
-              <tab.icon className="size-3.5 shrink-0" aria-hidden="true" />
-              <span>{tab.label}</span>
-            </NavLink>
-          )
-        })}
-      </div>
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
 
-      {activeTab ? (
-        <p className="mt-3 text-xs text-gray-500">{tabConfig[activeTab].subtitle}</p>
-      ) : null}
-
-      <div className="pt-6">
-        <Outlet />
-      </div>
+      <Outlet />
     </div>
   )
 }
