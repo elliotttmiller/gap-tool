@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/Input"
 import { ClientRecord, RiskModuleType, useAppStore } from "@/lib/store"
 import { cx } from "@/lib/utils"
-import { RiAddLine, RiAlertLine, RiArrowRightSLine, RiDeleteBinLine, RiSearchLine, RiUserLine } from "@remixicon/react"
+import { RiAddLine, RiAlertLine, RiArrowRightSLine, RiDeleteBinLine, RiRefreshLine, RiSearchLine, RiUserLine } from "@remixicon/react"
 import { useMemo, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 
@@ -229,13 +229,14 @@ function AddClientDrawer() {
   )
 }
 
-function StartRiskReviewDrawer({ client }: { client: ClientRecord }) {
+function RiskReviewDrawer({ client, mode = "generate" }: { client: ClientRecord; mode?: "generate" | "regenerate" }) {
   const navigate = useNavigate()
   const createScenario = useAppStore((state) => state.createScenario)
   const [open, setOpen] = useState(false)
   const [scenarioName, setScenarioName] = useState(`${client.lastName} Household Risk Review`)
   const [includedModules, setIncludedModules] = useState<RiskModuleType[]>(advisorReferenceModules)
   const [activeModule, setActiveModule] = useState<RiskModuleType>("life")
+  const isRegenerate = mode === "regenerate"
 
   function toggleModule(module: RiskModuleType) {
     setIncludedModules((current) => {
@@ -251,11 +252,27 @@ function StartRiskReviewDrawer({ client }: { client: ClientRecord }) {
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild><Button variant="secondary">Generate Risk Review</Button></DrawerTrigger>
+      <DrawerTrigger asChild>
+        {isRegenerate ? (
+          <button
+            aria-label={`Regenerate risk review for ${client.displayName}`}
+            title="Regenerate risk review"
+            className="rounded-md p-1.5 text-blue-400 transition-colors hover:bg-blue-950/30 hover:text-blue-300"
+          >
+            <RiRefreshLine className="size-4" aria-hidden="true" />
+          </button>
+        ) : (
+          <Button variant="secondary">Generate Risk Review</Button>
+        )}
+      </DrawerTrigger>
       <DrawerContent className="sm:max-w-xl">
-        <DrawerHeader><DrawerTitle>Generate Income Gap Analysis</DrawerTitle></DrawerHeader>
+        <DrawerHeader><DrawerTitle>{isRegenerate ? "Regenerate Income Gap Analysis" : "Generate Income Gap Analysis"}</DrawerTitle></DrawerHeader>
         <DrawerBody className="space-y-4">
-          <p className="text-sm text-gray-400">Creates the advisor-reference modules first: Death/Life, Lawsuit, and Unemployment. Disability can be added when needed.</p>
+          <p className="text-sm text-gray-400">
+            {isRegenerate
+              ? "Create a fresh risk review from the client’s current setup fields. Existing reviews remain available until removed."
+              : "Creates the advisor-reference modules first: Death/Life, Lawsuit, and Unemployment. Disability can be added when needed."}
+          </p>
           <Input value={scenarioName} onChange={(event) => setScenarioName(event.target.value)} />
           <div className="space-y-2">
             {allModuleTypes.map((module) => (
@@ -276,7 +293,7 @@ function StartRiskReviewDrawer({ client }: { client: ClientRecord }) {
             if (!scenarioId) return
             setOpen(false)
             navigate(`/scenarios/${scenarioId}/${activeModule}`)
-          }}>Create and Start</Button>
+          }}>{isRegenerate ? "Regenerate Review" : "Create and Start"}</Button>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
@@ -392,16 +409,22 @@ export function Dashboard() {
             {filteredClients.map((client) => {
               const scenarioCount = scenariosByClientId[client.id] ?? 0
               const firstScenarioId = firstScenarioByClientId[client.id]
+              const hasGeneratedReview = scenarioCount > 0
 
               return (
                 <li key={client.id} className="flex items-center gap-4 px-6 py-4">
                   <div className="min-w-0 flex-1">
+                    <p className="font-medium text-gray-100">{client.displayName}</p>
                     <p className="text-xs text-gray-500">{client.profile.clientType === "couple" ? "Couple" : "Individual"} · Age {client.profile.currentAge ?? "—"} · Income ${Math.round(client.profile.annualEarnedIncome ?? 0).toLocaleString()}</p>
                     <p className="text-xs text-gray-600">Updated {formatDate(client.updatedAt)}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     {firstScenarioId ? <Link to={`/scenarios/${firstScenarioId}/life`} className="text-sm text-blue-400 hover:text-blue-300">Open Review</Link> : null}
-                    <StartRiskReviewDrawer client={client} />
+                    {hasGeneratedReview ? (
+                      <RiskReviewDrawer client={client} mode="regenerate" />
+                    ) : (
+                      <RiskReviewDrawer client={client} mode="generate" />
+                    )}
                     <RemoveClientDrawer client={client} scenarioCount={scenarioCount} />
                   </div>
                   <RiArrowRightSLine className="size-4 text-gray-700" />
