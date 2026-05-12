@@ -174,6 +174,9 @@ function getProfileCompletion(profile: ClientFinancialProfile): ProfileCompletio
   if (profile.groupLifeCoverage !== undefined && profile.privateLifeCoverage !== undefined && profile.autoLiabilityLimit !== undefined) return "ready_full_analysis"
   return "ready_basic_analysis"
 }
+function getClientStatus(profile: ClientFinancialProfile): ClientStatus {
+  return profile.annualEarnedIncome ? "active" : "draft"
+}
 
 function buildUpdatedProfile(client: ClientRecord, updates: Partial<CreateClientPayload>, firstName: string, lastName: string): ClientFinancialProfile {
   const nextClientType = updates.clientType ?? client.profile.clientType ?? "individual"
@@ -346,13 +349,13 @@ export const useAppStore = create<AppState>()(
           homeLiabilityLimit: 0,
           umbrellaCoverage: 0,
         }
-        const record: ClientRecord = { id, ownerId: DEFAULT_ADVISOR_ID, firstName, lastName, displayName: toDisplayName(firstName, lastName, payload.displayName), email: payload.email?.trim() ?? "", phone: payload.phone?.trim() ?? "", status: payload.annualIncome ? "active" : "draft", profileCompletionStatus: getProfileCompletion(profile), createdAt: timestamp, updatedAt: timestamp, profile }
+        const record: ClientRecord = { id, ownerId: DEFAULT_ADVISOR_ID, firstName, lastName, displayName: toDisplayName(firstName, lastName, payload.displayName), email: payload.email?.trim() ?? "", phone: payload.phone?.trim() ?? "", status: getClientStatus(profile), profileCompletionStatus: getProfileCompletion(profile), createdAt: timestamp, updatedAt: timestamp, profile }
         set((state) => ({ clients: [record, ...state.clients] })); return id
       },
       updateClient: (clientId, updates) => set((state) => {
         const timestamp = nowIso()
         let updatedProfile: ClientFinancialProfile | null = null
-        const clients = state.clients.map((client) => {
+        const clients: ClientRecord[] = state.clients.map((client) => {
           if (client.id !== clientId) return client
           const firstName = updates.firstName?.trim() ?? client.firstName
           const lastName = updates.lastName?.trim() ?? client.lastName
@@ -365,7 +368,7 @@ export const useAppStore = create<AppState>()(
             displayName: toDisplayName(firstName, lastName, updates.displayName ?? client.displayName),
             email: updates.email?.trim() ?? client.email,
             phone: updates.phone?.trim() ?? client.phone,
-            status: profile.annualEarnedIncome ? "active" : "draft",
+            status: getClientStatus(profile),
             profile,
             profileCompletionStatus: getProfileCompletion(profile),
             updatedAt: timestamp,
