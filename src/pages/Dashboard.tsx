@@ -11,121 +11,104 @@ import {
   DrawerTrigger,
 } from "@/components/Drawer"
 import { Input } from "@/components/Input"
-import {
-  ClientRecord,
-  RiskModuleType,
-  ScenarioRecord,
-  ScenarioStatus,
-  useAppStore,
-} from "@/lib/store"
-import { formatGapCurrency, getLargestScenarioGap } from "@/lib/scenarioMetrics"
+import { ClientRecord, RiskModuleType, useAppStore } from "@/lib/store"
 import { cx } from "@/lib/utils"
-import {
-  RiAddLine,
-  RiArrowRightSLine,
-  RiCalendarLine,
-  RiCloseLine,
-  RiExternalLinkLine,
-  RiHeartPulseLine,
-  RiMailLine,
-  RiPhoneLine,
-  RiScalesLine,
-  RiSearchLine,
-  RiShieldCheckLine,
-  RiUser3Line,
-  RiUserLine,
-  RiUmbrellaLine,
-} from "@remixicon/react"
-import React, { useEffect, useMemo, useState } from "react"
+import { RiAddLine, RiArrowRightSLine, RiSearchLine, RiUserLine } from "@remixicon/react"
+import { useMemo, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 
 const moduleLabel: Record<RiskModuleType, string> = {
-  disability: "Disability",
-  life: "Life Insurance",
-  unemployment: "Unemployment",
+  life: "Life Insurance / Death",
   liability: "Liability / Lawsuit",
+  unemployment: "Unemployment",
+  disability: "Disability",
 }
 
-const ALL_MODULE_TYPES: RiskModuleType[] = ["disability", "life", "unemployment", "liability"]
-const NO_EMAIL_TEXT = "No email on file"
-const NO_PHONE_TEXT = "No phone on file"
+const advisorReferenceModules: RiskModuleType[] = ["life", "liability", "unemployment"]
+const allModuleTypes: RiskModuleType[] = ["life", "liability", "unemployment", "disability"]
 
-const moduleIcon: Record<RiskModuleType, React.ElementType> = {
-  disability: RiUmbrellaLine,
-  life: RiHeartPulseLine,
-  unemployment: RiShieldCheckLine,
-  liability: RiScalesLine,
+type AddClientFormState = {
+  clientType: "individual" | "couple"
+  firstName: string
+  lastName: string
+  displayName: string
+  email: string
+  phone: string
+  age: string
+  annualIncome: string
+  monthlyExpenses: string
+  groupLifeCoverage: string
+  privateLifeCoverage: string
+  privateLifePolicyType: "term" | "permanent"
+  privateLifeTermYears: string
+  nonQualifiedAssets: string
+  spouseName: string
+  spouseAge: string
+  spouseAnnualIncome: string
+  spouseGroupLifeCoverage: string
+  spousePrivateLifeCoverage: string
+  spousePrivateLifePolicyType: "term" | "permanent"
+  spousePrivateLifeTermYears: string
+  spouseNonQualifiedAssets: string
+  autoLiabilityLimit: string
 }
 
-const moduleColor: Record<RiskModuleType, string> = {
-  disability: "text-blue-400",
-  life: "text-emerald-400",
-  unemployment: "text-indigo-400",
-  liability: "text-orange-400",
+const emptyClientForm: AddClientFormState = {
+  clientType: "individual",
+  firstName: "",
+  lastName: "",
+  displayName: "",
+  email: "",
+  phone: "",
+  age: "",
+  annualIncome: "",
+  monthlyExpenses: "",
+  groupLifeCoverage: "",
+  privateLifeCoverage: "",
+  privateLifePolicyType: "term",
+  privateLifeTermYears: "20",
+  nonQualifiedAssets: "",
+  spouseName: "",
+  spouseAge: "",
+  spouseAnnualIncome: "",
+  spouseGroupLifeCoverage: "",
+  spousePrivateLifeCoverage: "",
+  spousePrivateLifePolicyType: "term",
+  spousePrivateLifeTermYears: "15",
+  spouseNonQualifiedAssets: "",
+  autoLiabilityLimit: "300000",
 }
 
-const scenarioStatusVariant: Record<ScenarioStatus, "success" | "warning" | "default" | "neutral"> = {
-  draft: "neutral",
-  inputs_needed: "warning",
-  calculated: "success",
-  ready_for_review: "default",
-  presented: "success",
-  report_generated: "success",
-  archived: "neutral",
+function toNumber(value: string): number | undefined {
+  if (value.trim() === "") return undefined
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : undefined
 }
 
-function formatStatus(status: string) {
-  return status
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ")
-}
-
-function formatCompletionStatus(status: string) {
-  if (status === "missing_required_info") return "Missing Required Info"
-  if (status === "ready_basic_analysis") return "Ready for Basic Analysis"
-  if (status === "ready_full_analysis") return "Ready for Full Analysis"
-  return formatStatus(status)
-}
-
-function toDateLabel(value?: string) {
+function formatDate(value?: string) {
   if (!value) return "—"
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return "—"
-  return date.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+}
+
+function formatStatus(value: string) {
+  return value.split("_").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ")
+}
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <p className="pt-2 text-xs font-semibold uppercase tracking-widest text-gray-500">{children}</p>
 }
 
 function AddClientDrawer() {
   const createClient = useAppStore((state) => state.createClient)
   const [open, setOpen] = useState(false)
-  const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
-    displayName: "",
-    email: "",
-    phone: "",
-    age: "",
-    annualIncome: "",
-    monthlyExpenses: "",
-  })
+  const [form, setForm] = useState<AddClientFormState>(emptyClientForm)
+  const isCouple = form.clientType === "couple"
+  const canSubmit = Boolean(form.firstName.trim() && form.lastName.trim() && form.age && form.annualIncome)
 
-  const canSubmit = Boolean(form.firstName.trim() && form.lastName.trim())
-
-  function resetForm() {
-    setForm({
-      firstName: "",
-      lastName: "",
-      displayName: "",
-      email: "",
-      phone: "",
-      age: "",
-      annualIncome: "",
-      monthlyExpenses: "",
-    })
+  function setField<K extends keyof AddClientFormState>(field: K, value: AddClientFormState[K]) {
+    setForm((current) => ({ ...current, [field]: value }))
   }
 
   return (
@@ -136,23 +119,77 @@ function AddClientDrawer() {
           Add Client
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="sm:max-w-xl">
+      <DrawerContent className="sm:max-w-3xl">
         <DrawerHeader>
-          <DrawerTitle>Add Client</DrawerTitle>
+          <DrawerTitle>Client Setup</DrawerTitle>
         </DrawerHeader>
-        <DrawerBody className="space-y-4">
-          <p className="text-sm text-gray-400">Add a real client profile to begin a risk review workflow.</p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Input placeholder="First name *" value={form.firstName} onChange={(event) => setForm((prev) => ({ ...prev, firstName: event.target.value }))} />
-            <Input placeholder="Last name *" value={form.lastName} onChange={(event) => setForm((prev) => ({ ...prev, lastName: event.target.value }))} />
-            <Input placeholder="Household / display name" value={form.displayName} onChange={(event) => setForm((prev) => ({ ...prev, displayName: event.target.value }))} />
-            <Input placeholder="Email" value={form.email} onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))} />
-            <Input placeholder="Phone" value={form.phone} onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))} />
-            <Input type="number" min={0} placeholder="Current age (recommended)" value={form.age} onChange={(event) => setForm((prev) => ({ ...prev, age: event.target.value }))} />
-            <Input type="number" min={0} placeholder="Annual income (recommended)" value={form.annualIncome} onChange={(event) => setForm((prev) => ({ ...prev, annualIncome: event.target.value }))} />
-            <Input type="number" min={0} placeholder="Monthly expenses (recommended)" value={form.monthlyExpenses} onChange={(event) => setForm((prev) => ({ ...prev, monthlyExpenses: event.target.value }))} />
+        <DrawerBody className="space-y-5">
+          <p className="text-sm text-gray-400">
+            Matches the advisor reference workflow: client type, income earners, existing life coverage, non-qualified assets, and household auto liability.
+          </p>
+
+          <SectionTitle>Client Type</SectionTitle>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {(["individual", "couple"] as const).map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setField("clientType", type)}
+                className={cx(
+                  "rounded-lg border px-4 py-2 text-sm font-semibold capitalize transition",
+                  form.clientType === type ? "border-cyan-500 bg-cyan-500/15 text-white" : "border-gray-700 bg-gray-900/60 text-gray-400 hover:text-gray-200",
+                )}
+              >
+                {type === "individual" ? "Individual" : "Couple"}
+              </button>
+            ))}
           </div>
-          <p className="text-xs text-gray-500">Required: first and last name. Clients can be saved as draft and completed later.</p>
+
+          <SectionTitle>Primary Earner</SectionTitle>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Input placeholder="First name *" value={form.firstName} onChange={(event) => setField("firstName", event.target.value)} />
+            <Input placeholder="Last name *" value={form.lastName} onChange={(event) => setField("lastName", event.target.value)} />
+            <Input placeholder="Household / display name" value={form.displayName} onChange={(event) => setField("displayName", event.target.value)} />
+            <Input type="number" min={18} max={64} placeholder="Current age *" value={form.age} onChange={(event) => setField("age", event.target.value)} />
+            <Input type="number" min={0} placeholder="Annual income ($) *" value={form.annualIncome} onChange={(event) => setField("annualIncome", event.target.value)} />
+            <Input type="number" min={0} placeholder="Monthly expenses ($)" value={form.monthlyExpenses} onChange={(event) => setField("monthlyExpenses", event.target.value)} />
+            <Input placeholder="Email" value={form.email} onChange={(event) => setField("email", event.target.value)} />
+            <Input placeholder="Phone" value={form.phone} onChange={(event) => setField("phone", event.target.value)} />
+          </div>
+
+          <SectionTitle>Existing Coverage — Primary Earner</SectionTitle>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Input type="number" min={0} placeholder="Group Life death benefit ($)" value={form.groupLifeCoverage} onChange={(event) => setField("groupLifeCoverage", event.target.value)} />
+            <Input type="number" min={0} placeholder="Private Life death benefit ($)" value={form.privateLifeCoverage} onChange={(event) => setField("privateLifeCoverage", event.target.value)} />
+            <select value={form.privateLifePolicyType} onChange={(event) => setField("privateLifePolicyType", event.target.value as "term" | "permanent")} className="h-9 rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50">
+              <option value="term">Term</option>
+              <option value="permanent">Permanent</option>
+            </select>
+            {form.privateLifePolicyType === "term" ? <Input type="number" min={0} placeholder="Term length (years)" value={form.privateLifeTermYears} onChange={(event) => setField("privateLifeTermYears", event.target.value)} /> : <div />}
+            <Input type="number" min={0} placeholder="Non-qualified assets ($)" value={form.nonQualifiedAssets} onChange={(event) => setField("nonQualifiedAssets", event.target.value)} />
+          </div>
+
+          {isCouple ? (
+            <>
+              <SectionTitle>Secondary Earner</SectionTitle>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input placeholder="Secondary earner full name" value={form.spouseName} onChange={(event) => setField("spouseName", event.target.value)} />
+                <Input type="number" min={18} max={64} placeholder="Secondary current age" value={form.spouseAge} onChange={(event) => setField("spouseAge", event.target.value)} />
+                <Input type="number" min={0} placeholder="Secondary annual income ($)" value={form.spouseAnnualIncome} onChange={(event) => setField("spouseAnnualIncome", event.target.value)} />
+                <Input type="number" min={0} placeholder="Secondary Group Life ($)" value={form.spouseGroupLifeCoverage} onChange={(event) => setField("spouseGroupLifeCoverage", event.target.value)} />
+                <Input type="number" min={0} placeholder="Secondary Private Life ($)" value={form.spousePrivateLifeCoverage} onChange={(event) => setField("spousePrivateLifeCoverage", event.target.value)} />
+                <select value={form.spousePrivateLifePolicyType} onChange={(event) => setField("spousePrivateLifePolicyType", event.target.value as "term" | "permanent")} className="h-9 rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50">
+                  <option value="term">Term</option>
+                  <option value="permanent">Permanent</option>
+                </select>
+                {form.spousePrivateLifePolicyType === "term" ? <Input type="number" min={0} placeholder="Secondary term length" value={form.spousePrivateLifeTermYears} onChange={(event) => setField("spousePrivateLifeTermYears", event.target.value)} /> : <div />}
+                <Input type="number" min={0} placeholder="Secondary non-qualified assets ($)" value={form.spouseNonQualifiedAssets} onChange={(event) => setField("spouseNonQualifiedAssets", event.target.value)} />
+              </div>
+            </>
+          ) : null}
+
+          <SectionTitle>Household Liability Coverage</SectionTitle>
+          <Input type="number" min={0} placeholder="Underlying Auto Liability Limit ($)" value={form.autoLiabilityLimit} onChange={(event) => setField("autoLiabilityLimit", event.target.value)} />
         </DrawerBody>
         <DrawerFooter>
           <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
@@ -166,12 +203,27 @@ function AddClientDrawer() {
                 displayName: form.displayName,
                 email: form.email,
                 phone: form.phone,
-                age: form.age ? Number(form.age) : undefined,
-                annualIncome: form.annualIncome ? Number(form.annualIncome) : undefined,
-                monthlyExpenses: form.monthlyExpenses ? Number(form.monthlyExpenses) : undefined,
+                clientType: form.clientType,
+                age: toNumber(form.age),
+                annualIncome: toNumber(form.annualIncome),
+                monthlyExpenses: toNumber(form.monthlyExpenses),
+                groupLifeCoverage: toNumber(form.groupLifeCoverage),
+                privateLifeCoverage: toNumber(form.privateLifeCoverage),
+                privateLifePolicyType: form.privateLifePolicyType,
+                privateLifeTermYears: toNumber(form.privateLifeTermYears),
+                nonQualifiedAssets: toNumber(form.nonQualifiedAssets),
+                spouseName: form.spouseName,
+                spouseAge: toNumber(form.spouseAge),
+                spouseAnnualIncome: toNumber(form.spouseAnnualIncome),
+                spouseGroupLifeCoverage: toNumber(form.spouseGroupLifeCoverage),
+                spousePrivateLifeCoverage: toNumber(form.spousePrivateLifeCoverage),
+                spousePrivateLifePolicyType: form.spousePrivateLifePolicyType,
+                spousePrivateLifeTermYears: toNumber(form.spousePrivateLifeTermYears),
+                spouseNonQualifiedAssets: toNumber(form.spouseNonQualifiedAssets),
+                autoLiabilityLimit: toNumber(form.autoLiabilityLimit),
               })
               setOpen(false)
-              resetForm()
+              setForm(emptyClientForm)
             }}
           >
             Save Client
@@ -186,189 +238,120 @@ function StartRiskReviewDrawer({ client }: { client: ClientRecord }) {
   const navigate = useNavigate()
   const createScenario = useAppStore((state) => state.createScenario)
   const [open, setOpen] = useState(false)
-  const [scenarioName, setScenarioName] = useState("")
-  const [notes, setNotes] = useState("")
-  const [includedModules, setIncludedModules] = useState<RiskModuleType[]>([...ALL_MODULE_TYPES])
-  const [activeModule, setActiveModule] = useState<RiskModuleType>("disability")
-
-  const canSubmit = Boolean(scenarioName.trim() && includedModules.length)
-
-  useEffect(() => {
-    if (!open) return
-    setScenarioName((current) => current || `${client.lastName} Household Risk Review`)
-  }, [client.lastName, open])
+  const [scenarioName, setScenarioName] = useState(`${client.lastName} Household Risk Review`)
+  const [includedModules, setIncludedModules] = useState<RiskModuleType[]>(advisorReferenceModules)
+  const [activeModule, setActiveModule] = useState<RiskModuleType>("life")
 
   function toggleModule(module: RiskModuleType) {
-    setIncludedModules((prev) => {
-      if (prev.includes(module)) {
-        const next = prev.filter((value) => value !== module)
-        if (!next.length) return prev
+    setIncludedModules((current) => {
+      if (current.includes(module)) {
+        const next = current.filter((item) => item !== module)
+        if (!next.length) return current
         if (!next.includes(activeModule)) setActiveModule(next[0])
         return next
       }
-      return [...prev, module]
+      return [...current, module]
     })
   }
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
-        <Button variant="secondary">Start Risk Review</Button>
-      </DrawerTrigger>
+      <DrawerTrigger asChild><Button variant="secondary">Generate Risk Review</Button></DrawerTrigger>
       <DrawerContent className="sm:max-w-xl">
-        <DrawerHeader>
-          <DrawerTitle>Start Risk Review</DrawerTitle>
-        </DrawerHeader>
+        <DrawerHeader><DrawerTitle>Generate Income Gap Analysis</DrawerTitle></DrawerHeader>
         <DrawerBody className="space-y-4">
-          <p className="text-sm text-gray-400">Initialize a scenario for {client.displayName} using profile-based module prefills.</p>
+          <p className="text-sm text-gray-400">Creates the advisor-reference modules first: Death/Life, Lawsuit, and Unemployment. Disability can be added when needed.</p>
           <Input value={scenarioName} onChange={(event) => setScenarioName(event.target.value)} />
-          <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Optional notes" className="block h-24 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-gray-50 outline-none transition focus:border-blue-600 focus:ring-1 focus:ring-blue-600" />
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-gray-500">Included modules</p>
-            <div className="space-y-2">
-              {ALL_MODULE_TYPES.map((module) => (
-                <label key={module} className="flex items-center justify-between rounded-md border border-gray-800 bg-gray-900/40 px-3 py-2 text-sm text-gray-300">
-                  <span>{moduleLabel[module]}</span>
-                  <input type="checkbox" checked={includedModules.includes(module)} onChange={() => toggleModule(module)} />
-                </label>
-              ))}
-            </div>
+          <div className="space-y-2">
+            {allModuleTypes.map((module) => (
+              <label key={module} className="flex items-center justify-between rounded-md border border-gray-800 bg-gray-900/40 px-3 py-2 text-sm text-gray-300">
+                <span>{moduleLabel[module]}</span>
+                <input type="checkbox" checked={includedModules.includes(module)} onChange={() => toggleModule(module)} />
+              </label>
+            ))}
           </div>
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-gray-500">Starting module</p>
-            <select value={activeModule} onChange={(event) => setActiveModule(event.target.value as RiskModuleType)} className="h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50 outline-none transition focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
-              {includedModules.map((module) => <option key={module} value={module}>{moduleLabel[module]}</option>)}
-            </select>
-          </div>
+          <select value={activeModule} onChange={(event) => setActiveModule(event.target.value as RiskModuleType)} className="h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50">
+            {includedModules.map((module) => <option key={module} value={module}>{moduleLabel[module]}</option>)}
+          </select>
         </DrawerBody>
         <DrawerFooter>
           <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button disabled={!canSubmit} onClick={() => {
-            if (!canSubmit) return
-            const scenarioId = createScenario({ clientId: client.id, name: scenarioName, notes, includedModules, activeModule })
+          <Button onClick={() => {
+            const scenarioId = createScenario({ clientId: client.id, name: scenarioName, includedModules, activeModule })
             if (!scenarioId) return
             setOpen(false)
             navigate(`/scenarios/${scenarioId}/${activeModule}`)
-          }}>
-            Create and Start
-          </Button>
+          }}>Create and Start</Button>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
   )
 }
 
-function ClientDetailPanel({
-  client,
-  scenarios,
-  moduleRecordsByScenarioId,
-  onClose,
-}: {
-  client: ClientRecord
-  scenarios: ScenarioRecord[]
-  moduleRecordsByScenarioId: ReturnType<typeof useAppStore.getState>["moduleRecordsByScenarioId"]
-  onClose: () => void
-}) {
-  const firstScenario = scenarios[0]
-  const firstHref = firstScenario ? `/scenarios/${firstScenario.id}/${firstScenario.activeModule}` : undefined
-
-  return (
-    <>
-      <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
-      <div className="fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col bg-[#090E1A] shadow-2xl ring-1 ring-gray-800">
-        <div className="flex items-start justify-between border-b border-gray-800 px-6 py-5">
-          <div className="flex items-center gap-4">
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-blue-950 ring-1 ring-blue-900"><span className="text-sm font-semibold text-blue-300">{client.firstName.charAt(0)}{client.lastName.charAt(0)}</span></div>
-            <div>
-              <h2 className="text-base font-semibold text-gray-50">{client.displayName}</h2>
-              <div className="mt-1.5 flex items-center gap-2"><Badge variant={client.status === "active" ? "success" : "neutral"}>{formatStatus(client.status)}</Badge><span className="text-xs text-gray-600">{scenarios.length} scenario{scenarios.length !== 1 ? "s" : ""}</span></div>
-            </div>
-          </div>
-          <button onClick={onClose} className="flex size-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-800 hover:text-gray-200" aria-label="Close"><RiCloseLine className="size-5" /></button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto">
-          <div className="border-b border-gray-800 px-6 py-5">
-            <p className="mb-4 text-[10px] font-semibold uppercase tracking-widest text-gray-600">Client Profile</p>
-            <dl className="space-y-3.5">
-              <div className="flex items-center gap-3"><RiMailLine className="size-4 shrink-0 text-gray-600" aria-hidden="true" /><dd className="text-sm text-gray-300">{client.email || NO_EMAIL_TEXT}</dd></div>
-              <div className="flex items-center gap-3"><RiPhoneLine className="size-4 shrink-0 text-gray-600" aria-hidden="true" /><dd className="text-sm text-gray-300">{client.phone || NO_PHONE_TEXT}</dd></div>
-              <div className="flex items-center gap-3"><RiUser3Line className="size-4 shrink-0 text-gray-600" aria-hidden="true" /><dd className="text-sm text-gray-300">Age {client.profile.currentAge ?? "—"} · {formatCompletionStatus(client.profileCompletionStatus)}</dd></div>
-              <div className="flex items-center gap-3"><RiCalendarLine className="size-4 shrink-0 text-gray-600" aria-hidden="true" /><dd className="text-xs text-gray-500">Updated {toDateLabel(client.updatedAt)}</dd></div>
-            </dl>
-          </div>
-          <div className="px-6 py-5">
-            <div className="mb-4 flex items-center justify-between"><p className="text-[10px] font-semibold uppercase tracking-widest text-gray-600">Risk Reviews</p><StartRiskReviewDrawer client={client} /></div>
-            {scenarios.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-800 px-5 py-10 text-center"><RiUserLine className="mx-auto mb-2.5 size-6 text-gray-700" /><p className="text-sm font-medium text-gray-500">No scenarios yet</p><p className="mt-1 text-xs text-gray-600">Start a risk review to initialize prefilled module inputs.</p></div>
-            ) : (
-              <ul className="space-y-2">{scenarios.map((scenario) => {
-                const Icon = moduleIcon[scenario.activeModule]
-                const href = `/scenarios/${scenario.id}/${scenario.activeModule}`
-                const gap = getLargestScenarioGap(moduleRecordsByScenarioId[scenario.id])
-                return <li key={scenario.id}><Link to={href} onClick={onClose} className="flex items-center justify-between gap-3 rounded-xl border border-gray-800 px-4 py-3.5 transition hover:border-gray-700 hover:bg-white/2.5"><div className="flex min-w-0 items-center gap-3"><Icon className={cx("size-4 shrink-0", moduleColor[scenario.activeModule])} aria-hidden="true" /><div className="min-w-0"><p className="truncate text-sm font-medium text-gray-100">{scenario.name}</p><div className="mt-0.5 flex items-center gap-1.5"><span className="text-xs text-gray-500">{moduleLabel[scenario.activeModule]}</span>{typeof gap === "number" ? <><span className="text-gray-700">·</span><span className="text-xs font-semibold text-gray-300">Largest gap {formatGapCurrency(gap)}</span></> : null}</div></div></div><div className="flex shrink-0 items-center gap-2"><Badge variant={scenarioStatusVariant[scenario.status]}>{formatStatus(scenario.status)}</Badge><RiArrowRightSLine className="size-4 text-gray-600" /></div></Link></li>
-              })}</ul>
-            )}
-          </div>
-        </div>
-        <div className="border-t border-gray-800 px-6 py-4"><div className="flex gap-3">{firstHref ? <Button asChild className="flex-1 justify-center"><Link to={firstHref} onClick={onClose}><RiExternalLinkLine className="size-4" aria-hidden="true" />Open Analysis</Link></Button> : <StartRiskReviewDrawer client={client} />}<Button variant="secondary" onClick={onClose}>Close</Button></div></div>
-      </div>
-    </>
-  )
-}
-
 export function Dashboard() {
-  // Critical: selectors must return stable store values. Filtering inside Zustand selectors
-  // creates new snapshots and can trigger React error #185 in production.
   const allClients = useAppStore((state) => state.clients)
   const allScenarios = useAppStore((state) => state.scenarios)
-  const moduleRecordsByScenarioId = useAppStore((state) => state.moduleRecordsByScenarioId)
-  const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
   const [search, setSearch] = useState("")
-
   const clients = useMemo(() => allClients.filter((client) => client.status !== "archived"), [allClients])
   const scenarios = useMemo(() => allScenarios.filter((scenario) => scenario.status !== "archived"), [allScenarios])
-  const selectedClient = useMemo(() => clients.find((client) => client.id === selectedClientId) ?? null, [clients, selectedClientId])
+  const scenariosByClientId = useMemo(() => scenarios.reduce<Record<string, number>>((acc, scenario) => ({ ...acc, [scenario.clientId]: (acc[scenario.clientId] ?? 0) + 1 }), {}), [scenarios])
   const filteredClients = useMemo(() => {
     const query = search.trim().toLowerCase()
     if (!query) return clients
-    return clients.filter((client) => client.displayName.toLowerCase().includes(query) || client.email.toLowerCase().includes(query) || `${client.firstName} ${client.lastName}`.toLowerCase().includes(query))
+    return clients.filter((client) => client.displayName.toLowerCase().includes(query) || client.email.toLowerCase().includes(query))
   }, [clients, search])
-  const scenariosByClientId = useMemo(() => scenarios.reduce<Record<string, ScenarioRecord[]>>((acc, scenario) => {
-    if (!acc[scenario.clientId]) acc[scenario.clientId] = []
-    acc[scenario.clientId].push(scenario)
-    return acc
-  }, {}), [scenarios])
-  const draftClients = useMemo(() => clients.filter((client) => client.status === "draft").length, [clients])
-  const incompleteAnalyses = useMemo(() => scenarios.filter((scenario) => scenario.status === "draft" || scenario.status === "inputs_needed").length, [scenarios])
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div><h1 className="text-2xl font-semibold text-gray-50">Dashboard</h1><p className="mt-1 text-sm text-gray-400">Real clients, real risk reviews, and saved scenario progress.</p></div>
-        <div className="flex flex-wrap items-center gap-2"><AddClientDrawer />{selectedClient ? <StartRiskReviewDrawer client={selectedClient} /> : null}</div>
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-50">Client Setup</h1>
+          <p className="mt-1 text-sm text-gray-400">Enter client information to generate a personalized gap analysis across all risk modules.</p>
+        </div>
+        <AddClientDrawer />
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Card><p className="text-xs uppercase tracking-widest text-gray-500">Total Clients</p><p className="mt-2 text-2xl font-semibold text-gray-50">{clients.length}</p></Card>
-        <Card><p className="text-xs uppercase tracking-widest text-gray-500">Draft Clients</p><p className="mt-2 text-2xl font-semibold text-gray-50">{draftClients}</p></Card>
-        <Card><p className="text-xs uppercase tracking-widest text-gray-500">Active Risk Reviews</p><p className="mt-2 text-2xl font-semibold text-gray-50">{scenarios.length}</p></Card>
-        <Card><p className="text-xs uppercase tracking-widest text-gray-500">Incomplete Analyses</p><p className="mt-2 text-2xl font-semibold text-gray-50">{incompleteAnalyses}</p></Card>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Card><p className="text-xs uppercase tracking-widest text-gray-500">Clients</p><p className="mt-2 text-2xl font-semibold text-gray-50">{clients.length}</p></Card>
+        <Card><p className="text-xs uppercase tracking-widest text-gray-500">Risk Reviews</p><p className="mt-2 text-2xl font-semibold text-gray-50">{scenarios.length}</p></Card>
+        <Card><p className="text-xs uppercase tracking-widest text-gray-500">Reference Modules</p><p className="mt-2 text-2xl font-semibold text-gray-50">3</p></Card>
       </div>
+
+      {clients.length ? (
+        <div className="relative max-w-sm">
+          <RiSearchLine className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
+          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search clients..." className="h-9 w-full rounded-lg border border-gray-700 bg-gray-900 pl-9 pr-4 text-sm text-gray-100 outline-none" />
+        </div>
+      ) : null}
+
       {clients.length === 0 ? (
-        <Card className="border-dashed border-gray-800 px-6 py-16 text-center"><RiUserLine className="mx-auto mb-3 size-8 text-gray-700" /><h2 className="text-lg font-semibold text-gray-100">No clients yet.</h2><p className="mt-2 text-sm text-gray-500">Create your first client profile to begin a gap analysis.</p><div className="mt-6 flex justify-center"><AddClientDrawer /></div></Card>
+        <Card className="border-dashed border-gray-800 px-6 py-16 text-center">
+          <RiUserLine className="mx-auto mb-3 size-8 text-gray-700" />
+          <h2 className="text-lg font-semibold text-gray-100">No clients yet.</h2>
+          <p className="mt-2 text-sm text-gray-500">Create a client using the advisor-reference setup fields.</p>
+          <div className="mt-6 flex justify-center"><AddClientDrawer /></div>
+        </Card>
       ) : (
-        <>
-          <div className="relative max-w-sm"><RiSearchLine className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" /><input type="text" placeholder="Search clients..." value={search} onChange={(event) => setSearch(event.target.value)} className="h-9 w-full rounded-lg border border-gray-700 bg-gray-900 pl-9 pr-4 text-sm text-gray-100 placeholder-gray-600 outline-none transition focus:border-blue-600 focus:ring-1 focus:ring-blue-600" /></div>
-          <Card className="overflow-hidden p-0">
-            <div className="grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-4 border-b border-gray-800 px-6 py-3">{(["Client", "Scenarios", "Updated", "Status", ""] as const).map((heading, index) => <span key={heading} className={cx("text-[10px] font-semibold uppercase tracking-widest text-gray-600", index === 1 && "hidden sm:block")}>{heading}</span>)}</div>
-            {filteredClients.length === 0 ? <div className="space-y-4 px-6 py-16 text-center"><RiUserLine className="mx-auto size-8 text-gray-700" /><div><p className="text-sm text-gray-400">No clients match your search.</p><p className="text-xs text-gray-600">Create a client or clear the search query.</p></div></div> : <ul className="divide-y divide-gray-800/60">{filteredClients.map((client) => {
-              const clientScenarios = scenariosByClientId[client.id] ?? []
-              return <li key={client.id}><button onClick={() => setSelectedClientId(client.id)} className="grid w-full grid-cols-[1fr_auto_auto_auto_auto] items-center gap-4 px-6 py-4 text-left transition hover:bg-white/2.5"><div className="flex min-w-0 items-center gap-3"><div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gray-800 ring-1 ring-gray-700"><span className="text-xs font-semibold text-gray-300">{client.firstName.charAt(0)}{client.lastName.charAt(0)}</span></div><div className="min-w-0"><p className="truncate text-sm font-medium text-gray-100">{client.displayName}</p><p className="truncate text-xs text-gray-500">{client.email || NO_EMAIL_TEXT}</p></div></div><span className="hidden whitespace-nowrap text-sm text-gray-400 sm:block">{clientScenarios.length} <span className="text-gray-600">scenario{clientScenarios.length !== 1 ? "s" : ""}</span></span><span className="whitespace-nowrap text-xs text-gray-500">{toDateLabel(client.updatedAt)}</span><Badge variant={client.status === "active" ? "success" : "neutral"}>{formatStatus(client.status)}</Badge><RiArrowRightSLine className="size-4 shrink-0 text-gray-600" /></button></li>
-            })}</ul>}
-          </Card>
-        </>
+        <Card className="overflow-hidden p-0">
+          <ul className="divide-y divide-gray-800/60">
+            {filteredClients.map((client) => (
+              <li key={client.id} className="grid gap-4 px-6 py-4 md:grid-cols-[1fr_auto_auto] md:items-center">
+                <div>
+                  <p className="font-medium text-gray-100">{client.displayName}</p>
+                  <p className="text-xs text-gray-500">{client.profile.clientType === "couple" ? "Couple" : "Individual"} · Age {client.profile.currentAge ?? "—"} · Income ${Math.round(client.profile.annualEarnedIncome ?? 0).toLocaleString()}</p>
+                  <p className="text-xs text-gray-600">Updated {formatDate(client.updatedAt)}</p>
+                </div>
+                <Badge variant={client.status === "active" ? "success" : "neutral"}>{formatStatus(client.status)}</Badge>
+                <div className="flex items-center gap-2">
+                  {scenariosByClientId[client.id] ? <Link to={`/scenarios/${allScenarios.find((scenario) => scenario.clientId === client.id)?.id}/life`} className="text-sm text-blue-400 hover:text-blue-300">Open Review</Link> : null}
+                  <StartRiskReviewDrawer client={client} />
+                  <RiArrowRightSLine className="hidden size-4 text-gray-700 md:block" />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Card>
       )}
-      {selectedClient ? <ClientDetailPanel client={selectedClient} scenarios={scenariosByClientId[selectedClient.id] ?? []} moduleRecordsByScenarioId={moduleRecordsByScenarioId} onClose={() => setSelectedClientId(null)} /> : null}
     </div>
   )
 }
