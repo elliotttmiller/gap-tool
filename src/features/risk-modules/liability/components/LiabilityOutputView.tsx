@@ -32,45 +32,46 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
 
   return (
     <div className="space-y-6 flex flex-col h-full w-full">
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <AnimatedSection delay={0}>
           <Card className="border-gray-800">
             <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">At-Risk Assets</div>
-              <div className="text-2xl font-bold tracking-tight text-gray-50">
-                {formatCurrency(outputs.totalAtRiskAssets)}
-              </div>
-              <p className="text-[10px] text-gray-500 mt-1">Exposed net worth</p>
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Household Wage Garnishment Risk</div>
+              <div className="text-2xl font-bold tracking-tight text-rose-500">{formatCurrency(outputs.householdWageGarnishmentRisk)}</div>
+              <p className="text-[10px] text-gray-500 mt-1">25% of projected income to age 65 at 3%/yr</p>
             </CardContent>
           </Card>
         </AnimatedSection>
-
         <AnimatedSection delay={0.08}>
           <Card className="border-gray-800">
             <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Coverage Limit</div>
-              <div className="text-2xl font-bold tracking-tight text-emerald-600">
-                {formatCurrency(outputs.totalCoverage)}
-              </div>
-              <p className="text-[10px] text-gray-500 mt-1">Base + Umbrella</p>
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Non-Qualified Assets at Risk</div>
+              <div className="text-2xl font-bold tracking-tight text-orange-500">{formatCurrency(outputs.nonQualifiedAssetsAtRisk)}</div>
+              <p className="text-[10px] text-gray-500 mt-1">Combined taxable assets exposed to judgment</p>
             </CardContent>
           </Card>
         </AnimatedSection>
-
-        <AnimatedSection delay={0.16} className="sm:col-span-2 md:col-span-1">
-          <Card className="border-gray-800 h-full">
+        <AnimatedSection delay={0.16}>
+          <Card className="border-gray-800">
             <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Assets at Risk</div>
-              <div className="text-2xl font-bold tracking-tight text-rose-600">
-                {formatCurrency(outputs.erodedAssets)}
-              </div>
-              <p className="text-[10px] text-gray-500 mt-1">{formatPercent(outputs.wealthErosionPercentage)} of at-risk net worth</p>
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Auto Liability Coverage</div>
+              <div className="text-2xl font-bold tracking-tight text-cyan-400">{formatCurrency(outputs.householdAutoLiabilityCoverage)}</div>
+              <p className="text-[10px] text-gray-500 mt-1">Underlying household auto policy limit</p>
+            </CardContent>
+          </Card>
+        </AnimatedSection>
+        <AnimatedSection delay={0.24}>
+          <Card className="border-gray-800">
+            <CardContent className="p-5">
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Household Liability Gap</div>
+              <div className="text-2xl font-bold tracking-tight text-red-500">{formatCurrency(outputs.householdLiabilityGap)}</div>
+              <p className="text-[10px] text-gray-500 mt-1">Risk minus auto coverage</p>
             </CardContent>
           </Card>
         </AnimatedSection>
       </div>
 
-      <AnimatedSection delay={0.26}>
+      <AnimatedSection delay={0.3}>
         <Card>
           <CardHeader>
             <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-wider">Liability Protection Stack</CardTitle>
@@ -96,9 +97,7 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
         <Card className="bg-[#090E1A] text-white border border-gray-800">
           <CardContent className="p-6">
             <h4 className="font-semibold text-blue-400 mb-2 uppercase tracking-wider text-xs">Advisor Narrative</h4>
-            <p className="text-sm text-gray-300 leading-relaxed">
-              {getLiabilityNarrative(outputs)}
-            </p>
+            <p className="text-sm text-gray-300 leading-relaxed">{getLiabilityNarrative(outputs)}</p>
           </CardContent>
         </Card>
       </AnimatedSection>
