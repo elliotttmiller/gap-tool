@@ -56,6 +56,18 @@
   --animate-dialogContentShow: dialogContentShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
   --animate-drawerSlideLeftAndFade: drawerSlideLeftAndFade 150ms cubic-bezier(0.16, 1, 0.3, 1);
   --animate-drawerSlideRightAndFade: drawerSlideRightAndFade 150ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ── Brand color scale (NorthStar teal #0099a8) ─────────────────────────── */
+  --color-brand-50:  #e6f7f8;
+  --color-brand-100: #b0e5e9;
+  --color-brand-200: #80d5db;
+  --color-brand-300: #40bec7;
+  --color-brand-400: #00a8b5;
+  --color-brand-500: #0099a8;
+  --color-brand-600: #007f8c;
+  --color-brand-700: #006370;
+  --color-brand-800: #004a54;
+  --color-brand-900: #003038;
 }
 
 @layer base {

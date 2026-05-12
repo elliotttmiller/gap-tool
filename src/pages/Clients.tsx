@@ -56,7 +56,7 @@ export function Clients() {
             Manage client profiles and their risk scenarios.
           </p>
         </div>
-        <Button>
+        <Button className="bg-brand-500 hover:bg-brand-600 dark:bg-brand-500 dark:hover:bg-brand-600 dark:text-white">
           <RiAddLine className="size-4" aria-hidden="true" />
           Add Client
         </Button>

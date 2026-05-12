@@ -18,10 +18,10 @@ const buttonVariants = tv({
       primary: [
         "border-transparent",
         "text-white dark:text-gray-900",
-        "bg-indigo-600 dark:bg-indigo-500",
-        "hover:bg-indigo-500 dark:hover:bg-indigo-600",
-        "disabled:bg-indigo-100 disabled:text-gray-400",
-        "disabled:dark:bg-indigo-800 disabled:dark:text-indigo-400",
+        "bg-brand-600 dark:bg-brand-500",
+        "hover:bg-brand-500 dark:hover:bg-brand-600",
+        "disabled:bg-brand-100 disabled:text-gray-400",
+        "disabled:dark:bg-brand-800 disabled:dark:text-brand-400",
       ],
       secondary: [
         "border-gray-700",
