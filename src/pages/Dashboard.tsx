@@ -414,14 +414,16 @@ export function Dashboard() {
               return (
                 <li key={client.id} className="flex items-center gap-4 px-6 py-4">
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-gray-100">{client.displayName}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-gray-100">{client.displayName}</p>
+                      <Link to={`/clients/${client.id}/overview`} title="View and edit client overview" className="rounded-md p-1 text-cyan-400 transition-colors hover:bg-cyan-950/30 hover:text-cyan-300">
+                        <RiEyeLine className="size-3.5" aria-hidden="true" />
+                      </Link>
+                    </div>
                     <p className="text-xs text-gray-500">{client.profile.clientType === "couple" ? "Couple" : "Individual"} · Age {client.profile.currentAge ?? "—"} · Income ${Math.round(client.profile.annualEarnedIncome ?? 0).toLocaleString()}</p>
                     <p className="text-xs text-gray-600">Updated {formatDate(client.updatedAt)}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Link to={`/clients/${client.id}/overview`} title="View and edit client overview" className="rounded-md p-1.5 text-cyan-400 transition-colors hover:bg-cyan-950/30 hover:text-cyan-300">
-                      <RiEyeLine className="size-4" aria-hidden="true" />
-                    </Link>
                     {firstScenarioId ? <Link to={`/scenarios/${firstScenarioId}/life`} className="text-sm text-blue-400 hover:text-blue-300">Open Review</Link> : null}
                     {hasGeneratedReview ? (
                       <RiskReviewDrawer client={client} mode="regenerate" />
