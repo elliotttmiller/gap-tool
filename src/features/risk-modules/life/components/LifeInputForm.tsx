@@ -3,11 +3,7 @@ import { Label } from "@/components/ui/label"
 import { Input, type InputProps } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 
-const moneyInputClass = "max-w-40"
-const shortInputClass = "max-w-24"
-const percentInputClass = "max-w-28"
-const textInputClass = "max-w-64"
-const selectInputClass = "max-w-56"
+const selectClass = "flex h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-1 text-sm text-gray-50 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
 
 interface LifeInputFormProps {
   inputs: LifeInputs
@@ -48,52 +44,52 @@ export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
 
   return (
     <div className="space-y-4">
-      <Card className="w-fit max-w-full">
+      <Card className="w-full">
         <CardHeader>
           <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">Income Earner Information</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-[max-content_max-content]">
-          <div className="flex flex-col gap-2">
+        <CardContent className="grid grid-cols-2 gap-3">
+          <div className="col-span-2 flex flex-col gap-2">
             <Label htmlFor="earnerName">Full Name</Label>
             <Input
               id="earnerName"
               value={inputs.earnerName ?? ""}
-              className={textInputClass}
+              className="w-full"
               onChange={(e) => handleTextChange("earnerName", e.target.value)}
               placeholder="Primary Earner"
             />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="currentAge">Current Age</Label>
-            <Input id="currentAge" type="number" min={18} max={64} value={inputs.currentAge || ""} className={shortInputClass} onChange={(e) => handleNumberChange("currentAge", e.target.value)} />
+            <Input id="currentAge" type="number" min={18} max={64} value={inputs.currentAge || ""} className="w-full" onChange={(e) => handleNumberChange("currentAge", e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="annualIncome">Annual Income</Label>
-            <AffixedInput id="annualIncome" type="number" prefix="$" value={inputs.annualIncome || ""} className={moneyInputClass} onChange={(e) => handleNumberChange("annualIncome", e.target.value)} />
+            <AffixedInput id="annualIncome" type="number" prefix="$" value={inputs.annualIncome || ""} className="w-full" onChange={(e) => handleNumberChange("annualIncome", e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="retirementAge">Income Projection End Age</Label>
-            <Input id="retirementAge" type="number" value={inputs.retirementAge || ""} className={shortInputClass} onChange={(e) => handleNumberChange("retirementAge", e.target.value)} />
+            <Label htmlFor="retirementAge">Projection End Age</Label>
+            <Input id="retirementAge" type="number" value={inputs.retirementAge || ""} className="w-full" onChange={(e) => handleNumberChange("retirementAge", e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="incomeReplacementRatio">Income Replacement</Label>
-            <AffixedInput id="incomeReplacementRatio" type="number" min={0} max={125} step={5} suffix="%" value={Math.round((inputs.incomeReplacementRatio ?? 1) * 100) || ""} className={percentInputClass} onChange={(e) => onChange({ ...inputs, incomeReplacementRatio: (e.target.value === "" ? 0 : Number(e.target.value)) / 100 })} />
+            <AffixedInput id="incomeReplacementRatio" type="number" min={0} max={125} step={5} suffix="%" value={Math.round((inputs.incomeReplacementRatio ?? 1) * 100) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, incomeReplacementRatio: (e.target.value === "" ? 0 : Number(e.target.value)) / 100 })} />
           </div>
         </CardContent>
       </Card>
 
-      <Card className="w-fit max-w-full">
+      <Card className="w-full">
         <CardHeader>
           <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">Existing Coverage</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-[max-content_max-content]">
+        <CardContent className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-2">
             <Label htmlFor="groupLifeCoverage">Group Life (GLI) Death Benefit</Label>
-            <AffixedInput id="groupLifeCoverage" type="number" prefix="$" value={inputs.groupLifeCoverage || ""} className={moneyInputClass} onChange={(e) => handleNumberChange("groupLifeCoverage", e.target.value)} />
+            <AffixedInput id="groupLifeCoverage" type="number" prefix="$" value={inputs.groupLifeCoverage || ""} className="w-full" onChange={(e) => handleNumberChange("groupLifeCoverage", e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="privateLifeCoverage">Private Life Insurance Death Benefit</Label>
-            <AffixedInput id="privateLifeCoverage" type="number" prefix="$" value={inputs.privateLifeCoverage || ""} className={moneyInputClass} onChange={(e) => handleNumberChange("privateLifeCoverage", e.target.value)} />
+            <AffixedInput id="privateLifeCoverage" type="number" prefix="$" value={inputs.privateLifeCoverage || ""} className="w-full" onChange={(e) => handleNumberChange("privateLifeCoverage", e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="privateLifePolicyType">Policy Type</Label>
@@ -101,7 +97,7 @@ export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
               id="privateLifePolicyType"
               value={policyType}
               onChange={(e) => handlePolicyTypeChange(e.target.value as LifePolicyType)}
-              className={`flex h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-1 text-sm text-gray-50 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600 ${selectInputClass}`}
+              className={selectClass}
             >
               <option value="term">Term</option>
               <option value="permanent">Permanent</option>
@@ -110,36 +106,36 @@ export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
           {policyType === "term" ? (
             <div className="flex flex-col gap-2">
               <Label htmlFor="privateLifeTermYears">Term Length</Label>
-              <AffixedInput id="privateLifeTermYears" type="number" suffix="yr" value={inputs.privateLifeTermYears || ""} className={shortInputClass} onChange={(e) => handleNumberChange("privateLifeTermYears", e.target.value)} />
+              <AffixedInput id="privateLifeTermYears" type="number" suffix="yr" value={inputs.privateLifeTermYears || ""} className="w-full" onChange={(e) => handleNumberChange("privateLifeTermYears", e.target.value)} />
             </div>
           ) : null}
           <div className="flex flex-col gap-2">
             <Label htmlFor="nonQualifiedAssets">Non-Qualified Assets</Label>
-            <AffixedInput id="nonQualifiedAssets" type="number" prefix="$" value={inputs.nonQualifiedAssets || ""} className={moneyInputClass} onChange={(e) => handleNumberChange("nonQualifiedAssets", e.target.value)} />
+            <AffixedInput id="nonQualifiedAssets" type="number" prefix="$" value={inputs.nonQualifiedAssets || ""} className="w-full" onChange={(e) => handleNumberChange("nonQualifiedAssets", e.target.value)} />
           </div>
         </CardContent>
       </Card>
 
-      <Card className="w-fit max-w-full">
+      <Card className="w-full">
         <CardHeader>
           <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">Optional Advanced Life Needs</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-[max-content_max-content]">
+        <CardContent className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-2">
             <Label htmlFor="debtsTotal">Outstanding Debts</Label>
-            <AffixedInput id="debtsTotal" type="number" prefix="$" value={inputs.debtsTotal || ""} className={moneyInputClass} onChange={(e) => handleNumberChange("debtsTotal", e.target.value)} />
+            <AffixedInput id="debtsTotal" type="number" prefix="$" value={inputs.debtsTotal || ""} className="w-full" onChange={(e) => handleNumberChange("debtsTotal", e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="educationGoal">Education Funding Goal</Label>
-            <AffixedInput id="educationGoal" type="number" prefix="$" value={inputs.educationGoal || ""} className={moneyInputClass} onChange={(e) => handleNumberChange("educationGoal", e.target.value)} />
+            <AffixedInput id="educationGoal" type="number" prefix="$" value={inputs.educationGoal || ""} className="w-full" onChange={(e) => handleNumberChange("educationGoal", e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="finalExpenses">Final Expenses</Label>
-            <AffixedInput id="finalExpenses" type="number" prefix="$" value={inputs.finalExpenses || ""} className={moneyInputClass} onChange={(e) => handleNumberChange("finalExpenses", e.target.value)} />
+            <AffixedInput id="finalExpenses" type="number" prefix="$" value={inputs.finalExpenses || ""} className="w-full" onChange={(e) => handleNumberChange("finalExpenses", e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="spouseAnnualIncome">Spouse / Partner Annual Income</Label>
-            <AffixedInput id="spouseAnnualIncome" type="number" prefix="$" value={inputs.spouseAnnualIncome || ""} className={moneyInputClass} onChange={(e) => handleNumberChange("spouseAnnualIncome", e.target.value)} />
+            <AffixedInput id="spouseAnnualIncome" type="number" prefix="$" value={inputs.spouseAnnualIncome || ""} className="w-full" onChange={(e) => handleNumberChange("spouseAnnualIncome", e.target.value)} />
           </div>
         </CardContent>
       </Card>
