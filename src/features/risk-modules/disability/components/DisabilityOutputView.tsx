@@ -113,7 +113,7 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex flex-wrap items-center gap-2">
                 <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">
-                  Income vs. Disability Coverage — Annual Projection (3% Growth)
+                  Income vs. Disability Coverage — Annual Projection
                 </CardTitle>
                 {selectedAge !== null && (
                   <div className="flex items-center gap-2">
