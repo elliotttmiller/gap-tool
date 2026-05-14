@@ -27,7 +27,7 @@ const QUICK_EXAMPLES = [
     label: "90-Day vs 365-Day EP",
     frequency: "monthly" as PremiumFrequency,
     planAPremium: 320, planADeductible: 21000,   // 90 days × $7k/mo
-    planBPremium: 185, planBDeductible: 85000,   // 365 days × $7k/mo ≈ $85k
+    planBPremium: 185, planBDeductible: 84000,   // 365 days ≈ 12 mo × $7k/mo
   },
 ]
 
