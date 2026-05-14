@@ -84,7 +84,7 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
     <div className="space-y-6 flex flex-col h-full">
       {/* ── Income projection chart ────────────────────────────────────────── */}
       <AnimatedSection delay={0.30}>
-        <div className="mb-3 flex w-full overflow-x-auto rounded-lg border border-gray-800 bg-[#090E1A] p-1 text-xs">
+        <div className="mb-3 inline-flex max-w-full overflow-x-auto rounded-lg border border-gray-800 bg-[#090E1A] p-1 text-xs">
           <button
             type="button"
             onClick={() => setVisualization("coverage")}

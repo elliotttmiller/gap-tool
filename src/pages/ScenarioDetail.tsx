@@ -7,7 +7,6 @@ import {
   RiArrowLeftLine,
   RiCalendarLine,
   RiHeartPulseLine,
-  RiPresentationLine,
   RiScalesLine,
   RiShieldCheckLine,
   RiTimeLine,
@@ -119,8 +118,8 @@ export function ScenarioDetailShell() {
           <span className="font-medium text-slate-200">{scenario.name}</span>
         </nav>
 
-        <div className="flex items-start justify-between gap-8">
-          <div className="min-w-0 flex-1 space-y-4">
+        <div>
+          <div className="min-w-0 space-y-4">
             <div className="flex items-center gap-3">
               <span className="inline-flex items-center rounded-full bg-blue-950/90 px-3 py-1 text-xs font-semibold text-blue-300 ring-1 ring-blue-800/80">
                 {formatStatus(scenario.status)}
@@ -136,14 +135,6 @@ export function ScenarioDetailShell() {
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center justify-end pt-1">
-            <Button variant="secondary" asChild className="h-11 rounded-xl px-5 text-base">
-              <Link to={`/present/${scenarioId}`}>
-                <RiPresentationLine className="size-4" aria-hidden="true" />
-                Presentation Mode
-              </Link>
-            </Button>
-          </div>
         </div>
 
         <div className="mt-7 border-t border-slate-800/80 pt-5">

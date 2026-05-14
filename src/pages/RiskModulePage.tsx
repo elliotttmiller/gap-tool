@@ -1,5 +1,8 @@
 import * as React from "react"
+import { Button } from "@/components/Button"
 import { DisclaimerBlock } from "@/components/global/DisclaimerBlock"
+import { Link, useParams } from "react-router-dom"
+import { RiSlideshow3Line } from "@remixicon/react"
 
 // ── Not-included fallback ─────────────────────────────────────────────────────
 
@@ -22,6 +25,7 @@ export function ModuleNotIncluded({ moduleName }: ModuleNotIncludedProps) {
 interface RiskModulePageProps {
   title: string
   subtitle: string
+  headerActions?: React.ReactNode
   formSlot: React.ReactNode
   outputSlot: React.ReactNode
 }
@@ -31,13 +35,26 @@ interface RiskModulePageProps {
  * Provides the header/save-button row, the 5/7 input+output grid, and the
  * disclaimer block. Each module page supplies its own form and output slots.
  */
-export function RiskModulePage({ title, subtitle, formSlot, outputSlot }: RiskModulePageProps) {
+export function RiskModulePage({ title, subtitle, headerActions, formSlot, outputSlot }: RiskModulePageProps) {
+  const { scenarioId } = useParams()
+
   return (
     <div className="space-y-6 w-full max-w-full overflow-hidden">
-      <div className="pb-4 border-b border-gray-800">
+      <div className="flex flex-col gap-4 border-b border-gray-800 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-xl font-semibold text-gray-50">{title}</h2>
           <p className="text-sm text-gray-400 mt-1">{subtitle}</p>
+        </div>
+        <div className="flex items-center gap-2 self-start sm:self-auto sm:justify-end">
+          {headerActions}
+          {scenarioId ? (
+            <Button variant="secondary" asChild className="h-10 w-10 rounded-xl p-0">
+              <Link to={`/present/${scenarioId}`} aria-label="Presentation mode" title="Presentation mode">
+                <RiSlideshow3Line className="size-5" aria-hidden="true" />
+                <span className="sr-only">Presentation mode</span>
+              </Link>
+            </Button>
+          ) : null}
         </div>
       </div>
 

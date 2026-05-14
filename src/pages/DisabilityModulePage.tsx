@@ -5,6 +5,8 @@ import { calculateDisabilityGap } from "@/features/risk-modules/disability/calcu
 import { useAppStore } from "@/lib/store"
 import { useParams } from "react-router-dom"
 import { RiskModulePage, ModuleNotIncluded } from "./RiskModulePage"
+import { Button } from "@/components/Button"
+import { RiCalculatorLine } from "@remixicon/react"
 
 export function DisabilityModulePage() {
   const { scenarioId } = useParams()
@@ -33,6 +35,11 @@ export function DisabilityModulePage() {
     <RiskModulePage
       title="Disability Insurance Risk Analysis"
       subtitle="If I cannot work due to illness or injury, how does my financial plan change?"
+      headerActions={
+        <Button variant="secondary" className="h-10 w-10 rounded-xl p-0" aria-label="Calculators" title="Calculators">
+          <RiCalculatorLine className="size-5" aria-hidden="true" />
+        </Button>
+      }
       formSlot={<DisabilityInputForm inputs={moduleState.inputs} onChange={(next) => updateInputs(scenarioId, next)} />}
       outputSlot={<DisabilityOutputView outputs={outputs} />}
     />
