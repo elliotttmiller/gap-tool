@@ -1,218 +1,97 @@
-import { DisabilityInputs, DisabilityAssumptions, DisabilityOutputs, DisabilityTimelinePoint, ActiveBenefit } from "../types";
+import { DisabilityInputs, DisabilityAssumptions, DisabilityOutputs, DisabilityIncomeProjectionPoint, DiBenefitPeriod } from "../types";
 import { nonNegative, clamp, roundCurrency, safeDivide, roundPercent } from "@/lib/math";
 
-export type BenefitStream = {
-  label: string;
-  monthlyAmount: number;
-  startMonth: number;
-  endMonth: number | null;
-  taxable: boolean;
-};
-
-export function waitingPeriodDaysToStartMonth(days: number): number {
-  return Math.max(1, Math.ceil(nonNegative(days) / 30));
+/**
+ * Computes the gross monthly LTD benefit:
+ *   min(annualIncome × coveragePercent / 12, monthlyCap)
+ * Returns 0 if coveragePercent is 0.
+ */
+function computeLtdMonthlyGross(annualIncome: number, coveragePercent: number, monthlyCap: number): number {
+  if (coveragePercent <= 0) return 0;
+  const percentBased = nonNegative(annualIncome) * clamp(coveragePercent, 0, 1) / 12;
+  return monthlyCap > 0 ? Math.min(percentBased, monthlyCap) : percentBased;
 }
 
-export function isBenefitActive(month: number, stream: BenefitStream): boolean {
-  if (month < stream.startMonth) return false;
-  if (stream.endMonth === null) return true;
-  return month <= stream.endMonth;
-}
-
-export function netBenefitAmount({
-  amount,
-  taxable,
-  effectiveTaxRate,
-  useAfterTaxBenefits,
-}: {
-  amount: number;
-  taxable: boolean;
-  effectiveTaxRate: number;
-  useAfterTaxBenefits: boolean;
-}): number {
-  if (!useAfterTaxBenefits) return nonNegative(amount);
-  if (!taxable) return nonNegative(amount);
-
-  return roundCurrency(nonNegative(amount) * (1 - clamp(effectiveTaxRate, 0, 0.6)));
-}
-
-export function buildDisabilityBenefitStreams(inputs: DisabilityInputs): BenefitStream[] {
-  const streams: BenefitStream[] = [];
-
-  if (inputs.stdBenefitMonthly > 0) {
-    const startMonth = waitingPeriodDaysToStartMonth(inputs.stdWaitingPeriodDays);
-    streams.push({
-      label: "Employer STD",
-      monthlyAmount: nonNegative(inputs.stdBenefitMonthly),
-      startMonth,
-      endMonth: startMonth + nonNegative(inputs.stdDurationMonths) - 1,
-      taxable: inputs.stdTaxable,
-    });
+/**
+ * Maps a benefit period selector to the age at which the individual DI policy expires.
+ * Returns null when the period is empty (treated as perpetual through retirement).
+ */
+function benefitPeriodToEndAge(period: DiBenefitPeriod | "", currentAge: number): number | null {
+  switch (period) {
+    case "2y":  return currentAge + 2;
+    case "5y":  return currentAge + 5;
+    case "10y": return currentAge + 10;
+    case "A65": return 65;
+    case "A67": return 67;
+    case "A70": return 70;
+    default:    return null; // perpetual through retirement
   }
-
-  if (inputs.ltdBenefitMonthly > 0) {
-    const startMonth = waitingPeriodDaysToStartMonth(inputs.ltdWaitingPeriodDays);
-    streams.push({
-      label: "Employer LTD",
-      monthlyAmount: nonNegative(inputs.ltdBenefitMonthly),
-      startMonth,
-      endMonth: startMonth + nonNegative(inputs.ltdDurationMonths) - 1,
-      taxable: inputs.ltdTaxable,
-    });
-  }
-
-  if (inputs.privateDiBenefitMonthly > 0) {
-    const startMonth = waitingPeriodDaysToStartMonth(inputs.privateDiWaitingPeriodDays);
-    streams.push({
-      label: "Private DI",
-      monthlyAmount: nonNegative(inputs.privateDiBenefitMonthly),
-      startMonth,
-      endMonth: startMonth + nonNegative(inputs.privateDiDurationMonths) - 1,
-      taxable: inputs.privateDiTaxable,
-    });
-  }
-
-  if (inputs.stateBenefitMonthly > 0) {
-    const startMonth = Math.max(1, inputs.stateBenefitStartMonth);
-    streams.push({
-      label: "State Benefit",
-      monthlyAmount: nonNegative(inputs.stateBenefitMonthly),
-      startMonth,
-      endMonth: startMonth + nonNegative(inputs.stateBenefitDurationMonths) - 1,
-      taxable: inputs.stateBenefitTaxable,
-    });
-  }
-
-  if (inputs.includeSsdi && inputs.ssdiMonthlyBenefit > 0) {
-    streams.push({
-      label: "SSDI",
-      monthlyAmount: nonNegative(inputs.ssdiMonthlyBenefit),
-      startMonth: Math.max(1, inputs.ssdiStartMonth),
-      endMonth: null,
-      taxable: inputs.ssdiTaxable,
-    });
-  }
-
-  return streams;
-}
-
-export function calculateDisabilityTimeline(
-  inputs: DisabilityInputs,
-  assumptions: DisabilityAssumptions
-): DisabilityTimelinePoint[] {
-  const baselineMonthlyIncome = nonNegative(inputs.annualEarnedIncome) / 12;
-
-  const retainedIncomePercent =
-    assumptions.scenarioType === "partial"
-      ? clamp(inputs.partialDisabilityEarnedIncomePercent, 0, 1)
-      : clamp(inputs.totalDisabilityEarnedIncomePercent, 0, 1);
-
-  const benefitStreams = buildDisabilityBenefitStreams(inputs);
-
-  let reserveBalance = nonNegative(inputs.emergencySavings);
-
-  const modeledDurationMonths = Math.max(
-    1,
-    Math.min(nonNegative(inputs.modeledDurationMonths), 600)
-  );
-
-  const points: DisabilityTimelinePoint[] = [];
-
-  for (let month = 1; month <= modeledDurationMonths; month++) {
-    const earnedIncomeAfterDisability = baselineMonthlyIncome * retainedIncomePercent;
-
-    const activeBenefits = benefitStreams.map((stream) => {
-      const grossAmount = isBenefitActive(month, stream) ? stream.monthlyAmount : 0;
-      const netAmount = netBenefitAmount({
-        amount: grossAmount,
-        taxable: stream.taxable,
-        effectiveTaxRate: assumptions.effectiveTaxRate,
-        useAfterTaxBenefits: assumptions.useAfterTaxBenefits,
-      });
-
-      return {
-        label: stream.label,
-        grossAmount: roundCurrency(grossAmount),
-        netAmount: roundCurrency(netAmount),
-      };
-    });
-
-    const totalNetBenefits = activeBenefits.reduce((sum, benefit) => sum + benefit.netAmount, 0);
-
-    const availableIncome =
-      earnedIncomeAfterDisability +
-      nonNegative(inputs.spouseMonthlyIncome) +
-      totalNetBenefits;
-
-    const monthlyGap = Math.max(nonNegative(inputs.monthlyExpenses) - availableIncome, 0);
-
-    const startingReserve = reserveBalance;
-    reserveBalance = Math.max(reserveBalance - monthlyGap, 0);
-
-    points.push({
-      month,
-      baselineMonthlyIncome: roundCurrency(baselineMonthlyIncome),
-      earnedIncomeAfterDisability: roundCurrency(earnedIncomeAfterDisability),
-      spouseMonthlyIncome: roundCurrency(inputs.spouseMonthlyIncome),
-      activeBenefits,
-      availableIncome: roundCurrency(availableIncome),
-      monthlyExpenses: roundCurrency(inputs.monthlyExpenses),
-      monthlyGap: roundCurrency(monthlyGap),
-      startingReserve: roundCurrency(startingReserve),
-      endingReserve: roundCurrency(reserveBalance),
-      reserveDepleted: startingReserve > 0 && reserveBalance === 0 && monthlyGap > 0,
-    });
-  }
-
-  return points;
-}
-
-export function aggregateDisabilityOutputs(timeline: DisabilityTimelinePoint[]): DisabilityOutputs {
-  const totalUncoveredGap = timeline.reduce((sum, point) => sum + point.monthlyGap, 0);
-  const reserveDepletionPoint = timeline.find((point) => point.reserveDepleted);
-  
-  const totalBenefitsReceived = timeline.reduce(
-    (sum, point) =>
-      sum +
-      point.activeBenefits.reduce((benefitSum, benefit) => benefitSum + benefit.netAmount, 0),
-    0
-  );
-
-  const averageMonthlyGap = timeline.length > 0 ? totalUncoveredGap / timeline.length : 0;
-  
-  const averageMonthlyExpenses = timeline.length > 0
-    ? timeline.reduce((sum, point) => sum + point.monthlyExpenses, 0) / timeline.length
-    : 0;
-
-  const lifestyleCompressionRequired = safeDivide(averageMonthlyGap, averageMonthlyExpenses);
-
-  // Core advisor KPI — what % of pre-disability income do existing benefits replace?
-  const monthlyIncomePreDisability = timeline.length > 0 ? timeline[0].baselineMonthlyIncome : 0;
-  const existingBenefitsPeakMonthly = timeline.reduce((peak, point) => {
-    const totalNetBenefits = point.activeBenefits.reduce((s, b) => s + b.netAmount, 0);
-    return Math.max(peak, totalNetBenefits);
-  }, 0);
-  const peakIncomeReplacementRate = roundPercent(safeDivide(existingBenefitsPeakMonthly, monthlyIncomePreDisability));
-  const incomeGapRate = roundPercent(Math.max(0, 1 - peakIncomeReplacementRate));
-
-  return {
-    totalUncoveredGap: roundCurrency(totalUncoveredGap),
-    reserveDepletionMonth: reserveDepletionPoint?.month ?? null,
-    totalBenefitsReceived: roundCurrency(totalBenefitsReceived),
-    averageMonthlyGap: roundCurrency(averageMonthlyGap),
-    lifestyleCompressionRequired: roundPercent(lifestyleCompressionRequired),
-    monthlyIncomePreDisability: roundCurrency(monthlyIncomePreDisability),
-    existingBenefitsPeakMonthly: roundCurrency(existingBenefitsPeakMonthly),
-    peakIncomeReplacementRate,
-    incomeGapRate,
-    timeline,
-  };
 }
 
 export function calculateDisabilityGap(
   inputs: DisabilityInputs,
-  assumptions: DisabilityAssumptions
+  assumptions: DisabilityAssumptions,
 ): DisabilityOutputs {
-  const timeline = calculateDisabilityTimeline(inputs, assumptions);
-  return aggregateDisabilityOutputs(timeline);
+  const annualIncome = nonNegative(inputs.annualEarnedIncome);
+  const currentAge = inputs.currentAge || 40;
+  const retirementAge = Math.max(currentAge + 1, inputs.retirementAge || 65);
+  const growthRate = clamp(assumptions.incomeGrowthRateAnnual ?? 0.03, 0, 0.20);
+
+  // ── Current-year monthly summary ──────────────────────────────────────────
+  const ltdMonthlyGross = computeLtdMonthlyGross(annualIncome, inputs.ltdCoveragePercent, inputs.ltdMonthlyCap);
+  const ltdNetMonthly = inputs.ltdTaxable ? ltdMonthlyGross * 0.70 : ltdMonthlyGross;
+  const privateDiMonthly = nonNegative(inputs.privateDiBenefitMonthly);
+  const totalNetMonthly = ltdNetMonthly + privateDiMonthly;
+
+  // ── Individual DI benefit period ─────────────────────────────────────────
+  const diEndAge = benefitPeriodToEndAge(inputs.privateDiBenefitPeriod, currentAge);
+
+  // ── Yearly income projection ──────────────────────────────────────────────
+  const projection: DisabilityIncomeProjectionPoint[] = [];
+  const yearsToRetirement = retirementAge - currentAge;
+
+  for (let year = 0; year <= yearsToRetirement; year++) {
+    const age = currentAge + year;
+    const annualIncomeAtAge = roundCurrency(annualIncome * Math.pow(1 + growthRate, year));
+
+    // Group LTD re-applies the coverage percentage each year against the grown income
+    // (still capped at the monthly cap), then applies the taxability factor.
+    const ltdGrossAtAge = computeLtdMonthlyGross(annualIncomeAtAge, inputs.ltdCoveragePercent, inputs.ltdMonthlyCap);
+    const ltdNetAtAge = inputs.ltdTaxable ? ltdGrossAtAge * 0.70 : ltdGrossAtAge;
+    const ltdAnnualBenefit = roundCurrency(ltdNetAtAge * 12);
+
+    // Individual DI is a fixed monthly dollar amount; active until end age.
+    // When no period is selected (null), treat as active through retirement.
+    const diIsActive = diEndAge === null ? privateDiMonthly > 0 : age <= diEndAge;
+    const individualDIAnnualBenefit = diIsActive ? roundCurrency(privateDiMonthly * 12) : 0;
+
+    const totalAnnualBenefit = roundCurrency(ltdAnnualBenefit + individualDIAnnualBenefit);
+    const annualGap = roundCurrency(Math.max(0, annualIncomeAtAge - totalAnnualBenefit));
+
+    projection.push({ age, annualIncome: annualIncomeAtAge, ltdAnnualBenefit, individualDIAnnualBenefit, totalAnnualBenefit, annualGap });
+  }
+
+  // ── Aggregate stats ───────────────────────────────────────────────────────
+  const projectedIncomeAtRetirement = projection.at(-1)?.annualIncome ?? 0;
+  const totalProjectedIncome = projection.reduce((s, p) => s + p.annualIncome, 0);
+  const totalGroupLTDCoverage = projection.reduce((s, p) => s + p.ltdAnnualBenefit, 0);
+  const totalIndividualDICoverage = projection.reduce((s, p) => s + p.individualDIAnnualBenefit, 0);
+  const totalCoverage = totalGroupLTDCoverage + totalIndividualDICoverage;
+  const totalGap = projection.reduce((s, p) => s + p.annualGap, 0);
+  const averageCoverageRate = roundPercent(safeDivide(totalCoverage, totalProjectedIncome));
+
+  return {
+    ltdComputedMonthlyBenefit: roundCurrency(ltdMonthlyGross),
+    ltdNetMonthlyBenefit: roundCurrency(ltdNetMonthly),
+    privateDiMonthlyBenefit: roundCurrency(privateDiMonthly),
+    totalNetMonthlyBenefit: roundCurrency(totalNetMonthly),
+    incomeProjection: projection,
+    projectedIncomeAtRetirement: roundCurrency(projectedIncomeAtRetirement),
+    totalProjectedIncome: roundCurrency(totalProjectedIncome),
+    totalGroupLTDCoverage: roundCurrency(totalGroupLTDCoverage),
+    totalIndividualDICoverage: roundCurrency(totalIndividualDICoverage),
+    totalCoverage: roundCurrency(totalCoverage),
+    totalGap: roundCurrency(totalGap),
+    averageCoverageRate,
+  };
 }

@@ -1,64 +1,46 @@
-import { DisabilityOutputs, DisabilityTimelinePoint } from "../types"
+import { DisabilityOutputs, DisabilityIncomeProjectionPoint } from "../types"
 
-export type DisabilityGapStackPoint = {
-  name: string
-  Expenses: number
-  Available: number
-  Gap: number
-}
-
-export type DisabilityReserveTimelinePoint = {
-  Month: string
-  ReserveBalance: number
-  Shortfall: number
+export type DisabilityProjectionChartPoint = {
+  age: number
+  "Group LTD": number
+  "Individual DI": number
+  "Income Gap": number
 }
 
 export type DisabilityChartData = {
-  maxGapPoint: Pick<DisabilityTimelinePoint, "availableIncome" | "monthlyGap" | "monthlyExpenses">
-  gapStackData: DisabilityGapStackPoint[]
-  reserveTimelineData: DisabilityReserveTimelinePoint[]
+  projectionChartData: DisabilityProjectionChartPoint[]
+  /** Income at each age, kept separate for the line overlay. */
+  incomeData: { age: number; annualIncome: number }[]
   animationKey: string
 }
 
 /**
- * Converts deterministic Disability outputs into chart-ready view data.
- * The transformer selects the peak-gap month for the breakdown chart and
- * maps the monthly timeline into reserve/shortfall chart points. It does not
- * perform financial calculation or alter module outputs.
+ * Converts disability outputs into chart-ready view data for the income
+ * projection chart.  Does not perform financial calculation.
  */
 export function transformDisabilityChartData(outputs: DisabilityOutputs): DisabilityChartData {
-  const fallback = { availableIncome: 0, monthlyGap: 0, monthlyExpenses: 0 }
-
-  const maxGapPoint = outputs.timeline.reduce(
-    (max, point) => (point.monthlyGap > max.monthlyGap ? point : max),
-    outputs.timeline[0] ?? fallback,
+  const projectionChartData: DisabilityProjectionChartPoint[] = outputs.incomeProjection.map(
+    (point: DisabilityIncomeProjectionPoint) => ({
+      age: point.age,
+      "Group LTD": point.ltdAnnualBenefit,
+      "Individual DI": point.individualDIAnnualBenefit,
+      "Income Gap": point.annualGap,
+    }),
   )
 
-  const monthlyAvailableIncome = maxGapPoint?.availableIncome ?? 0
-  const monthlyIncomeGap = maxGapPoint?.monthlyGap ?? 0
+  const incomeData = outputs.incomeProjection.map((p) => ({
+    age: p.age,
+    annualIncome: p.annualIncome,
+  }))
 
   return {
-    maxGapPoint,
-    gapStackData: [
-      { name: "Total Expense Need", Expenses: maxGapPoint?.monthlyExpenses ?? 0, Available: 0, Gap: 0 },
-      {
-        name: "Available vs Gap",
-        Expenses: 0,
-        Available: monthlyAvailableIncome,
-        Gap: monthlyIncomeGap > 0 ? monthlyIncomeGap : 0,
-      },
-    ],
-    reserveTimelineData:
-      outputs.timeline?.map((point) => ({
-        Month: `M${point.month}`,
-        ReserveBalance: point.endingReserve,
-        Shortfall: point.monthlyGap > 0 ? point.monthlyGap : 0,
-      })) ?? [],
+    projectionChartData,
+    incomeData,
     animationKey: [
-      outputs.averageMonthlyGap,
-      outputs.totalUncoveredGap,
-      outputs.totalBenefitsReceived,
-      outputs.timeline.length,
+      outputs.totalGap,
+      outputs.totalCoverage,
+      outputs.averageCoverageRate,
+      outputs.incomeProjection.length,
     ].join(":"),
   }
 }

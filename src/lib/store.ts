@@ -62,12 +62,7 @@ const defaultLifeAssumptions: LifeAssumptions = {
 }
 
 const defaultDisabilityAssumptions: DisabilityAssumptions = {
-  scenarioType: "total",
-  effectiveTaxRate: 0.22,
-  useAfterTaxBenefits: true,
-  benefitTimingMode: "monthly",
-  expenseInflationRateAnnual: 0.03,
-  ssdiModelingMode: "excluded",
+  incomeGrowthRateAnnual: 0.03,
 }
 
 // ── Helper utilities ──────────────────────────────────────────────────────────
@@ -153,17 +148,17 @@ function prefillLifeInputs(profile: ClientFinancialProfile, clientId: string, sc
 
 function prefillDisabilityInputs(profile: ClientFinancialProfile, clientId: string, scenarioId: string): DisabilityInputs {
   return {
-    advisorId: DEFAULT_ADVISOR_ID, clientId, scenarioId,
+    advisorId: DEFAULT_ADVISOR_ID,
+    clientId,
+    scenarioId,
     annualEarnedIncome: profile.annualEarnedIncome ?? 0,
-    monthlyExpenses: profile.monthlyHouseholdExpenses ?? 0,
-    emergencySavings: profile.emergencySavings ?? 0,
-    spouseMonthlyIncome: (profile.spouseAnnualIncome ?? 0) / 12,
-    stdBenefitMonthly: profile.employerStdBenefitMonthly ?? 0, stdWaitingPeriodDays: 14, stdDurationMonths: 6, stdTaxable: true,
-    ltdBenefitMonthly: profile.employerLtdBenefitMonthly ?? 0, ltdWaitingPeriodDays: 90, ltdDurationMonths: 60, ltdTaxable: true,
-    privateDiBenefitMonthly: profile.privateDisabilityBenefitMonthly ?? 0, privateDiWaitingPeriodDays: 90, privateDiDurationMonths: 60, privateDiTaxable: false,
-    stateBenefitMonthly: profile.stateBenefitEstimateMonthly ?? 0, stateBenefitStartMonth: 1, stateBenefitDurationMonths: 6, stateBenefitTaxable: false,
-    includeSsdi: false, ssdiMonthlyBenefit: 0, ssdiStartMonth: 6, ssdiTaxable: false,
-    partialDisabilityEarnedIncomePercent: 0.5, totalDisabilityEarnedIncomePercent: 0, modeledDurationMonths: 60,
+    currentAge: profile.currentAge ?? 40,
+    retirementAge: profile.expectedRetirementAge ?? DEFAULT_RETIREMENT_AGE,
+    ltdCoveragePercent: 0.60,
+    ltdMonthlyCap: 0,
+    ltdTaxable: true,
+    privateDiBenefitMonthly: profile.privateDisabilityBenefitMonthly ?? 0,
+    privateDiBenefitPeriod: "",
   }
 }
 

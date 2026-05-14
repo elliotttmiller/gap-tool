@@ -273,49 +273,15 @@ export function AssumptionsPage() {
           <RiUmbrellaLine className="size-5 shrink-0 text-blue-400" aria-hidden="true" />
           <div>
             <h2 className="text-sm font-semibold text-gray-100">Disability Insurance</h2>
-            <p className="text-xs text-gray-500">Formula v1.0.0</p>
+            <p className="text-xs text-gray-500">Formula v2.0.0</p>
           </div>
         </div>
         <div className="divide-y divide-gray-800/50">
-          <Row label="Effective tax rate" description="Estimated marginal effective tax rate applied to taxable benefit streams.">
-            <PercentInput value={disabilityA.effectiveTaxRate} onChange={(v) => updateDisability({ effectiveTaxRate: v })} />
+          <Row label="Income growth rate (annual)" description="Annual rate at which client income is projected to grow through retirement in the disability coverage chart.">
+            <PercentInput value={disabilityA.incomeGrowthRateAnnual} onChange={(v) => updateDisability({ incomeGrowthRateAnnual: v })} />
           </Row>
-          <Row label="Expense inflation rate (annual)" description="Annual rate applied to monthly expenses over the modeled disability period.">
-            <PercentInput
-              value={disabilityA.expenseInflationRateAnnual}
-              onChange={(v) => updateDisability({ expenseInflationRateAnnual: v })}
-            />
-          </Row>
-          <Row label="Use after-tax benefits" description="When enabled, taxable benefits are reduced by the effective tax rate.">
-            <ToggleSelect
-              value={disabilityA.useAfterTaxBenefits}
-              onChange={(v) => updateDisability({ useAfterTaxBenefits: v })}
-              trueLabel="After-tax"
-              falseLabel="Gross (pre-tax)"
-            />
-          </Row>
-          <Row label="Default scenario type" description="Whether new disability scenarios model a partial or total disability event.">
-            <EnumSelect
-              value={disabilityA.scenarioType}
-              options={[
-                { value: "total", label: "Total disability" },
-                { value: "partial", label: "Partial disability" },
-              ]}
-              onChange={(v) => updateDisability({ scenarioType: v })}
-            />
-          </Row>
-          <Row label="SSDI modeling mode" description="Whether Social Security Disability income is included as an offset.">
-            <EnumSelect
-              value={disabilityA.ssdiModelingMode}
-              options={[
-                { value: "excluded", label: "Excluded" },
-                { value: "advisor_entered", label: "Advisor-entered" },
-              ]}
-              onChange={(v) => updateDisability({ ssdiModelingMode: v })}
-            />
-          </Row>
-          <Row label="Benefit timing mode" description="Unit of time used for benefit stream calculations." locked>
-            <LockedValue label="Monthly" />
+          <Row label="Group LTD taxability factor" description="When a group LTD benefit is marked taxable, the net benefit displayed is 70% of the gross benefit." locked>
+            <LockedValue label="70% of gross" />
           </Row>
         </div>
       </Card>
