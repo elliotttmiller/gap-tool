@@ -1,103 +1,12 @@
 import { Button } from "@/components/Button"
 import { Card } from "@/components/Card"
 import { Input } from "@/components/Input"
-import { ClientRecord, CreateClientPayload, useAppStore } from "@/lib/store"
+import { useAppStore } from "@/lib/store"
 import { cx } from "@/lib/utils"
+import { ClientFormState, formFromClient, formToPayload, isClientFormValid } from "@/lib/clientFormSchema"
 import { RiArrowLeftLine, RiSave3Line } from "@remixicon/react"
 import { useMemo, useState } from "react"
 import { Link, useParams } from "react-router-dom"
-
-type ClientOverviewFormState = {
-  clientType: "individual" | "couple"
-  firstName: string
-  lastName: string
-  displayName: string
-  email: string
-  phone: string
-  age: string
-  annualIncome: string
-  monthlyExpenses: string
-  groupLifeCoverage: string
-  privateLifeCoverage: string
-  privateLifePolicyType: "term" | "permanent"
-  privateLifeTermYears: string
-  nonQualifiedAssets: string
-  spouseName: string
-  spouseAge: string
-  spouseAnnualIncome: string
-  spouseGroupLifeCoverage: string
-  spousePrivateLifeCoverage: string
-  spousePrivateLifePolicyType: "term" | "permanent"
-  spousePrivateLifeTermYears: string
-  spouseNonQualifiedAssets: string
-  autoLiabilityLimit: string
-}
-
-function numberToInput(value?: number): string {
-  return value === undefined || value === null ? "" : String(value)
-}
-
-function toNumber(value: string): number | undefined {
-  if (value.trim() === "") return undefined
-  const parsed = Number(value)
-  return Number.isFinite(parsed) ? parsed : undefined
-}
-
-function formFromClient(client: ClientRecord): ClientOverviewFormState {
-  return {
-    clientType: client.profile.clientType ?? "individual",
-    firstName: client.firstName,
-    lastName: client.lastName,
-    displayName: client.displayName,
-    email: client.email,
-    phone: client.phone,
-    age: numberToInput(client.profile.currentAge),
-    annualIncome: numberToInput(client.profile.annualEarnedIncome),
-    monthlyExpenses: numberToInput(client.profile.monthlyHouseholdExpenses),
-    groupLifeCoverage: numberToInput(client.profile.groupLifeCoverage),
-    privateLifeCoverage: numberToInput(client.profile.privateLifeCoverage),
-    privateLifePolicyType: client.profile.privateLifePolicyType ?? "term",
-    privateLifeTermYears: numberToInput(client.profile.privateLifeTermYears),
-    nonQualifiedAssets: numberToInput(client.profile.nonQualifiedAssets),
-    spouseName: client.profile.spouseIncomeEarnerName ?? "",
-    spouseAge: numberToInput(client.profile.spouseCurrentAge),
-    spouseAnnualIncome: numberToInput(client.profile.spouseAnnualIncome),
-    spouseGroupLifeCoverage: numberToInput(client.profile.spouseGroupLifeCoverage),
-    spousePrivateLifeCoverage: numberToInput(client.profile.spousePrivateLifeCoverage),
-    spousePrivateLifePolicyType: client.profile.spousePrivateLifePolicyType ?? "term",
-    spousePrivateLifeTermYears: numberToInput(client.profile.spousePrivateLifeTermYears),
-    spouseNonQualifiedAssets: numberToInput(client.profile.spouseNonQualifiedAssets),
-    autoLiabilityLimit: numberToInput(client.profile.autoLiabilityLimit),
-  }
-}
-
-function toPayload(form: ClientOverviewFormState): Partial<CreateClientPayload> {
-  return {
-    clientType: form.clientType,
-    firstName: form.firstName,
-    lastName: form.lastName,
-    displayName: form.displayName,
-    email: form.email,
-    phone: form.phone,
-    age: toNumber(form.age),
-    annualIncome: toNumber(form.annualIncome),
-    monthlyExpenses: toNumber(form.monthlyExpenses),
-    groupLifeCoverage: toNumber(form.groupLifeCoverage),
-    privateLifeCoverage: toNumber(form.privateLifeCoverage),
-    privateLifePolicyType: form.privateLifePolicyType,
-    privateLifeTermYears: toNumber(form.privateLifeTermYears),
-    nonQualifiedAssets: toNumber(form.nonQualifiedAssets),
-    spouseName: form.spouseName,
-    spouseAge: toNumber(form.spouseAge),
-    spouseAnnualIncome: toNumber(form.spouseAnnualIncome),
-    spouseGroupLifeCoverage: toNumber(form.spouseGroupLifeCoverage),
-    spousePrivateLifeCoverage: toNumber(form.spousePrivateLifeCoverage),
-    spousePrivateLifePolicyType: form.spousePrivateLifePolicyType,
-    spousePrivateLifeTermYears: toNumber(form.spousePrivateLifeTermYears),
-    spouseNonQualifiedAssets: toNumber(form.spouseNonQualifiedAssets),
-    autoLiabilityLimit: toNumber(form.autoLiabilityLimit),
-  }
-}
 
 function SectionTitle({ title, description }: { title: string; description?: string }) {
   return (
@@ -123,7 +32,7 @@ export function ClientOverview() {
   const scenarios = useAppStore((state) => state.scenarios)
   const updateClient = useAppStore((state) => state.updateClient)
   const [savedAt, setSavedAt] = useState<string | null>(null)
-  const [form, setForm] = useState<ClientOverviewFormState | null>(() => client ? formFromClient(client) : null)
+  const [form, setForm] = useState<ClientFormState | null>(() => client ? formFromClient(client) : null)
 
   const scenarioCount = useMemo(() => scenarios.filter((scenario) => scenario.clientId === clientId && scenario.status !== "archived").length, [clientId, scenarios])
 
@@ -138,16 +47,16 @@ export function ClientOverview() {
   }
 
   const isCouple = form.clientType === "couple"
-  const canSave = Boolean(form.firstName.trim() && form.lastName.trim() && form.age && form.annualIncome)
+  const canSave = isClientFormValid(form)
 
-  function setField<K extends keyof ClientOverviewFormState>(field: K, value: ClientOverviewFormState[K]) {
+  function setField<K extends keyof ClientFormState>(field: K, value: ClientFormState[K]) {
     setForm((current) => current ? { ...current, [field]: value } : current)
     setSavedAt(null)
   }
 
   function saveChanges() {
     if (!clientId || !canSave) return
-    updateClient(clientId, toPayload(form))
+    updateClient(clientId, formToPayload(form))
     setSavedAt(new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }))
   }
 

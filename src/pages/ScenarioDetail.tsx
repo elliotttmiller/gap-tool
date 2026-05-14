@@ -1,6 +1,8 @@
 import { Button } from "@/components/Button"
+import { ModuleErrorBoundary } from "@/components/global/ModuleErrorBoundary"
 import { RiskModuleType, useAppStore } from "@/lib/store"
 import { cx } from "@/lib/utils"
+import { formatDate } from "@/lib/utils"
 import {
   RiArrowLeftLine,
   RiCalendarLine,
@@ -44,17 +46,6 @@ function formatStatus(status: string) {
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ")
-}
-
-function toDateLabel(value?: string) {
-  if (!value) return "—"
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return "—"
-  return date.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
 }
 
 function ScenarioMetaItem({ icon: Icon, label, value }: { icon: typeof RiCalendarLine; label: string; value: string }) {
@@ -134,8 +125,8 @@ export function ScenarioDetailShell() {
               <span className="inline-flex items-center rounded-full bg-blue-950/90 px-3 py-1 text-xs font-semibold text-blue-300 ring-1 ring-blue-800/80">
                 {formatStatus(scenario.status)}
               </span>
-              <ScenarioMetaItem icon={RiCalendarLine} label="Updated" value={toDateLabel(scenario.updatedAt)} />
-              <ScenarioMetaItem icon={RiTimeLine} label="Calculated" value={toDateLabel(scenario.lastCalculatedAt)} />
+              <ScenarioMetaItem icon={RiCalendarLine} label="Updated" value={formatDate(scenario.updatedAt)} />
+              <ScenarioMetaItem icon={RiTimeLine} label="Calculated" value={formatDate(scenario.lastCalculatedAt)} />
             </div>
 
             <div className="space-y-2">
@@ -192,7 +183,9 @@ export function ScenarioDetailShell() {
         </div>
       </section>
 
-      <Outlet />
+      <ModuleErrorBoundary>
+        <Outlet />
+      </ModuleErrorBoundary>
     </div>
   )
 }

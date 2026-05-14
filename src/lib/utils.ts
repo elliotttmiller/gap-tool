@@ -80,3 +80,25 @@ export function formatPercent(value: number): string {
     maximumFractionDigits: 1,
   }).format(value)
 }
+
+// ── Form helpers ─────────────────────────────────────────────────────────────
+
+/** Parse a form string value to a number. Returns undefined for empty or non-finite strings. */
+export function toNumber(value: string): number | undefined {
+  if (value.trim() === "") return undefined
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : undefined
+}
+
+/** Format a number (or undefined) as a form string value. */
+export function numberToInput(value?: number): string {
+  return value === undefined || value === null ? "" : String(value)
+}
+
+/** Format an ISO date string for display (e.g. "Jan 1, 2026"). Returns "—" for missing/invalid values. */
+export function formatDate(value?: string): string {
+  if (!value) return "—"
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "—"
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+}
