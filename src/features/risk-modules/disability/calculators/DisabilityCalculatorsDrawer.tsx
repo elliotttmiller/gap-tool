@@ -11,17 +11,11 @@ import {
 } from "@/components/Drawer"
 import { Button } from "@/components/Button"
 import { BreakEvenCalculator } from "./BreakEvenCalculator"
-import { SsdiEstimator } from "./SsdiEstimator"
-import { BenefitTaxCalculator } from "./BenefitTaxCalculator"
-import { SavingsBridgeCalculator } from "./SavingsBridgeCalculator"
 
 // ── Calculator registry ────────────────────────────────────────────────────
 // Add entries here as new calculators are built.
 const CALCULATORS = [
-  { id: "ssdi", label: "SSDI Estimator" },
-  { id: "benefit-tax", label: "Benefit Taxation" },
-  { id: "savings-bridge", label: "Savings Bridge" },
-  { id: "break-even", label: "Break-Even" },
+  { id: "break-even", label: "Break Even" },
 ] as const
 
 type CalculatorId = (typeof CALCULATORS)[number]["id"]
@@ -40,24 +34,9 @@ interface DisabilityCalculatorsDrawerProps {
  * requires adding an entry there and a matching `<case>` in the render switch.
  */
 export function DisabilityCalculatorsDrawer({ trigger }: DisabilityCalculatorsDrawerProps) {
-  const [activeCalculator, setActiveCalculator] = useState<CalculatorId>("ssdi")
+  const [activeCalculator, setActiveCalculator] = useState<CalculatorId>("break-even")
 
   const calculatorMeta: Record<CalculatorId, { title: string; description: string }> = {
-    "ssdi": {
-      title: "SSDI Benefit Estimator",
-      description:
-        "Estimate the Social Security disability benefit a client would actually receive — exposing the real income gap the government won't cover.",
-    },
-    "benefit-tax": {
-      title: "Benefit Taxation Calculator",
-      description:
-        "Convert a gross LTD benefit into its real after-tax number, revealing that a \"60% policy\" often nets just 40–45% of take-home pay.",
-    },
-    "savings-bridge": {
-      title: "Elimination Period / Savings Bridge",
-      description:
-        "Show how fast savings drain during the waiting period before any benefit pays — often the most alarming number in the conversation.",
-    },
     "break-even": {
       title: "Disability Plan Break-Even",
       description:
@@ -71,7 +50,7 @@ export function DisabilityCalculatorsDrawer({ trigger }: DisabilityCalculatorsDr
     <Drawer>
       <DrawerTrigger asChild>{trigger}</DrawerTrigger>
 
-      <DrawerContent className="sm:max-w-xl">
+      <DrawerContent className="scrollbar-hide sm:max-w-xl">
         <DrawerHeader>
           <div className="flex items-center gap-2">
             <RiCalculatorLine className="size-5 text-blue-400" aria-hidden="true" />
@@ -80,9 +59,9 @@ export function DisabilityCalculatorsDrawer({ trigger }: DisabilityCalculatorsDr
           <p className="text-xs text-gray-500 mt-0.5">Supplemental tools for your disability analysis</p>
         </DrawerHeader>
 
-        <DrawerBody className="overflow-y-auto">
+        <DrawerBody className="scrollbar-hide overflow-y-auto">
           {/* ── Tab bar ─────────────────────────────────────────────────── */}
-          <div className="mb-4 flex max-w-full overflow-x-auto rounded-lg border border-gray-800 bg-[#090E1A] p-0.5 text-xs">
+          <div className="scrollbar-hide mb-4 flex max-w-full overflow-x-auto rounded-lg border border-gray-800 bg-[#090E1A] p-0.5 text-xs">
             {CALCULATORS.map((calc) => (
               <button
                 key={calc.id}
@@ -106,9 +85,6 @@ export function DisabilityCalculatorsDrawer({ trigger }: DisabilityCalculatorsDr
           </div>
 
           {/* ── Active calculator ────────────────────────────────────────── */}
-          {activeCalculator === "ssdi" && <SsdiEstimator />}
-          {activeCalculator === "benefit-tax" && <BenefitTaxCalculator />}
-          {activeCalculator === "savings-bridge" && <SavingsBridgeCalculator />}
           {activeCalculator === "break-even" && <BreakEvenCalculator />}
         </DrawerBody>
 
