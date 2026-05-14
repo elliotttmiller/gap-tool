@@ -58,6 +58,7 @@ export function calculateDisabilityGap(
     // (still capped at the monthly cap), then applies the taxability factor.
     const ltdGrossAtAge = computeLtdMonthlyGross(annualIncomeAtAge, inputs.ltdCoveragePercent, inputs.ltdMonthlyCap);
     const ltdNetAtAge = inputs.ltdTaxable ? ltdGrossAtAge * 0.70 : ltdGrossAtAge;
+    const ltdAnnualBenefitGross = roundCurrency(ltdGrossAtAge * 12);
     const ltdAnnualBenefit = roundCurrency(ltdNetAtAge * 12);
 
     // Individual DI is a fixed monthly dollar amount; active until end age.
@@ -68,7 +69,7 @@ export function calculateDisabilityGap(
     const totalAnnualBenefit = roundCurrency(ltdAnnualBenefit + individualDIAnnualBenefit);
     const annualGap = roundCurrency(Math.max(0, annualIncomeAtAge - totalAnnualBenefit));
 
-    projection.push({ age, annualIncome: annualIncomeAtAge, ltdAnnualBenefit, individualDIAnnualBenefit, totalAnnualBenefit, annualGap });
+    projection.push({ age, annualIncome: annualIncomeAtAge, ltdAnnualBenefitGross, ltdAnnualBenefit, individualDIAnnualBenefit, totalAnnualBenefit, annualGap });
   }
 
   // ── Aggregate stats ───────────────────────────────────────────────────────
@@ -80,11 +81,21 @@ export function calculateDisabilityGap(
   const totalGap = projection.reduce((s, p) => s + p.annualGap, 0);
   const averageCoverageRate = roundPercent(safeDivide(totalCoverage, totalProjectedIncome));
 
+  // Income Loss (Net) at the starting year: net income / 12 × 0.70 − totalNetMonthly
+  const startingAnnualIncome = projection[0]?.annualIncome ?? annualIncome;
+  const incomeLossNet = roundCurrency((startingAnnualIncome * 0.70 / 12) - totalNetMonthly);
+
+  // Lifetime IDI Expense: premium × months from current age to retirement
+  const projectionMonths = yearsToRetirement * 12;
+  const monthlyPremium = nonNegative(inputs.privateDiMonthlyPremium ?? 0);
+  const lifetimeIDIExpense = roundCurrency(monthlyPremium * projectionMonths);
+
   return {
     ltdComputedMonthlyBenefit: roundCurrency(ltdMonthlyGross),
     ltdNetMonthlyBenefit: roundCurrency(ltdNetMonthly),
     privateDiMonthlyBenefit: roundCurrency(privateDiMonthly),
     totalNetMonthlyBenefit: roundCurrency(totalNetMonthly),
+    incomeLossNet,
     incomeProjection: projection,
     projectedIncomeAtRetirement: roundCurrency(projectedIncomeAtRetirement),
     totalProjectedIncome: roundCurrency(totalProjectedIncome),
@@ -93,5 +104,6 @@ export function calculateDisabilityGap(
     totalCoverage: roundCurrency(totalCoverage),
     totalGap: roundCurrency(totalGap),
     averageCoverageRate,
+    lifetimeIDIExpense,
   };
 }

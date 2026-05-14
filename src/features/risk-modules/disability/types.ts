@@ -25,6 +25,8 @@ export type DisabilityInputs = {
   privateDiBenefitMonthly: number;
   /** Benefit period for the individual DI policy. Empty string means perpetual through retirement. */
   privateDiBenefitPeriod: DiBenefitPeriod | "";
+  /** Monthly premium paid for the individual DI policy (optional, defaults to 0). */
+  privateDiMonthlyPremium?: number;
 };
 
 export type DisabilityAssumptions = {
@@ -36,6 +38,8 @@ export type DisabilityIncomeProjectionPoint = {
   age: number;
   /** Projected annual income at this age (growing at the assumption rate). */
   annualIncome: number;
+  /** Gross annual group LTD benefit at this age (before taxability). */
+  ltdAnnualBenefitGross: number;
   /** Net annual group LTD benefit at this age (after taxability and income-scaling). */
   ltdAnnualBenefit: number;
   /** Annual individual DI benefit at this age (fixed, zero after benefit period ends). */
@@ -56,6 +60,12 @@ export type DisabilityOutputs = {
   privateDiMonthlyBenefit: number;
   /** Combined net monthly benefit (ltdNet + individualDI). */
   totalNetMonthlyBenefit: number;
+  /**
+   * Income Loss (Net) at current age:
+   *   (annualIncome × 0.70 / 12) − totalNetMonthlyBenefit
+   * Positive = uncovered loss; negative = over-covered.
+   */
+  incomeLossNet: number;
 
   // ── Income projection through retirement ─────────────────────────────────
   incomeProjection: DisabilityIncomeProjectionPoint[];
@@ -69,4 +79,6 @@ export type DisabilityOutputs = {
   totalGap: number;
   /** Fraction of projected lifetime income covered by combined benefits. */
   averageCoverageRate: number;
+  /** Total premiums paid for individual DI from current age to retirement. */
+  lifetimeIDIExpense: number;
 };
