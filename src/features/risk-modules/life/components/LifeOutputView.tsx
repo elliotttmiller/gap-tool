@@ -67,8 +67,9 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
             <CardContent className="p-5 flex flex-col justify-between h-full">
               <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Projected Income</div>
               <div className="text-2xl font-bold tracking-tight text-gray-50">
-                {formatCurrency(annual.totalNeed)}<span className="text-sm font-normal text-gray-400">/yr</span>
+                {formatCurrency(outputs.projectedIncomeToRetirement)}
               </div>
+              <div className="mt-2 text-sm font-normal text-gray-400">Total to retirement</div>
             </CardContent>
           </Card>
         </AnimatedSection>
@@ -77,7 +78,10 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
             <CardContent className="p-5 flex flex-col justify-between h-full">
               <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Group Life (GLI)</div>
               <div className="text-2xl font-bold tracking-tight text-gray-50">
-                {formatCurrency(annual.gliCovered)}<span className="text-sm font-normal text-gray-400">/yr</span>
+                {formatCurrency(outputs.groupLifeBenefit)}
+              </div>
+              <div className="mt-2 text-sm font-normal text-gray-400">
+                ~{formatCurrency(outputs.groupLifeAnnualIncome)}/yr for {outputs.groupLifeCoverageYears} yrs @ {Math.round(outputs.deathBenefitIncomeYieldAnnual * 100)}%
               </div>
             </CardContent>
           </Card>
@@ -87,7 +91,10 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
             <CardContent className="p-5 flex flex-col justify-between h-full">
               <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Private Life Insurance</div>
               <div className="text-2xl font-bold tracking-tight text-gray-50">
-                {formatCurrency(annual.privateCovered)}<span className="text-sm font-normal text-gray-400">/yr</span>
+                {formatCurrency(outputs.privateLifeBenefit)}
+              </div>
+              <div className="mt-2 text-sm font-normal text-gray-400">
+                {outputs.privateLifePolicyType === "permanent" ? "Permanent" : `Term (${outputs.privateLifeCoverageYears} yrs)`} - ~{formatCurrency(outputs.privateLifeAnnualIncome)}/yr for {outputs.privateLifeCoverageYears} yrs
               </div>
             </CardContent>
           </Card>
@@ -97,7 +104,10 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
             <CardContent className="p-5 flex flex-col justify-between h-full">
               <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Survivor Gap</div>
               <div className={`text-2xl font-bold tracking-tight ${gapColor}`}>
-                {formatCurrency(annual.survivorGap)}<span className="text-sm font-normal text-gray-400">/yr</span>
+                {formatCurrency(outputs.cumulativeSurvivorGap)}
+              </div>
+              <div className="mt-2 text-sm font-normal text-gray-400">
+                {outputs.lifetimeIncomeUncoveredPercentage}% of lifetime income uncovered
               </div>
             </CardContent>
           </Card>

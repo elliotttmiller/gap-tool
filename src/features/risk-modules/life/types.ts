@@ -62,10 +62,15 @@ export interface LifeOutputs {
 
   /** Advisor-reference outputs from the original HTML prototype. */
   projectedIncomeToRetirement: number;
+  groupLifeCoverageYears: number;
+  groupLifeBenefit: number;
   groupLifeAnnualIncome: number;
   privateLifeAnnualIncome: number;
   privateLifeCoverageYears: number;
+  privateLifePolicyType: LifePolicyType;
+  privateLifeBenefit: number;
   totalDeathBenefit: number;
   cumulativeSurvivorGap: number;
   lifetimeIncomeUncoveredPercentage: number;
+  deathBenefitIncomeYieldAnnual: number;
 }

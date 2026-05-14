@@ -97,11 +97,16 @@ export function calculateLifeInsuranceGap(
     coverageOffsetPercentage: roundPercent(coverageOffsetPercentage),
     yearlyBreakdown,
     projectedIncomeToRetirement: roundCurrency(projectedIncomeToRetirement),
+  groupLifeCoverageYears: Math.round(groupLifeCoverageYears),
+  groupLifeBenefit: roundCurrency(gli),
     groupLifeAnnualIncome: roundCurrency(groupLifeAnnualIncome),
     privateLifeAnnualIncome: roundCurrency(privateLifeAnnualIncome),
+  privateLifeBenefit: roundCurrency(privateLife),
+    privateLifePolicyType: inputs.privateLifePolicyType ?? "term",
     privateLifeCoverageYears: Math.round(privateLifeCoverageYears),
     totalDeathBenefit: roundCurrency(existingCoverageTotal),
     cumulativeSurvivorGap: roundCurrency(cumulativeSurvivorGap),
     lifetimeIncomeUncoveredPercentage: roundPercent(safeDivide(cumulativeSurvivorGap, projectedIncomeToRetirement)),
+    deathBenefitIncomeYieldAnnual: incomeYield,
   };
 }
