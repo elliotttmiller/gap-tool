@@ -91,7 +91,6 @@ function getMarginalRate(taxableIncome: number, status: FilingStatus): number {
   }
   // Unreachable (last bracket is Infinity), but satisfies TypeScript
   return brackets[brackets.length - 1][0]
-  void prev
 }
 
 export interface BenefitTaxInputs {

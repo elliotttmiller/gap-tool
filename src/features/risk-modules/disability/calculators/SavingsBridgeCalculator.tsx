@@ -212,7 +212,7 @@ export function SavingsBridgeCalculator({
                 </span>
               </div>
               <p className="text-xs text-gray-500">
-                {formatCurrency(result.dailyBurnRate)}/day burn rate &nbsp;·&nbsp;{" "}
+                {formatCurrency(result.dailyBurnRate)}/day burn rate{" · "}
                 {result.eliminationPeriodMonths.toFixed(1)} months of full expenses
               </p>
             </CardContent>

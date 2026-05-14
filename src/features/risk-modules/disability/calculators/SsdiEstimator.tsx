@@ -110,7 +110,7 @@ export function SsdiEstimator({ defaultAnnualIncome }: SsdiEstimatorProps) {
                 <span className="text-xl text-gray-400 font-normal">/mo</span>
               </div>
               <p className="text-xs text-gray-500">
-                {formatCurrency(result.estimatedAnnualBenefit)}/yr &nbsp;·&nbsp; AIME: {formatCurrency(result.estimatedAime)}/mo
+                {formatCurrency(result.estimatedAnnualBenefit)}/yr{" · "}AIME: {formatCurrency(result.estimatedAime)}/mo
               </p>
             </CardContent>
           </Card>
