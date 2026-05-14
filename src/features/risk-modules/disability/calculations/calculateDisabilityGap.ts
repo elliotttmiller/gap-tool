@@ -62,7 +62,7 @@ export function calculateDisabilityGap(
 
     // Individual DI is a fixed monthly dollar amount; active until end age.
     // When no period is selected (null), treat as active through retirement.
-    const diIsActive = diEndAge === null ? privateDiMonthly > 0 : age < diEndAge;
+    const diIsActive = diEndAge === null ? privateDiMonthly > 0 : age <= diEndAge;
     const individualDIAnnualBenefit = diIsActive ? roundCurrency(privateDiMonthly * 12) : 0;
 
     const totalAnnualBenefit = roundCurrency(ltdAnnualBenefit + individualDIAnnualBenefit);
