@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import { Link, useParams } from "react-router-dom"
 import { ArrowLeft, Printer } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -35,6 +36,24 @@ export function Presentation() {
   )
   const records = useAppStore((state) =>
     scenarioId ? state.moduleRecordsByScenarioId[scenarioId] : undefined,
+  )
+
+  // Memoize all module calculations so they don't re-run on every render.
+  const lifeOutputs = useMemo(
+    () => records?.life ? (records.life.output ?? calculateLifeInsuranceGap(records.life.inputs, records.life.assumptions)) : null,
+    [records?.life],
+  )
+  const disabilityOutputs = useMemo(
+    () => records?.disability ? (records.disability.output ?? calculateDisabilityGap(records.disability.inputs, records.disability.assumptions)) : null,
+    [records?.disability],
+  )
+  const unemploymentOutputs = useMemo(
+    () => records?.unemployment ? (records.unemployment.output ?? calculateUnemploymentGap(records.unemployment.inputs)) : null,
+    [records?.unemployment],
+  )
+  const liabilityOutputs = useMemo(
+    () => records?.liability ? (records.liability.output ?? calculateLiabilityGap(records.liability.inputs)) : null,
+    [records?.liability],
   )
 
   if (!scenarioId || !scenario || !client || !records) {
@@ -95,38 +114,10 @@ export function Presentation() {
                 <p className="mb-6 text-sm text-gray-400">
                   Modeled gap: {formatModuleGap(module, records)}
                 </p>
-                {module === "life" && records.life ? (
-                  <LifeOutputView
-                    outputs={
-                      records.life.output ??
-                      calculateLifeInsuranceGap(records.life.inputs, records.life.assumptions)
-                    }
-                  />
-                ) : null}
-                {module === "disability" && records.disability ? (
-                  <DisabilityOutputView
-                    outputs={
-                      records.disability.output ??
-                      calculateDisabilityGap(records.disability.inputs, records.disability.assumptions)
-                    }
-                  />
-                ) : null}
-                {module === "unemployment" && records.unemployment ? (
-                  <UnemploymentOutputView
-                    outputs={
-                      records.unemployment.output ??
-                      calculateUnemploymentGap(records.unemployment.inputs)
-                    }
-                  />
-                ) : null}
-                {module === "liability" && records.liability ? (
-                  <LiabilityOutputView
-                    outputs={
-                      records.liability.output ??
-                      calculateLiabilityGap(records.liability.inputs)
-                    }
-                  />
-                ) : null}
+                {module === "life" && lifeOutputs ? <LifeOutputView outputs={lifeOutputs} /> : null}
+                {module === "disability" && disabilityOutputs ? <DisabilityOutputView outputs={disabilityOutputs} /> : null}
+                {module === "unemployment" && unemploymentOutputs ? <UnemploymentOutputView outputs={unemploymentOutputs} /> : null}
+                {module === "liability" && liabilityOutputs ? <LiabilityOutputView outputs={liabilityOutputs} /> : null}
               </div>
             ))}
 

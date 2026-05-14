@@ -11,7 +11,14 @@ import {
 } from "@/components/Drawer"
 import { Input } from "@/components/Input"
 import { ClientRecord, RiskModuleType, useAppStore } from "@/lib/store"
-import { cx } from "@/lib/utils"
+import { cx, formatDate } from "@/lib/utils"
+import {
+  ClientFormState,
+  emptyClientForm,
+  formToPayload,
+  isClientFormValid,
+  validateClientForm,
+} from "@/lib/clientFormSchema"
 import { RiAddLine, RiAlertLine, RiArrowRightSLine, RiDeleteBinLine, RiEyeLine, RiRefreshLine, RiSearchLine, RiUserLine } from "@remixicon/react"
 import { useMemo, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
@@ -26,70 +33,6 @@ const moduleLabel: Record<RiskModuleType, string> = {
 const advisorReferenceModules: RiskModuleType[] = ["life", "liability", "unemployment"]
 const allModuleTypes: RiskModuleType[] = ["life", "liability", "unemployment", "disability"]
 
-type AddClientFormState = {
-  clientType: "individual" | "couple"
-  firstName: string
-  lastName: string
-  displayName: string
-  email: string
-  phone: string
-  age: string
-  annualIncome: string
-  monthlyExpenses: string
-  groupLifeCoverage: string
-  privateLifeCoverage: string
-  privateLifePolicyType: "term" | "permanent"
-  privateLifeTermYears: string
-  nonQualifiedAssets: string
-  spouseName: string
-  spouseAge: string
-  spouseAnnualIncome: string
-  spouseGroupLifeCoverage: string
-  spousePrivateLifeCoverage: string
-  spousePrivateLifePolicyType: "term" | "permanent"
-  spousePrivateLifeTermYears: string
-  spouseNonQualifiedAssets: string
-  autoLiabilityLimit: string
-}
-
-const emptyClientForm: AddClientFormState = {
-  clientType: "individual",
-  firstName: "",
-  lastName: "",
-  displayName: "",
-  email: "",
-  phone: "",
-  age: "",
-  annualIncome: "",
-  monthlyExpenses: "",
-  groupLifeCoverage: "",
-  privateLifeCoverage: "",
-  privateLifePolicyType: "term",
-  privateLifeTermYears: "20",
-  nonQualifiedAssets: "",
-  spouseName: "",
-  spouseAge: "",
-  spouseAnnualIncome: "",
-  spouseGroupLifeCoverage: "",
-  spousePrivateLifeCoverage: "",
-  spousePrivateLifePolicyType: "term",
-  spousePrivateLifeTermYears: "15",
-  spouseNonQualifiedAssets: "",
-  autoLiabilityLimit: "300000",
-}
-
-function toNumber(value: string): number | undefined {
-  if (value.trim() === "") return undefined
-  const parsed = Number(value)
-  return Number.isFinite(parsed) ? parsed : undefined
-}
-
-function formatDate(value?: string) {
-  if (!value) return "—"
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return "—"
-  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
-}
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return <p className="pt-2 text-xs font-semibold uppercase tracking-widest text-gray-500">{children}</p>
@@ -98,11 +41,13 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 function AddClientDrawer() {
   const createClient = useAppStore((state) => state.createClient)
   const [open, setOpen] = useState(false)
-  const [form, setForm] = useState<AddClientFormState>(emptyClientForm)
+  const [form, setForm] = useState<ClientFormState>(emptyClientForm)
+  const [submitAttempted, setSubmitAttempted] = useState(false)
   const isCouple = form.clientType === "couple"
-  const canSubmit = Boolean(form.firstName.trim() && form.lastName.trim() && form.age && form.annualIncome)
+  const validationErrors = validateClientForm(form)
+  const canSubmit = isClientFormValid(form)
 
-  function setField<K extends keyof AddClientFormState>(field: K, value: AddClientFormState[K]) {
+  function setField<K extends keyof ClientFormState>(field: K, value: ClientFormState[K]) {
     setForm((current) => ({ ...current, [field]: value }))
   }
 
@@ -191,37 +136,24 @@ function AddClientDrawer() {
           <Input type="number" min={0} placeholder="Underlying Auto Liability Limit ($)" value={form.autoLiabilityLimit} onChange={(event) => setField("autoLiabilityLimit", event.target.value)} />
         </DrawerBody>
         <DrawerFooter>
-          <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
+          {submitAttempted && validationErrors.length > 0 ? (
+            <ul className="mr-auto space-y-1">
+              {validationErrors.map((error) => (
+                <li key={error} className="flex items-center gap-1.5 text-xs text-red-400">
+                  <RiAlertLine className="size-3.5 shrink-0" aria-hidden="true" />
+                  {error}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <Button variant="secondary" onClick={() => { setOpen(false); setSubmitAttempted(false) }}>Cancel</Button>
           <Button
-            disabled={!canSubmit}
             onClick={() => {
+              setSubmitAttempted(true)
               if (!canSubmit) return
-              createClient({
-                firstName: form.firstName,
-                lastName: form.lastName,
-                displayName: form.displayName,
-                email: form.email,
-                phone: form.phone,
-                clientType: form.clientType,
-                age: toNumber(form.age),
-                annualIncome: toNumber(form.annualIncome),
-                monthlyExpenses: toNumber(form.monthlyExpenses),
-                groupLifeCoverage: toNumber(form.groupLifeCoverage),
-                privateLifeCoverage: toNumber(form.privateLifeCoverage),
-                privateLifePolicyType: form.privateLifePolicyType,
-                privateLifeTermYears: toNumber(form.privateLifeTermYears),
-                nonQualifiedAssets: toNumber(form.nonQualifiedAssets),
-                spouseName: form.spouseName,
-                spouseAge: toNumber(form.spouseAge),
-                spouseAnnualIncome: toNumber(form.spouseAnnualIncome),
-                spouseGroupLifeCoverage: toNumber(form.spouseGroupLifeCoverage),
-                spousePrivateLifeCoverage: toNumber(form.spousePrivateLifeCoverage),
-                spousePrivateLifePolicyType: form.spousePrivateLifePolicyType,
-                spousePrivateLifeTermYears: toNumber(form.spousePrivateLifeTermYears),
-                spouseNonQualifiedAssets: toNumber(form.spouseNonQualifiedAssets),
-                autoLiabilityLimit: toNumber(form.autoLiabilityLimit),
-              })
+              createClient(formToPayload(form))
               setOpen(false)
+              setSubmitAttempted(false)
               setForm(emptyClientForm)
             }}
           >
@@ -373,10 +305,13 @@ export function Dashboard() {
   const clients = useMemo(() => allClients.filter((client) => client.status !== "archived"), [allClients])
   const scenarios = useMemo(() => allScenarios.filter((scenario) => scenario.status !== "archived"), [allScenarios])
   const scenariosByClientId = useMemo(() => scenarios.reduce<Record<string, number>>((acc, scenario) => ({ ...acc, [scenario.clientId]: (acc[scenario.clientId] ?? 0) + 1 }), {}), [scenarios])
-  const firstScenarioByClientId = useMemo(() => scenarios.reduce<Record<string, string>>((acc, scenario) => {
-    if (!acc[scenario.clientId]) acc[scenario.clientId] = scenario.id
-    return acc
-  }, {}), [scenarios])
+  const firstScenarioByClientId = useMemo(() =>
+    scenarios.reduce<Record<string, { id: string; activeModule: RiskModuleType }>>((acc, scenario) => {
+      if (!acc[scenario.clientId]) acc[scenario.clientId] = { id: scenario.id, activeModule: scenario.activeModule }
+      return acc
+    }, {}),
+    [scenarios],
+  )
   const filteredClients = useMemo(() => {
     const query = search.trim().toLowerCase()
     if (!query) return clients
@@ -411,7 +346,8 @@ export function Dashboard() {
           <ul className="divide-y divide-gray-800/60">
             {filteredClients.map((client) => {
               const scenarioCount = scenariosByClientId[client.id] ?? 0
-              const firstScenarioId = firstScenarioByClientId[client.id]
+              const firstScenario = firstScenarioByClientId[client.id]
+              const firstScenarioId = firstScenario?.id
               const hasGeneratedReview = scenarioCount > 0
 
               return (
@@ -426,7 +362,14 @@ export function Dashboard() {
                     <p className="text-xs text-gray-500">Updated {formatDate(client.updatedAt)}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    {firstScenarioId ? <Link to={`/scenarios/${firstScenarioId}/life`} className="text-sm text-blue-400 hover:text-blue-300">Open Review</Link> : null}
+                    {firstScenario && firstScenarioId ? (
+                      <Link
+                        to={`/scenarios/${firstScenarioId}/${firstScenario.activeModule}`}
+                        className="text-sm text-blue-400 hover:text-blue-300"
+                      >
+                        Open Review
+                      </Link>
+                    ) : null}
                     {hasGeneratedReview ? (
                       <RiskReviewDrawer client={client} mode="regenerate" />
                     ) : (

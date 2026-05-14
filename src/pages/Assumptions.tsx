@@ -1,12 +1,16 @@
+import { useRef } from "react"
 import { Card } from "@/components/Card"
 import { useAppStore } from "@/lib/store"
+import type { PersistedAppData } from "@/lib/store"
 import {
+  RiDownloadLine,
   RiFileTextLine,
   RiHeartPulseLine,
   RiLockLine,
   RiScalesLine,
   RiShieldCheckLine,
   RiUmbrellaLine,
+  RiUploadLine,
 } from "@remixicon/react"
 
 // ─── Shared input components ──────────────────────────────────────────────────
@@ -121,6 +125,47 @@ export function AssumptionsPage() {
   const disabilityA = useAppStore((s) => s.globalDisabilityAssumptions)
   const updateLife = useAppStore((s) => s.updateGlobalLifeAssumptions)
   const updateDisability = useAppStore((s) => s.updateGlobalDisabilityAssumptions)
+  const importAppData = useAppStore((s) => s.importAppData)
+  const importRef = useRef<HTMLInputElement>(null)
+
+  function handleExport() {
+    const state = useAppStore.getState()
+    const data: PersistedAppData = {
+      clients: state.clients,
+      scenarios: state.scenarios,
+      moduleRecordsByScenarioId: state.moduleRecordsByScenarioId,
+      globalLifeAssumptions: state.globalLifeAssumptions,
+      globalDisabilityAssumptions: state.globalDisabilityAssumptions,
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `gap-tool-export-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function handleImport(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target?.result as string) as PersistedAppData
+        if (!Array.isArray(data.clients) || !Array.isArray(data.scenarios)) {
+          alert("Invalid export file — missing clients or scenarios.")
+          return
+        }
+        importAppData(data)
+      } catch {
+        alert("Could not parse the file. Make sure it is a valid Gap Tool export.")
+      } finally {
+        if (importRef.current) importRef.current.value = ""
+      }
+    }
+    reader.readAsText(file)
+  }
 
   return (
     <div className="space-y-8">
@@ -131,6 +176,28 @@ export function AssumptionsPage() {
           Default modeling assumptions applied to all new scenarios. Changes take effect for
           scenarios created after saving — existing scenario calculations are unaffected.
         </p>
+      </div>
+
+      {/* Data export / import */}
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-gray-800 bg-gray-900/40 px-5 py-4">
+        <RiDownloadLine className="size-4 shrink-0 text-gray-500" aria-hidden="true" />
+        <div className="flex-1">
+          <p className="text-sm font-medium text-gray-300">Data portability</p>
+          <p className="text-xs text-gray-500">Export all client data and scenarios to a JSON file, or restore from a previous export.</p>
+        </div>
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-1.5 rounded-md border border-gray-700 bg-gray-900 px-3 py-1.5 text-xs font-medium text-gray-300 transition hover:border-gray-600 hover:text-white"
+        >
+          <RiDownloadLine className="size-3.5" aria-hidden="true" /> Export
+        </button>
+        <button
+          onClick={() => importRef.current?.click()}
+          className="flex items-center gap-1.5 rounded-md border border-gray-700 bg-gray-900 px-3 py-1.5 text-xs font-medium text-gray-300 transition hover:border-gray-600 hover:text-white"
+        >
+          <RiUploadLine className="size-3.5" aria-hidden="true" /> Import
+        </button>
+        <input ref={importRef} type="file" accept=".json,application/json" className="hidden" onChange={handleImport} />
       </div>
 
       {/* Governance notice */}
