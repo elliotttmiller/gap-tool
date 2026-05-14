@@ -29,7 +29,7 @@ export type BreakEvenResult =
 export interface BreakEvenOutputs {
   /** Monthly savings from choosing Plan B (lower premium, higher deductible). */
   monthlySavings: number
-  /** Annualised savings from choosing Plan B. */
+  /** Annualized savings from choosing Plan B. */
   yearlySavings: number
   /** Additional deductible exposure by choosing Plan B (the "risk gap"). */
   riskGap: number

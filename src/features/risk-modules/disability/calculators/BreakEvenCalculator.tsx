@@ -213,7 +213,7 @@ export function BreakEvenCalculator() {
           <Card className="border-gray-800">
             <CardContent className="p-4 space-y-2 text-sm">
               <div className="flex justify-between items-center py-1.5 border-b border-gray-800">
-                <span className="text-gray-400">Annual Savings (Guaranteed)</span>
+                <span className="text-gray-400">Annual Savings (Premiums)</span>
                 <span className="font-mono font-bold text-green-400">+{formatCurrency(result.yearlySavings)}/yr</span>
               </div>
               <div className="flex justify-between items-center py-1.5 border-b border-gray-800">
