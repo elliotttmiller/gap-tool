@@ -78,12 +78,6 @@ export function DisabilityCalculatorsDrawer({ trigger }: DisabilityCalculatorsDr
             ))}
           </div>
 
-          {/* ── Calculator heading ───────────────────────────────────────── */}
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold text-gray-50">{meta.title}</h3>
-            <p className="text-xs text-gray-400 mt-0.5">{meta.description}</p>
-          </div>
-
           {/* ── Active calculator ────────────────────────────────────────── */}
           {activeCalculator === "break-even" && <BreakEvenCalculator />}
         </DrawerBody>
