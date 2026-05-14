@@ -30,7 +30,7 @@ const moduleLabel: Record<RiskModuleType, string> = {
   disability: "Disability",
 }
 
-const advisorReferenceModules: RiskModuleType[] = ["life", "liability", "unemployment"]
+const advisorReferenceModules: RiskModuleType[] = ["life", "liability", "unemployment", "disability"]
 const allModuleTypes: RiskModuleType[] = ["life", "liability", "unemployment", "disability"]
 
 
@@ -162,71 +162,26 @@ function AddClientDrawer() {
 function RiskReviewDrawer({ client, mode = "generate" }: { client: ClientRecord; mode?: "generate" | "regenerate" }) {
   const navigate = useNavigate()
   const createScenario = useAppStore((state) => state.createScenario)
-  const [open, setOpen] = useState(false)
-  const [scenarioName, setScenarioName] = useState(`${client.lastName} Household Risk Review`)
-  const [includedModules, setIncludedModules] = useState<RiskModuleType[]>(advisorReferenceModules)
-  const [activeModule, setActiveModule] = useState<RiskModuleType>("life")
   const isRegenerate = mode === "regenerate"
 
-  function toggleModule(module: RiskModuleType) {
-    setIncludedModules((current) => {
-      if (current.includes(module)) {
-        const next = current.filter((item) => item !== module)
-        if (!next.length) return current
-        if (!next.includes(activeModule)) setActiveModule(next[0])
-        return next
-      }
-      return [...current, module]
-    })
+  function handleClick() {
+    const scenarioName = `${client.lastName} Household Risk Review`
+    const scenarioId = createScenario({ clientId: client.id, name: scenarioName, includedModules: advisorReferenceModules, activeModule: "life" })
+    if (!scenarioId) return
+    navigate(`/scenarios/${scenarioId}/life`)
   }
 
-  return (
-    <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
-        {isRegenerate ? (
-          <button
-            aria-label={`Regenerate risk review for ${client.displayName}`}
-            title="Regenerate risk review"
-            className="rounded-md p-1.5 text-blue-400 transition-colors hover:bg-blue-950/30 hover:text-blue-300"
-          >
-            <RiRefreshLine className="size-4" aria-hidden="true" />
-          </button>
-        ) : (
-          <Button variant="secondary">Generate Risk Review</Button>
-        )}
-      </DrawerTrigger>
-      <DrawerContent className="sm:max-w-xl">
-        <DrawerHeader><DrawerTitle>{isRegenerate ? "Regenerate Income Gap Analysis" : "Generate Income Gap Analysis"}</DrawerTitle></DrawerHeader>
-        <DrawerBody className="space-y-4">
-          <p className="text-sm text-gray-400">
-            {isRegenerate
-              ? "Create a fresh risk review from the client’s current setup fields. Existing reviews remain available until removed."
-              : "Creates the advisor-reference modules first: Death/Life, Lawsuit, and Unemployment. Disability can be added when needed."}
-          </p>
-          <Input value={scenarioName} onChange={(event) => setScenarioName(event.target.value)} />
-          <div className="space-y-2">
-            {allModuleTypes.map((module) => (
-              <label key={module} className="flex items-center justify-between rounded-md border border-gray-800 bg-gray-900/40 px-3 py-2 text-sm text-gray-300">
-                <span>{moduleLabel[module]}</span>
-                <input type="checkbox" checked={includedModules.includes(module)} onChange={() => toggleModule(module)} />
-              </label>
-            ))}
-          </div>
-          <select value={activeModule} onChange={(event) => setActiveModule(event.target.value as RiskModuleType)} className="h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50">
-            {includedModules.map((module) => <option key={module} value={module}>{moduleLabel[module]}</option>)}
-          </select>
-        </DrawerBody>
-        <DrawerFooter>
-          <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={() => {
-            const scenarioId = createScenario({ clientId: client.id, name: scenarioName, includedModules, activeModule })
-            if (!scenarioId) return
-            setOpen(false)
-            navigate(`/scenarios/${scenarioId}/${activeModule}`)
-          }}>{isRegenerate ? "Regenerate Review" : "Create and Start"}</Button>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
+  return isRegenerate ? (
+    <button
+      aria-label={`Regenerate risk review for ${client.displayName}`}
+      title="Regenerate risk review"
+      className="rounded-md p-1.5 text-blue-400 transition-colors hover:bg-blue-950/30 hover:text-blue-300"
+      onClick={handleClick}
+    >
+      <RiRefreshLine className="size-4" aria-hidden="true" />
+    </button>
+  ) : (
+    <Button variant="secondary" onClick={handleClick}>Generate Risk Review</Button>
   )
 }
 
