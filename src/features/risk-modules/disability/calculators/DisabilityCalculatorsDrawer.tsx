@@ -59,9 +59,9 @@ export function DisabilityCalculatorsDrawer({ trigger }: DisabilityCalculatorsDr
         "Show how fast savings drain during the waiting period before any benefit pays — often the most alarming number in the conversation.",
     },
     "break-even": {
-      title: "Insurance Break-Even",
+      title: "Disability Plan Break-Even",
       description:
-        "Compare two plans to find the break-even point where the lower-premium option pays off.",
+        "Compare two disability policies by elimination period to find the break-even point where the longer-EP, lower-premium option offsets the additional income exposure.",
     },
   }
 

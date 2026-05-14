@@ -1,22 +1,28 @@
 /**
- * Insurance Break-Even Calculator
+ * Disability Insurance Plan Break-Even Calculator
  *
- * Determines the break-even period between two insurance plans with different
- * premium and deductible combinations (Plan A = Low Deductible, Plan B = High
- * Deductible). Implements the exact formula used by the reference source:
- * https://smart-calculator.org/insurance-break-even-calculator
+ * Determines the break-even period between two disability insurance plans that
+ * differ in elimination period length and premium.
+ *
+ * Plan A = Shorter Elimination Period (higher premium, less income at risk)
+ * Plan B = Longer Elimination Period (lower premium, more income at risk)
+ *
+ * "Elimination Period Exposure" is the estimated income / expenses at risk
+ * during the elimination period (monthly expenses × EP months). The break-even
+ * point shows how many claim-free months are needed before Plan B's lower
+ * premiums offset the additional exposure.
  */
 
 export type PremiumFrequency = "monthly" | "yearly"
 
 export interface BreakEvenInputs {
-  /** Plan A (low deductible) premium amount. */
+  /** Plan A (shorter elimination period) premium amount. */
   planAPremium: number
-  /** Plan A deductible. */
+  /** Plan A elimination period exposure in dollars (expenses × EP months). */
   planADeductible: number
-  /** Plan B (high deductible) premium amount. */
+  /** Plan B (longer elimination period) premium amount. */
   planBPremium: number
-  /** Plan B deductible. */
+  /** Plan B elimination period exposure in dollars (expenses × EP months). */
   planBDeductible: number
   /** Whether the entered premium amounts are monthly or yearly. */
   premiumFrequency: PremiumFrequency
@@ -27,31 +33,31 @@ export type BreakEvenResult =
   | { ok: false; error: string }
 
 export interface BreakEvenOutputs {
-  /** Monthly savings from choosing Plan B (lower premium, higher deductible). */
+  /** Monthly premium savings from choosing Plan B (longer EP, lower premium). */
   monthlySavings: number
-  /** Annualized savings from choosing Plan B. */
+  /** Annualized premium savings from choosing Plan B. */
   yearlySavings: number
-  /** Additional deductible exposure by choosing Plan B (the "risk gap"). */
+  /** Additional elimination period exposure by choosing Plan B (the "risk gap"). */
   riskGap: number
-  /** Months without a claim needed before Plan B saves money. */
+  /** Claim-free months needed before Plan B's premium savings offset the added exposure. */
   breakEvenMonths: number
   /** Break-even period expressed in years (one decimal place). */
   breakEvenYears: string
-  /** Total out-of-pocket on Plan A if a maximum claim occurs this year. */
+  /** Total Year-1 cost on Plan A if a disability occurs immediately (premium + EP exposure). */
   costWithClaimA: number
-  /** Total out-of-pocket on Plan B if a maximum claim occurs this year. */
+  /** Total Year-1 cost on Plan B if a disability occurs immediately (premium + EP exposure). */
   costWithClaimB: number
-  /** Extra cost incurred if a major claim happens immediately and Plan B was chosen. */
+  /** Extra first-year cost if a disability occurs immediately and Plan B was chosen. */
   claimDifference: number
   /** Which plan is statistically better given the break-even period. */
   recommendation: string
 }
 
 /**
- * Calculates the insurance break-even point between two plans.
+ * Calculates the disability plan break-even point between two plans.
  *
  * Returns `{ ok: false, error }` when the inputs are logically inconsistent
- * (e.g. Plan B is not cheaper, or does not have a higher deductible).
+ * (e.g. Plan B is not cheaper, or does not have a longer elimination period).
  */
 export function calculateBreakEven(inputs: BreakEvenInputs): BreakEvenResult {
   const { planAPremium, planADeductible, planBPremium, planBDeductible, premiumFrequency } = inputs
@@ -66,7 +72,7 @@ export function calculateBreakEven(inputs: BreakEvenInputs): BreakEvenResult {
   if (yearlySavings <= 0) {
     return {
       ok: false,
-      error: "Plan B (High Deductible) must be cheaper than Plan A to calculate break-even.",
+      error: "Plan B (Longer Elimination Period) must have a lower premium than Plan A to calculate break-even.",
     }
   }
 
@@ -75,7 +81,7 @@ export function calculateBreakEven(inputs: BreakEvenInputs): BreakEvenResult {
   if (riskGap <= 0) {
     return {
       ok: false,
-      error: "Plan B must have a higher deductible to assess the risk gap.",
+      error: "Plan B must have a greater elimination period exposure than Plan A to assess the income risk gap.",
     }
   }
 
@@ -88,8 +94,8 @@ export function calculateBreakEven(inputs: BreakEvenInputs): BreakEvenResult {
   const claimDifference = costWithClaimB - costWithClaimA
 
   const recommendation = breakEvenYearsNum < 2
-    ? "High Deductible (Plan B)"
-    : "Low Deductible (Plan A)"
+    ? "Longer Elimination Period (Plan B)"
+    : "Shorter Elimination Period (Plan A)"
 
   return {
     ok: true,
