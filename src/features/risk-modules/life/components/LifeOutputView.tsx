@@ -58,6 +58,7 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
   const displayAge = selectedAge ?? startAge
   const annual = getLifeStatsAtAge(outputs, displayAge)
   const gapColor = annual.survivorGap <= 0 ? "text-green-400" : "text-red-400"
+  const isYearlyView = selectedAge !== null
 
   return (
     <div className="space-y-6 flex flex-col h-full">
@@ -67,9 +68,10 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
             <CardContent className="p-5 flex flex-col justify-between h-full">
               <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Projected Income</div>
               <div className="text-2xl font-bold tracking-tight text-gray-50">
-                {formatCurrency(outputs.projectedIncomeToRetirement)}
+                {isYearlyView ? (
+                  <>{formatCurrency(annual.totalNeed)}<span className="text-sm font-normal text-gray-400">/yr</span></>
+                ) : formatCurrency(outputs.projectedIncomeToRetirement)}
               </div>
-              <div className="mt-2 text-sm font-normal text-gray-400">Total to retirement</div>
             </CardContent>
           </Card>
         </AnimatedSection>
@@ -78,10 +80,9 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
             <CardContent className="p-5 flex flex-col justify-between h-full">
               <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Group Life (GLI)</div>
               <div className="text-2xl font-bold tracking-tight text-gray-50">
-                {formatCurrency(outputs.groupLifeBenefit)}
-              </div>
-              <div className="mt-2 text-sm font-normal text-gray-400">
-                ~{formatCurrency(outputs.groupLifeAnnualIncome)}/yr for {outputs.groupLifeCoverageYears} yrs @ {Math.round(outputs.deathBenefitIncomeYieldAnnual * 100)}%
+                {isYearlyView ? (
+                  <>{formatCurrency(annual.gliCovered)}<span className="text-sm font-normal text-gray-400">/yr</span></>
+                ) : formatCurrency(outputs.groupLifeBenefit)}
               </div>
             </CardContent>
           </Card>
@@ -91,10 +92,9 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
             <CardContent className="p-5 flex flex-col justify-between h-full">
               <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Private Life Insurance</div>
               <div className="text-2xl font-bold tracking-tight text-gray-50">
-                {formatCurrency(outputs.privateLifeBenefit)}
-              </div>
-              <div className="mt-2 text-sm font-normal text-gray-400">
-                {outputs.privateLifePolicyType === "permanent" ? "Permanent" : `Term (${outputs.privateLifeCoverageYears} yrs)`} - ~{formatCurrency(outputs.privateLifeAnnualIncome)}/yr for {outputs.privateLifeCoverageYears} yrs
+                {isYearlyView ? (
+                  <>{formatCurrency(annual.privateCovered)}<span className="text-sm font-normal text-gray-400">/yr</span></>
+                ) : formatCurrency(outputs.privateLifeBenefit)}
               </div>
             </CardContent>
           </Card>
@@ -104,10 +104,9 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
             <CardContent className="p-5 flex flex-col justify-between h-full">
               <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Survivor Gap</div>
               <div className={`text-2xl font-bold tracking-tight ${gapColor}`}>
-                {formatCurrency(outputs.cumulativeSurvivorGap)}
-              </div>
-              <div className="mt-2 text-sm font-normal text-gray-400">
-                {outputs.lifetimeIncomeUncoveredPercentage}% of lifetime income uncovered
+                {isYearlyView ? (
+                  <>{formatCurrency(annual.survivorGap)}<span className="text-sm font-normal text-gray-400">/yr</span></>
+                ) : formatCurrency(outputs.cumulativeSurvivorGap)}
               </div>
             </CardContent>
           </Card>
