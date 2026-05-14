@@ -4,32 +4,7 @@ import { calculateBreakEven, type PremiumFrequency } from "./calculateBreakEven"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/Button"
 import { formatCurrency } from "@/lib/utils"
-
-// Disability-specific examples: Plan A = short elimination period (higher premium, lower income exposure)
-//                                Plan B = long  elimination period (lower  premium, higher income exposure)
-// EP Exposure = monthly expenses × EP months  (e.g. $7,000/mo × 3 mo = $21,000 for a 90-day EP)
-const QUICK_EXAMPLES = [
-  {
-    label: "60-Day vs 90-Day EP",
-    frequency: "monthly" as PremiumFrequency,
-    planAPremium: 380, planADeductible: 14000,   // 60 days × $7k/mo
-    planBPremium: 295, planBDeductible: 21000,   // 90 days × $7k/mo
-  },
-  {
-    label: "90-Day vs 180-Day EP",
-    frequency: "monthly" as PremiumFrequency,
-    planAPremium: 295, planADeductible: 21000,   // 90 days × $7k/mo
-    planBPremium: 210, planBDeductible: 42000,   // 180 days × $7k/mo
-  },
-  {
-    label: "90-Day vs 365-Day EP",
-    frequency: "monthly" as PremiumFrequency,
-    planAPremium: 320, planADeductible: 21000,   // 90 days × $7k/mo
-    planBPremium: 185, planBDeductible: 84000,   // 365 days ≈ 12 mo × $7k/mo
-  },
-]
 
 function toFloat(s: string): number {
   return parseFloat(s) || 0
@@ -65,15 +40,6 @@ export function BreakEvenCalculator() {
       }),
     [planAPremium, planADeductible, planBPremium, planBDeductible, frequency],
   )
-
-  function applyExample(idx: number) {
-    const ex = QUICK_EXAMPLES[idx]
-    setFrequency(ex.frequency)
-    setPlanAPremium(String(ex.planAPremium))
-    setPlanADeductible(String(ex.planADeductible))
-    setPlanBPremium(String(ex.planBPremium))
-    setPlanBDeductible(String(ex.planBDeductible))
-  }
 
   const freqLabel = frequency === "monthly" ? "monthly" : "yearly"
 
@@ -174,21 +140,6 @@ export function BreakEvenCalculator() {
             </div>
           </CardContent>
         </Card>
-      </div>
-
-      {/* ── Quick examples ────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[11px] text-gray-500 uppercase tracking-wider font-semibold">Examples:</span>
-        {QUICK_EXAMPLES.map((ex, i) => (
-          <Button
-            key={ex.label}
-            variant="secondary"
-            className="h-7 px-2.5 text-xs"
-            onClick={() => applyExample(i)}
-          >
-            {ex.label}
-          </Button>
-        ))}
       </div>
 
       {/* ── Results ───────────────────────────────────────────────────────── */}

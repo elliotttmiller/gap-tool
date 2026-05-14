@@ -15,11 +15,11 @@ import { RiskModuleType, ScenarioModuleRecords, useAppStore } from "@/lib/store"
 import { formatGapCurrency, getModuleGapValue } from "@/lib/scenarioMetrics"
 import "@/styles/print.css"
 
-const moduleCopy: Record<RiskModuleType, { title: string; tabLabel: string; accent: string }> = {
-  life: { title: "Premature Death - Protection Gap", tabLabel: "Life", accent: "text-red-300" },
-  disability: { title: "Disability / Illness - Income Collapse", tabLabel: "Disability", accent: "text-blue-300" },
-  unemployment: { title: "Liquidity & Unemployment Risk", tabLabel: "Unemployment", accent: "text-emerald-300" },
-  liability: { title: "Liability / Lawsuit - Asset Exposure", tabLabel: "Liability", accent: "text-amber-300" },
+const moduleCopy: Record<RiskModuleType, { title: string; tabLabel: string }> = {
+  life: { title: "Premature Death - Protection Gap", tabLabel: "Life" },
+  disability: { title: "Disability / Illness - Income Collapse", tabLabel: "Disability" },
+  unemployment: { title: "Liquidity & Unemployment Risk", tabLabel: "Unemployment" },
+  liability: { title: "Liability / Lawsuit - Asset Exposure", tabLabel: "Liability" },
 }
 
 const moduleIcons: Record<RiskModuleType, React.ComponentType<{ className?: string }>> = {
@@ -117,20 +117,10 @@ export function Presentation() {
 
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#090E1A] shadow-lg">
           <div className="shrink-0 border-b border-gray-800 bg-[#0a1628] px-8 py-6">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand-300">Presentation Mode</p>
-                <h1 className="mt-2 text-3xl font-bold tracking-tight text-white">{scenario.name}</h1>
-                <p className="mt-1 text-sm text-gray-400">{client.displayName}</p>
-              </div>
-              {selectedModule ? (
-                <div className="rounded-lg border border-gray-700 bg-gray-950/40 px-4 py-3 text-right">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">Modeled Gap</p>
-                  <p className={`mt-1 text-2xl font-bold ${moduleCopy[selectedModule].accent}`}>
-                    {formatModuleGap(selectedModule, records)}
-                  </p>
-                </div>
-              ) : null}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand-300">Presentation Mode</p>
+              <h1 className="mt-2 text-3xl font-bold tracking-tight text-white">{scenario.name}</h1>
+              <p className="mt-1 text-sm text-gray-400">{client.displayName}</p>
             </div>
           </div>
 
