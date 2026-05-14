@@ -154,7 +154,7 @@ export function AssumptionsPage() {
       try {
         const data = JSON.parse(e.target?.result as string) as PersistedAppData
         if (!Array.isArray(data.clients) || !Array.isArray(data.scenarios)) {
-          alert("Invalid export file — missing clients or scenarios.")
+          alert("Invalid export file - missing clients or scenarios array.")
           return
         }
         importAppData(data)

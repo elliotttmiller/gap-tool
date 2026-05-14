@@ -137,7 +137,7 @@ function AddClientDrawer() {
         </DrawerBody>
         <DrawerFooter>
           {submitAttempted && validationErrors.length > 0 ? (
-            <ul className="mr-auto space-y-1">
+            <ul role="alert" aria-live="polite" className="mr-auto space-y-1">
               {validationErrors.map((error) => (
                 <li key={error} className="flex items-center gap-1.5 text-xs text-red-400">
                   <RiAlertLine className="size-3.5 shrink-0" aria-hidden="true" />

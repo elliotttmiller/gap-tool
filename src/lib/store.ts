@@ -525,10 +525,23 @@ export const useAppStore = create<AppState>()(
       version: 3,
       /**
        * Passthrough migration: all schema versions 0–3 share the same shape.
-       * Returning persistedState as-is preserves stored data across version bumps.
+       * We verify the critical array fields exist before returning the state;
+       * if they are missing or malformed, we fall back to the initial state
+       * by returning undefined (Zustand will then use initial values).
        * Add per-version transformations here when the schema changes structurally.
        */
-      migrate: (persistedState: unknown, _version: number) => persistedState as Record<string, unknown>,
+      migrate: (persistedState: unknown, _version: number) => {
+        if (
+          persistedState !== null &&
+          typeof persistedState === "object" &&
+          Array.isArray((persistedState as Record<string, unknown>).clients) &&
+          Array.isArray((persistedState as Record<string, unknown>).scenarios)
+        ) {
+          return persistedState as Record<string, unknown>
+        }
+        // Persisted state is malformed — discard it and use initial state.
+        return undefined
+      },
       partialize: (state) => ({
         clients: state.clients,
         scenarios: state.scenarios,
