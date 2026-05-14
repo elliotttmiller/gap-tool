@@ -107,14 +107,13 @@ function ReserveBucketGauge({ outputs }: { outputs: UnemploymentOutputs }) {
   )
 }
 
-function MetricCard({ label, value, hint, delay }: { label: string; value: string; hint: string; delay: number }) {
+function MetricCard({ label, value, delay }: { label: string; value: string; delay: number }) {
   return (
     <AnimatedSection delay={delay}>
       <Card className="h-full border-slate-800/90 bg-slate-950/70 shadow-lg shadow-black/10">
         <CardContent className="flex h-full flex-col justify-between p-5">
           <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">{label}</div>
           <div className="mt-3 text-3xl font-black tracking-tight text-slate-50">{value}</div>
-          <p className="mt-2 text-xs font-medium text-slate-400">{hint}</p>
         </CardContent>
       </Card>
     </AnimatedSection>
@@ -129,16 +128,16 @@ export function UnemploymentOutputView({ outputs }: UnemploymentOutputViewProps)
       </AnimatedSection>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Monthly Income" value={formatCompactCurrency(outputs.monthlyIncome)} hint="Current monthly earnings" delay={0.12} />
-        <MetricCard label="Minimum Reserve" value={formatCompactCurrency(outputs.minimumReserveTarget)} hint="3 months - floor of the goal range" delay={0.2} />
-        <MetricCard label="Optimal Reserve" value={formatCompactCurrency(outputs.optimalReserveTarget)} hint="6 months - top of the goal range" delay={0.28} />
-        <MetricCard label="Annual Income at Risk" value={formatCompactCurrency(outputs.annualIncomeAtRisk)} hint="Full income exposure during unemployment" delay={0.36} />
+        <MetricCard label="Monthly Income" value={formatCompactCurrency(outputs.monthlyIncome)} delay={0.12} />
+        <MetricCard label="Minimum Reserve" value={formatCompactCurrency(outputs.minimumReserveTarget)} delay={0.2} />
+        <MetricCard label="Optimal Reserve" value={formatCompactCurrency(outputs.optimalReserveTarget)} delay={0.28} />
+        <MetricCard label="Annual Income at Risk" value={formatCompactCurrency(outputs.annualIncomeAtRisk)} delay={0.36} />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <MetricCard label="Current Reserve" value={formatCurrency(outputs.currentReserveLevel)} hint={`${outputs.reserveMonthsCurrent.toFixed(1)} months of income currently held`} delay={0.44} />
-        <MetricCard label="Cash Depletion" value={outputs.reserveDepletionMonth < 0 ? "Never" : `Month ${outputs.reserveDepletionMonth}`} hint="Months until $0 savings" delay={0.52} />
-        <MetricCard label="Total Shortfall" value={formatCurrency(outputs.totalUncoveredShortfall)} hint="Unfunded gap across modeled period" delay={0.6} />
+        <MetricCard label="Current Reserve" value={formatCurrency(outputs.currentReserveLevel)} delay={0.44} />
+        <MetricCard label="Cash Depletion" value={outputs.reserveDepletionMonth < 0 ? "Never" : `Month ${outputs.reserveDepletionMonth}`} delay={0.52} />
+        <MetricCard label="Total Shortfall" value={formatCurrency(outputs.totalUncoveredShortfall)} delay={0.6} />
       </div>
 
       <AnimatedSection delay={0.68}>

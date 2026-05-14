@@ -1,6 +1,6 @@
 ﻿import { LifeOutputs } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatCurrency, formatPercent } from "@/lib/utils"
+import { formatCurrency } from "@/lib/utils"
 import {
   BarChart,
   Bar,
@@ -52,7 +52,6 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
               <div className="text-2xl font-bold tracking-tight text-gray-50">
                 {formatCurrency(outputs.cumulativeSurvivorGap)}
               </div>
-              <p className="text-xs text-gray-400 mt-2">{formatPercent(outputs.lifetimeIncomeUncoveredPercentage)} of lifetime income uncovered</p>
             </CardContent>
           </Card>
         </AnimatedSection>
@@ -63,7 +62,6 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
               <div className="text-2xl font-bold tracking-tight text-gray-50">
                 {formatCurrency(outputs.groupLifeAnnualIncome)}<span className="text-sm font-normal text-gray-400">/yr</span>
               </div>
-              <p className="text-xs text-gray-400 mt-2">Annualized from death benefit @ 5%</p>
             </CardContent>
           </Card>
         </AnimatedSection>
@@ -74,7 +72,6 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
               <div className="text-2xl font-bold tracking-tight text-gray-50">
                 {formatCurrency(outputs.privateLifeAnnualIncome)}<span className="text-sm font-normal text-gray-400">/yr</span>
               </div>
-              <p className="text-xs text-gray-400 mt-2">Modeled for {outputs.privateLifeCoverageYears} years</p>
             </CardContent>
           </Card>
         </AnimatedSection>
@@ -85,7 +82,6 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
               <div className="text-2xl font-bold tracking-tight text-gray-50">
                 {formatCurrency(outputs.totalDeathBenefit)}
               </div>
-              <p className="text-xs text-gray-400 mt-2">Invested at assumed annual return</p>
             </CardContent>
           </Card>
         </AnimatedSection>

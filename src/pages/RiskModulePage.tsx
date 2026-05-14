@@ -51,9 +51,9 @@ export function RiskModulePage({ title, subtitle, onSave, formSlot, outputSlot }
         </Button>
       </div>
 
-      <div className="grid xl:grid-cols-12 gap-6 lg:gap-8 items-start w-full">
-        <div className="xl:col-span-5 w-full">{formSlot}</div>
-        <div className="xl:col-span-7 xl:sticky xl:top-6 w-full">{outputSlot}</div>
+      <div className="grid xl:grid-cols-12 gap-5 lg:gap-6 items-start w-full">
+        <div className="xl:col-span-4 w-full">{formSlot}</div>
+        <div className="xl:col-span-8 xl:sticky xl:top-6 w-full">{outputSlot}</div>
       </div>
 
       <div className="pt-6 sm:pt-8">

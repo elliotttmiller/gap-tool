@@ -9,7 +9,7 @@ interface DisabilityInputFormProps {
 }
 
 const selectClass =
-  "flex h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-1 text-sm text-gray-50 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+  "flex h-8 w-full rounded-md border border-gray-700 bg-gray-900 px-2.5 py-1 text-sm text-gray-50 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
 
 const BENEFIT_PERIOD_OPTIONS: { value: DiBenefitPeriod | ""; label: string }[] = [
   { value: "", label: "Select a period…" },
@@ -35,13 +35,13 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* ── Income Profile ────────────────────────────────────────────────── */}
       <Card>
         <CardHeader className="px-4 pt-3 pb-0">
           <CardTitle className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Income Profile</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-3 px-4 pt-2 pb-3">
+        <CardContent className="grid gap-3 sm:grid-cols-2 px-4 pt-2 pb-3">
           <div className="space-y-1">
             <Label htmlFor="annualEarnedIncome" title="Client's current annual earned income">Annual Income ($)</Label>
             <Input
@@ -81,7 +81,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
         <CardHeader className="px-4 pt-3 pb-0">
           <CardTitle className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Group Long Term Disability (LTD)</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-3 px-4 pt-2 pb-3">
+        <CardContent className="grid gap-3 sm:grid-cols-2 px-4 pt-2 pb-3">
           <div className="space-y-1">
             <Label htmlFor="ltdCoveragePercent" title="e.g. enter 60 for a 60% benefit">Coverage % of Income</Label>
             <div className="relative">
@@ -94,7 +94,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
                 value={inputs.ltdCoveragePercent ? Math.round(inputs.ltdCoveragePercent * 100) : ""}
                 onChange={(e) => handlePercent("ltdCoveragePercent", e.target.value)}
               />
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">%</span>
+              <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-gray-500">%</span>
             </div>
           </div>
           <div className="space-y-1">
@@ -126,7 +126,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
         <CardHeader className="px-4 pt-3 pb-0">
           <CardTitle className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Individual Disability Insurance</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-3 px-4 pt-2 pb-3">
+        <CardContent className="grid gap-3 sm:grid-cols-2 px-4 pt-2 pb-3">
           <div className="space-y-1">
             <Label htmlFor="privateDiBenefitMonthly">Monthly Benefit ($)</Label>
             <Input

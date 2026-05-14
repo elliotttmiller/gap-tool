@@ -9,7 +9,7 @@ interface LifeInputFormProps {
 }
 
 function FieldHint({ children }: { children: React.ReactNode }) {
-  return <p className="text-[11px] text-gray-500 mt-0.5">{children}</p>
+  return <p className="mt-0.5 text-[10px] leading-snug text-gray-500">{children}</p>
 }
 
 export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
@@ -30,13 +30,13 @@ export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
   const policyType = inputs.privateLifePolicyType ?? "term"
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Card>
         <CardHeader>
           <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">Income Earner Information</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-1 md:col-span-2">
+        <CardContent className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-1">
             <Label htmlFor="earnerName">Full Name</Label>
             <Input
               id="earnerName"
@@ -63,7 +63,7 @@ export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
             <Label htmlFor="incomeReplacementRatio">Income Replacement %</Label>
             <div className="relative">
               <Input id="incomeReplacementRatio" type="number" min={0} max={125} step={5} value={Math.round((inputs.incomeReplacementRatio ?? 1) * 100) || ""} onChange={(e) => onChange({ ...inputs, incomeReplacementRatio: (e.target.value === "" ? 0 : Number(e.target.value)) / 100 })} />
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">%</span>
+              <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-gray-500">%</span>
             </div>
             <FieldHint>Use 100% to mirror the advisor HTML death-tab logic.</FieldHint>
           </div>
@@ -74,7 +74,7 @@ export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
         <CardHeader>
           <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">Existing Coverage</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
+        <CardContent className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1">
             <Label htmlFor="groupLifeCoverage">Group Life (GLI) Death Benefit ($)</Label>
             <Input id="groupLifeCoverage" type="number" value={inputs.groupLifeCoverage || ""} onChange={(e) => handleNumberChange("groupLifeCoverage", e.target.value)} />
@@ -91,7 +91,7 @@ export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
               id="privateLifePolicyType"
               value={policyType}
               onChange={(e) => handlePolicyTypeChange(e.target.value as LifePolicyType)}
-              className="flex h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-1 text-sm text-gray-50 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+              className="flex h-8 w-full rounded-md border border-gray-700 bg-gray-900 px-2.5 py-1 text-sm text-gray-50 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
             >
               <option value="term">Term</option>
               <option value="permanent">Permanent</option>
@@ -104,7 +104,7 @@ export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
               <FieldHint>Private coverage stops after this term in the yearly gap chart.</FieldHint>
             </div>
           ) : null}
-          <div className="space-y-1 md:col-span-2">
+          <div className="space-y-1">
             <Label htmlFor="nonQualifiedAssets">Non-Qualified Assets ($)</Label>
             <Input id="nonQualifiedAssets" type="number" value={inputs.nonQualifiedAssets || ""} onChange={(e) => handleNumberChange("nonQualifiedAssets", e.target.value)} />
             <FieldHint>Taxable brokerage, savings, real estate equity, etc. Used by the advisor-reference lawsuit model.</FieldHint>
@@ -116,7 +116,7 @@ export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
         <CardHeader>
           <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">Optional Advanced Life Needs</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
+        <CardContent className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1">
             <Label htmlFor="debtsTotal">Outstanding Debts ($)</Label>
             <Input id="debtsTotal" type="number" value={inputs.debtsTotal || ""} onChange={(e) => handleNumberChange("debtsTotal", e.target.value)} />

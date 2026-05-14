@@ -15,13 +15,13 @@ export function UnemploymentInputForm({ inputs, onChange }: UnemploymentInputFor
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Card>
         <CardHeader>
           <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-wider">Baseline Finances</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
+        <CardContent className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-1">
             <Label htmlFor="annualIncome">Current Annual Income ($)</Label>
             <Input
               id="annualIncome"
@@ -30,7 +30,7 @@ export function UnemploymentInputForm({ inputs, onChange }: UnemploymentInputFor
               onChange={(e) => handleChange("annualIncome", e.target.value)}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="spouseIncome">Spouse Annual Income ($)</Label>
             <Input
               id="spouseIncome"
@@ -39,7 +39,7 @@ export function UnemploymentInputForm({ inputs, onChange }: UnemploymentInputFor
               onChange={(e) => handleChange("spouseIncome", e.target.value)}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="monthlyExpenses">Monthly Burn Rate ($)</Label>
             <Input
               id="monthlyExpenses"
@@ -48,7 +48,7 @@ export function UnemploymentInputForm({ inputs, onChange }: UnemploymentInputFor
               onChange={(e) => handleChange("monthlyExpenses", e.target.value)}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="emergencySavings">Liquid Emergency Savings ($)</Label>
             <Input
               id="emergencySavings"
@@ -64,8 +64,8 @@ export function UnemploymentInputForm({ inputs, onChange }: UnemploymentInputFor
         <CardHeader>
           <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-wider">Transition Offsets</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
+        <CardContent className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-1">
             <Label htmlFor="severanceMonths">Expected Severance (Months)</Label>
             <Input
               id="severanceMonths"
@@ -74,7 +74,7 @@ export function UnemploymentInputForm({ inputs, onChange }: UnemploymentInputFor
               onChange={(e) => handleChange("severanceMonths", e.target.value)}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="unemploymentBenefitMonthly">Expected Unemployment Benefit ($/mo)</Label>
             <Input
               id="unemploymentBenefitMonthly"
@@ -83,7 +83,7 @@ export function UnemploymentInputForm({ inputs, onChange }: UnemploymentInputFor
               onChange={(e) => handleChange("unemploymentBenefitMonthly", e.target.value)}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="unemploymentBenefitDurationMonths">Benefit Duration (Months)</Label>
             <Input
               id="unemploymentBenefitDurationMonths"
@@ -92,7 +92,7 @@ export function UnemploymentInputForm({ inputs, onChange }: UnemploymentInputFor
               onChange={(e) => handleChange("unemploymentBenefitDurationMonths", e.target.value)}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="estimatedJobSearchMonths">Estimated Search Duration (Months)</Label>
             <Input
               id="estimatedJobSearchMonths"
