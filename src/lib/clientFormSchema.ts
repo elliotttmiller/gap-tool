@@ -10,8 +10,6 @@ export type ClientFormState = {
   firstName: string
   lastName: string
   displayName: string
-  email: string
-  phone: string
   age: string
   annualIncome: string
   monthlyExpenses: string
@@ -38,8 +36,6 @@ export const emptyClientForm: ClientFormState = {
   firstName: "",
   lastName: "",
   displayName: "",
-  email: "",
-  phone: "",
   age: "",
   annualIncome: "",
   monthlyExpenses: "",
@@ -67,8 +63,6 @@ export function formFromClient(client: ClientRecord): ClientFormState {
     firstName: client.firstName,
     lastName: client.lastName,
     displayName: client.displayName,
-    email: client.email,
-    phone: client.phone,
     age: numberToInput(client.profile.currentAge),
     annualIncome: numberToInput(client.profile.annualEarnedIncome),
     monthlyExpenses: numberToInput(client.profile.monthlyHouseholdExpenses),
@@ -97,8 +91,6 @@ export function formToPayload(form: ClientFormState): CreateClientPayload {
     firstName: form.firstName,
     lastName: form.lastName,
     displayName: form.displayName || undefined,
-    email: form.email || undefined,
-    phone: form.phone || undefined,
     age: toNumber(form.age),
     annualIncome: toNumber(form.annualIncome),
     monthlyExpenses: toNumber(form.monthlyExpenses),

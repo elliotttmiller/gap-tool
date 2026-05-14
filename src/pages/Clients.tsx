@@ -16,7 +16,6 @@ const clients = [
   {
     id: "1",
     name: "Elliott Miller",
-    email: "elliott@example.com",
     status: "Active" as const,
     lastUpdated: "Today",
     scenarios: 3,
@@ -24,7 +23,6 @@ const clients = [
   {
     id: "2",
     name: "Sarah Davis",
-    email: "sarah@example.com",
     status: "Draft" as const,
     lastUpdated: "3 days ago",
     scenarios: 1,
@@ -32,7 +30,6 @@ const clients = [
   {
     id: "3",
     name: "Robert Chen",
-    email: "robert@example.com",
     status: "Active" as const,
     lastUpdated: "1 week ago",
     scenarios: 2,
@@ -68,7 +65,7 @@ export function Clients() {
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
             <thead>
               <tr>
-                {["Client", "Email", "Scenarios", "Last Updated", "Status", ""].map((h) => (
+                {["Client", "Scenarios", "Last Updated", "Status", ""].map((h) => (
                   <th
                     key={h}
                     className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 first:pl-6 last:pr-6 dark:text-gray-500"
@@ -86,9 +83,6 @@ export function Clients() {
                 >
                   <td className="whitespace-nowrap px-4 py-4 pl-6 text-sm font-medium text-gray-900 dark:text-gray-50">
                     {client.name}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400">
-                    {client.email}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-400">
                     {client.scenarios}

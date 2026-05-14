@@ -118,8 +118,6 @@ export function ClientOverview() {
             <Field label="Current age *"><Input type="number" min={18} max={64} value={form.age} onChange={(event) => setField("age", event.target.value)} /></Field>
             <Field label="Annual income ($) *"><Input type="number" min={0} value={form.annualIncome} onChange={(event) => setField("annualIncome", event.target.value)} /></Field>
             <Field label="Monthly expenses ($)"><Input type="number" min={0} value={form.monthlyExpenses} onChange={(event) => setField("monthlyExpenses", event.target.value)} /></Field>
-            <Field label="Email"><Input value={form.email} onChange={(event) => setField("email", event.target.value)} /></Field>
-            <Field label="Phone"><Input value={form.phone} onChange={(event) => setField("phone", event.target.value)} /></Field>
           </div>
         </div>
 

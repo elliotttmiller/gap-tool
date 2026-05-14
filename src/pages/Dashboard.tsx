@@ -64,10 +64,6 @@ function AddClientDrawer() {
           <DrawerTitle>Client Setup</DrawerTitle>
         </DrawerHeader>
         <DrawerBody className="space-y-5">
-          <p className="text-sm text-gray-400">
-            Matches the advisor reference workflow: client type, income earners, existing life coverage, non-qualified assets, and household auto liability.
-          </p>
-
           <SectionTitle>Client Type</SectionTitle>
           <div className="grid gap-2 sm:grid-cols-2">
             {(["individual", "couple"] as const).map((type) => (
@@ -93,8 +89,6 @@ function AddClientDrawer() {
             <Input type="number" min={18} max={64} placeholder="Current age *" value={form.age} onChange={(event) => setField("age", event.target.value)} />
             <Input type="number" min={0} placeholder="Annual income ($) *" value={form.annualIncome} onChange={(event) => setField("annualIncome", event.target.value)} />
             <Input type="number" min={0} placeholder="Monthly expenses ($)" value={form.monthlyExpenses} onChange={(event) => setField("monthlyExpenses", event.target.value)} />
-            <Input placeholder="Email" value={form.email} onChange={(event) => setField("email", event.target.value)} />
-            <Input placeholder="Phone" value={form.phone} onChange={(event) => setField("phone", event.target.value)} />
           </div>
 
           <SectionTitle>Existing Coverage — Primary Earner</SectionTitle>
@@ -315,7 +309,7 @@ export function Dashboard() {
   const filteredClients = useMemo(() => {
     const query = search.trim().toLowerCase()
     if (!query) return clients
-    return clients.filter((client) => client.displayName.toLowerCase().includes(query) || client.email.toLowerCase().includes(query))
+    return clients.filter((client) => client.displayName.toLowerCase().includes(query))
   }, [clients, search])
 
   return (
