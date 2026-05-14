@@ -87,7 +87,7 @@ export function Presentation() {
         </div>
 
         <div className="overflow-hidden rounded-xl border border-gray-800 bg-[#090E1A] shadow-lg print:border-none print:shadow-none">
-          <div className="border-b border-gray-800 bg-[#0a1628] p-12 text-white">
+          <div className="print-cover-header border-b border-gray-800 bg-[#0a1628] p-12 text-white">
             <div className="mb-6 hidden items-center gap-3 print:flex">
               <img
                 src={`${import.meta.env.BASE_URL}northstar-logo.svg`}

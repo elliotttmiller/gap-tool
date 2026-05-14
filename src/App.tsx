@@ -1,19 +1,28 @@
+import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AppShell } from './components/global/AppShell';
-import { Dashboard } from './pages/Dashboard';
-import { ClientOverview } from './pages/ClientOverview';
-import { ScenarioDetailShell } from './pages/ScenarioDetail';
-import { LifeModulePage } from './pages/LifeModulePage';
-import { DisabilityModulePage } from './pages/DisabilityModulePage';
-import { UnemploymentModulePage } from './pages/UnemploymentModulePage';
-import { LiabilityModulePage } from './pages/LiabilityModulePage';
-import { Presentation } from './pages/Presentation';
-import { SettingsLayout } from './pages/Settings';
+
+const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })));
+const ClientOverview = lazy(() => import('./pages/ClientOverview').then(m => ({ default: m.ClientOverview })));
+const ScenarioDetailShell = lazy(() => import('./pages/ScenarioDetail').then(m => ({ default: m.ScenarioDetailShell })));
+const LifeModulePage = lazy(() => import('./pages/LifeModulePage').then(m => ({ default: m.LifeModulePage })));
+const DisabilityModulePage = lazy(() => import('./pages/DisabilityModulePage').then(m => ({ default: m.DisabilityModulePage })));
+const UnemploymentModulePage = lazy(() => import('./pages/UnemploymentModulePage').then(m => ({ default: m.UnemploymentModulePage })));
+const LiabilityModulePage = lazy(() => import('./pages/LiabilityModulePage').then(m => ({ default: m.LiabilityModulePage })));
+const Presentation = lazy(() => import('./pages/Presentation').then(m => ({ default: m.Presentation })));
+const SettingsLayout = lazy(() => import('./pages/Settings').then(m => ({ default: m.SettingsLayout })));
+
+const PageFallback = () => (
+  <div className="flex items-center justify-center py-24">
+    <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-700 border-t-brand-500" />
+  </div>
+);
 
 export default function App() {
   return (
     <Router basename={import.meta.env.BASE_URL}>
-      <Routes>
+      <Suspense fallback={<PageFallback />}>
+        <Routes>
         <Route path="/" element={<AppShell />}>
           {/* Dashboard */}
           <Route index element={<Dashboard />} />
@@ -55,6 +64,7 @@ export default function App() {
         {/* Presentation — outside AppShell (no header) */}
         <Route path="/present/:scenarioId" element={<Presentation />} />
       </Routes>
+      </Suspense>
     </Router>
   );
 }

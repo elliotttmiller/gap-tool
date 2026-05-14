@@ -56,8 +56,7 @@
   }
 
   /* ── Cover / title header ── */
-  .border-b.border-gray-800.bg-\[#0a1628\],
-  .bg-\[#0a1628\] {
+  .print-cover-header {
     background: #0d1b2a !important;
     color: #ffffff !important;
     border-bottom: 3px solid #0099a8 !important;
@@ -67,7 +66,7 @@
   }
 
   /* Cover title text */
-  .bg-\[#0a1628\] h1 {
+  .print-cover-header h1 {
     font-size: 22pt !important;
     font-weight: 700 !important;
     color: #ffffff !important;
@@ -75,7 +74,7 @@
     margin: 0 0 6pt !important;
   }
 
-  .bg-\[#0a1628\] p {
+  .print-cover-header p {
     color: rgba(255, 255, 255, 0.75) !important;
     font-size: 11pt !important;
     margin: 0 0 3pt !important;
@@ -122,8 +121,8 @@
   .bg-gray-900\/40,
   .bg-gray-900,
   .bg-gray-950,
-  .bg-\[#090E1A\],
-  .bg-\[#090e1a\],
+  [class*="090E1A"],
+  [class*="090e1a"],
   [class*="bg-gray-9"],
   [class*="bg-gray-8"],
   [class*="bg-slate-9"] {
