@@ -117,33 +117,7 @@ export function Presentation() {
 
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#090E1A] shadow-lg">
           <div className="shrink-0 border-b border-gray-800 bg-[#0a1628] px-8 py-6">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand-300">Presentation Mode</p>
-              <h1 className="mt-2 text-3xl font-bold tracking-tight text-white">{scenario.name}</h1>
-              <p className="mt-1 text-sm text-gray-400">{client.displayName}</p>
-            </div>
-          </div>
-
-          <div className="shrink-0 border-b border-gray-800 px-6 py-3">
-            <div className="scrollbar-hide flex max-w-full gap-2 overflow-x-auto rounded-lg bg-gray-950/40 p-1">
-              {visibleModules.map((module) => {
-                const Icon = moduleIcons[module]
-                const selected = module === selectedModule
-                return (
-                  <button
-                    key={module}
-                    type="button"
-                    onClick={() => setActiveModule(module)}
-                    className={`flex min-w-max items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-colors ${
-                      selected ? "bg-brand-600 text-white shadow-sm" : "text-gray-400 hover:bg-gray-900 hover:text-gray-100"
-                    }`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {moduleCopy[module].tabLabel}
-                  </button>
-                )
-              })}
-            </div>
+            <h1 className="text-3xl font-bold tracking-tight text-white">{scenario.name}</h1>
           </div>
 
           <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-8 py-6">
@@ -153,6 +127,25 @@ export function Presentation() {
                   <div>
                     <h2 className="text-xl font-semibold text-gray-50">{moduleCopy[selectedModule].title}</h2>
                     <p className="mt-1 text-sm text-gray-500">Visualization and metrics for the selected risk module.</p>
+                  </div>
+                  <div className="scrollbar-hide flex max-w-full gap-2 overflow-x-auto rounded-lg bg-gray-950/40 p-1">
+                    {visibleModules.map((module) => {
+                      const Icon = moduleIcons[module]
+                      const selected = module === selectedModule
+                      return (
+                        <button
+                          key={module}
+                          type="button"
+                          onClick={() => setActiveModule(module)}
+                          className={`flex min-w-max items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-colors ${
+                            selected ? "bg-brand-600 text-white shadow-sm" : "text-gray-400 hover:bg-gray-900 hover:text-gray-100"
+                          }`}
+                        >
+                          <Icon className="h-4 w-4" />
+                          {moduleCopy[module].tabLabel}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
                 {renderModule(selectedModule)}
