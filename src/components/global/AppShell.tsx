@@ -1,12 +1,16 @@
 import { useState, useRef, useEffect } from "react"
-import { Link, Outlet } from "react-router-dom"
-import { LayoutDashboard, Settings, X } from "lucide-react"
+import { Link, Outlet, useLocation } from "react-router-dom"
+import { ArrowLeft, Settings, X } from "lucide-react"
 import { AssumptionsPage } from "@/pages/Assumptions"
 
 export function AppShell() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
+  const location = useLocation()
+
+  const scenarioMatch = location.pathname.match(/^\/scenarios\/([^/]+)/)
+  const isInScenario = Boolean(scenarioMatch)
 
   useEffect(() => {
     if (!settingsOpen) return
@@ -35,14 +39,16 @@ export function AppShell() {
       <header className="fixed inset-x-0 top-0 z-50 h-16 border-b border-brand-500/30 bg-linear-to-br from-[#0d1b2a] to-[#1e3248] shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
         <div className="mx-auto flex h-full max-w-400 items-center px-8">
           <div className="flex flex-1 justify-start">
-            <Link
-              to="/"
-              aria-label="Dashboard"
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-400 transition-colors hover:bg-white/5 hover:text-white"
-            >
-              <LayoutDashboard className="h-5 w-5" />
-              <span className="text-sm font-medium">Dashboard</span>
-            </Link>
+            {isInScenario ? (
+              <Link
+                to="/"
+                aria-label="Back to Dashboard"
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-400 transition-colors hover:bg-white/5 hover:text-white"
+              >
+                <ArrowLeft className="h-5 w-5" />
+                <span className="text-sm font-medium">Back</span>
+              </Link>
+            ) : null}
           </div>
 
           <div className="flex flex-1 justify-center">

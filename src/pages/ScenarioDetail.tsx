@@ -1,43 +1,15 @@
 import { Button } from "@/components/Button"
 import { ModuleErrorBoundary } from "@/components/global/ModuleErrorBoundary"
 import { RiskModuleType, useAppStore } from "@/lib/store"
-import { cx } from "@/lib/utils"
 import { formatDate } from "@/lib/utils"
-import {
-  RiArrowLeftLine,
-  RiCalendarLine,
-  RiHeartPulseLine,
-  RiScalesLine,
-  RiShieldCheckLine,
-  RiTimeLine,
-  RiUmbrellaLine,
-} from "@remixicon/react"
-import { Link, NavLink, Navigate, Outlet, useLocation, useParams } from "react-router-dom"
+import { RiCalendarLine } from "@remixicon/react"
+import { Link, Navigate, Outlet, useLocation, useParams } from "react-router-dom"
 
-const tabConfig: Record<
-  RiskModuleType,
-  { label: string; subtitle: string; icon: typeof RiUmbrellaLine }
-> = {
-  disability: {
-    label: "Disability",
-    subtitle: "Illness or injury income gap",
-    icon: RiUmbrellaLine,
-  },
-  life: {
-    label: "Life Insurance",
-    subtitle: "Premature death income gap",
-    icon: RiHeartPulseLine,
-  },
-  unemployment: {
-    label: "Unemployment",
-    subtitle: "Job loss reserve runway",
-    icon: RiShieldCheckLine,
-  },
-  liability: {
-    label: "Liability / Lawsuit",
-    subtitle: "Asset and income exposure",
-    icon: RiScalesLine,
-  },
+const tabConfig: Record<RiskModuleType, { label: string }> = {
+  disability: { label: "Disability" },
+  life: { label: "Life Insurance" },
+  unemployment: { label: "Unemployment" },
+  liability: { label: "Liability / Lawsuit" },
 }
 
 function formatStatus(status: string) {
@@ -66,7 +38,6 @@ export function ScenarioDetailShell() {
   const client = useAppStore((state) =>
     scenario ? state.clients.find((item) => item.id === scenario.clientId) : undefined,
   )
-  const setActiveModule = useAppStore((state) => state.setScenarioActiveModule)
 
   if (!scenarioId || !scenario || !client) {
     return (
@@ -106,67 +77,12 @@ export function ScenarioDetailShell() {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-2xl border border-slate-800/90 bg-[linear-gradient(180deg,rgba(15,23,42,0.72),rgba(2,6,23,0.48))] px-8 py-6 shadow-xl shadow-black/10">
-        <nav className="mb-6 flex items-center gap-x-2 text-sm text-slate-500">
-          <Link to="/" className="inline-flex items-center gap-1.5 transition-colors hover:text-slate-200">
-            <RiArrowLeftLine className="size-4" aria-hidden="true" />
-            Dashboard
-          </Link>
-          <span className="text-slate-700">/</span>
-          <span className="text-slate-400">{client.displayName}</span>
-          <span className="text-slate-700">/</span>
-          <span className="font-medium text-slate-200">{scenario.name}</span>
-        </nav>
-
-        <div>
-          <div className="min-w-0 space-y-4">
-            <div className="flex items-center gap-3">
-              <span className="inline-flex items-center rounded-full bg-brand-950/90 px-3 py-1 text-xs font-semibold text-brand-300 ring-1 ring-brand-800/80">
-                {formatStatus(scenario.status)}
-              </span>
-              <ScenarioMetaItem icon={RiCalendarLine} label="Updated" value={formatDate(scenario.updatedAt)} />
-            </div>
-
-            <div className="space-y-2">
-              <h1 className="max-w-5xl text-4xl font-semibold tracking-tight text-slate-50">
-                {scenario.name}
-              </h1>
-            </div>
-          </div>
-
-        </div>
-
-        <div className="mt-7 border-t border-slate-800/80 pt-5">
-          <div className="flex items-center justify-between gap-8">
-            <div className="shrink-0">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600">Risk Modules</p>
-              {activeTab ? <p className="mt-1 text-sm text-slate-400">{tabConfig[activeTab].subtitle}</p> : null}
-            </div>
-
-            <div className="flex max-w-full items-center gap-1.5 rounded-2xl border border-slate-800 bg-slate-950/70 p-1.5">
-              {includedTabs.map((module) => {
-                const tab = tabConfig[module]
-                return (
-                  <NavLink
-                    key={module}
-                    to={`/scenarios/${scenarioId}/${module}`}
-                    onClick={() => setActiveModule(scenarioId, module)}
-                    className={({ isActive }) =>
-                      cx(
-                        "inline-flex min-h-10 items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all",
-                        isActive
-                          ? "bg-brand-950/70 text-white shadow-sm ring-1 ring-brand-700/70"
-                          : "text-slate-400 hover:bg-slate-900 hover:text-slate-100",
-                      )
-                    }
-                  >
-                    <tab.icon className="size-4 shrink-0" aria-hidden="true" />
-                    <span>{tab.label}</span>
-                  </NavLink>
-                )
-              })}
-            </div>
-          </div>
+      <section className="rounded-2xl border border-slate-800/90 bg-[linear-gradient(180deg,rgba(15,23,42,0.72),rgba(2,6,23,0.48))] px-8 py-5 shadow-xl shadow-black/10">
+        <div className="flex flex-wrap items-center gap-4">
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-50">
+            {scenario.name}
+          </h1>
+          <ScenarioMetaItem icon={RiCalendarLine} label="Updated" value={formatDate(scenario.updatedAt)} />
         </div>
       </section>
 

@@ -1,8 +1,17 @@
 import * as React from "react"
 import { Button } from "@/components/Button"
 import { DisclaimerBlock } from "@/components/global/DisclaimerBlock"
-import { Link, useParams } from "react-router-dom"
-import { RiSlideshow3Line } from "@remixicon/react"
+import { Link, NavLink, useParams } from "react-router-dom"
+import { RiSlideshow3Line, RiHeartPulseLine, RiScalesLine, RiShieldCheckLine, RiUmbrellaLine } from "@remixicon/react"
+import { useAppStore, RiskModuleType } from "@/lib/store"
+import { cx } from "@/lib/utils"
+
+const tabConfig: Record<RiskModuleType, { label: string; icon: typeof RiUmbrellaLine }> = {
+  life: { label: "Life Insurance", icon: RiHeartPulseLine },
+  disability: { label: "Disability", icon: RiUmbrellaLine },
+  unemployment: { label: "Unemployment", icon: RiShieldCheckLine },
+  liability: { label: "Liability / Lawsuit", icon: RiScalesLine },
+}
 
 // ── Not-included fallback ─────────────────────────────────────────────────────
 
@@ -37,24 +46,59 @@ interface RiskModulePageProps {
  */
 export function RiskModulePage({ title, subtitle, headerActions, formSlot, outputSlot }: RiskModulePageProps) {
   const { scenarioId } = useParams()
+  const scenario = useAppStore((state) =>
+    scenarioId ? state.scenarios.find((s) => s.id === scenarioId) : undefined,
+  )
+  const setActiveModule = useAppStore((state) => state.setScenarioActiveModule)
+  const includedTabs = scenario?.includedModules ?? []
 
   return (
     <div className="space-y-6 w-full max-w-full overflow-hidden">
-      <div className="flex flex-col gap-4 border-b border-gray-800 pb-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-gray-800 pb-4">
+        <div className="min-w-0">
           <h2 className="text-xl font-semibold text-gray-50">{title}</h2>
           <p className="text-sm text-gray-400 mt-1">{subtitle}</p>
         </div>
-        <div className="flex items-center gap-2 self-start sm:self-auto sm:justify-end">
-          {headerActions}
-          {scenarioId ? (
-            <Button variant="secondary" asChild className="h-10 w-10 rounded-xl p-0">
-              <Link to={`/present/${scenarioId}`} aria-label="Presentation mode" title="Presentation mode">
-                <RiSlideshow3Line className="size-5" aria-hidden="true" />
-                <span className="sr-only">Presentation mode</span>
-              </Link>
-            </Button>
+
+        <div className="flex flex-wrap items-center gap-3">
+          {includedTabs.length > 1 && scenarioId ? (
+            <div className="flex items-center gap-1.5 rounded-2xl border border-slate-800 bg-slate-950/70 p-1.5">
+              {includedTabs.map((module) => {
+                const tab = tabConfig[module]
+                if (!tab) return null
+                return (
+                  <NavLink
+                    key={module}
+                    to={`/scenarios/${scenarioId}/${module}`}
+                    onClick={() => setActiveModule(scenarioId, module)}
+                    className={({ isActive }) =>
+                      cx(
+                        "inline-flex min-h-9 items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all",
+                        isActive
+                          ? "bg-brand-950/70 text-white shadow-sm ring-1 ring-brand-700/70"
+                          : "text-slate-400 hover:bg-slate-900 hover:text-slate-100",
+                      )
+                    }
+                  >
+                    <tab.icon className="size-4 shrink-0" aria-hidden="true" />
+                    <span>{tab.label}</span>
+                  </NavLink>
+                )
+              })}
+            </div>
           ) : null}
+
+          <div className="flex items-center gap-2">
+            {headerActions}
+            {scenarioId ? (
+              <Button variant="secondary" asChild className="h-10 w-10 rounded-xl p-0">
+                <Link to={`/present/${scenarioId}`} aria-label="Presentation mode" title="Presentation mode">
+                  <RiSlideshow3Line className="size-5" aria-hidden="true" />
+                  <span className="sr-only">Presentation mode</span>
+                </Link>
+              </Button>
+            ) : null}
+          </div>
         </div>
       </div>
 

@@ -116,10 +116,6 @@ export function Presentation() {
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#090E1A] shadow-lg">
-          <div className="shrink-0 border-b border-gray-800 bg-[#0a1628] px-8 py-6">
-            <h1 className="text-3xl font-bold tracking-tight text-white">{scenario.name}</h1>
-          </div>
-
           <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-8 py-6">
             {selectedModule ? (
               <div className="flex min-h-full flex-col">
