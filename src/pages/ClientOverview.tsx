@@ -91,7 +91,7 @@ export function ClientOverview() {
 
       <Card className="space-y-8 p-8">
         <div className="space-y-4">
-          <SectionTitle title="Client Type" description="Matches the advisor reference workflow." />
+          <SectionTitle title="Client Type" />
           <div className="grid grid-cols-2 gap-3">
             {(["individual", "couple"] as const).map((type) => (
               <button
