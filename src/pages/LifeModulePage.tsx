@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import { LifeInputForm } from "@/features/risk-modules/life/components/LifeInputForm"
 import { LifeOutputView } from "@/features/risk-modules/life/components/LifeOutputView"
 import { calculateLifeInsuranceGap } from "@/features/risk-modules/life/calculations/calculateLifeInsuranceGap"
@@ -16,8 +16,14 @@ export function LifeModulePage() {
 
   const outputs = useMemo(
     () => moduleState ? calculateLifeInsuranceGap(moduleState.inputs, moduleState.assumptions) : null,
-    [moduleState],
+    [moduleState?.inputs, moduleState?.assumptions],
   )
+
+  useEffect(() => {
+    if (scenarioId && outputs) {
+      saveCalculation(scenarioId, outputs)
+    }
+  }, [scenarioId, outputs, saveCalculation])
 
   if (!scenarioId || !moduleState || !outputs) {
     return <ModuleNotIncluded moduleName="Life" />
@@ -27,7 +33,6 @@ export function LifeModulePage() {
     <RiskModulePage
       title="Life Insurance Risk Analysis"
       subtitle="If I die prematurely, what financial support disappears for my family?"
-      onSave={() => saveCalculation(scenarioId, outputs)}
       formSlot={<LifeInputForm inputs={moduleState.inputs} onChange={(next) => updateInputs(scenarioId, next)} />}
       outputSlot={<LifeOutputView outputs={outputs} />}
     />

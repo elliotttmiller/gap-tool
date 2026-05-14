@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import { DisabilityInputForm } from "@/features/risk-modules/disability/components/DisabilityInputForm"
 import { DisabilityOutputView } from "@/features/risk-modules/disability/components/DisabilityOutputView"
 import { calculateDisabilityGap } from "@/features/risk-modules/disability/calculations/calculateDisabilityGap"
@@ -16,8 +16,14 @@ export function DisabilityModulePage() {
 
   const outputs = useMemo(
     () => moduleState ? calculateDisabilityGap(moduleState.inputs, moduleState.assumptions) : null,
-    [moduleState],
+    [moduleState?.inputs, moduleState?.assumptions],
   )
+
+  useEffect(() => {
+    if (scenarioId && outputs) {
+      saveCalculation(scenarioId, outputs)
+    }
+  }, [scenarioId, outputs, saveCalculation])
 
   if (!scenarioId || !moduleState || !outputs) {
     return <ModuleNotIncluded moduleName="Disability" />
@@ -27,7 +33,6 @@ export function DisabilityModulePage() {
     <RiskModulePage
       title="Disability Insurance Risk Analysis"
       subtitle="If I cannot work due to illness or injury, how does my financial plan change?"
-      onSave={() => saveCalculation(scenarioId, outputs)}
       formSlot={<DisabilityInputForm inputs={moduleState.inputs} onChange={(next) => updateInputs(scenarioId, next)} />}
       outputSlot={<DisabilityOutputView outputs={outputs} />}
     />

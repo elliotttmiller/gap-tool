@@ -1,4 +1,5 @@
-﻿import { LifeOutputs } from "../types"
+import { useState } from "react"
+import { LifeOutputs } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import {
@@ -38,9 +39,25 @@ const legendFormatter = (value: string) => (
   <span style={{ color: "#9ca3af", fontSize: 12 }}>{value}</span>
 )
 
+function getLifeStatsAtAge(outputs: LifeOutputs, age: number) {
+  return outputs.yearlyBreakdown.find((point) => point.age === age) ?? outputs.yearlyBreakdown[0] ?? {
+    age,
+    totalNeed: 0,
+    gliCovered: 0,
+    privateCovered: 0,
+    survivorGap: 0,
+  }
+}
+
 export function LifeOutputView({ outputs }: LifeOutputViewProps) {
   const chartData = transformLifeCoverageChartData(outputs)
   const anim = useOnceAnimation(chartData.animationKey)
+  const [selectedAge, setSelectedAge] = useState<number | null>(null)
+
+  const startAge = outputs.yearlyBreakdown[0]?.age ?? 0
+  const displayAge = selectedAge ?? startAge
+  const annual = getLifeStatsAtAge(outputs, displayAge)
+  const gapColor = annual.survivorGap <= 0 ? "text-green-400" : "text-red-400"
 
   return (
     <div className="space-y-6 flex flex-col h-full">
@@ -48,9 +65,9 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
         <AnimatedSection delay={0}>
           <Card className="border-gray-800 h-full">
             <CardContent className="p-5 flex flex-col justify-between h-full">
-              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Cumulative Survivor Gap</div>
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Projected Income</div>
               <div className="text-2xl font-bold tracking-tight text-gray-50">
-                {formatCurrency(outputs.cumulativeSurvivorGap)}
+                {formatCurrency(annual.totalNeed)}<span className="text-sm font-normal text-gray-400">/yr</span>
               </div>
             </CardContent>
           </Card>
@@ -60,7 +77,7 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
             <CardContent className="p-5 flex flex-col justify-between h-full">
               <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Group Life (GLI)</div>
               <div className="text-2xl font-bold tracking-tight text-gray-50">
-                {formatCurrency(outputs.groupLifeAnnualIncome)}<span className="text-sm font-normal text-gray-400">/yr</span>
+                {formatCurrency(annual.gliCovered)}<span className="text-sm font-normal text-gray-400">/yr</span>
               </div>
             </CardContent>
           </Card>
@@ -70,7 +87,7 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
             <CardContent className="p-5 flex flex-col justify-between h-full">
               <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Private Life Insurance</div>
               <div className="text-2xl font-bold tracking-tight text-gray-50">
-                {formatCurrency(outputs.privateLifeAnnualIncome)}<span className="text-sm font-normal text-gray-400">/yr</span>
+                {formatCurrency(annual.privateCovered)}<span className="text-sm font-normal text-gray-400">/yr</span>
               </div>
             </CardContent>
           </Card>
@@ -78,9 +95,9 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
         <AnimatedSection delay={0.24}>
           <Card className="border-gray-800 h-full">
             <CardContent className="p-5 flex flex-col justify-between h-full">
-              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Total Death Benefit</div>
-              <div className="text-2xl font-bold tracking-tight text-gray-50">
-                {formatCurrency(outputs.totalDeathBenefit)}
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Survivor Gap</div>
+              <div className={`text-2xl font-bold tracking-tight ${gapColor}`}>
+                {formatCurrency(annual.survivorGap)}<span className="text-sm font-normal text-gray-400">/yr</span>
               </div>
             </CardContent>
           </Card>
@@ -90,14 +107,38 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
       <AnimatedSection delay={0.3}>
         <Card className="border-gray-800">
           <CardHeader>
-            <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">
-              {chartData.chartTitle}
-            </CardTitle>
+            <div className="flex flex-wrap items-center gap-2">
+              <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">
+                {chartData.chartTitle}
+              </CardTitle>
+              {selectedAge !== null && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-blue-300 bg-blue-900/40 border border-blue-700 rounded-full px-3 py-1">
+                    Age {selectedAge}
+                  </span>
+                  <button
+                    onClick={() => setSelectedAge(null)}
+                    className="text-xs text-gray-400 hover:text-gray-100 transition-colors"
+                    aria-label="Reset to current age"
+                  >
+                    × Reset
+                  </button>
+                </div>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <div className="h-75 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData.yearlyCoverageData} margin={{ top: 10, right: 20, left: 10, bottom: 5 }} barCategoryGap="8%">
+                <BarChart
+                  data={chartData.yearlyCoverageData}
+                  margin={{ top: 10, right: 20, left: 10, bottom: 5 }}
+                  barCategoryGap="8%"
+                  onClick={(data) => {
+                    if (data?.activePayload) setSelectedAge(Number(data.activeLabel))
+                  }}
+                  style={{ cursor: "pointer" }}
+                >
                   <XAxis
                     dataKey="age"
                     tick={({ x, y, payload }) => chartData.tickAges.has(payload.value) ? (

@@ -68,6 +68,7 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
   // ── Interactivity state ────────────────────────────────────────────────
   const [selectedAge, setSelectedAge] = useState<number | null>(null)
   const [chartView, setChartView] = useState<"net" | "gross">("net")
+  const [visualization, setVisualization] = useState<"coverage">("coverage")
 
   const startAge = outputs.incomeProjection[0]?.age ?? 0
   const displayAge = selectedAge ?? startAge
@@ -81,77 +82,54 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
 
   return (
     <div className="space-y-6 flex flex-col h-full">
-      {/* ── Age selection badge ──────────────────────────────────────────── */}
-      {selectedAge !== null && (
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-blue-300 bg-blue-900/40 border border-blue-700 rounded-full px-3 py-1">
-            Age {selectedAge}
-          </span>
-          <button
-            onClick={() => setSelectedAge(null)}
-            className="text-xs text-gray-400 hover:text-gray-100 transition-colors"
-            aria-label="Reset to current age"
-          >
-            ✕ Reset
-          </button>
-        </div>
-      )}
-
-      {/* ── Monthly benefit KPI cards ──────────────────────────────────────────── */}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <AnimatedSection delay={0}>
-          <Card className="border-gray-800 h-full">
-            <CardContent className="p-5 flex flex-col justify-between h-full">
-              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Group LTD (Net)</div>
-              <div className="text-2xl font-bold tracking-tight text-gray-50">
-                {formatCurrency(ltdDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span>
-              </div>
-            </CardContent>
-          </Card>
-        </AnimatedSection>
-
-        <AnimatedSection delay={0.08}>
-          <Card className="border-gray-800 h-full">
-            <CardContent className="p-5 flex flex-col justify-between h-full">
-              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Individual DI</div>
-              <div className="text-2xl font-bold tracking-tight text-gray-50">
-                {formatCurrency(monthly.individualDIMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span>
-              </div>
-            </CardContent>
-          </Card>
-        </AnimatedSection>
-
-        <AnimatedSection delay={0.16}>
-          <Card className="border-gray-800 h-full">
-            <CardContent className="p-5 flex flex-col justify-between h-full">
-              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Total Benefit</div>
-              <div className="text-2xl font-bold tracking-tight text-gray-50">
-                {formatCurrency(totalDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span>
-              </div>
-            </CardContent>
-          </Card>
-        </AnimatedSection>
-
-        <AnimatedSection delay={0.24}>
-          <Card className="border-gray-800 h-full">
-            <CardContent className="p-5 flex flex-col justify-between h-full">
-              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Income Loss (Net)</div>
-              <div className={`text-2xl font-bold tracking-tight ${incomeLossColor}`}>
-                {formatCurrency(monthly.incomeLossNet)}<span className="text-sm font-normal text-gray-400">/mo</span>
-              </div>
-            </CardContent>
-          </Card>
-        </AnimatedSection>
-      </div>
-
       {/* ── Income projection chart ────────────────────────────────────────── */}
       <AnimatedSection delay={0.30}>
+        <div className="mb-3 flex w-full overflow-x-auto rounded-lg border border-gray-800 bg-[#090E1A] p-1 text-xs">
+          <button
+            type="button"
+            onClick={() => setVisualization("coverage")}
+            className={`whitespace-nowrap rounded-md px-3 py-1.5 font-semibold transition-colors ${visualization === "coverage" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-gray-100"}`}
+          >
+            Annual Coverage
+          </button>
+          <button
+            type="button"
+            disabled
+            className="whitespace-nowrap rounded-md px-3 py-1.5 font-semibold text-gray-600"
+          >
+            Monthly Benefits
+          </button>
+          <button
+            type="button"
+            disabled
+            className="whitespace-nowrap rounded-md px-3 py-1.5 font-semibold text-gray-600"
+          >
+            Gap Trend
+          </button>
+        </div>
+
         <Card className="border-gray-800">
           <CardHeader>
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">
-                Income vs. Disability Coverage — Annual Projection (3% Growth)
-              </CardTitle>
+              <div className="flex flex-wrap items-center gap-2">
+                <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">
+                  Income vs. Disability Coverage — Annual Projection (3% Growth)
+                </CardTitle>
+                {selectedAge !== null && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-blue-300 bg-blue-900/40 border border-blue-700 rounded-full px-3 py-1">
+                      Age {selectedAge}
+                    </span>
+                    <button
+                      onClick={() => setSelectedAge(null)}
+                      className="text-xs text-gray-400 hover:text-gray-100 transition-colors"
+                      aria-label="Reset to current age"
+                    >
+                      × Reset
+                    </button>
+                  </div>
+                )}
+              </div>
               {/* Net / Gross toggle */}
               <div className="flex rounded-md overflow-hidden border border-gray-700 text-xs">
                 <button
@@ -239,8 +217,49 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
         </Card>
       </AnimatedSection>
 
-      {/* ── Coverage summary table ─────────────────────────────────────────── */}
+      {/* ── Monthly benefit KPI cards ──────────────────────────────────────────── */}
       <AnimatedSection delay={0.38}>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <Card className="border-gray-800 h-full">
+            <CardContent className="p-5 flex flex-col justify-between h-full">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Group LTD (Net)</div>
+              <div className="text-2xl font-bold tracking-tight text-gray-50">
+                {formatCurrency(ltdDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-gray-800 h-full">
+            <CardContent className="p-5 flex flex-col justify-between h-full">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Individual DI</div>
+              <div className="text-2xl font-bold tracking-tight text-gray-50">
+                {formatCurrency(monthly.individualDIMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-gray-800 h-full">
+            <CardContent className="p-5 flex flex-col justify-between h-full">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Total Benefit</div>
+              <div className="text-2xl font-bold tracking-tight text-gray-50">
+                {formatCurrency(totalDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-gray-800 h-full">
+            <CardContent className="p-5 flex flex-col justify-between h-full">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Income Loss (Net)</div>
+              <div className={`text-2xl font-bold tracking-tight ${incomeLossColor}`}>
+                {formatCurrency(monthly.incomeLossNet)}<span className="text-sm font-normal text-gray-400">/mo</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </AnimatedSection>
+
+      {/* ── Coverage summary table ─────────────────────────────────────────── */}
+      <AnimatedSection delay={0.46}>
         <div className="grid gap-4 sm:grid-cols-2">
           <Card className="border-gray-800 bg-gray-900/40">
             <CardContent className="p-5">
@@ -295,7 +314,7 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
       </AnimatedSection>
 
       {/* ── Advisor narrative ─────────────────────────────────────────────── */}
-      <AnimatedSection delay={0.46}>
+      <AnimatedSection delay={0.54}>
         <Card className="bg-[#090E1A] text-white border border-gray-800">
           <CardContent className="p-6">
             <h4 className="font-semibold text-blue-400 mb-2 uppercase tracking-wider text-xs">Advisor Narrative</h4>

@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import { UnemploymentInputForm } from "@/features/risk-modules/unemployment/components/UnemploymentInputForm"
 import { UnemploymentOutputView } from "@/features/risk-modules/unemployment/components/UnemploymentOutputView"
 import { calculateUnemploymentGap } from "@/features/risk-modules/unemployment/calculations/calculateUnemploymentGap"
@@ -16,8 +16,14 @@ export function UnemploymentModulePage() {
 
   const outputs = useMemo(
     () => moduleState ? calculateUnemploymentGap(moduleState.inputs) : null,
-    [moduleState],
+    [moduleState?.inputs],
   )
+
+  useEffect(() => {
+    if (scenarioId && outputs) {
+      saveCalculation(scenarioId, outputs)
+    }
+  }, [scenarioId, outputs, saveCalculation])
 
   if (!scenarioId || !moduleState || !outputs) {
     return <ModuleNotIncluded moduleName="Unemployment" />
@@ -27,7 +33,6 @@ export function UnemploymentModulePage() {
     <RiskModulePage
       title="Unemployment & Liquidity Risk"
       subtitle="If I lose my job, how long can my reserves support my household?"
-      onSave={() => saveCalculation(scenarioId, outputs)}
       formSlot={<UnemploymentInputForm inputs={moduleState.inputs} onChange={(next) => updateInputs(scenarioId, next)} />}
       outputSlot={<UnemploymentOutputView outputs={outputs} />}
     />

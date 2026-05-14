@@ -1,15 +1,33 @@
-﻿import { LifeInputs, LifePolicyType } from "../types"
+import { LifeInputs, LifePolicyType } from "../types"
 import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
+import { Input, type InputProps } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+
+const moneyInputClass = "max-w-40"
+const shortInputClass = "max-w-24"
+const percentInputClass = "max-w-28"
+const textInputClass = "max-w-64"
+const selectInputClass = "max-w-56"
 
 interface LifeInputFormProps {
   inputs: LifeInputs
   onChange: (inputs: LifeInputs) => void
 }
 
-function FieldHint({ children }: { children: React.ReactNode }) {
-  return <p className="mt-0.5 text-[10px] leading-snug text-gray-500">{children}</p>
+function AffixedInput({
+  prefix,
+  suffix,
+  className,
+  inputClassName,
+  ...props
+}: InputProps & { prefix?: string; suffix?: string; inputClassName?: string }) {
+  return (
+    <div className={`relative ${className ?? ""}`}>
+      {prefix ? <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-gray-500">{prefix}</span> : null}
+      <Input {...props} className={`${prefix ? "pl-6" : ""} ${suffix ? "pr-10" : ""} ${inputClassName ?? ""}`} />
+      {suffix ? <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-gray-500">{suffix}</span> : null}
+    </div>
+  )
 }
 
 export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
@@ -26,112 +44,102 @@ export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
     onChange({ ...inputs, privateLifePolicyType: value })
   }
 
-  const yearsToRetirement = Math.max(0, inputs.retirementAge - inputs.currentAge)
   const policyType = inputs.privateLifePolicyType ?? "term"
 
   return (
     <div className="space-y-4">
-      <Card>
+      <Card className="w-fit max-w-full">
         <CardHeader>
           <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">Income Earner Information</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-1">
+        <CardContent className="grid gap-3 sm:grid-cols-[max-content_max-content]">
+          <div className="flex flex-col gap-2">
             <Label htmlFor="earnerName">Full Name</Label>
             <Input
               id="earnerName"
               value={inputs.earnerName ?? ""}
+              className={textInputClass}
               onChange={(e) => handleTextChange("earnerName", e.target.value)}
               placeholder="Primary Earner"
             />
-            <FieldHint>Matches the advisor reference Client Setup earner block.</FieldHint>
           </div>
-          <div className="space-y-1">
+          <div className="flex flex-col gap-2">
             <Label htmlFor="currentAge">Current Age</Label>
-            <Input id="currentAge" type="number" min={18} max={64} value={inputs.currentAge || ""} onChange={(e) => handleNumberChange("currentAge", e.target.value)} />
+            <Input id="currentAge" type="number" min={18} max={64} value={inputs.currentAge || ""} className={shortInputClass} onChange={(e) => handleNumberChange("currentAge", e.target.value)} />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="annualIncome">Annual Income ($)</Label>
-            <Input id="annualIncome" type="number" value={inputs.annualIncome || ""} onChange={(e) => handleNumberChange("annualIncome", e.target.value)} />
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="annualIncome">Annual Income</Label>
+            <AffixedInput id="annualIncome" type="number" prefix="$" value={inputs.annualIncome || ""} className={moneyInputClass} onChange={(e) => handleNumberChange("annualIncome", e.target.value)} />
           </div>
-          <div className="space-y-1">
+          <div className="flex flex-col gap-2">
             <Label htmlFor="retirementAge">Income Projection End Age</Label>
-            <Input id="retirementAge" type="number" value={inputs.retirementAge || ""} onChange={(e) => handleNumberChange("retirementAge", e.target.value)} />
-            {yearsToRetirement > 0 && <FieldHint>Advisor reference projects income to age 65. Current: {yearsToRetirement} years.</FieldHint>}
+            <Input id="retirementAge" type="number" value={inputs.retirementAge || ""} className={shortInputClass} onChange={(e) => handleNumberChange("retirementAge", e.target.value)} />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="incomeReplacementRatio">Income Replacement %</Label>
-            <div className="relative">
-              <Input id="incomeReplacementRatio" type="number" min={0} max={125} step={5} value={Math.round((inputs.incomeReplacementRatio ?? 1) * 100) || ""} onChange={(e) => onChange({ ...inputs, incomeReplacementRatio: (e.target.value === "" ? 0 : Number(e.target.value)) / 100 })} />
-              <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-gray-500">%</span>
-            </div>
-            <FieldHint>Use 100% to mirror the advisor HTML death-tab logic.</FieldHint>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="incomeReplacementRatio">Income Replacement</Label>
+            <AffixedInput id="incomeReplacementRatio" type="number" min={0} max={125} step={5} suffix="%" value={Math.round((inputs.incomeReplacementRatio ?? 1) * 100) || ""} className={percentInputClass} onChange={(e) => onChange({ ...inputs, incomeReplacementRatio: (e.target.value === "" ? 0 : Number(e.target.value)) / 100 })} />
           </div>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="w-fit max-w-full">
         <CardHeader>
           <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">Existing Coverage</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-1">
-            <Label htmlFor="groupLifeCoverage">Group Life (GLI) Death Benefit ($)</Label>
-            <Input id="groupLifeCoverage" type="number" value={inputs.groupLifeCoverage || ""} onChange={(e) => handleNumberChange("groupLifeCoverage", e.target.value)} />
-            <FieldHint>Employer-provided life benefit.</FieldHint>
+        <CardContent className="grid gap-3 sm:grid-cols-[max-content_max-content]">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="groupLifeCoverage">Group Life (GLI) Death Benefit</Label>
+            <AffixedInput id="groupLifeCoverage" type="number" prefix="$" value={inputs.groupLifeCoverage || ""} className={moneyInputClass} onChange={(e) => handleNumberChange("groupLifeCoverage", e.target.value)} />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="privateLifeCoverage">Private Life Insurance Death Benefit ($)</Label>
-            <Input id="privateLifeCoverage" type="number" value={inputs.privateLifeCoverage || ""} onChange={(e) => handleNumberChange("privateLifeCoverage", e.target.value)} />
-            <FieldHint>Individually owned life coverage.</FieldHint>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="privateLifeCoverage">Private Life Insurance Death Benefit</Label>
+            <AffixedInput id="privateLifeCoverage" type="number" prefix="$" value={inputs.privateLifeCoverage || ""} className={moneyInputClass} onChange={(e) => handleNumberChange("privateLifeCoverage", e.target.value)} />
           </div>
-          <div className="space-y-1">
+          <div className="flex flex-col gap-2">
             <Label htmlFor="privateLifePolicyType">Policy Type</Label>
             <select
               id="privateLifePolicyType"
               value={policyType}
               onChange={(e) => handlePolicyTypeChange(e.target.value as LifePolicyType)}
-              className="flex h-8 w-full rounded-md border border-gray-700 bg-gray-900 px-2.5 py-1 text-sm text-gray-50 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+              className={`flex h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-1 text-sm text-gray-50 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600 ${selectInputClass}`}
             >
               <option value="term">Term</option>
               <option value="permanent">Permanent</option>
             </select>
           </div>
           {policyType === "term" ? (
-            <div className="space-y-1">
-              <Label htmlFor="privateLifeTermYears">Term Length (years)</Label>
-              <Input id="privateLifeTermYears" type="number" value={inputs.privateLifeTermYears || ""} onChange={(e) => handleNumberChange("privateLifeTermYears", e.target.value)} />
-              <FieldHint>Private coverage stops after this term in the yearly gap chart.</FieldHint>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="privateLifeTermYears">Term Length</Label>
+              <AffixedInput id="privateLifeTermYears" type="number" suffix="yr" value={inputs.privateLifeTermYears || ""} className={shortInputClass} onChange={(e) => handleNumberChange("privateLifeTermYears", e.target.value)} />
             </div>
           ) : null}
-          <div className="space-y-1">
-            <Label htmlFor="nonQualifiedAssets">Non-Qualified Assets ($)</Label>
-            <Input id="nonQualifiedAssets" type="number" value={inputs.nonQualifiedAssets || ""} onChange={(e) => handleNumberChange("nonQualifiedAssets", e.target.value)} />
-            <FieldHint>Taxable brokerage, savings, real estate equity, etc. Used by the advisor-reference lawsuit model.</FieldHint>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="nonQualifiedAssets">Non-Qualified Assets</Label>
+            <AffixedInput id="nonQualifiedAssets" type="number" prefix="$" value={inputs.nonQualifiedAssets || ""} className={moneyInputClass} onChange={(e) => handleNumberChange("nonQualifiedAssets", e.target.value)} />
           </div>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="w-fit max-w-full">
         <CardHeader>
           <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">Optional Advanced Life Needs</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-1">
-            <Label htmlFor="debtsTotal">Outstanding Debts ($)</Label>
-            <Input id="debtsTotal" type="number" value={inputs.debtsTotal || ""} onChange={(e) => handleNumberChange("debtsTotal", e.target.value)} />
+        <CardContent className="grid gap-3 sm:grid-cols-[max-content_max-content]">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="debtsTotal">Outstanding Debts</Label>
+            <AffixedInput id="debtsTotal" type="number" prefix="$" value={inputs.debtsTotal || ""} className={moneyInputClass} onChange={(e) => handleNumberChange("debtsTotal", e.target.value)} />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="educationGoal">Education Funding Goal ($)</Label>
-            <Input id="educationGoal" type="number" value={inputs.educationGoal || ""} onChange={(e) => handleNumberChange("educationGoal", e.target.value)} />
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="educationGoal">Education Funding Goal</Label>
+            <AffixedInput id="educationGoal" type="number" prefix="$" value={inputs.educationGoal || ""} className={moneyInputClass} onChange={(e) => handleNumberChange("educationGoal", e.target.value)} />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="finalExpenses">Final Expenses ($)</Label>
-            <Input id="finalExpenses" type="number" value={inputs.finalExpenses || ""} onChange={(e) => handleNumberChange("finalExpenses", e.target.value)} />
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="finalExpenses">Final Expenses</Label>
+            <AffixedInput id="finalExpenses" type="number" prefix="$" value={inputs.finalExpenses || ""} className={moneyInputClass} onChange={(e) => handleNumberChange("finalExpenses", e.target.value)} />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="spouseAnnualIncome">Spouse / Partner Annual Income ($)</Label>
-            <Input id="spouseAnnualIncome" type="number" value={inputs.spouseAnnualIncome || ""} onChange={(e) => handleNumberChange("spouseAnnualIncome", e.target.value)} />
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="spouseAnnualIncome">Spouse / Partner Annual Income</Label>
+            <AffixedInput id="spouseAnnualIncome" type="number" prefix="$" value={inputs.spouseAnnualIncome || ""} className={moneyInputClass} onChange={(e) => handleNumberChange("spouseAnnualIncome", e.target.value)} />
           </div>
         </CardContent>
       </Card>

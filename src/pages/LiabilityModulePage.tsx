@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import { LiabilityInputForm } from "@/features/risk-modules/liability/components/LiabilityInputForm"
 import { LiabilityOutputView } from "@/features/risk-modules/liability/components/LiabilityOutputView"
 import { calculateLiabilityGap } from "@/features/risk-modules/liability/calculations/calculateLiabilityGap"
@@ -16,8 +16,14 @@ export function LiabilityModulePage() {
 
   const outputs = useMemo(
     () => moduleState ? calculateLiabilityGap(moduleState.inputs) : null,
-    [moduleState],
+    [moduleState?.inputs],
   )
+
+  useEffect(() => {
+    if (scenarioId && outputs) {
+      saveCalculation(scenarioId, outputs)
+    }
+  }, [scenarioId, outputs, saveCalculation])
 
   if (!scenarioId || !moduleState || !outputs) {
     return <ModuleNotIncluded moduleName="Liability" />
@@ -27,7 +33,6 @@ export function LiabilityModulePage() {
     <RiskModulePage
       title="Liability / Lawsuit Risk Analysis"
       subtitle="If I face a lawsuit, what assets or wealth could be exposed?"
-      onSave={() => saveCalculation(scenarioId, outputs)}
       formSlot={<LiabilityInputForm inputs={moduleState.inputs} onChange={(next) => updateInputs(scenarioId, next)} />}
       outputSlot={<LiabilityOutputView outputs={outputs} />}
     />

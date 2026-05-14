@@ -133,9 +133,6 @@ export function ScenarioDetailShell() {
               <h1 className="max-w-5xl text-4xl font-semibold tracking-tight text-slate-50">
                 {scenario.name}
               </h1>
-              <p className="max-w-3xl text-base leading-7 text-slate-400">
-                {client.displayName} · Advisor-guided risk review modules selected for this client scenario.
-              </p>
             </div>
           </div>
 
