@@ -7,10 +7,28 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/Button"
 import { formatCurrency } from "@/lib/utils"
 
+// Disability-specific examples: Plan A = short elimination period (higher premium, lower income exposure)
+//                                Plan B = long  elimination period (lower  premium, higher income exposure)
+// EP Exposure = monthly expenses × EP months  (e.g. $7,000/mo × 3 mo = $21,000 for a 90-day EP)
 const QUICK_EXAMPLES = [
-  { label: "Auto", frequency: "monthly" as PremiumFrequency, planAPremium: 150, planADeductible: 500, planBPremium: 100, planBDeductible: 1000 },
-  { label: "Health (PPO vs HDHP)", frequency: "monthly" as PremiumFrequency, planAPremium: 600, planADeductible: 1500, planBPremium: 350, planBDeductible: 6000 },
-  { label: "Homeowners", frequency: "yearly" as PremiumFrequency, planAPremium: 1200, planADeductible: 1000, planBPremium: 900, planBDeductible: 2500 },
+  {
+    label: "60-Day vs 90-Day EP",
+    frequency: "monthly" as PremiumFrequency,
+    planAPremium: 380, planADeductible: 14000,   // 60 days × $7k/mo
+    planBPremium: 295, planBDeductible: 21000,   // 90 days × $7k/mo
+  },
+  {
+    label: "90-Day vs 180-Day EP",
+    frequency: "monthly" as PremiumFrequency,
+    planAPremium: 295, planADeductible: 21000,   // 90 days × $7k/mo
+    planBPremium: 210, planBDeductible: 42000,   // 180 days × $7k/mo
+  },
+  {
+    label: "90-Day vs 365-Day EP",
+    frequency: "monthly" as PremiumFrequency,
+    planAPremium: 320, planADeductible: 21000,   // 90 days × $7k/mo
+    planBPremium: 185, planBDeductible: 84000,   // 365 days ≈ 12 mo × $7k/mo
+  },
 ]
 
 function toFloat(s: string): number {
@@ -24,10 +42,10 @@ function validatePositive(s: string, setter: (v: string) => void) {
 
 export function BreakEvenCalculator() {
   const [frequency, setFrequency] = useState<PremiumFrequency>("monthly")
-  const [planAPremium, setPlanAPremium] = useState("200")
-  const [planADeductible, setPlanADeductible] = useState("500")
-  const [planBPremium, setPlanBPremium] = useState("120")
-  const [planBDeductible, setPlanBDeductible] = useState("2000")
+  const [planAPremium, setPlanAPremium] = useState("295")
+  const [planADeductible, setPlanADeductible] = useState("21000")
+  const [planBPremium, setPlanBPremium] = useState("210")
+  const [planBDeductible, setPlanBDeductible] = useState("42000")
 
   const handleChange = useCallback(
     (setter: (v: string) => void) =>
@@ -88,7 +106,7 @@ export function BreakEvenCalculator() {
           <CardContent className="p-4 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Plan A</span>
-              <span className="text-[10px] bg-blue-900/50 text-blue-300 border border-blue-800 rounded px-2 py-0.5">Low Deductible</span>
+              <span className="text-[10px] bg-blue-900/50 text-blue-300 border border-blue-800 rounded px-2 py-0.5">Short Elimination Period</span>
             </div>
             <div className="space-y-2">
               <Label htmlFor="be-planAPremium">Premium ({freqLabel})</Label>
@@ -104,17 +122,18 @@ export function BreakEvenCalculator() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="be-planADeductible">Deductible</Label>
+              <Label htmlFor="be-planADeductible">Elimination Period Exposure ($)</Label>
               <Input
                 id="be-planADeductible"
                 type="number"
                 min={0}
-                step={100}
+                step={1000}
                 prefix="$"
                 value={planADeductible}
                 onChange={handleChange(setPlanADeductible)}
-                placeholder="500"
+                placeholder="21000"
               />
+              <p className="text-[11px] text-gray-500">Monthly expenses × EP months</p>
             </div>
           </CardContent>
         </Card>
@@ -124,7 +143,7 @@ export function BreakEvenCalculator() {
           <CardContent className="p-4 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Plan B</span>
-              <span className="text-[10px] bg-cyan-900/50 text-cyan-300 border border-cyan-800 rounded px-2 py-0.5">High Deductible</span>
+              <span className="text-[10px] bg-cyan-900/50 text-cyan-300 border border-cyan-800 rounded px-2 py-0.5">Long Elimination Period</span>
             </div>
             <div className="space-y-2">
               <Label htmlFor="be-planBPremium">Premium ({freqLabel})</Label>
@@ -140,17 +159,18 @@ export function BreakEvenCalculator() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="be-planBDeductible">Deductible</Label>
+              <Label htmlFor="be-planBDeductible">Elimination Period Exposure ($)</Label>
               <Input
                 id="be-planBDeductible"
                 type="number"
                 min={0}
-                step={100}
+                step={1000}
                 prefix="$"
                 value={planBDeductible}
                 onChange={handleChange(setPlanBDeductible)}
-                placeholder="2000"
+                placeholder="42000"
               />
+              <p className="text-[11px] text-gray-500">Monthly expenses × EP months</p>
             </div>
           </CardContent>
         </Card>
@@ -189,7 +209,7 @@ export function BreakEvenCalculator() {
                 <span className="text-5xl font-bold text-blue-300 tracking-tight">{result.breakEvenMonths}</span>
                 <span className="text-xl text-gray-400 font-normal">months</span>
               </div>
-              <p className="text-xs text-gray-500">(~{result.breakEvenYears} years to save the deductible difference)</p>
+              <p className="text-xs text-gray-500">(~{result.breakEvenYears} years claim-free for the longer EP to save money)</p>
             </CardContent>
           </Card>
 
@@ -203,7 +223,7 @@ export function BreakEvenCalculator() {
                   {result.recommendation}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  If you go {result.breakEvenMonths} months without a claim, Plan B saves you money.
+                  If you go {result.breakEvenMonths} months without a disability claim, the longer elimination period (Plan B) saves money.
                 </p>
               </div>
             </CardContent>
@@ -221,15 +241,15 @@ export function BreakEvenCalculator() {
                 <span className="font-mono font-semibold text-green-400">+{formatCurrency(result.monthlySavings)}/mo</span>
               </div>
               <div className="flex justify-between items-center py-1.5 border-b border-gray-800">
-                <span className="text-gray-400">Deductible Gap (Risk)</span>
+                <span className="text-gray-400">EP Exposure Gap (Added Income Risk)</span>
                 <span className="font-mono font-bold text-amber-400">-{formatCurrency(result.riskGap)}</span>
               </div>
               <div className="flex justify-between items-center py-1.5 border-b border-gray-800">
-                <span className="text-gray-400">Total Cost w/ Claim — Plan A</span>
+                <span className="text-gray-400">Year-1 Cost w/ Disability — Plan A</span>
                 <span className="font-mono text-gray-300">{formatCurrency(result.costWithClaimA)}</span>
               </div>
               <div className="flex justify-between items-center py-1.5">
-                <span className="text-gray-400">Total Cost w/ Claim — Plan B</span>
+                <span className="text-gray-400">Year-1 Cost w/ Disability — Plan B</span>
                 <span className="font-mono text-gray-300">{formatCurrency(result.costWithClaimB)}</span>
               </div>
             </CardContent>
@@ -240,8 +260,8 @@ export function BreakEvenCalculator() {
             <CardContent className="p-3 flex items-start gap-2">
               <RiInformationLine className="size-4 text-red-400 mt-0.5 shrink-0" aria-hidden="true" />
               <p className="text-xs text-gray-400">
-                <strong className="text-red-300">Worst Case:</strong> If a major claim occurs immediately, Plan B costs{" "}
-                <strong className="text-red-300">{formatCurrency(result.claimDifference)}</strong> more than Plan A this year.
+                <strong className="text-red-300">Worst Case:</strong> If a disability occurs immediately, Plan B costs{" "}
+                <strong className="text-red-300">{formatCurrency(result.claimDifference)}</strong> more than Plan A in Year 1 due to the longer elimination period.
               </p>
             </CardContent>
           </Card>
