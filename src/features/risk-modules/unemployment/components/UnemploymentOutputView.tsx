@@ -113,7 +113,7 @@ function MetricCard({ label, value, delay }: { label: string; value: string; del
       <Card className="h-full border-slate-800/90 bg-slate-950/70 shadow-lg shadow-black/10">
         <CardContent className="flex h-full flex-col justify-between p-5">
           <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">{label}</div>
-          <div className="mt-3 text-3xl font-black tracking-tight text-slate-50">{value}</div>
+          <div className="mt-3 text-2xl font-bold tracking-tight text-slate-50">{value}</div>
         </CardContent>
       </Card>
     </AnimatedSection>
