@@ -79,7 +79,7 @@ export function ScenarioDetailShell() {
     <div className="space-y-8">
       <section className="rounded-2xl border border-slate-800/90 bg-[linear-gradient(180deg,rgba(15,23,42,0.72),rgba(2,6,23,0.48))] px-8 py-5 shadow-xl shadow-black/10">
         <div className="flex flex-wrap items-center gap-4">
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-50">
+          <h1 className="text-xl font-semibold tracking-tight text-slate-50">
             {scenario.name}
           </h1>
           <ScenarioMetaItem icon={RiCalendarLine} label="Updated" value={formatDate(scenario.updatedAt)} />
