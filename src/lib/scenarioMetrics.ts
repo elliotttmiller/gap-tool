@@ -3,7 +3,7 @@ import { RiskModuleType, ScenarioModuleRecords } from "@/lib/store"
 export function getModuleGapValue(module: RiskModuleType, record?: ScenarioModuleRecords): number | undefined {
   if (!record) return undefined
   if (module === "life") return record.life?.output?.remainingGap
-  if (module === "disability") return record.disability?.output?.totalUncoveredGap
+  if (module === "disability") return record.disability?.output?.totalGap
   if (module === "unemployment") return record.unemployment?.output?.totalUncoveredShortfall
   return record.liability?.output?.exposureGap
 }

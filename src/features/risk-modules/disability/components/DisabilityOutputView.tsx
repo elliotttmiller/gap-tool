@@ -1,7 +1,15 @@
 import { DisabilityOutputs } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency, formatPercent } from "@/lib/utils"
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from "recharts"
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts"
 import { getDisabilityNarrative } from "../constants/moduleCopy"
 import { AnimatedSection } from "@/components/ui/animated-section"
 import { useOnceAnimation } from "@/lib/use-once-animation"
@@ -11,180 +19,181 @@ interface DisabilityOutputViewProps {
   outputs: DisabilityOutputs
 }
 
-const CustomStackTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-gray-900 p-3 border border-gray-700 rounded-lg shadow-sm text-sm">
-      <p className="font-medium text-gray-100 mb-2">{label}</p>
-      {payload.map((entry: any, index: number) =>
-        entry.value > 0 ? (
-          <div key={index} className="flex justify-between gap-4 mb-1">
-            <span style={{ color: entry.color }}>{entry.name}:</span>
-            <span className="font-semibold">{formatCurrency(entry.value)}/mo</span>
-          </div>
-        ) : null
-      )}
-    </div>
-  )
-}
-
-const CustomTimelineTooltip = ({ active, payload, label }: any) => {
-  if (!active || !payload?.length) return null
-  return (
-    <div className="bg-gray-900 p-3 border border-gray-700 rounded-lg shadow-sm text-sm">
-      <p className="font-medium text-gray-100 mb-2">{label}</p>
-      {payload.map((entry: any, index: number) => (
-        <div key={index} className="flex justify-between gap-4 mb-1">
-          <span style={{ color: entry.color }}>{entry.name}:</span>
-          <span className="font-semibold">{formatCurrency(entry.value)}</span>
+    <div className="bg-gray-900 p-3 border border-gray-700 rounded-lg shadow-lg text-sm min-w-45">
+      <p className="font-semibold text-gray-100 mb-2">Age {label}</p>
+      {payload.map((entry: any) => (
+        <div key={entry.name} className="flex justify-between gap-4 mb-1">
+          <span style={{ color: entry.color }} className="text-xs">{entry.name}:</span>
+          <span className="font-semibold text-xs text-gray-100">{formatCurrency(entry.value)}/yr</span>
         </div>
       ))}
     </div>
   )
 }
 
-const legendStyle = { fontSize: "12px", color: "#64748b" }
+const legendFormatter = (value: string) => (
+  <span style={{ color: "#9ca3af", fontSize: 12 }}>{value}</span>
+)
 
 export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
   const chartData = transformDisabilityChartData(outputs)
-  const barAnim = useOnceAnimation(`bar-${chartData.animationKey}`)
-  const areaAnim = useOnceAnimation(`area-${chartData.animationKey}`)
+  const anim = useOnceAnimation(chartData.animationKey)
 
   return (
-    <div className="space-y-6 flex flex-col h-full w-full">
-      {/* Lead KPI — income replacement rate is the core advisor story for DI */}
-      <div className="grid gap-4 sm:grid-cols-2">
+    <div className="space-y-6 flex flex-col h-full">
+      {/* ── Monthly benefit KPI cards ──────────────────────────────────────── */}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <AnimatedSection delay={0}>
-          <Card className="border-gray-800 bg-gray-900/60 h-full">
+          <Card className="border-gray-800 h-full">
             <CardContent className="p-5 flex flex-col justify-between h-full">
-              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Income Replaced by Benefits</div>
-              <div className="text-3xl font-bold tracking-tight text-gray-50">
-                {formatPercent(outputs.peakIncomeReplacementRate)}
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Group LTD Monthly (Net)</div>
+              <div className="text-2xl font-bold tracking-tight text-gray-50">
+                {formatCurrency(outputs.ltdNetMonthlyBenefit)}<span className="text-sm font-normal text-gray-400">/mo</span>
               </div>
               <p className="text-xs text-gray-400 mt-2">
-                {formatCurrency(outputs.existingBenefitsPeakMonthly)}/mo peak · of {formatCurrency(outputs.monthlyIncomePreDisability)}/mo pre-disability
+                Gross {formatCurrency(outputs.ltdComputedMonthlyBenefit)}/mo
+                {outputs.ltdNetMonthlyBenefit < outputs.ltdComputedMonthlyBenefit ? " · 70% after tax" : " · non-taxable"}
               </p>
             </CardContent>
           </Card>
         </AnimatedSection>
+
         <AnimatedSection delay={0.08}>
-          <Card className="border-gray-800 bg-gray-900/60 h-full">
+          <Card className="border-gray-800 h-full">
             <CardContent className="p-5 flex flex-col justify-between h-full">
-              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Income Gap — Private DI Can Fill</div>
-              <div className="text-3xl font-bold tracking-tight text-gray-50">
-                {formatPercent(outputs.incomeGapRate)}
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Individual DI Monthly</div>
+              <div className="text-2xl font-bold tracking-tight text-gray-50">
+                {formatCurrency(outputs.privateDiMonthlyBenefit)}<span className="text-sm font-normal text-gray-400">/mo</span>
               </div>
-              <p className="text-xs text-gray-400 mt-2">
-                ≈ {formatCurrency(outputs.averageMonthlyGap)}/mo avg uncovered
-              </p>
+              <p className="text-xs text-gray-400 mt-2">Supplemental individual coverage</p>
+            </CardContent>
+          </Card>
+        </AnimatedSection>
+
+        <AnimatedSection delay={0.16}>
+          <Card className="border-gray-800 h-full">
+            <CardContent className="p-5 flex flex-col justify-between h-full">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Total Monthly Benefit</div>
+              <div className="text-2xl font-bold tracking-tight text-gray-50">
+                {formatCurrency(outputs.totalNetMonthlyBenefit)}<span className="text-sm font-normal text-gray-400">/mo</span>
+              </div>
+              <p className="text-xs text-gray-400 mt-2">Combined group LTD + individual DI</p>
+            </CardContent>
+          </Card>
+        </AnimatedSection>
+
+        <AnimatedSection delay={0.24}>
+          <Card className="border-gray-800 h-full">
+            <CardContent className="p-5 flex flex-col justify-between h-full">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Coverage Rate</div>
+              <div className="text-2xl font-bold tracking-tight text-gray-50">
+                {formatPercent(outputs.averageCoverageRate)}
+              </div>
+              <p className="text-xs text-gray-400 mt-2">Of projected lifetime income covered</p>
             </CardContent>
           </Card>
         </AnimatedSection>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-        <AnimatedSection delay={0.14}>
-          <Card className="border-gray-800 h-full">
-            <CardContent className="p-5 flex flex-col justify-between h-full">
-              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Avg Monthly Gap</div>
-              <div className="text-2xl font-bold tracking-tight text-gray-50">
-                {formatCurrency(outputs.averageMonthlyGap)}<span className="text-sm font-normal text-gray-400">/mo</span>
-              </div>
-            </CardContent>
-          </Card>
-        </AnimatedSection>
+      {/* ── Income projection chart ────────────────────────────────────────── */}
+      <AnimatedSection delay={0.30}>
+        <Card className="border-gray-800">
+          <CardHeader>
+            <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">
+              Income vs. Disability Coverage — Annual Projection (3% Growth)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-75 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={chartData.projectionChartData}
+                  margin={{ top: 10, right: 20, left: 10, bottom: 5 }}
+                  barCategoryGap="8%"
+                >
+                  <XAxis
+                    dataKey="age"
+                    tick={({ x, y, payload }) => {
+                      const ages = chartData.projectionChartData.map((d) => d.age)
+                      const step = Math.ceil(ages.length / 8)
+                      const showTick = ages.indexOf(payload.value) % step === 0 || payload.value === ages.at(-1)
+                      return showTick ? (
+                        <text x={x} y={y + 12} textAnchor="middle" fill="#64748b" fontSize={11}>{payload.value}</text>
+                      ) : <g />
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tickFormatter={(v) => `$${Math.round(v / 1000)}k`}
+                    tick={{ fill: "#64748b", fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={52}
+                  />
+                  <Tooltip content={CustomTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+                  <Legend wrapperStyle={{ paddingTop: "12px" }} formatter={legendFormatter} />
+                  <Bar
+                    dataKey="Group LTD"
+                    stackId="a"
+                    fill="#3b82f6"
+                    isAnimationActive={anim.active}
+                    animationBegin={anim.begin(0)}
+                    animationDuration={anim.duration}
+                    animationEasing={anim.easing}
+                  />
+                  <Bar
+                    dataKey="Individual DI"
+                    stackId="a"
+                    fill="#06b6d4"
+                    isAnimationActive={anim.active}
+                    animationBegin={anim.begin(1)}
+                    animationDuration={anim.duration}
+                    animationEasing={anim.easing}
+                  />
+                  <Bar
+                    dataKey="Income Gap"
+                    stackId="a"
+                    fill="#ef4444"
+                    radius={[2, 2, 0, 0]}
+                    isAnimationActive={anim.active}
+                    animationBegin={anim.begin(2)}
+                    animationDuration={anim.duration}
+                    animationEasing={anim.easing}
+                    onAnimationEnd={anim.done}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </AnimatedSection>
 
-        <AnimatedSection delay={0.20}>
-          <Card className="border-gray-800 h-full">
-            <CardContent className="p-5 flex flex-col justify-between h-full">
-              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Total Uncovered Gap</div>
-              <div className="text-2xl font-bold tracking-tight text-gray-50">
-                {formatCurrency(outputs.totalUncoveredGap)}
-              </div>
-              <p className="text-xs text-gray-400 mt-2">Across full modeled period</p>
-            </CardContent>
-          </Card>
-        </AnimatedSection>
-
-        <AnimatedSection delay={0.26} className="sm:col-span-2 md:col-span-1">
-          <Card className="border-gray-800 h-full">
-            <CardContent className="p-5 flex flex-col justify-between h-full">
-              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Lifestyle Compression</div>
-              <div className="text-2xl font-bold tracking-tight text-gray-50">
-                {formatPercent(outputs.lifestyleCompressionRequired)}
-              </div>
-              <p className="text-xs text-gray-400 mt-2">Required spending cut</p>
-            </CardContent>
-          </Card>
-        </AnimatedSection>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <AnimatedSection delay={0.26}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-wider">Peak Gap Monthly Breakdown</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-75 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData.gapStackData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} barSize={80}>
-                    <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 12 }} axisLine={false} tickLine={false} />
-                    <YAxis tickFormatter={(val) => `$${val / 1000}k`} tick={{ fill: "#64748b", fontSize: 12 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={CustomStackTooltip} cursor={{ fill: "transparent" }} />
-                    <Legend wrapperStyle={legendStyle} />
-                    <Bar dataKey="Expenses" stackId="a" fill="#334155" isAnimationActive={barAnim.active} animationBegin={barAnim.begin(0)} animationDuration={barAnim.duration} animationEasing={barAnim.easing} />
-                    <Bar dataKey="Available" stackId="a" fill="#22c55e" isAnimationActive={barAnim.active} animationBegin={barAnim.begin(1)} animationDuration={barAnim.duration} animationEasing={barAnim.easing} />
-                    <Bar dataKey="Gap" stackId="a" fill="#f59e0b" radius={[4, 4, 0, 0]} isAnimationActive={barAnim.active} animationBegin={barAnim.begin(2)} animationDuration={barAnim.duration} animationEasing={barAnim.easing} onAnimationEnd={barAnim.done} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </AnimatedSection>
-
-        <AnimatedSection delay={0.34}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-wider">Reserve Depletion Timeline</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-75 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData.reserveTimelineData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                    <defs>
-                      <linearGradient id="colorReserveDI" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="colorShortfallDI" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="Month" tick={{ fill: "#64748b", fontSize: 12 }} axisLine={false} tickLine={false} />
-                    <YAxis tickFormatter={(val) => `$${val / 1000}k`} tick={{ fill: "#64748b", fontSize: 12 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={CustomTimelineTooltip} />
-                    <Legend wrapperStyle={legendStyle} />
-                    <Area type="monotone" dataKey="ReserveBalance" name="Cash Reserves" stroke="#22c55e" fillOpacity={1} fill="url(#colorReserveDI)" isAnimationActive={areaAnim.active} animationBegin={areaAnim.begin(0)} animationDuration={areaAnim.duration + 120} animationEasing={areaAnim.easing} />
-                    <Area type="monotone" dataKey="Shortfall" name="Unfunded Shortfall" stroke="#f43f5e" fillOpacity={1} fill="url(#colorShortfallDI)" isAnimationActive={areaAnim.active} animationBegin={areaAnim.begin(1)} animationDuration={areaAnim.duration + 120} animationEasing={areaAnim.easing} onAnimationEnd={areaAnim.done} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </AnimatedSection>
-      </div>
-
-      <AnimatedSection delay={0.44}>
+      {/* ── Coverage summary table ─────────────────────────────────────────── */}
+      <AnimatedSection delay={0.38}>
         <div className="grid gap-4 sm:grid-cols-2">
           <Card className="border-gray-800 bg-gray-900/40">
             <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Benefit Summary</div>
-              <div className="flex flex-col gap-3">
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Lifetime Coverage Summary</div>
+              <div className="flex flex-col gap-2">
                 <div className="flex justify-between items-center border-b border-gray-800 pb-2">
-                  <span className="text-sm text-gray-400">Total Benefits</span>
-                  <span className="font-semibold text-gray-50">{formatCurrency(outputs.totalBenefitsReceived)}</span>
+                  <span className="text-sm text-gray-400">Total Projected Income</span>
+                  <span className="font-semibold text-gray-50">{formatCurrency(outputs.totalProjectedIncome)}</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-gray-800 pb-2">
+                  <span className="text-sm text-gray-400">Group LTD Coverage</span>
+                  <span className="font-semibold text-blue-300">{formatCurrency(outputs.totalGroupLTDCoverage)}</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-gray-800 pb-2">
+                  <span className="text-sm text-gray-400">Individual DI Coverage</span>
+                  <span className="font-semibold text-cyan-300">{formatCurrency(outputs.totalIndividualDICoverage)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-400">Total Coverage</span>
+                  <span className="font-semibold text-green-400">{formatCurrency(outputs.totalCoverage)}</span>
                 </div>
               </div>
             </CardContent>
@@ -192,14 +201,19 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
 
           <Card className="border-gray-800 bg-gray-900/40">
             <CardContent className="p-5">
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Total Exposure</div>
-              <div className="flex flex-col gap-3">
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Income at Retirement</div>
+              <div className="flex flex-col gap-2">
                 <div className="flex justify-between items-center border-b border-gray-800 pb-2">
-                  <span className="text-sm text-gray-400">Total Uncovered Gap</span>
-                  <span className="font-semibold text-amber-600">{formatCurrency(outputs.totalUncoveredGap)}</span>
+                  <span className="text-sm text-gray-400">Projected Annual Income</span>
+                  <span className="font-semibold text-gray-50">{formatCurrency(outputs.projectedIncomeAtRetirement)}</span>
                 </div>
-                <div className="text-xs text-gray-500">
-                  Assumes a modeled duration of {outputs.timeline.length} months.
+                <div className="flex justify-between items-center border-b border-gray-800 pb-2">
+                  <span className="text-sm text-gray-400">Uncovered Gap (Lifetime)</span>
+                  <span className="font-semibold text-red-400">{formatCurrency(outputs.totalGap)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-400">Coverage Rate</span>
+                  <span className="font-semibold text-gray-50">{formatPercent(outputs.averageCoverageRate)}</span>
                 </div>
               </div>
             </CardContent>
@@ -207,7 +221,8 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
         </div>
       </AnimatedSection>
 
-      <AnimatedSection delay={0.52}>
+      {/* ── Advisor narrative ─────────────────────────────────────────────── */}
+      <AnimatedSection delay={0.46}>
         <Card className="bg-[#090E1A] text-white border border-gray-800">
           <CardContent className="p-6">
             <h4 className="font-semibold text-blue-400 mb-2 uppercase tracking-wider text-xs">Advisor Narrative</h4>
