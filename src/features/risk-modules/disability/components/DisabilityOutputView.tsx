@@ -88,7 +88,7 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
           <button
             type="button"
             onClick={() => setVisualization("coverage")}
-            className={`whitespace-nowrap rounded-md px-3 py-1.5 font-semibold transition-colors ${visualization === "coverage" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-gray-100"}`}
+            className={`whitespace-nowrap rounded-md px-3 py-1.5 font-semibold transition-colors ${visualization === "coverage" ? "bg-brand-600 text-white" : "text-gray-400 hover:text-gray-100"}`}
           >
             Annual Coverage
           </button>
@@ -134,13 +134,13 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
               <div className="flex rounded-md overflow-hidden border border-gray-700 text-xs">
                 <button
                   onClick={() => setChartView("net")}
-                  className={`px-3 py-1 transition-colors ${chartView === "net" ? "bg-blue-600 text-white" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}
+                  className={`px-3 py-1 transition-colors ${chartView === "net" ? "bg-brand-600 text-white" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}
                 >
                   Net
                 </button>
                 <button
                   onClick={() => setChartView("gross")}
-                  className={`px-3 py-1 transition-colors ${chartView === "gross" ? "bg-blue-600 text-white" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}
+                  className={`px-3 py-1 transition-colors ${chartView === "gross" ? "bg-brand-600 text-white" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}
                 >
                   Gross
                 </button>

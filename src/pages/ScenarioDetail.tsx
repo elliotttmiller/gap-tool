@@ -121,11 +121,10 @@ export function ScenarioDetailShell() {
         <div>
           <div className="min-w-0 space-y-4">
             <div className="flex items-center gap-3">
-              <span className="inline-flex items-center rounded-full bg-blue-950/90 px-3 py-1 text-xs font-semibold text-blue-300 ring-1 ring-blue-800/80">
+              <span className="inline-flex items-center rounded-full bg-brand-950/90 px-3 py-1 text-xs font-semibold text-brand-300 ring-1 ring-brand-800/80">
                 {formatStatus(scenario.status)}
               </span>
               <ScenarioMetaItem icon={RiCalendarLine} label="Updated" value={formatDate(scenario.updatedAt)} />
-              <ScenarioMetaItem icon={RiTimeLine} label="Calculated" value={formatDate(scenario.lastCalculatedAt)} />
             </div>
 
             <div className="space-y-2">
@@ -156,7 +155,7 @@ export function ScenarioDetailShell() {
                       cx(
                         "inline-flex min-h-10 items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all",
                         isActive
-                          ? "bg-blue-950/70 text-white shadow-sm ring-1 ring-blue-700/70"
+                          ? "bg-brand-950/70 text-white shadow-sm ring-1 ring-brand-700/70"
                           : "text-slate-400 hover:bg-slate-900 hover:text-slate-100",
                       )
                     }
