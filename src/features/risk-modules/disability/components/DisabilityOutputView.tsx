@@ -97,14 +97,14 @@ export function DisabilityOutputView({ outputs }: DisabilityOutputViewProps) {
             disabled
             className="whitespace-nowrap rounded-md px-3 py-1.5 font-semibold text-gray-600"
           >
-            Monthly Benefits
+            Module 2
           </button>
           <button
             type="button"
             disabled
             className="whitespace-nowrap rounded-md px-3 py-1.5 font-semibold text-gray-600"
           >
-            Gap Trend
+            Module 3
           </button>
         </div>
 
