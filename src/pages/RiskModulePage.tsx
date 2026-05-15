@@ -163,7 +163,7 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
         >
           <div
             className={cx(
-              "w-full min-w-[24rem] max-w-[28rem] overflow-hidden transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+              "w-full min-w-[24rem] max-w-md overflow-hidden transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
               inputsOpen ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-3 opacity-0",
             )}
             aria-hidden={!inputsOpen}
