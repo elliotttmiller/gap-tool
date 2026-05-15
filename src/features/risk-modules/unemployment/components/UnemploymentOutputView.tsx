@@ -5,8 +5,9 @@ import { getUnemploymentNarrative } from "../constants/moduleCopy"
 import { AnimatedSection } from "@/components/ui/animated-section"
 import {
   Area,
-  AreaChart,
+  Bar,
   CartesianGrid,
+  ComposedChart,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -75,7 +76,11 @@ function TimelineTooltip({ active, payload, label }: any) {
         </div>
         <div className="flex justify-between gap-4">
           <span className="text-red-300">Shortfall</span>
-          <span className="font-mono text-slate-100">{formatCurrency(point.shortfall)}</span>
+          <span className="font-mono text-slate-100">{formatCurrency(point.monthlyShortfall)}</span>
+        </div>
+        <div className="flex justify-between gap-4 border-t border-slate-800 pt-1">
+          <span className="text-slate-400">Cumulative Shortfall</span>
+          <span className="font-mono text-slate-100">{formatCurrency(point.cumulativeShortfall)}</span>
         </div>
       </div>
     </div>
@@ -113,6 +118,8 @@ function ReserveRangePanel({ outputs }: { outputs: UnemploymentOutputs }) {
           <div className="relative h-4 overflow-hidden rounded-full bg-slate-800">
             <div className="absolute inset-y-0 left-0 w-1/2 bg-red-500/20" />
             <div className="absolute inset-y-0 left-1/2 w-1/2 bg-emerald-500/20" />
+            <div className="absolute inset-y-0 left-1/2 w-px bg-amber-200/70" />
+            <div className="absolute inset-y-0 right-0 w-px bg-emerald-200/70" />
             <div
               className={`relative h-full rounded-full ${status.bar} shadow-[0_0_18px_rgba(34,211,238,0.28)] transition-[width] duration-700`}
               style={{ width: `${reservePct}%` }}
@@ -141,10 +148,35 @@ function ReserveRangePanel({ outputs }: { outputs: UnemploymentOutputs }) {
 }
 
 function ReserveTimelineChart({ outputs }: { outputs: UnemploymentOutputs }) {
-  const data = outputs.timeline.map((point) => ({
-    ...point,
-    minimumTarget: outputs.minimumReserveTarget,
-  }))
+  let cumulativeShortfall = 0
+  const data = [
+    {
+      month: 0,
+      reserveBalance: outputs.currentReserveLevel + outputs.severanceTotal,
+      availableIncome: outputs.monthlyAvailableIncomeBase,
+      monthlyShortfall: 0,
+      cumulativeShortfall: 0,
+    },
+    ...outputs.timeline.map((point) => {
+      cumulativeShortfall += point.shortfall
+      return {
+        month: point.month,
+        reserveBalance: point.reserveBalance,
+        availableIncome: point.availableIncome,
+        monthlyShortfall: point.shortfall,
+        cumulativeShortfall,
+      }
+    }),
+  ]
+  const chartMax = Math.max(
+    outputs.minimumReserveTarget,
+    outputs.optimalReserveTarget,
+    outputs.currentReserveLevel + outputs.severanceTotal,
+    outputs.totalUncoveredShortfall,
+    ...data.flatMap((point) => [point.reserveBalance, point.monthlyShortfall, point.cumulativeShortfall]),
+    1,
+  )
+  const yAxisMax = Math.ceil(chartMax / 5000) * 5000
 
   return (
     <Card className="h-full border-slate-800/90 bg-slate-950/70">
@@ -152,7 +184,7 @@ function ReserveTimelineChart({ outputs }: { outputs: UnemploymentOutputs }) {
         <div className="mb-3 flex items-center justify-between gap-3">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">Reserve Runway</p>
-            <p className="mt-1 text-xs text-slate-500">Projected balance through the job-search period.</p>
+            <p className="mt-1 text-xs text-slate-500">Reserve balance, monthly shortfall, and cumulative gap through the search period.</p>
           </div>
           <p className="text-xs font-semibold text-slate-400">
             {outputs.reserveDepletionMonth < 0 ? "No depletion" : `Depletes month ${outputs.reserveDepletionMonth}`}
@@ -160,7 +192,7 @@ function ReserveTimelineChart({ outputs }: { outputs: UnemploymentOutputs }) {
         </div>
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+            <ComposedChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="reserveBalanceFill" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.42} />
@@ -171,23 +203,47 @@ function ReserveTimelineChart({ outputs }: { outputs: UnemploymentOutputs }) {
               <XAxis dataKey="month" tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} axisLine={false} />
               <YAxis
                 width={56}
+                domain={[0, yAxisMax]}
                 tick={{ fill: "#64748b", fontSize: 11 }}
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={(value) => `$${Math.round(Number(value) / 1000)}k`}
               />
               <Tooltip content={<TimelineTooltip />} cursor={{ stroke: "#475569", strokeDasharray: "4 4" }} />
-              <ReferenceLine y={outputs.minimumReserveTarget} stroke="#f59e0b" strokeDasharray="4 4" />
+              <ReferenceLine
+                y={outputs.minimumReserveTarget}
+                stroke="#f59e0b"
+                strokeDasharray="4 4"
+                label={{ value: "3 mo minimum", fill: "#fbbf24", fontSize: 11, position: "insideTopRight" }}
+              />
+              <ReferenceLine
+                y={outputs.optimalReserveTarget}
+                stroke="#22c55e"
+                strokeDasharray="4 4"
+                label={{ value: "6 mo optimal", fill: "#86efac", fontSize: 11, position: "insideTopRight" }}
+              />
+              <Bar dataKey="monthlyShortfall" name="Monthly Shortfall" fill="#ef4444" fillOpacity={0.45} radius={[3, 3, 0, 0]} />
+              <Area
+                type="monotone"
+                dataKey="cumulativeShortfall"
+                name="Cumulative Shortfall"
+                stroke="#fb7185"
+                strokeWidth={2}
+                fill="transparent"
+                dot={false}
+                activeDot={false}
+              />
               <Area
                 type="monotone"
                 dataKey="reserveBalance"
+                name="Reserve Balance"
                 stroke="#22d3ee"
                 strokeWidth={3}
                 fill="url(#reserveBalanceFill)"
                 dot={false}
                 activeDot={{ r: 4, stroke: "#a5f3fc", strokeWidth: 2, fill: "#0891b2" }}
               />
-            </AreaChart>
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       </CardContent>
