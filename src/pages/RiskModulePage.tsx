@@ -110,26 +110,10 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
         </div>
       </div>
 
-      <div className="relative">
-        <button
-          type="button"
-          aria-label={inputsOpen ? "Collapse input forms" : "Expand input forms"}
-          aria-expanded={inputsOpen}
-          onClick={() => setInputsOpen((open) => !open)}
-          className={cx(
-            "absolute left-0 top-1/2 z-30 hidden h-9 w-6 -translate-y-1/2 items-center justify-center border border-slate-700/70 bg-slate-950/35 text-slate-400 shadow-lg shadow-black/20 backdrop-blur-md transition-colors hover:border-brand-500/80 hover:bg-brand-950/25 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-500 xl:flex",
-            inputsOpen ? "rounded-full" : "rounded-r-full border-l-0",
-          )}
-        >
-          {inputsOpen ? (
-            <RiArrowLeftSLine className="size-5" aria-hidden="true" />
-          ) : (
-            <RiArrowRightSLine className="size-5" aria-hidden="true" />
-          )}
-        </button>
+      <div className="relative overflow-visible">
         <div
           className={cx(
-            "grid w-full min-w-0 items-start gap-5 transition-[grid-template-columns,gap] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:gap-6",
+            "grid w-full min-w-0 items-start gap-5 overflow-visible transition-[grid-template-columns,gap] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:gap-6",
             inputsOpen
               ? "xl:grid-cols-[minmax(24rem,28rem)_minmax(0,1fr)]"
               : "xl:grid-cols-[0rem_minmax(0,1fr)] xl:gap-x-0",
@@ -137,12 +121,35 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
         >
         <div
           className={cx(
-            "min-w-0 overflow-hidden transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
-            inputsOpen ? "opacity-100 translate-x-0" : "pointer-events-none -translate-x-3 opacity-0",
+            "relative min-w-0 overflow-visible transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+            inputsOpen ? "opacity-100 translate-x-0" : "translate-x-0 opacity-100",
           )}
-          aria-hidden={!inputsOpen}
         >
-          <div className="w-full min-w-[24rem] max-w-[28rem]">{formSlot}</div>
+          <button
+            type="button"
+            aria-label={inputsOpen ? "Collapse input forms" : "Expand input forms"}
+            aria-expanded={inputsOpen}
+            onClick={() => setInputsOpen((open) => !open)}
+            className={cx(
+              "absolute right-0 top-1/2 z-30 hidden h-9 w-6 translate-x-1/2 -translate-y-1/2 items-center justify-center border border-slate-700/70 bg-slate-950/35 text-slate-400 shadow-lg shadow-black/20 backdrop-blur-md transition-colors hover:border-brand-500/80 hover:bg-brand-950/25 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-500 xl:flex",
+              inputsOpen ? "rounded-full" : "rounded-r-full border-l-0",
+            )}
+          >
+            {inputsOpen ? (
+              <RiArrowLeftSLine className="size-5" aria-hidden="true" />
+            ) : (
+              <RiArrowRightSLine className="size-5" aria-hidden="true" />
+            )}
+          </button>
+          <div
+            className={cx(
+              "w-full min-w-[24rem] max-w-[28rem] overflow-hidden transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+              inputsOpen ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-3 opacity-0",
+            )}
+            aria-hidden={!inputsOpen}
+          >
+            {formSlot}
+          </div>
         </div>
         <div className="min-w-0 w-full">
           {outputSlot}
