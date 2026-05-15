@@ -117,10 +117,8 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
           aria-expanded={inputsOpen}
           onClick={() => setInputsOpen((open) => !open)}
           className={cx(
-            "sticky top-1/2 z-20 hidden h-9 w-6 -translate-y-1/2 items-center justify-center border border-slate-700/70 bg-slate-950/35 text-slate-400 shadow-lg shadow-black/20 backdrop-blur-md transition-colors hover:border-brand-500/80 hover:bg-brand-950/25 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-500 xl:flex",
-            inputsOpen
-              ? "float-left -ml-9 mr-3 rounded-full"
-              : "float-left -ml-8 mr-2 rounded-r-full border-l-0",
+            "absolute left-0 top-1/2 z-30 hidden h-9 w-6 -translate-y-1/2 items-center justify-center border border-slate-700/70 bg-slate-950/35 text-slate-400 shadow-lg shadow-black/20 backdrop-blur-md transition-colors hover:border-brand-500/80 hover:bg-brand-950/25 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-500 xl:flex",
+            inputsOpen ? "rounded-full" : "rounded-r-full border-l-0",
           )}
         >
           {inputsOpen ? (
