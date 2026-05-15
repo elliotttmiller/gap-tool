@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react"
+import { useState } from "react"
 import { DisabilityOutputs } from "../types"
 import type { DisabilityInputs } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,9 +14,9 @@ import {
 } from "recharts"
 import { getDisabilityNarrative } from "../constants/moduleCopy"
 import { AnimatedSection } from "@/components/ui/animated-section"
-import { useOnceAnimation } from "@/lib/use-once-animation"
 import { transformDisabilityChartData } from "../transformers/transformDisabilityChartData"
 import { BreakEvenCalculator } from "../calculators/BreakEvenCalculator"
+import { ModuleMetricCard, MetricGroup, MetricGroupDivider } from "@/features/risk-modules/core/ModuleMetricCard"
 
 interface DisabilityOutputViewProps {
   outputs: DisabilityOutputs
@@ -64,40 +64,8 @@ const legendFormatter = (value: string) => (
   <span style={{ color: "#9ca3af", fontSize: 12 }}>{value}</span>
 )
 
-function DisabilityMetricCard({
-  label,
-  value,
-  tone = "neutral",
-}: {
-  label: string
-  value: ReactNode
-  tone?: "neutral" | "good" | "bad"
-}) {
-  const accent = {
-    neutral: "bg-slate-400",
-    good: "bg-emerald-400",
-    bad: "bg-red-400",
-  }[tone]
-  const valueColor = {
-    neutral: "text-slate-50",
-    good: "text-emerald-300",
-    bad: "text-red-300",
-  }[tone]
-
-  return (
-    <Card className="module-kpi-card">
-      <CardContent className="p-3.5">
-        <div className={`mb-2.5 h-0.5 w-12 rounded-full ${accent}`} />
-        <div className="text-[10px] font-bold uppercase leading-snug tracking-[0.18em] text-slate-400">{label}</div>
-        <div className={`mt-1.5 text-2xl font-bold leading-tight tracking-tight ${valueColor}`}>{value}</div>
-      </CardContent>
-    </Card>
-  )
-}
-
 export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewProps) {
   const chartData = transformDisabilityChartData(outputs)
-  const anim = useOnceAnimation(chartData.animationKey)
 
   // ── Interactivity state ────────────────────────────────────────────────
   const [selectedAge, setSelectedAge] = useState<number | null>(null)
@@ -204,15 +172,18 @@ export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewPr
           </div>
 
           {/* ── CENTRE: chart panel ──────────────────────────────────── */}
-          <Card className="module-visual-panel border-gray-800">
-            <CardHeader>
+          <Card className="module-visual-panel border-slate-800/80 bg-slate-950/60">
+            <CardHeader className="px-6 pb-0 pt-5">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">
                     Income vs. Disability Coverage — Annual Projection
                   </CardTitle>
+                  <p className="mt-1 text-sm leading-snug text-slate-400">
+                    LTD and individual DI benefits stacked against projected income need
+                  </p>
                   {selectedAge !== null && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 mt-1.5">
                       <span className="text-xs font-semibold text-blue-300 bg-blue-900/40 border border-blue-700 rounded-full px-3 py-1">
                         Age {selectedAge}
                       </span>
@@ -227,7 +198,7 @@ export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewPr
                   )}
                 </div>
                 {/* Net / Gross toggle */}
-                <div className="flex rounded-md overflow-hidden border border-gray-700 text-xs">
+                <div className="flex rounded-md overflow-hidden border border-gray-700 text-xs shrink-0">
                   <button
                     onClick={() => setChartView("net")}
                     className={`px-3 py-1 transition-colors ${chartView === "net" ? "bg-brand-600 text-white" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}
@@ -243,7 +214,7 @@ export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewPr
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-6 pb-6 pt-4">
               {/* axis-label wrapper: [y-title] [chart+x-title] */}
               <div className="flex items-stretch gap-1">
                 <div className="flex w-3.5 shrink-0 items-center justify-center">
@@ -253,7 +224,7 @@ export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewPr
                   </span>
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <div className="h-64 w-full">
+                  <div className="h-64 w-full chart-reveal">
                     <ResponsiveContainer width="100%" height="100%" debounce={100}>
                       <BarChart
                         data={chartData.projectionChartData}
@@ -290,30 +261,20 @@ export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewPr
                           dataKey={ltdLabel}
                           stackId="a"
                           fill="#3b82f6"
-                          isAnimationActive={anim.active}
-                          animationBegin={anim.begin(0)}
-                          animationDuration={anim.duration}
-                          animationEasing={anim.easing}
+                          isAnimationActive={false}
                         />
                         <Bar
                           dataKey="Individual DI"
                           stackId="a"
                           fill="#06b6d4"
-                          isAnimationActive={anim.active}
-                          animationBegin={anim.begin(1)}
-                          animationDuration={anim.duration}
-                          animationEasing={anim.easing}
+                          isAnimationActive={false}
                         />
                         <Bar
                           dataKey="Income Gap"
                           stackId="a"
                           fill="#ef4444"
                           radius={[2, 2, 0, 0]}
-                          isAnimationActive={anim.active}
-                          animationBegin={anim.begin(2)}
-                          animationDuration={anim.duration}
-                          animationEasing={anim.easing}
-                          onAnimationEnd={anim.done}
+                          isAnimationActive={false}
                         />
                       </BarChart>
                     </ResponsiveContainer>
@@ -328,23 +289,35 @@ export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewPr
 
           {/* ── RIGHT: metric rail ───────────────────────────────────── */}
           <div className="module-metric-rail">
-            <DisabilityMetricCard
-              label="Group LTD (Net)"
-              value={<>{formatCurrency(ltdDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>}
-            />
-            <DisabilityMetricCard
-              label="Individual DI"
-              value={<>{formatCurrency(monthly.individualDIMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>}
-            />
-            <DisabilityMetricCard
-              label="Total Benefit"
-              value={<>{formatCurrency(totalDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>}
-            />
-            <DisabilityMetricCard
-              label="Income Loss (Net)"
-              tone={monthly.incomeLossNet <= 0 ? "good" : "bad"}
-              value={<>{formatCurrency(monthly.incomeLossNet)}<span className="text-sm font-normal text-gray-400">/mo</span></>}
-            />
+            <MetricGroup title="Monthly Benefits">
+              <ModuleMetricCard
+                label="Group LTD (Net)"
+                value={<>{formatCurrency(ltdDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>}
+                description="Net after-tax LTD monthly benefit"
+                accent="blue"
+              />
+              <ModuleMetricCard
+                label="Individual DI"
+                value={<>{formatCurrency(monthly.individualDIMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>}
+                description="Private disability insurance benefit"
+                accent="cyan"
+              />
+              <ModuleMetricCard
+                label="Total Benefit"
+                value={<>{formatCurrency(totalDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>}
+                description="Combined LTD + individual DI"
+                accent="slate"
+              />
+            </MetricGroup>
+            <MetricGroupDivider />
+            <MetricGroup title="Gap">
+              <ModuleMetricCard
+                label="Income Loss (Net)"
+                value={<>{formatCurrency(monthly.incomeLossNet)}<span className="text-sm font-normal text-gray-400">/mo</span></>}
+                description="70% of income minus total monthly benefit"
+                accent={monthly.incomeLossNet <= 0 ? "green" : "red"}
+              />
+            </MetricGroup>
           </div>
           </div>
           </div>

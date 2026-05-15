@@ -139,6 +139,15 @@
     container-type: inline-size;
   }
 
+  @keyframes chart-reveal {
+    from { clip-path: inset(0 100% 0 0 round 4px); opacity: 0.2; }
+    to   { clip-path: inset(0 0%   0 0 round 4px); opacity: 1; }
+  }
+
+  .chart-reveal {
+    animation: chart-reveal 2.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
   .module-visual-dashboard {
     display: grid;
     gap: 1rem;

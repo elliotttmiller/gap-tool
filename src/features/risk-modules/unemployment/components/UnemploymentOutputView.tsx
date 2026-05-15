@@ -1,4 +1,6 @@
 import { UnemploymentOutputs } from "../types"
+import { ModuleMetricCard, MetricGroup, MetricGroupDivider } from "@/features/risk-modules/core/ModuleMetricCard"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface UnemploymentOutputViewProps {
   outputs: UnemploymentOutputs
@@ -8,61 +10,21 @@ function formatAdvisorCurrency(value: number): string {
   return `$${Math.round(value / 1000)}K`
 }
 
-function AdvisorMetricCard({
-  label,
-  value,
-  detail,
-  accent,
-  emphasis = false,
-}: {
-  label: string
-  value: string
-  detail: string
-  accent: "cyan" | "emerald" | "amber" | "slate"
-  emphasis?: boolean
-}) {
-  const tone = {
-    cyan: {
-      border: "border-cyan-400/25",
-      line: "bg-cyan-400",
-      value: "text-cyan-300",
-      glow: "shadow-cyan-950/30",
-    },
-    emerald: {
-      border: "border-emerald-400/25",
-      line: "bg-emerald-400",
-      value: "text-emerald-300",
-      glow: "shadow-emerald-950/30",
-    },
-    amber: {
-      border: "border-orange-400/30",
-      line: "bg-orange-400",
-      value: "text-orange-300",
-      glow: "shadow-orange-950/30",
-    },
-    slate: {
-      border: "border-slate-800/90",
-      line: "bg-sky-200/70",
-      value: "text-slate-50",
-      glow: "shadow-black/25",
-    },
-  }[accent]
-
-  return (
-    <div className={`rounded-lg border ${tone.border} bg-slate-950/70 p-3.5 shadow-xl ${tone.glow}`}>
-      <div className={`mb-2.5 h-0.5 w-14 rounded-full ${tone.line}`} />
-      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-300/70">{label}</p>
-      <p className={`mt-1.5 font-bold tracking-tight ${tone.value} ${emphasis ? "text-2xl" : "text-xl"}`}>{value}</p>
-      <p className="mt-1 text-[11px] font-semibold leading-snug text-slate-300/70">{detail}</p>
-    </div>
-  )
-}
-
 function AdvisorReserveVisualization({ outputs }: { outputs: UnemploymentOutputs }) {
   return (
-    <div className="flex h-full min-h-108 items-center rounded-lg border border-slate-800/90 bg-slate-950/70 p-5 shadow-2xl shadow-black/25">
-      <div className="mx-auto w-full max-w-[44rem]">
-        <svg viewBox="0 0 620 318" className="h-auto w-full overflow-visible" role="img" aria-label="Emergency reserve range from zero to six months">
+    <Card className="module-visual-panel border-slate-800/80 bg-slate-950/60">
+      <CardHeader className="px-6 pb-0 pt-5">
+        <CardTitle className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">
+          Emergency Reserve Dashboard
+        </CardTitle>
+        <p className="mt-1 text-sm leading-snug text-slate-400">
+          Optimal savings runway target based on monthly income
+        </p>
+      </CardHeader>
+      <CardContent className="px-6 pb-6 pt-4">
+        <div className="flex items-center justify-center">
+          <div className="w-full max-w-176">
+            <svg viewBox="0 0 620 318" className="h-auto w-full overflow-visible" role="img" aria-label="Emergency reserve range from zero to six months">
           <defs>
             <linearGradient id="unemploymentIdealFill" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#22c55e" stopOpacity="0.92" />
@@ -127,8 +89,10 @@ function AdvisorReserveVisualization({ outputs }: { outputs: UnemploymentOutputs
 
           <text x="250" y="292" textAnchor="middle" fontSize="11" fontWeight="800" letterSpacing="1.6" fill="rgba(226,232,240,0.48)">EMERGENCY RESERVE SAVINGS BUCKET</text>
         </svg>
-      </div>
-    </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -138,10 +102,18 @@ function AdvisorReserveDashboard({ outputs }: { outputs: UnemploymentOutputs }) 
       <AdvisorReserveVisualization outputs={outputs} />
 
       <div className="module-metric-rail">
-        <AdvisorMetricCard label="Monthly Income" value={formatAdvisorCurrency(outputs.monthlyIncome)} detail="Current monthly earnings" accent="slate" />
-        <AdvisorMetricCard label="Minimum Reserve" value={formatAdvisorCurrency(outputs.minimumReserveTarget)} detail="3 months - floor of the goal range" accent="cyan" emphasis />
-        <AdvisorMetricCard label="Optimal Reserve" value={formatAdvisorCurrency(outputs.optimalReserveTarget)} detail="6 months - top of the goal range" accent="emerald" emphasis />
-        <AdvisorMetricCard label="Annual Income at Risk" value={formatAdvisorCurrency(outputs.annualIncomeAtRisk)} detail="Full income exposure during unemployment" accent="amber" emphasis />
+        <MetricGroup title="Income">
+          <ModuleMetricCard label="Monthly Income" value={formatAdvisorCurrency(outputs.monthlyIncome)} description="Current monthly earnings" accent="slate" />
+        </MetricGroup>
+        <MetricGroupDivider />
+        <MetricGroup title="Reserve Targets">
+          <ModuleMetricCard label="Minimum Reserve" value={formatAdvisorCurrency(outputs.minimumReserveTarget)} description="3 months — floor of the goal range" accent="cyan" />
+          <ModuleMetricCard label="Optimal Reserve" value={formatAdvisorCurrency(outputs.optimalReserveTarget)} description="6 months — top of the goal range" accent="green" />
+        </MetricGroup>
+        <MetricGroupDivider />
+        <MetricGroup title="Exposure">
+          <ModuleMetricCard label="Annual Income at Risk" value={formatAdvisorCurrency(outputs.annualIncomeAtRisk)} description="Full income exposure during unemployment" accent="amber" />
+        </MetricGroup>
       </div>
     </div>
   )

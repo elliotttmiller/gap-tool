@@ -1,9 +1,9 @@
 import { LiabilityOutputs } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
-import { useOnceAnimation } from "@/lib/use-once-animation"
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts"
 import { transformLiabilityChartData } from "../transformers/transformLiabilityChartData"
+import { ModuleMetricCard, MetricGroup, MetricGroupDivider } from "@/features/risk-modules/core/ModuleMetricCard"
 
 interface LiabilityOutputViewProps {
   outputs: LiabilityOutputs
@@ -12,12 +12,15 @@ interface LiabilityOutputViewProps {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-lg border border-gray-700 bg-gray-900 p-3 text-sm shadow-sm">
-      <p className="mb-2 font-medium text-gray-100">{label}</p>
+    <div className="rounded-xl border border-slate-700/60 bg-slate-900/95 px-4 py-3 text-sm shadow-xl backdrop-blur-sm">
+      <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
       {payload.map((entry: any, index: number) => (
-        <div key={index} className="mb-1 flex justify-between gap-4">
-          <span style={{ color: entry.color }}>{entry.name}:</span>
-          <span className="font-semibold">{formatCurrency(entry.value)}</span>
+        <div key={index} className="flex items-center justify-between gap-6">
+          <span className="flex items-center gap-2 text-slate-300">
+            <span className="inline-block h-2 w-2 rounded-full" style={{ background: entry.fill }} />
+            {entry.name}
+          </span>
+          <span className="font-bold text-slate-100">{formatCurrency(entry.value)}</span>
         </div>
       ))}
     </div>
@@ -31,152 +34,160 @@ function formatLiabilityMetric(value: number): string {
   return formatCurrency(value)
 }
 
-function LiabilityMetricCard({
-  label,
-  value,
-  description,
-  accent = "slate",
-}: {
-  label: string
-  value: string
-  description: string
-  accent?: "slate" | "green" | "red" | "cyan"
-}) {
-  const tone = {
-    slate: { line: "bg-slate-400", value: "text-slate-50", border: "border-slate-800/90" },
-    green: { line: "bg-emerald-400", value: "text-emerald-300", border: "border-emerald-900/40" },
-    red: { line: "bg-rose-400", value: "text-rose-300", border: "border-rose-900/40" },
-    cyan: { line: "bg-cyan-400", value: "text-cyan-300", border: "border-cyan-900/40" },
-  }[accent]
-
-  return (
-    <Card className={`h-full ${tone.border} bg-slate-950/70`}>
-      <CardContent className="p-3.5">
-        <div className={`mb-2.5 h-0.5 w-12 rounded-full ${tone.line}`} />
-        <div className="text-[10px] font-bold uppercase leading-snug tracking-[0.18em] text-slate-400">{label}</div>
-        <div className={`mt-1.5 text-2xl font-bold leading-tight tracking-tight ${tone.value}`}>{value}</div>
-        <p className="mt-1.5 text-[11px] font-medium leading-snug text-slate-500">{description}</p>
-      </CardContent>
-    </Card>
-  )
-}
-
 export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
   const chartData = transformLiabilityChartData(outputs)
-  const anim = useOnceAnimation(chartData.animationKey)
   const totalRisk = outputs.totalHouseholdLiabilityRisk || outputs.householdAutoLiabilityCoverage + outputs.householdLiabilityGap
+  const coveragePct = totalRisk > 0 ? Math.min(100, (outputs.householdAutoLiabilityCoverage / totalRisk) * 100) : 0
 
   return (
     <div className="module-output-container">
       <div className="module-visual-dashboard">
-        <Card className="module-visual-panel border-slate-800/90 bg-slate-950/70">
-            <CardHeader className="pb-2">
+
+        {/* ── Chart panel ─────────────────────────────────────────────── */}
+        <Card className="module-visual-panel border-slate-800/80 bg-slate-950/60">
+          <CardHeader className="px-6 pb-0 pt-5">
+            <div className="flex items-start justify-between gap-4">
               <div>
-                <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-500">Liability Protection Stack</CardTitle>
-                <p className="mt-1 text-sm text-slate-400">Household auto coverage applied against total household liability risk.</p>
+                <CardTitle className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">
+                  Liability Protection Stack
+                </CardTitle>
+                <p className="mt-1 text-sm leading-snug text-slate-400">
+                  Auto coverage applied against total household liability exposure
+                </p>
               </div>
-            </CardHeader>
-            <CardContent className="pt-2">
-              {/* axis-label wrapper */}
-              <div className="flex items-stretch gap-1">
-                <div className="flex w-3.5 shrink-0 items-center justify-center">
-                  <span style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
-                    className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                    Amount ($)
+              {/* Coverage ratio badge */}
+              <div className="shrink-0 rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2 text-right">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Covered</p>
+                <p className={`text-lg font-bold leading-tight ${coveragePct >= 100 ? "text-emerald-400" : coveragePct >= 50 ? "text-amber-400" : "text-rose-400"}`}>
+                  {coveragePct.toFixed(0)}%
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="px-6 pb-6 pt-4">
+            <div className="flex items-stretch gap-2">
+              <div className="flex w-4 shrink-0 items-center justify-center">
+                <span
+                  style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+                  className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider text-slate-600"
+                >
+                  Amount ($)
+                </span>
+              </div>
+              <div className="flex min-w-0 flex-1 flex-col">
+                <div className="h-80 w-full">
+                  <ResponsiveContainer width="100%" height="100%" debounce={100}>
+                    <BarChart
+                      data={chartData.protectionStackData}
+                      margin={{ top: 16, right: 40, left: 0, bottom: 12 }}
+                      barSize={96}
+                      barCategoryGap="50%"
+                    >
+                      <CartesianGrid stroke="rgba(148,163,184,0.06)" strokeDasharray="4 4" vertical={false} />
+                      <XAxis
+                        dataKey="name"
+                        tick={{ fill: "#94a3b8", fontSize: 12, fontWeight: 600 }}
+                        axisLine={false}
+                        tickLine={false}
+                        dy={6}
+                      />
+                      <YAxis
+                        tickFormatter={(val) => `$${Math.round(Number(val) / 1000)}k`}
+                        tick={{ fill: "#64748b", fontSize: 11 }}
+                        axisLine={false}
+                        tickLine={false}
+                        width={54}
+                      />
+                      <Tooltip content={CustomTooltip} cursor={{ fill: "rgba(255,255,255,0.025)" }} />
+                      <Bar
+                        dataKey="Coverage"
+                        name="Auto Liability Coverage"
+                        stackId="a"
+                        fill="#22c55e"
+                        radius={outputs.householdLiabilityGap > 0 ? [0, 0, 0, 0] : [6, 6, 0, 0]}
+                        isAnimationActive={true}
+                        animationBegin={0}
+                        animationDuration={1400}
+                        animationEasing="ease-out"
+                      />
+                      <Bar
+                        dataKey="ExposureGap"
+                        name="Unprotected Liability Gap"
+                        stackId="a"
+                        fill="#f43f5e"
+                        radius={[6, 6, 0, 0]}
+                        isAnimationActive={true}
+                        animationBegin={200}
+                        animationDuration={1400}
+                        animationEasing="ease-out"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-1 text-center">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+                    Protection Category
                   </span>
                 </div>
-                <div className="flex min-w-0 flex-1 flex-col">
-                  <div className="h-72 w-full">
-                    <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                      <BarChart
-                        data={chartData.protectionStackData}
-                        margin={{ top: 18, right: 28, left: 0, bottom: 8 }}
-                        barSize={86}
-                      >
-                        <XAxis
-                          dataKey="name"
-                          tick={{ fill: "#94a3b8", fontSize: 12, fontWeight: 600 }}
-                          axisLine={false}
-                          tickLine={false}
-                        />
-                        <YAxis
-                          tickFormatter={(val) => `$${Math.round(Number(val) / 1000)}k`}
-                          tick={{ fill: "#64748b", fontSize: 12 }}
-                          axisLine={false}
-                          tickLine={false}
-                          width={52}
-                        />
-                        <Tooltip content={CustomTooltip} cursor={{ fill: "transparent" }} />
-                        <Bar
-                          dataKey="Coverage"
-                          name="Household Auto Liability Coverage"
-                          stackId="a"
-                          fill="#22c55e"
-                          radius={outputs.householdLiabilityGap > 0 ? [0, 0, 0, 0] : [6, 6, 0, 0]}
-                          isAnimationActive={anim.active}
-                          animationBegin={anim.begin(0)}
-                          animationDuration={anim.duration}
-                          animationEasing={anim.easing}
-                        />
-                        <Bar
-                          dataKey="ExposureGap"
-                          name="Household Liability Gap"
-                          stackId="a"
-                          fill="#f43f5e"
-                          radius={[6, 6, 0, 0]}
-                          isAnimationActive={anim.active}
-                          animationBegin={anim.begin(1)}
-                          animationDuration={anim.duration}
-                          animationEasing={anim.easing}
-                          onAnimationEnd={anim.done}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="mt-1 text-center">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Protection Category</span>
-                  </div>
-                </div>
               </div>
-              <div className="mt-3 flex items-center justify-center gap-5 text-xs font-medium text-slate-400">
-                <span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-emerald-500" /> Household Auto Liability Coverage</span>
-                <span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-rose-500" /> Household Liability Gap</span>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
 
+            {/* Legend */}
+            <div className="mt-5 flex items-center justify-center gap-6 border-t border-slate-800/50 pt-4">
+              <span className="inline-flex items-center gap-2 text-xs font-medium text-slate-400">
+                <span className="h-2 w-4 rounded-sm bg-emerald-500" />
+                Auto Liability Coverage
+              </span>
+              <span className="inline-flex items-center gap-2 text-xs font-medium text-slate-400">
+                <span className="h-2 w-4 rounded-sm bg-rose-500" />
+                Unprotected Liability Gap
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ── Metric rail ─────────────────────────────────────────────── */}
         <div className="module-metric-rail">
-          <LiabilityMetricCard
-            label="Household Wage Garnishment Risk"
-            value={formatLiabilityMetric(outputs.householdWageGarnishmentRisk)}
-            description="25% of all projected household income to age 65 at 3%/yr"
-            accent="red"
-          />
-          <LiabilityMetricCard
-            label="Non-Qualified Assets at Risk"
-            value={formatLiabilityMetric(outputs.nonQualifiedAssetsAtRisk)}
-            description="Combined taxable assets exposed to judgment"
-            accent="red"
-          />
-          <LiabilityMetricCard
-            label="Total Household Liability Risk"
-            value={formatLiabilityMetric(totalRisk)}
-            description="Wage garnishment risk + non-qualified assets"
-            accent="cyan"
-          />
-          <LiabilityMetricCard
-            label="Household Auto Liability Coverage"
-            value={formatLiabilityMetric(outputs.householdAutoLiabilityCoverage)}
-            description="Underlying auto policy limit"
-            accent="green"
-          />
-          <LiabilityMetricCard
-            label="Household Liability Gap"
-            value={formatLiabilityMetric(outputs.householdLiabilityGap)}
-            description="Total household liability risk minus auto coverage"
-            accent={outputs.householdLiabilityGap > 0 ? "red" : "green"}
-          />
+          <MetricGroup title="Exposure">
+            <ModuleMetricCard
+              label="Wage Garnishment Risk"
+              value={formatLiabilityMetric(outputs.householdWageGarnishmentRisk)}
+              description="25% of projected income to age 65 at 3%/yr"
+              accent="red"
+            />
+            <ModuleMetricCard
+              label="Non-Qualified Assets at Risk"
+              value={formatLiabilityMetric(outputs.nonQualifiedAssetsAtRisk)}
+              description="Taxable assets exposed to judgment"
+              accent="red"
+            />
+            <ModuleMetricCard
+              label="Total Liability Exposure"
+              value={formatLiabilityMetric(totalRisk)}
+              description="Garnishment risk + non-qualified assets"
+              accent="cyan"
+            />
+          </MetricGroup>
+
+          <MetricGroupDivider />
+
+          <MetricGroup title="Coverage &amp; Gap">
+            <ModuleMetricCard
+              label="Auto Liability Coverage"
+              value={formatLiabilityMetric(outputs.householdAutoLiabilityCoverage)}
+              description="Underlying auto policy limit"
+              accent="green"
+            />
+            <ModuleMetricCard
+              label="Unprotected Liability Gap"
+              value={formatLiabilityMetric(outputs.householdLiabilityGap)}
+              description="Total exposure minus auto coverage"
+              accent={outputs.householdLiabilityGap > 0 ? "red" : "green"}
+            />
+          </MetricGroup>
         </div>
+
       </div>
     </div>
   )

@@ -1,13 +1,9 @@
 import { useMemo, useState } from "react"
-import {
-  RiAlertLine,
-  RiFundsLine,
-  RiLineChartLine,
-  RiTimeLine,
-} from "@remixicon/react"
+import { RiAlertLine } from "@remixicon/react"
 import { calculateBreakEven } from "./calculateBreakEven"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
+import { ModuleMetricCard, MetricGroup, MetricGroupDivider } from "@/features/risk-modules/core/ModuleMetricCard"
 import {
   CartesianGrid,
   Legend,
@@ -237,7 +233,7 @@ export function BreakEvenCalculator({
                       </span>
                     </div>
                     <div className="flex min-w-0 flex-1 flex-col">
-                      <div className="flex-1">
+                      <div className="flex-1 chart-reveal">
                         <ResponsiveContainer width="100%" height="100%" debounce={100}>
                           <LineChart data={chartData} margin={{ top: 12, right: 18, left: 0, bottom: 4 }}>
                             <CartesianGrid stroke="#1f2937" strokeDasharray="3 3" vertical={false} />
@@ -284,6 +280,7 @@ export function BreakEvenCalculator({
                               stroke="#60a5fa"
                               strokeWidth={3}
                               dot={false}
+                              isAnimationActive={false}
                               activeDot={{ r: 4, stroke: "#bfdbfe", strokeWidth: 2, fill: "#2563eb" }}
                             />
                             <Line
@@ -292,6 +289,7 @@ export function BreakEvenCalculator({
                               stroke="#34d399"
                               strokeWidth={2}
                               dot={false}
+                              isAnimationActive={false}
                               strokeDasharray="6 4"
                             />
                           </LineChart>
@@ -301,6 +299,24 @@ export function BreakEvenCalculator({
                         <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Month</span>
                       </div>
                     </div>
+                  </div>
+                </div>
+
+                {/* ── Input context bar ─────────────────────────────────── */}
+                <div className="mt-4 flex overflow-hidden rounded-lg border border-slate-800/60 bg-slate-950/40">
+                  <div className="flex flex-1 flex-col items-center gap-0.5 px-3 py-2.5">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-600">Monthly Premium</span>
+                    <span className="text-sm font-bold text-slate-200">{formatCurrency(result.monthlyPremium)}</span>
+                  </div>
+                  <div className="w-px self-stretch bg-slate-800/60" />
+                  <div className="flex flex-1 flex-col items-center gap-0.5 px-3 py-2.5">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-600">Monthly Benefit</span>
+                    <span className="text-sm font-bold text-blue-300">{formatCurrency(result.monthlyBenefit)}</span>
+                  </div>
+                  <div className="w-px self-stretch bg-slate-800/60" />
+                  <div className="flex flex-1 flex-col items-center gap-0.5 px-3 py-2.5">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-600">Annual Return</span>
+                    <span className="text-sm font-bold text-emerald-300">{formatPlainPercent(result.annualRateOfReturn)}</span>
                   </div>
                 </div>
               </CardContent>
@@ -355,81 +371,32 @@ export function BreakEvenCalculator({
 
           {/* ── RIGHT: metric rail ───────────────────────────────────── */}
           <div className="module-metric-rail">
-            {/* Summary details card — top */}
-            <Card className="module-kpi-card">
-              <CardContent className="space-y-0 divide-y divide-slate-800/80 p-3.5 text-xs">
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-slate-400">Monthly Premium</span>
-                  <span className="font-mono font-semibold text-slate-200">
-                    {formatCurrency(result.monthlyPremium)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-slate-400">Monthly Benefit</span>
-                  <span className="font-mono font-semibold text-slate-200">
-                    {formatCurrency(result.monthlyBenefit)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-slate-400">Annual Return</span>
-                  <span className="font-mono font-semibold text-slate-200">
-                    {formatPlainPercent(result.annualRateOfReturn)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-slate-400">Benefits Received</span>
-                  <span className="font-mono font-bold text-emerald-400">
-                    {formatCurrency(result.benefitsReceived)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-slate-400">Years to Self-Insure</span>
-                  <span className="font-mono font-bold text-blue-300">
-                    {formatDecimal(result.breakEvenYears, 2)}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* KPI stat cards */}
-            <Card className="module-kpi-card">
-              <CardContent className="p-3.5">
-                <div className="mb-2.5 h-0.5 w-12 rounded-full bg-emerald-400" />
-                <RiFundsLine className="mb-2 size-4 text-emerald-400" aria-hidden="true" />
-                <p className="text-[10px] font-bold uppercase leading-snug tracking-[0.18em] text-slate-400">
-                  Monthly Return
-                </p>
-                <p className="mt-1.5 text-2xl font-bold leading-tight tracking-tight text-slate-50">
-                  {formatPlainPercent(result.monthlyRateOfReturn)}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="module-kpi-card">
-              <CardContent className="p-3.5">
-                <div className="mb-2.5 h-0.5 w-12 rounded-full bg-amber-400" />
-                <RiTimeLine className="mb-2 size-4 text-amber-400" aria-hidden="true" />
-                <p className="text-[10px] font-bold uppercase leading-snug tracking-[0.18em] text-slate-400">
-                  Break-Even Month
-                </p>
-                <p className="mt-1.5 text-2xl font-bold leading-tight tracking-tight text-slate-50">
-                  {result.roundedBreakEvenMonths}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="module-kpi-card">
-              <CardContent className="p-3.5">
-                <div className="mb-2.5 h-0.5 w-12 rounded-full bg-cyan-400" />
-                <RiLineChartLine className="mb-2 size-4 text-cyan-400" aria-hidden="true" />
-                <p className="text-[10px] font-bold uppercase leading-snug tracking-[0.18em] text-slate-400">
-                  Premiums Paid
-                </p>
-                <p className="mt-1.5 text-2xl font-bold leading-tight tracking-tight text-slate-50">
-                  {formatCurrency(result.totalPremiumsToBreakEven)}
-                </p>
-              </CardContent>
-            </Card>
+            <MetricGroup>
+              <ModuleMetricCard
+                label="Benefits Received"
+                value={formatCurrency(result.benefitsReceived)}
+                description={`${formatCurrency(result.monthlyBenefit)}/mo × ${result.monthsWithoutIncome} months`}
+                accent="green"
+              />
+              <ModuleMetricCard
+                label="Break-Even Month"
+                value={String(result.roundedBreakEvenMonths)}
+                description={`${formatDecimal(result.breakEvenYears, 1)} years to self-insure`}
+                accent="amber"
+              />
+              <ModuleMetricCard
+                label="Monthly Return"
+                value={formatPlainPercent(result.monthlyRateOfReturn)}
+                description="Compounded monthly rate"
+                accent="green"
+              />
+              <ModuleMetricCard
+                label="Premiums Paid"
+                value={formatCurrency(result.totalPremiumsToBreakEven)}
+                description="Total premiums to break-even"
+                accent="cyan"
+              />
+            </MetricGroup>
           </div>
         </div>
       )}
