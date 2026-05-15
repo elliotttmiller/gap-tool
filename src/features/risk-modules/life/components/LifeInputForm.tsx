@@ -1,7 +1,7 @@
 import { LifeInputs, LifePolicyType } from "../types"
 import { Label } from "@/components/ui/label"
 import { Input, type InputProps } from "@/components/ui/input"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { CollapsibleInputSection } from "@/components/ui/collapsible-input-section"
 
 const selectClass = "flex h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-1 text-sm text-gray-50 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
 
@@ -44,12 +44,8 @@ export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
 
   return (
     <div className="space-y-4">
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">Income Earner Information</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3">
-          <div className="col-span-2 flex flex-col gap-2">
+      <CollapsibleInputSection title="Income Earner Information" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-2 sm:col-span-2">
             <Label htmlFor="earnerName">Full Name</Label>
             <Input
               id="earnerName"
@@ -75,14 +71,9 @@ export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
             <Label htmlFor="incomeReplacementRatio">Income Replacement</Label>
             <AffixedInput id="incomeReplacementRatio" type="number" min={0} max={125} step={5} suffix="%" value={Math.round((inputs.incomeReplacementRatio ?? 1) * 100) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, incomeReplacementRatio: (e.target.value === "" ? 0 : Number(e.target.value)) / 100 })} />
           </div>
-        </CardContent>
-      </Card>
+      </CollapsibleInputSection>
 
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">Existing Coverage</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3">
+      <CollapsibleInputSection title="Existing Coverage" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor="groupLifeCoverage">Group Life (GLI) Death Benefit</Label>
             <AffixedInput id="groupLifeCoverage" type="number" prefix="$" value={inputs.groupLifeCoverage || ""} className="w-full" onChange={(e) => handleNumberChange("groupLifeCoverage", e.target.value)} />
@@ -113,14 +104,9 @@ export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
             <Label htmlFor="nonQualifiedAssets">Non-Qualified Assets</Label>
             <AffixedInput id="nonQualifiedAssets" type="number" prefix="$" value={inputs.nonQualifiedAssets || ""} className="w-full" onChange={(e) => handleNumberChange("nonQualifiedAssets", e.target.value)} />
           </div>
-        </CardContent>
-      </Card>
+      </CollapsibleInputSection>
 
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-tighter">Optional Advanced Life Needs</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3">
+      <CollapsibleInputSection title="Optional Advanced Life Needs" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor="debtsTotal">Outstanding Debts</Label>
             <AffixedInput id="debtsTotal" type="number" prefix="$" value={inputs.debtsTotal || ""} className="w-full" onChange={(e) => handleNumberChange("debtsTotal", e.target.value)} />
@@ -137,8 +123,7 @@ export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
             <Label htmlFor="spouseAnnualIncome">Spouse / Partner Annual Income</Label>
             <AffixedInput id="spouseAnnualIncome" type="number" prefix="$" value={inputs.spouseAnnualIncome || ""} className="w-full" onChange={(e) => handleNumberChange("spouseAnnualIncome", e.target.value)} />
           </div>
-        </CardContent>
-      </Card>
+      </CollapsibleInputSection>
     </div>
   )
 }

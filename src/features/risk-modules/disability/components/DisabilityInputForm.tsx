@@ -1,7 +1,7 @@
 import { DisabilityInputs, DiBenefitPeriod } from "../types"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { CollapsibleInputSection } from "@/components/ui/collapsible-input-section"
 
 interface DisabilityInputFormProps {
   inputs: DisabilityInputs
@@ -37,11 +37,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
   return (
     <div className="space-y-3">
       {/* ── Income Profile ────────────────────────────────────────────────── */}
-      <Card className="w-full">
-        <CardHeader className="px-5 pt-4 pb-1">
-          <CardTitle className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Income Profile</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3 px-5 pt-3 pb-4">
+      <CollapsibleInputSection title="Income Profile" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor="annualEarnedIncome">Annual Income</Label>
             <Input
@@ -77,15 +73,10 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
               onChange={(e) => handleNumber("retirementAge", e.target.value)}
             />
           </div>
-        </CardContent>
-      </Card>
+      </CollapsibleInputSection>
 
       {/* ── Group Long Term Disability ────────────────────────────────────── */}
-      <Card className="w-full">
-        <CardHeader className="px-5 pt-4 pb-1">
-          <CardTitle className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Group Long Term Disability (LTD)</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3 px-5 pt-3 pb-4">
+      <CollapsibleInputSection title="Group Long Term Disability (LTD)" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor="ltdCoveragePercent">Coverage of Income</Label>
             <Input
@@ -111,7 +102,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
               onChange={(e) => handleNumber("ltdMonthlyCap", e.target.value)}
             />
           </div>
-          <div className="col-span-2 flex flex-col gap-2">
+          <div className="flex flex-col gap-2 sm:col-span-2">
             <Label htmlFor="ltdTaxable">Taxable?</Label>
             <select
               id="ltdTaxable"
@@ -123,15 +114,10 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
               <option value="false">No — full benefit</option>
             </select>
           </div>
-        </CardContent>
-      </Card>
+      </CollapsibleInputSection>
 
       {/* ── Individual Disability Insurance ──────────────────────────────── */}
-      <Card className="w-full">
-        <CardHeader className="px-5 pt-4 pb-1">
-          <CardTitle className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Individual Disability Insurance</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3 px-5 pt-3 pb-4">
+      <CollapsibleInputSection title="Individual Disability Insurance" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor="privateDiBenefitMonthly">Monthly Benefit</Label>
             <Input
@@ -156,7 +142,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
               onChange={(e) => handleNumber("privateDiMonthlyPremium", e.target.value)}
             />
           </div>
-          <div className="col-span-2 flex flex-col gap-2">
+          <div className="flex flex-col gap-2 sm:col-span-2">
             <Label htmlFor="privateDiBenefitPeriod">Benefit Period</Label>
             <select
               id="privateDiBenefitPeriod"
@@ -169,8 +155,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
               ))}
             </select>
           </div>
-        </CardContent>
-      </Card>
+      </CollapsibleInputSection>
     </div>
   )
 }

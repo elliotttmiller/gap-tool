@@ -1,7 +1,7 @@
 import { LiabilityInputs } from "../types"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { CollapsibleInputSection } from "@/components/ui/collapsible-input-section"
 
 interface LiabilityInputFormProps {
   inputs: LiabilityInputs
@@ -16,11 +16,7 @@ export function LiabilityInputForm({ inputs, onChange }: LiabilityInputFormProps
 
   return (
     <div className="space-y-4">
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-wider">Advisor Reference Lawsuit Inputs</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3">
+      <CollapsibleInputSection title="Advisor Reference Lawsuit Inputs" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor="annualIncome">Primary Earner Annual Income</Label>
             <Input id="annualIncome" type="number" prefix="$" value={inputs.annualIncome || ""} className="w-full" onChange={(e) => handleChange("annualIncome", e.target.value)} />
@@ -49,14 +45,9 @@ export function LiabilityInputForm({ inputs, onChange }: LiabilityInputFormProps
             <Label htmlFor="autoLiabilityLimit">Household Auto Liability Limit</Label>
             <Input id="autoLiabilityLimit" type="number" prefix="$" value={inputs.autoLiabilityLimit || ""} className="w-full" onChange={(e) => handleChange("autoLiabilityLimit", e.target.value)} />
           </div>
-        </CardContent>
-      </Card>
+      </CollapsibleInputSection>
 
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="text-xs font-bold text-gray-500 uppercase tracking-wider">Optional Extended Asset Inputs</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3">
+      <CollapsibleInputSection title="Optional Extended Asset Inputs" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor="homeValue">Primary Home Value</Label>
             <Input id="homeValue" type="number" prefix="$" value={inputs.homeValue || ""} className="w-full" onChange={(e) => handleChange("homeValue", e.target.value)} />
@@ -85,8 +76,7 @@ export function LiabilityInputForm({ inputs, onChange }: LiabilityInputFormProps
             <Label htmlFor="estimatedLawsuitExposure">Modeled Lawsuit Exposure</Label>
             <Input id="estimatedLawsuitExposure" type="number" prefix="$" value={inputs.estimatedLawsuitExposure || ""} className="w-full" onChange={(e) => handleChange("estimatedLawsuitExposure", e.target.value)} />
           </div>
-        </CardContent>
-      </Card>
+      </CollapsibleInputSection>
     </div>
   )
 }

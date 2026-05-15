@@ -53,7 +53,7 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
   const includedTabs = scenario?.includedModules ?? []
 
   return (
-    <div className="space-y-6 w-full max-w-full overflow-hidden">
+    <div className="w-full max-w-full space-y-6 overflow-x-hidden">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-gray-800 pb-4">
         <div className="min-w-0">
           <h2 className="text-xl font-semibold text-gray-50">{title}</h2>
@@ -62,7 +62,7 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
 
         <div className="flex flex-wrap items-center gap-3">
           {includedTabs.length > 1 && scenarioId ? (
-            <div className="flex items-center gap-1.5 rounded-2xl border border-slate-800 bg-slate-950/70 p-1.5">
+            <div className="scrollbar-hide flex max-w-full items-center gap-1.5 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70 p-1.5">
               {includedTabs.map((module) => {
                 const tab = tabConfig[module]
                 if (!tab) return null
@@ -101,9 +101,13 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
         </div>
       </div>
 
-      <div className="grid xl:grid-cols-12 gap-5 lg:gap-6 items-start w-full">
-        <div className="xl:col-span-4 w-full">{formSlot}</div>
-        <div className="xl:col-span-8 xl:sticky xl:top-6 w-full">{outputSlot}</div>
+      <div className="grid w-full min-w-0 items-start gap-5 transition-[gap] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:gap-6 xl:grid-cols-[minmax(24rem,28rem)_minmax(0,1fr)]">
+        <div className="min-w-0 w-full xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pr-1">
+          {formSlot}
+        </div>
+        <div className="min-w-0 w-full xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pr-1">
+          {outputSlot}
+        </div>
       </div>
 
       <div className="pt-6 sm:pt-8">
