@@ -137,7 +137,7 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
         className={cx(
           "fixed top-1/2 z-40 hidden h-9 w-6 -translate-y-1/2 items-center justify-center border border-slate-700/70 bg-slate-950/35 text-slate-400 shadow-lg shadow-black/20 backdrop-blur-md transition-[left,transform,background-color,border-color,color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-brand-500/80 hover:bg-brand-950/25 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-500 xl:flex",
           inputsOpen
-            ? "left-[max(30rem,calc((100vw-100rem)/2+30rem))] -translate-x-1/2 rounded-full"
+            ? "left-[max(3rem,calc((100vw-100rem)/2+3rem))] -translate-x-1/2 rounded-full"
             : "left-0 rounded-r-full border-l-0",
         )}
       >
