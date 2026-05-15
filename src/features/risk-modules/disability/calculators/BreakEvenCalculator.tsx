@@ -12,6 +12,17 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { formatCurrency } from "@/lib/utils"
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts"
 
 function toNumber(value: string): number {
   return Number.parseFloat(value) || 0
@@ -74,6 +85,47 @@ function InputField({ id, label, value, onChange, prefix, suffix, step = 1, min 
   )
 }
 
+interface BreakEvenTooltipProps {
+  active?: boolean
+  payload?: Array<{ payload: BreakEvenChartPoint }>
+  label?: number
+}
+
+interface BreakEvenChartPoint {
+  month: number
+  "Self-Insurance Balance": number
+  "Benefit Need": number
+  remainingGap: number
+}
+
+function BreakEvenTooltip({ active, payload, label }: BreakEvenTooltipProps) {
+  if (!active || !payload?.length) return null
+
+  const point = payload[0].payload
+
+  return (
+    <div className="min-w-56 rounded-lg border border-gray-700 bg-gray-950 p-3 text-xs shadow-xl">
+      <p className="mb-2 font-semibold text-gray-100">Month {label}</p>
+      <div className="space-y-1">
+        <div className="flex justify-between gap-4">
+          <span className="text-blue-300">Self-Insurance Balance</span>
+          <span className="font-mono text-gray-100">{formatCurrency(point["Self-Insurance Balance"])}</span>
+        </div>
+        <div className="flex justify-between gap-4">
+          <span className="text-emerald-300">Benefit Need</span>
+          <span className="font-mono text-gray-100">{formatCurrency(point["Benefit Need"])}</span>
+        </div>
+        <div className="flex justify-between gap-4 border-t border-gray-800 pt-1">
+          <span className="text-gray-400">Remaining Gap</span>
+          <span className={point.remainingGap > 0 ? "font-mono text-amber-300" : "font-mono text-green-300"}>
+            {formatCurrency(point.remainingGap)}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function BreakEvenCalculator() {
   const [monthlyPremium, setMonthlyPremium] = useState("450")
   const [monthlyBenefit, setMonthlyBenefit] = useState("10000")
@@ -102,6 +154,16 @@ export function BreakEvenCalculator() {
 
   const visibleRows = result.ok
     ? result.schedule.filter((row) => row.month <= Math.min(result.schedule.length, 12) || row.month % 24 === 0 || row.month === result.roundedBreakEvenMonths)
+    : []
+  const chartData: BreakEvenChartPoint[] = result.ok
+    ? result.schedule
+        .filter((row) => row.month <= result.roundedBreakEvenMonths + 24)
+        .map((row) => ({
+          month: row.month,
+          "Self-Insurance Balance": row.investmentBalance,
+          "Benefit Need": result.benefitsReceived,
+          remainingGap: Math.max(result.benefitsReceived - row.investmentBalance, 0),
+        }))
     : []
 
   return (
@@ -184,6 +246,77 @@ export function BreakEvenCalculator() {
                     {formatCurrency(result.monthlyBenefit)} for {result.monthsWithoutIncome} months
                   </p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-gray-800 bg-gray-900/25">
+            <CardContent className="p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Self-Insurance Break-Even Curve</p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Premiums compound until the self-insurance balance reaches the benefit need.
+                  </p>
+                </div>
+                <p className="shrink-0 text-xs font-semibold text-blue-300">
+                  Break-even month {result.roundedBreakEvenMonths}
+                </p>
+              </div>
+              <div className="h-80 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData} margin={{ top: 12, right: 18, left: 4, bottom: 4 }}>
+                    <CartesianGrid stroke="#1f2937" strokeDasharray="3 3" vertical={false} />
+                    <XAxis
+                      dataKey="month"
+                      tick={{ fill: "#64748b", fontSize: 11 }}
+                      tickLine={false}
+                      axisLine={false}
+                      interval="preserveStartEnd"
+                    />
+                    <YAxis
+                      tick={{ fill: "#64748b", fontSize: 11 }}
+                      tickLine={false}
+                      axisLine={false}
+                      width={62}
+                      tickFormatter={(value) => `$${Math.round(Number(value) / 1000)}k`}
+                    />
+                    <Tooltip content={<BreakEvenTooltip />} cursor={{ stroke: "#475569", strokeDasharray: "4 4" }} />
+                    <Legend
+                      verticalAlign="bottom"
+                      height={32}
+                      iconType="line"
+                      formatter={(value) => <span className="text-xs text-gray-400">{value}</span>}
+                    />
+                    <ReferenceLine
+                      x={result.roundedBreakEvenMonths}
+                      stroke="#f59e0b"
+                      strokeDasharray="4 4"
+                      label={{
+                        value: "Break-even",
+                        fill: "#fbbf24",
+                        fontSize: 11,
+                        position: "insideTopRight",
+                      }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="Self-Insurance Balance"
+                      stroke="#60a5fa"
+                      strokeWidth={3}
+                      dot={false}
+                      activeDot={{ r: 4, stroke: "#bfdbfe", strokeWidth: 2, fill: "#2563eb" }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="Benefit Need"
+                      stroke="#34d399"
+                      strokeWidth={2}
+                      dot={false}
+                      strokeDasharray="6 4"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
