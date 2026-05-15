@@ -44,7 +44,7 @@ interface RiskModulePageProps {
   subtitle: string
   headerActions?: React.ReactNode
   formSlot: React.ReactNode
-  outputSlot: React.ReactNode
+  outputSlot: React.ReactNode | ((inputsOpen: boolean) => React.ReactNode)
 }
 
 /**
@@ -151,7 +151,7 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
           className={cx(
             "grid w-full min-w-0 items-start gap-5 overflow-visible transition-[grid-template-columns,gap] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:gap-6",
             inputsOpen
-              ? "xl:grid-cols-[minmax(24rem,28rem)_minmax(0,1fr)]"
+              ? "xl:grid-cols-[minmax(20rem,23rem)_minmax(0,1fr)]"
               : "xl:grid-cols-[0rem_minmax(0,1fr)] xl:gap-x-0",
           )}
         >
@@ -172,7 +172,7 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
           </div>
         </div>
         <div className="min-w-0 w-full">
-          {outputSlot}
+          {typeof outputSlot === "function" ? outputSlot(inputsOpen) : outputSlot}
         </div>
         </div>
       </div>

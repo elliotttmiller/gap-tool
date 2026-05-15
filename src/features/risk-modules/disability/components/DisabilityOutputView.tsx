@@ -21,6 +21,7 @@ import { ModuleMetricCard, MetricGroup, MetricGroupDivider } from "@/features/ri
 interface DisabilityOutputViewProps {
   outputs: DisabilityOutputs
   inputs?: DisabilityInputs
+  formOpen?: boolean
 }
 
 // ── Helper: derive monthly KPI values for a given age ─────────────────────
@@ -64,7 +65,7 @@ const legendFormatter = (value: string) => (
   <span style={{ color: "#9ca3af", fontSize: 12 }}>{value}</span>
 )
 
-export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewProps) {
+export function DisabilityOutputView({ outputs, inputs, formOpen = false }: DisabilityOutputViewProps) {
   const chartData = transformDisabilityChartData(outputs)
 
   // ── Interactivity state ────────────────────────────────────────────────
@@ -110,7 +111,7 @@ export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewPr
 
         {visualization === "coverage" ? (
           <div className="module-output-container">
-          <div className="disability-coverage-grid">
+          <div className={`disability-coverage-grid${formOpen ? " disability-coverage-grid--form-open" : ""}`}>
 
           {/* ── SUMMARY: below chart (narrow) / left column (wide) ───── */}
           <div className="disability-summary-rail">

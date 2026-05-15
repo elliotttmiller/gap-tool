@@ -220,6 +220,20 @@
      full-width (form collapsed). 1100px ensures the summary cards stay below
      the chart whenever the input form panel is open (output ~968px at 1440px
      viewport). With form collapsed the output fills ~1400px+, well above this. */
+  /* When the input form panel is open, always keep summary cards below the chart
+     regardless of container width. Overrides the @container 1100px 3-col rule. */
+  .disability-coverage-grid--form-open {
+    grid-template-areas:
+      "chart  metric"
+      "summary summary" !important;
+    grid-template-columns: minmax(0, 1fr) minmax(13.5rem, 17rem) !important;
+    grid-template-rows: auto auto !important;
+  }
+
+  .disability-coverage-grid--form-open .disability-summary-rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
   @container (min-width: 1100px) {
     .disability-coverage-grid {
       grid-template-areas:
