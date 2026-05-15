@@ -44,8 +44,8 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
       <div className="module-visual-dashboard">
 
         {/* ── Chart panel ─────────────────────────────────────────────── */}
-        <Card className="module-visual-panel border-slate-800/80 bg-slate-950/60">
-          <CardHeader className="px-6 pb-0 pt-5">
+        <Card className="module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
+          <CardHeader className="shrink-0 px-6 pb-0 pt-5">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <CardTitle className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">
@@ -65,8 +65,8 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
             </div>
           </CardHeader>
 
-          <CardContent className="px-6 pb-6 pt-4">
-            <div className="flex items-stretch gap-2">
+          <CardContent className="flex flex-1 flex-col min-h-0 px-6 pb-6 pt-4">
+            <div className="flex flex-1 min-h-0 items-stretch gap-2">
               <div className="flex w-4 shrink-0 items-center justify-center">
                 <span
                   style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
@@ -76,7 +76,7 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
                 </span>
               </div>
               <div className="flex min-w-0 flex-1 flex-col">
-                <div className="h-80 w-full">
+                <div className="flex-1 min-h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%" debounce={100}>
                     <BarChart
                       data={chartData.protectionStackData}
@@ -134,7 +134,7 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
             </div>
 
             {/* Legend */}
-            <div className="mt-5 flex items-center justify-center gap-6 border-t border-slate-800/50 pt-4">
+            <div className="mt-4 shrink-0 flex items-center justify-center gap-6 border-t border-slate-800/50 pt-4">
               <span className="inline-flex items-center gap-2 text-xs font-medium text-slate-400">
                 <span className="h-2 w-4 rounded-sm bg-emerald-500" />
                 Auto Liability Coverage

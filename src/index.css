@@ -156,10 +156,34 @@
   .disability-coverage-grid {
     display: grid;
     gap: 1rem;
+    /* narrow: chart on top, summary cards below */
+    grid-template-areas:
+      "chart  metric"
+      "summary summary";
+    grid-template-columns: minmax(0, 1fr) minmax(13.5rem, 17rem);
+    grid-template-rows: auto auto;
+  }
+
+  .disability-summary-rail {
+    grid-area: summary;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    align-items: start;
+  }
+
+  .disability-chart-panel {
+    grid-area: chart;
+  }
+
+  .disability-coverage-grid > .module-metric-rail {
+    grid-area: metric;
   }
 
   .module-visual-panel {
     min-width: 0;
+    display: flex;
+    flex-direction: column;
   }
 
   .module-metric-rail {
@@ -179,11 +203,6 @@
       align-items: stretch;
     }
 
-    .disability-coverage-grid {
-      grid-template-columns: minmax(12rem, 14rem) minmax(0, 1fr) minmax(13.5rem, 17rem);
-      align-items: start;
-    }
-
     .module-visual-panel {
       height: 100%;
     }
@@ -193,6 +212,24 @@
       align-items: start;
       align-content: start;
       gap: 0.75rem;
+    }
+  }
+
+  /* Disability 3-col wide layout only kicks in when the output panel is truly
+     full-width (form collapsed). 1100px ensures the summary cards stay below
+     the chart whenever the input form panel is open (output ~968px at 1440px
+     viewport). With form collapsed the output fills ~1400px+, well above this. */
+  @container (min-width: 1100px) {
+    .disability-coverage-grid {
+      grid-template-areas:
+        "summary chart  metric";
+      grid-template-columns: minmax(12rem, 14rem) minmax(0, 1fr) minmax(13.5rem, 17rem);
+      grid-template-rows: auto;
+      align-items: start;
+    }
+
+    .disability-summary-rail {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 }

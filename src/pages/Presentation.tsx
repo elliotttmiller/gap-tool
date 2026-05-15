@@ -95,7 +95,7 @@ export function Presentation() {
 
   function renderModule(module: RiskModuleType) {
     if (module === "life" && lifeOutputs) return <LifeOutputView outputs={lifeOutputs} />
-    if (module === "disability" && disabilityOutputs) return <DisabilityOutputView outputs={disabilityOutputs} />
+    if (module === "disability" && disabilityOutputs) return <DisabilityOutputView outputs={disabilityOutputs} inputs={records?.disability?.inputs} />
     if (module === "unemployment" && unemploymentOutputs) return <UnemploymentOutputView outputs={unemploymentOutputs} />
     if (module === "liability" && liabilityOutputs) return <LiabilityOutputView outputs={liabilityOutputs} />
     return null

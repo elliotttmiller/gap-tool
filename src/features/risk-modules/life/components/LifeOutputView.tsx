@@ -61,9 +61,9 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
   return (
     <div className="module-output-container">
       <div className="module-visual-dashboard">
-        <Card className="module-visual-panel border-slate-800/80 bg-slate-950/60">
-          <CardHeader className="px-6 pb-0 pt-5">
-            <div className="flex flex-wrap items-center gap-2">
+        <Card className="module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
+          <CardHeader className="shrink-0 px-6 pb-0 pt-5">
+            <div className="flex flex-wrap items-start gap-2">
               <div className="flex-1 min-w-0">
                 <CardTitle className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">
                   {chartData.chartTitle}
@@ -88,9 +88,9 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
               )}
             </div>
           </CardHeader>
-          <CardContent className="px-6 pb-6 pt-4">
+          <CardContent className="flex flex-1 flex-col min-h-0 px-6 pb-6 pt-4">
             {/* axis-label wrapper */}
-            <div className="flex items-stretch gap-1">
+            <div className="flex flex-1 min-h-0 items-stretch gap-1">
               <div className="flex w-3.5 shrink-0 items-center justify-center">
                 <span style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
                   className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider text-slate-500">
@@ -98,7 +98,7 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
                 </span>
               </div>
               <div className="flex min-w-0 flex-1 flex-col">
-                <div className="h-72 w-full chart-reveal">
+                <div className="flex-1 min-h-56 w-full chart-reveal">
                   <ResponsiveContainer width="100%" height="100%" debounce={100}>
                     <BarChart
                       data={chartData.yearlyCoverageData}

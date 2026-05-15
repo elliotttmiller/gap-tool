@@ -20,7 +20,7 @@ import { ModuleMetricCard, MetricGroup, MetricGroupDivider } from "@/features/ri
 
 interface DisabilityOutputViewProps {
   outputs: DisabilityOutputs
-  inputs: DisabilityInputs
+  inputs?: DisabilityInputs
 }
 
 // ── Helper: derive monthly KPI values for a given age ─────────────────────
@@ -112,8 +112,8 @@ export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewPr
           <div className="module-output-container">
           <div className="disability-coverage-grid">
 
-          {/* ── LEFT: summary rail ───────────────────────────────────── */}
-          <div className="flex flex-col gap-3">
+          {/* ── SUMMARY: below chart (narrow) / left column (wide) ───── */}
+          <div className="disability-summary-rail">
             {/* Lifetime Coverage */}
             <Card className="module-kpi-card">
               <CardContent className="p-3.5">
@@ -172,9 +172,9 @@ export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewPr
           </div>
 
           {/* ── CENTRE: chart panel ──────────────────────────────────── */}
-          <Card className="module-visual-panel border-slate-800/80 bg-slate-950/60">
-            <CardHeader className="px-6 pb-0 pt-5">
-              <div className="flex items-center justify-between flex-wrap gap-2">
+          <Card className="disability-chart-panel module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
+            <CardHeader className="shrink-0 px-6 pb-0 pt-5">
+              <div className="flex items-start justify-between flex-wrap gap-2">
                 <div className="flex-1 min-w-0">
                   <CardTitle className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">
                     Income vs. Disability Coverage — Annual Projection
@@ -214,9 +214,9 @@ export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewPr
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="px-6 pb-6 pt-4">
+            <CardContent className="flex flex-1 flex-col min-h-0 px-6 pb-6 pt-4">
               {/* axis-label wrapper: [y-title] [chart+x-title] */}
-              <div className="flex items-stretch gap-1">
+              <div className="flex flex-1 min-h-0 items-stretch gap-1">
                 <div className="flex w-3.5 shrink-0 items-center justify-center">
                   <span style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
                     className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider text-slate-500">
@@ -224,7 +224,7 @@ export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewPr
                   </span>
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <div className="h-64 w-full chart-reveal">
+                  <div className="flex-1 min-h-52 w-full chart-reveal">
                     <ResponsiveContainer width="100%" height="100%" debounce={100}>
                       <BarChart
                         data={chartData.projectionChartData}
@@ -315,7 +315,7 @@ export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewPr
                 label="Income Loss (Net)"
                 value={<>{formatCurrency(monthly.incomeLossNet)}<span className="text-sm font-normal text-gray-400">/mo</span></>}
                 description="70% of income minus total monthly benefit"
-                accent={monthly.incomeLossNet <= 0 ? "green" : "red"}
+                accent="red"
               />
             </MetricGroup>
           </div>
@@ -323,10 +323,10 @@ export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewPr
           </div>
         ) : (
           <BreakEvenCalculator
-            monthlyPremium={inputs.privateDiMonthlyPremium ?? 0}
-            monthlyBenefit={inputs.privateDiBenefitMonthly}
-            annualRateOfReturn={inputs.breakEvenRateOfReturn ?? 0.06}
-            monthsWithoutIncome={inputs.breakEvenMonthsWithoutIncome ?? 12}
+            monthlyPremium={inputs?.privateDiMonthlyPremium ?? 0}
+            monthlyBenefit={inputs?.privateDiBenefitMonthly ?? 0}
+            annualRateOfReturn={inputs?.breakEvenRateOfReturn ?? 0.06}
+            monthsWithoutIncome={inputs?.breakEvenMonthsWithoutIncome ?? 12}
           />
         )}
       </AnimatedSection>

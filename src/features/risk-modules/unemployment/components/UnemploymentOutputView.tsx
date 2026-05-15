@@ -12,8 +12,8 @@ function formatAdvisorCurrency(value: number): string {
 
 function AdvisorReserveVisualization({ outputs }: { outputs: UnemploymentOutputs }) {
   return (
-    <Card className="module-visual-panel border-slate-800/80 bg-slate-950/60">
-      <CardHeader className="px-6 pb-0 pt-5">
+    <Card className="module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
+      <CardHeader className="shrink-0 px-6 pb-0 pt-5 text-center">
         <CardTitle className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">
           Emergency Reserve Dashboard
         </CardTitle>
@@ -21,10 +21,9 @@ function AdvisorReserveVisualization({ outputs }: { outputs: UnemploymentOutputs
           Optimal savings runway target based on monthly income
         </p>
       </CardHeader>
-      <CardContent className="px-6 pb-6 pt-4">
-        <div className="flex items-center justify-center">
-          <div className="w-full max-w-176">
-            <svg viewBox="0 0 620 318" className="h-auto w-full overflow-visible" role="img" aria-label="Emergency reserve range from zero to six months">
+      <CardContent className="flex flex-1 flex-col min-h-0 items-center justify-center px-6 pb-6 pt-4">
+        <div className="mx-auto w-full max-w-176">
+            <svg viewBox="0 0 620 318" className="h-auto w-full overflow-hidden" role="img" aria-label="Emergency reserve range from zero to six months">
           <defs>
             <linearGradient id="unemploymentIdealFill" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#22c55e" stopOpacity="0.92" />
@@ -49,47 +48,46 @@ function AdvisorReserveVisualization({ outputs }: { outputs: UnemploymentOutputs
             const isKey = month === 0 || month === 3 || month === 6
             return (
               <g key={month}>
-                <line x1={isKey ? 90 : 102} y1={y} x2="118" y2={y} stroke={isKey ? "rgba(248,250,252,0.9)" : "rgba(148,163,184,0.3)"} strokeWidth={isKey ? 1.5 : 1} />
-                <text x="84" y={y + 4} textAnchor="end" fontSize={isKey ? 12 : 10} fontWeight={isKey ? 700 : 600} fill={isKey ? "#f8fafc" : "#94a3b8"}>
+                <line x1={isKey ? 150 : 162} y1={y} x2="178" y2={y} stroke={isKey ? "rgba(248,250,252,0.9)" : "rgba(148,163,184,0.3)"} strokeWidth={isKey ? 1.5 : 1} />
+                <text x="144" y={y + 4} textAnchor="end" fontSize={isKey ? 12 : 10} fontWeight={isKey ? 700 : 600} fill={isKey ? "#f8fafc" : "#94a3b8"}>
                   {month}mo
                 </text>
               </g>
             )
           })}
 
-          <rect x="120" y="52" width="260" height="186" rx="18" fill="rgba(2,6,23,0.36)" stroke="rgba(226,232,240,0.16)" strokeWidth="2" filter="url(#unemploymentSoftShadow)" />
+          <rect x="180" y="52" width="260" height="186" rx="18" fill="rgba(2,6,23,0.36)" stroke="rgba(226,232,240,0.16)" strokeWidth="2" filter="url(#unemploymentSoftShadow)" />
           <clipPath id="unemploymentBucketClip">
-            <rect x="120" y="52" width="260" height="186" rx="18" />
+            <rect x="180" y="52" width="260" height="186" rx="18" />
           </clipPath>
           <g clipPath="url(#unemploymentBucketClip)">
-            <rect x="120" y="52" width="260" height="93" fill="url(#unemploymentIdealFill)" />
-            <rect x="120" y="145" width="260" height="93" fill="url(#unemploymentMinimumFill)" />
-            <rect x="120" y="52" width="260" height="186" fill="url(#unemploymentGlass)" />
+            <rect x="180" y="52" width="260" height="93" fill="url(#unemploymentIdealFill)" />
+            <rect x="180" y="145" width="260" height="93" fill="url(#unemploymentMinimumFill)" />
+            <rect x="180" y="52" width="260" height="186" fill="url(#unemploymentGlass)" />
           </g>
-          <line x1="112" y1="145" x2="388" y2="145" stroke="rgba(248,250,252,0.7)" strokeWidth="2" strokeDasharray="7 5" />
-          <rect x="120" y="52" width="260" height="186" rx="18" fill="none" stroke="rgba(226,232,240,0.24)" strokeWidth="2" />
+          <line x1="172" y1="145" x2="448" y2="145" stroke="rgba(248,250,252,0.7)" strokeWidth="2" strokeDasharray="7 5" />
+          <rect x="180" y="52" width="260" height="186" rx="18" fill="none" stroke="rgba(226,232,240,0.24)" strokeWidth="2" />
 
-          <text x="250" y="120" textAnchor="middle" fontSize="15" fontWeight="800" letterSpacing="1.6" fill="#ffffff">IDEAL RANGE</text>
-          <text x="250" y="139" textAnchor="middle" fontSize="11" fontWeight="700" fill="rgba(255,255,255,0.76)">3 to 6 months</text>
-          <text x="250" y="196" textAnchor="middle" fontSize="12" fontWeight="800" letterSpacing="1.3" fill="rgba(255,255,255,0.64)">MINIMUM</text>
+          <text x="310" y="120" textAnchor="middle" fontSize="15" fontWeight="800" letterSpacing="1.6" fill="#ffffff">IDEAL RANGE</text>
+          <text x="310" y="139" textAnchor="middle" fontSize="11" fontWeight="700" fill="rgba(255,255,255,0.76)">3 to 6 months</text>
+          <text x="310" y="196" textAnchor="middle" fontSize="12" fontWeight="800" letterSpacing="1.3" fill="rgba(255,255,255,0.64)">MINIMUM</text>
 
-          <line x1="380" y1="62" x2="405" y2="62" stroke="#22c55e" strokeWidth="2" />
-          <text x="414" y="64" fontSize="11" fontWeight="800" letterSpacing="1.2" fill="#22c55e">OPTIMAL TARGET</text>
-          <text x="414" y="84" fontSize="20" fontWeight="800" fill="#ffffff">{formatAdvisorCurrency(outputs.optimalReserveTarget)}</text>
-          <text x="414" y="102" fontSize="10" fontWeight="700" fill="rgba(226,232,240,0.66)">6 months of income</text>
+          <line x1="440" y1="62" x2="465" y2="62" stroke="#22c55e" strokeWidth="2" />
+          <text x="474" y="64" fontSize="11" fontWeight="800" letterSpacing="1.2" fill="#22c55e">OPTIMAL TARGET</text>
+          <text x="474" y="84" fontSize="20" fontWeight="800" fill="#ffffff">{formatAdvisorCurrency(outputs.optimalReserveTarget)}</text>
+          <text x="474" y="102" fontSize="10" fontWeight="700" fill="rgba(226,232,240,0.66)">6 months of income</text>
 
-          <line x1="380" y1="145" x2="405" y2="145" stroke="#22d3ee" strokeWidth="2" />
-          <text x="414" y="141" fontSize="11" fontWeight="800" letterSpacing="1.2" fill="#22d3ee">MINIMUM RESERVE</text>
-          <text x="414" y="161" fontSize="20" fontWeight="800" fill="#ffffff">{formatAdvisorCurrency(outputs.minimumReserveTarget)}</text>
-          <text x="414" y="179" fontSize="10" fontWeight="700" fill="rgba(226,232,240,0.66)">3 months of income</text>
+          <line x1="440" y1="145" x2="465" y2="145" stroke="#22d3ee" strokeWidth="2" />
+          <text x="474" y="141" fontSize="11" fontWeight="800" letterSpacing="1.2" fill="#22d3ee">MINIMUM RESERVE</text>
+          <text x="474" y="161" fontSize="20" fontWeight="800" fill="#ffffff">{formatAdvisorCurrency(outputs.minimumReserveTarget)}</text>
+          <text x="474" y="179" fontSize="10" fontWeight="700" fill="rgba(226,232,240,0.66)">3 months of income</text>
 
-          <line x1="380" y1="226" x2="405" y2="226" stroke="#fb7185" strokeWidth="2" />
-          <text x="414" y="220" fontSize="11" fontWeight="800" letterSpacing="1.2" fill="#fb7185">DANGER ZONE</text>
-          <text x="414" y="238" fontSize="10" fontWeight="700" fill="rgba(226,232,240,0.66)">Below 3 months</text>
+          <line x1="440" y1="226" x2="465" y2="226" stroke="#fb7185" strokeWidth="2" />
+          <text x="474" y="220" fontSize="11" fontWeight="800" letterSpacing="1.2" fill="#fb7185">DANGER ZONE</text>
+          <text x="474" y="238" fontSize="10" fontWeight="700" fill="rgba(226,232,240,0.66)">Below 3 months</text>
 
-          <text x="250" y="292" textAnchor="middle" fontSize="11" fontWeight="800" letterSpacing="1.6" fill="rgba(226,232,240,0.48)">EMERGENCY RESERVE SAVINGS BUCKET</text>
+          <text x="310" y="292" textAnchor="middle" fontSize="11" fontWeight="800" letterSpacing="1.6" fill="rgba(226,232,240,0.48)">EMERGENCY RESERVE SAVINGS BUCKET</text>
         </svg>
-          </div>
         </div>
       </CardContent>
     </Card>
