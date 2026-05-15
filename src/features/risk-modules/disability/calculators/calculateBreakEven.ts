@@ -1,112 +1,160 @@
 /**
- * Disability Insurance Plan Break-Even Calculator
+ * Disability "Why Use Insurance?" break-even calculator.
  *
- * Determines the break-even period between two disability insurance plans that
- * differ in elimination period length and premium.
- *
- * Plan A = Shorter Elimination Period (higher premium, less income at risk)
- * Plan B = Longer Elimination Period (lower premium, more income at risk)
- *
- * "Elimination Period Exposure" is the estimated income / expenses at risk
- * during the elimination period (monthly expenses × EP months). The break-even
- * point shows how many claim-free months are needed before Plan B's lower
- * premiums offset the additional exposure.
+ * Mirrors docs/advisor-references/Calculator.xlsx:
+ * - Presentation!H44 = 'Prem v Self'!T7
+ * - Prem v Self!T7 = VLOOKUP(monthsWithoutIncome, monthly benefit schedule)
+ * - Presentation!H46 = NPER(rateOfReturn / 12, monthlyPremium, 0, -benefitsReceived)
+ * - Presentation!H48 = breakEvenMonths / 12
  */
 
-export type PremiumFrequency = "monthly" | "yearly"
-
 export interface BreakEvenInputs {
-  /** Plan A (shorter elimination period) premium amount. */
-  planAPremium: number
-  /** Plan A elimination period exposure in dollars (expenses × EP months). */
-  planADeductible: number
-  /** Plan B (longer elimination period) premium amount. */
-  planBPremium: number
-  /** Plan B elimination period exposure in dollars (expenses × EP months). */
-  planBDeductible: number
-  /** Whether the entered premium amounts are monthly or yearly. */
-  premiumFrequency: PremiumFrequency
+  /** Presentation!H39 */
+  monthlyPremium: number
+  /** Presentation!H40 */
+  monthlyBenefit: number
+  /** Presentation!H41, entered as a decimal (6% = 0.06). */
+  annualRateOfReturn: number
+  /** Presentation!H42 */
+  monthsWithoutIncome: number
+}
+
+export interface BreakEvenMonthRow {
+  month: number
+  monthlyPremium: number
+  monthlyReturnFactor: number
+  investmentBalance: number
+  cumulativeBenefits: number
 }
 
 export type BreakEvenResult =
-  | { ok: true } & BreakEvenOutputs
+  | ({ ok: true } & BreakEvenOutputs)
   | { ok: false; error: string }
 
 export interface BreakEvenOutputs {
-  /** Monthly premium savings from choosing Plan B (longer EP, lower premium). */
-  monthlySavings: number
-  /** Annualized premium savings from choosing Plan B. */
-  yearlySavings: number
-  /** Additional elimination period exposure by choosing Plan B (the "risk gap"). */
-  riskGap: number
-  /** Claim-free months needed before Plan B's premium savings offset the added exposure. */
+  monthlyPremium: number
+  monthlyBenefit: number
+  annualRateOfReturn: number
+  monthlyRateOfReturn: number
+  monthlyReturnFactor: number
+  monthsWithoutIncome: number
+  benefitsReceived: number
   breakEvenMonths: number
-  /** Break-even period expressed in years (one decimal place). */
-  breakEvenYears: string
-  /** Total Year-1 cost on Plan A if a disability occurs immediately (premium + EP exposure). */
-  costWithClaimA: number
-  /** Total Year-1 cost on Plan B if a disability occurs immediately (premium + EP exposure). */
-  costWithClaimB: number
-  /** Extra first-year cost if a disability occurs immediately and Plan B was chosen. */
-  claimDifference: number
-  /** Which plan is statistically better given the break-even period. */
-  recommendation: string
+  breakEvenYears: number
+  roundedBreakEvenMonths: number
+  totalPremiumsToBreakEven: number
+  investmentAtRoundedBreakEven: number
+  schedule: BreakEvenMonthRow[]
+}
+
+const MAX_SCHEDULE_MONTH = 1200
+
+function excelNper(rate: number, payment: number, presentValue: number, futureValue: number): number {
+  if (rate === 0) {
+    return -(presentValue + futureValue) / payment
+  }
+
+  return Math.log((payment - futureValue * rate) / (payment + presentValue * rate)) / Math.log(1 + rate)
+}
+
+function buildSchedule(inputs: {
+  monthlyPremium: number
+  monthlyBenefit: number
+  monthlyReturnFactor: number
+  months: number
+}): BreakEvenMonthRow[] {
+  const { monthlyPremium, monthlyBenefit, monthlyReturnFactor, months } = inputs
+  const rows: BreakEvenMonthRow[] = []
+  let investmentBalance = 0
+
+  for (let month = 1; month <= months; month += 1) {
+    investmentBalance = (investmentBalance + monthlyPremium) * monthlyReturnFactor
+
+    rows.push({
+      month,
+      monthlyPremium,
+      monthlyReturnFactor,
+      investmentBalance,
+      cumulativeBenefits: monthlyBenefit * month,
+    })
+  }
+
+  return rows
+}
+
+function futureValueOfPremiums(monthlyPremium: number, monthlyReturnFactor: number, months: number): number {
+  if (months <= 0) return 0
+
+  let balance = 0
+  for (let month = 1; month <= months; month += 1) {
+    balance = (balance + monthlyPremium) * monthlyReturnFactor
+  }
+  return balance
 }
 
 /**
- * Calculates the disability plan break-even point between two plans.
- *
- * Returns `{ ok: false, error }` when the inputs are logically inconsistent
- * (e.g. Plan B is not cheaper, or does not have a longer elimination period).
+ * Calculates the self-insurance break-even point from the source spreadsheet.
  */
 export function calculateBreakEven(inputs: BreakEvenInputs): BreakEvenResult {
-  const { planAPremium, planADeductible, planBPremium, planBDeductible, premiumFrequency } = inputs
+  const monthlyPremium = Number(inputs.monthlyPremium)
+  const monthlyBenefit = Number(inputs.monthlyBenefit)
+  const annualRateOfReturn = Number(inputs.annualRateOfReturn)
+  const monthsWithoutIncome = Math.floor(Number(inputs.monthsWithoutIncome))
 
-  // Normalise to yearly amounts for consistent comparison
-  const planAYearly = premiumFrequency === "monthly" ? planAPremium * 12 : planAPremium
-  const planBYearly = premiumFrequency === "monthly" ? planBPremium * 12 : planBPremium
-
-  const yearlySavings = planAYearly - planBYearly
-  const monthlySavings = yearlySavings / 12
-
-  if (yearlySavings <= 0) {
-    return {
-      ok: false,
-      error: "Plan B (Longer Elimination Period) must have a lower premium than Plan A to calculate break-even.",
-    }
+  if (!Number.isFinite(monthlyPremium) || monthlyPremium <= 0) {
+    return { ok: false, error: "Monthly premium must be greater than $0." }
   }
 
-  const riskGap = planBDeductible - planADeductible
-
-  if (riskGap <= 0) {
-    return {
-      ok: false,
-      error: "Plan B must have a greater elimination period exposure than Plan A to assess the income risk gap.",
-    }
+  if (!Number.isFinite(monthlyBenefit) || monthlyBenefit <= 0) {
+    return { ok: false, error: "Monthly benefit must be greater than $0." }
   }
 
-  const breakEvenMonths = Math.ceil(riskGap / monthlySavings)
-  const breakEvenYearsNum = breakEvenMonths / 12
-  const breakEvenYears = breakEvenYearsNum.toFixed(1)
+  if (!Number.isFinite(annualRateOfReturn) || annualRateOfReturn < 0) {
+    return { ok: false, error: "Rate of return must be 0% or greater." }
+  }
 
-  const costWithClaimA = planAYearly + planADeductible
-  const costWithClaimB = planBYearly + planBDeductible
-  const claimDifference = costWithClaimB - costWithClaimA
+  if (!Number.isFinite(monthsWithoutIncome) || monthsWithoutIncome <= 0) {
+    return { ok: false, error: "Months without income must be at least 1." }
+  }
 
-  const recommendation = breakEvenYearsNum < 2
-    ? "Longer Elimination Period (Plan B)"
-    : "Shorter Elimination Period (Plan A)"
+  const monthlyRateOfReturn = annualRateOfReturn / 12
+  const monthlyReturnFactor = 1 + monthlyRateOfReturn
+  const benefitsReceived = monthlyBenefit * monthsWithoutIncome
+  const breakEvenMonths = excelNper(monthlyRateOfReturn, monthlyPremium, 0, -benefitsReceived)
+
+  if (!Number.isFinite(breakEvenMonths) || breakEvenMonths <= 0) {
+    return { ok: false, error: "These inputs do not produce a valid break-even month." }
+  }
+
+  const roundedBreakEvenMonths = Math.ceil(breakEvenMonths)
+  const scheduleMonths = Math.min(
+    MAX_SCHEDULE_MONTH,
+    Math.max(monthsWithoutIncome, roundedBreakEvenMonths),
+  )
+  const schedule = buildSchedule({
+    monthlyPremium,
+    monthlyBenefit,
+    monthlyReturnFactor,
+    months: scheduleMonths,
+  })
+  const investmentAtRoundedBreakEven =
+    schedule[roundedBreakEvenMonths - 1]?.investmentBalance ??
+    futureValueOfPremiums(monthlyPremium, monthlyReturnFactor, roundedBreakEvenMonths)
 
   return {
     ok: true,
-    monthlySavings,
-    yearlySavings,
-    riskGap,
+    monthlyPremium,
+    monthlyBenefit,
+    annualRateOfReturn,
+    monthlyRateOfReturn,
+    monthlyReturnFactor,
+    monthsWithoutIncome,
+    benefitsReceived,
     breakEvenMonths,
-    breakEvenYears,
-    costWithClaimA,
-    costWithClaimB,
-    claimDifference,
-    recommendation,
+    breakEvenYears: breakEvenMonths / 12,
+    roundedBreakEvenMonths,
+    totalPremiumsToBreakEven: monthlyPremium * breakEvenMonths,
+    investmentAtRoundedBreakEven,
+    schedule,
   }
 }

@@ -1,219 +1,268 @@
-import { useState, useMemo, useCallback } from "react"
-import { RiAlertLine, RiCheckboxCircleLine, RiInformationLine } from "@remixicon/react"
-import { calculateBreakEven, type PremiumFrequency } from "./calculateBreakEven"
+import { useCallback, useMemo, useState } from "react"
+import {
+  RiAlertLine,
+  RiBankCardLine,
+  RiFundsLine,
+  RiLineChartLine,
+  RiMoneyDollarCircleLine,
+  RiTimeLine,
+} from "@remixicon/react"
+import { calculateBreakEven } from "./calculateBreakEven"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 
-function toFloat(s: string): number {
-  return parseFloat(s) || 0
+function toNumber(value: string): number {
+  return Number.parseFloat(value) || 0
 }
 
-function validatePositive(s: string, setter: (v: string) => void) {
-  const n = parseFloat(s)
-  if (s === "" || (!isNaN(n) && n >= 0)) setter(s)
+function toRate(value: string): number {
+  return toNumber(value) / 100
+}
+
+function formatDecimal(value: number, digits = 1): string {
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: digits,
+    minimumFractionDigits: digits,
+  }).format(value)
+}
+
+function formatPlainPercent(value: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "percent",
+    maximumFractionDigits: 1,
+  }).format(value)
+}
+
+function validateNonNegative(value: string, setter: (v: string) => void) {
+  const parsed = Number.parseFloat(value)
+  if (value === "" || (Number.isFinite(parsed) && parsed >= 0)) setter(value)
+}
+
+function validateWholePositive(value: string, setter: (v: string) => void) {
+  const parsed = Number.parseInt(value, 10)
+  if (value === "" || (Number.isFinite(parsed) && parsed >= 1)) setter(String(parsed))
+}
+
+interface InputFieldProps {
+  id: string
+  label: string
+  value: string
+  onChange: (value: string) => void
+  prefix?: string
+  suffix?: string
+  step?: number
+  min?: number
+}
+
+function InputField({ id, label, value, onChange, prefix, suffix, step = 1, min = 0 }: InputFieldProps) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <Input
+        id={id}
+        type="number"
+        min={min}
+        step={step}
+        prefix={prefix}
+        suffix={suffix}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    </div>
+  )
 }
 
 export function BreakEvenCalculator() {
-  const [frequency, setFrequency] = useState<PremiumFrequency>("monthly")
-  const [planAPremium, setPlanAPremium] = useState("295")
-  const [planADeductible, setPlanADeductible] = useState("21000")
-  const [planBPremium, setPlanBPremium] = useState("210")
-  const [planBDeductible, setPlanBDeductible] = useState("42000")
+  const [monthlyPremium, setMonthlyPremium] = useState("450")
+  const [monthlyBenefit, setMonthlyBenefit] = useState("10000")
+  const [annualRateOfReturn, setAnnualRateOfReturn] = useState("6")
+  const [monthsWithoutIncome, setMonthsWithoutIncome] = useState("12")
 
-  const handleChange = useCallback(
-    (setter: (v: string) => void) =>
-      (e: React.ChangeEvent<HTMLInputElement>) =>
-        validatePositive(e.target.value, setter),
+  const handleCurrencyChange = useCallback(
+    (setter: (v: string) => void) => (value: string) => validateNonNegative(value, setter),
+    [],
+  )
+  const handleMonthsChange = useCallback(
+    (value: string) => validateWholePositive(value, setMonthsWithoutIncome),
     [],
   )
 
   const result = useMemo(
     () =>
       calculateBreakEven({
-        planAPremium: toFloat(planAPremium),
-        planADeductible: toFloat(planADeductible),
-        planBPremium: toFloat(planBPremium),
-        planBDeductible: toFloat(planBDeductible),
-        premiumFrequency: frequency,
+        monthlyPremium: toNumber(monthlyPremium),
+        monthlyBenefit: toNumber(monthlyBenefit),
+        annualRateOfReturn: toRate(annualRateOfReturn),
+        monthsWithoutIncome: toNumber(monthsWithoutIncome),
       }),
-    [planAPremium, planADeductible, planBPremium, planBDeductible, frequency],
+    [monthlyPremium, monthlyBenefit, annualRateOfReturn, monthsWithoutIncome],
   )
 
-  const freqLabel = frequency === "monthly" ? "monthly" : "yearly"
+  const visibleRows = result.ok
+    ? result.schedule.filter((row) => row.month <= Math.min(result.schedule.length, 12) || row.month % 24 === 0 || row.month === result.roundedBreakEvenMonths)
+    : []
 
   return (
     <div className="space-y-5">
-      {/* ── Premium frequency toggle ──────────────────────────────────────── */}
-      <div className="flex justify-center">
-        <div className="inline-flex rounded-lg border border-gray-700 bg-gray-900 p-0.5 text-xs">
-          <button
-            type="button"
-            onClick={() => setFrequency("monthly")}
-            className={`rounded-md px-4 py-1.5 font-semibold transition-colors ${frequency === "monthly" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-gray-100"}`}
-          >
-            Monthly Premiums
-          </button>
-          <button
-            type="button"
-            onClick={() => setFrequency("yearly")}
-            className={`rounded-md px-4 py-1.5 font-semibold transition-colors ${frequency === "yearly" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-gray-100"}`}
-          >
-            Yearly Premiums
-          </button>
-        </div>
-      </div>
-
-      {/* ── Plan inputs ───────────────────────────────────────────────────── */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        {/* Plan A */}
-        <Card className="border-blue-800/50 bg-blue-950/20">
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Plan A</span>
-              <span className="text-[10px] bg-blue-900/50 text-blue-300 border border-blue-800 rounded px-2 py-0.5">Short Elimination Period</span>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Card className="border-gray-800 bg-gray-900/35">
+          <CardContent className="space-y-3 p-4">
+            <div className="flex items-center gap-2">
+              <RiBankCardLine className="size-4 text-blue-400" aria-hidden="true" />
+              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Premium Funding</p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="be-planAPremium">Premium ({freqLabel})</Label>
-              <Input
-                id="be-planAPremium"
-                type="number"
-                min={0}
-                step={1}
-                prefix="$"
-                value={planAPremium}
-                onChange={handleChange(setPlanAPremium)}
-                placeholder="200"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="be-planADeductible">Elimination Period Exposure ($)</Label>
-              <Input
-                id="be-planADeductible"
-                type="number"
-                min={0}
-                step={1000}
-                prefix="$"
-                value={planADeductible}
-                onChange={handleChange(setPlanADeductible)}
-                placeholder="21000"
-              />
-              <p className="text-[11px] text-gray-500">Monthly expenses × EP months</p>
-            </div>
+            <InputField
+              id="be-monthly-premium"
+              label="Monthly Premium"
+              prefix="$"
+              value={monthlyPremium}
+              onChange={handleCurrencyChange(setMonthlyPremium)}
+            />
+            <InputField
+              id="be-rate"
+              label="Rate of Return"
+              suffix="%"
+              step={0.1}
+              value={annualRateOfReturn}
+              onChange={handleCurrencyChange(setAnnualRateOfReturn)}
+            />
           </CardContent>
         </Card>
 
-        {/* Plan B */}
-        <Card className="border-cyan-800/50 bg-cyan-950/20">
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Plan B</span>
-              <span className="text-[10px] bg-cyan-900/50 text-cyan-300 border border-cyan-800 rounded px-2 py-0.5">Long Elimination Period</span>
+        <Card className="border-gray-800 bg-gray-900/35">
+          <CardContent className="space-y-3 p-4">
+            <div className="flex items-center gap-2">
+              <RiMoneyDollarCircleLine className="size-4 text-emerald-400" aria-hidden="true" />
+              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Disability Benefit</p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="be-planBPremium">Premium ({freqLabel})</Label>
-              <Input
-                id="be-planBPremium"
-                type="number"
-                min={0}
-                step={1}
-                prefix="$"
-                value={planBPremium}
-                onChange={handleChange(setPlanBPremium)}
-                placeholder="120"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="be-planBDeductible">Elimination Period Exposure ($)</Label>
-              <Input
-                id="be-planBDeductible"
-                type="number"
-                min={0}
-                step={1000}
-                prefix="$"
-                value={planBDeductible}
-                onChange={handleChange(setPlanBDeductible)}
-                placeholder="42000"
-              />
-              <p className="text-[11px] text-gray-500">Monthly expenses × EP months</p>
-            </div>
+            <InputField
+              id="be-monthly-benefit"
+              label="Monthly Benefit"
+              prefix="$"
+              value={monthlyBenefit}
+              onChange={handleCurrencyChange(setMonthlyBenefit)}
+            />
+            <InputField
+              id="be-months-without-income"
+              label="Months without an Income"
+              min={1}
+              value={monthsWithoutIncome}
+              onChange={handleMonthsChange}
+            />
           </CardContent>
         </Card>
       </div>
 
-      {/* ── Results ───────────────────────────────────────────────────────── */}
       {result.ok === false ? (
         <Card className="border-red-800/60 bg-red-950/20">
-          <CardContent className="p-4 flex items-start gap-3">
-            <RiAlertLine className="size-4 text-red-400 mt-0.5 shrink-0" aria-hidden="true" />
+          <CardContent className="flex items-start gap-3 p-4">
+            <RiAlertLine className="mt-0.5 size-4 shrink-0 text-red-400" aria-hidden="true" />
             <p className="text-sm text-red-300">{result.error}</p>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {/* Primary KPI */}
+        <div className="space-y-4">
           <Card className="border-blue-700/40 bg-gradient-to-br from-blue-950/40 to-[#090E1A]">
-            <CardContent className="p-5 text-center space-y-1">
-              <p className="text-[11px] text-gray-400 uppercase tracking-wider font-semibold">Break-Even Period</p>
-              <div className="flex items-baseline justify-center gap-2">
-                <span className="text-5xl font-bold text-blue-300 tracking-tight">{result.breakEvenMonths}</span>
-                <span className="text-xl text-gray-400 font-normal">months</span>
-              </div>
-              <p className="text-xs text-gray-500">(~{result.breakEvenYears} years claim-free for the longer EP to save money)</p>
-            </CardContent>
-          </Card>
-
-          {/* Recommendation badge */}
-          <Card className={`border ${result.recommendation.includes("Plan B") ? "border-green-700/40 bg-green-950/20" : "border-blue-700/40 bg-blue-950/20"}`}>
-            <CardContent className="p-4 flex items-start gap-3">
-              <RiCheckboxCircleLine className={`size-5 mt-0.5 shrink-0 ${result.recommendation.includes("Plan B") ? "text-green-400" : "text-blue-400"}`} aria-hidden="true" />
-              <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-1">Statistical Winner</p>
-                <p className={`font-bold text-base ${result.recommendation.includes("Plan B") ? "text-green-300" : "text-blue-300"}`}>
-                  {result.recommendation}
-                </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  If you go {result.breakEvenMonths} months without a disability claim, the longer elimination period (Plan B) saves money.
-                </p>
+            <CardContent className="p-5">
+              <div className="grid gap-4 sm:grid-cols-[1.2fr_0.8fr] sm:items-center">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">What Month Would You Breakeven?</p>
+                  <div className="mt-2 flex items-baseline gap-2">
+                    <span className="text-5xl font-bold tracking-tight text-blue-300">{formatDecimal(result.breakEvenMonths, 1)}</span>
+                    <span className="text-xl font-normal text-gray-400">months</span>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {formatDecimal(result.breakEvenYears, 1)} years to self insure this income gap.
+                  </p>
+                </div>
+                <div className="rounded-md border border-blue-800/50 bg-blue-950/25 p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500">Benefits Received</p>
+                  <p className="mt-1 text-2xl font-bold text-gray-100">{formatCurrency(result.benefitsReceived)}</p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {formatCurrency(result.monthlyBenefit)} for {result.monthsWithoutIncome} months
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Breakdown rows */}
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Card className="border-gray-800 bg-gray-900/30">
+              <CardContent className="p-4">
+                <RiFundsLine className="mb-2 size-4 text-emerald-400" aria-hidden="true" />
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500">Monthly Return</p>
+                <p className="mt-1 text-lg font-bold text-gray-100">{formatPlainPercent(result.monthlyRateOfReturn)}</p>
+              </CardContent>
+            </Card>
+            <Card className="border-gray-800 bg-gray-900/30">
+              <CardContent className="p-4">
+                <RiTimeLine className="mb-2 size-4 text-amber-400" aria-hidden="true" />
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500">Rounded Month</p>
+                <p className="mt-1 text-lg font-bold text-gray-100">{result.roundedBreakEvenMonths}</p>
+              </CardContent>
+            </Card>
+            <Card className="border-gray-800 bg-gray-900/30">
+              <CardContent className="p-4">
+                <RiLineChartLine className="mb-2 size-4 text-cyan-400" aria-hidden="true" />
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500">Premiums Paid</p>
+                <p className="mt-1 text-lg font-bold text-gray-100">{formatCurrency(result.totalPremiumsToBreakEven)}</p>
+              </CardContent>
+            </Card>
+          </div>
+
           <Card className="border-gray-800">
-            <CardContent className="p-4 space-y-2 text-sm">
-              <div className="flex justify-between items-center py-1.5 border-b border-gray-800">
-                <span className="text-gray-400">Annual Savings (Premiums)</span>
-                <span className="font-mono font-bold text-green-400">+{formatCurrency(result.yearlySavings)}/yr</span>
+            <CardContent className="space-y-2 p-4 text-sm">
+              <div className="flex items-center justify-between border-b border-gray-800 py-1.5">
+                <span className="text-gray-400">Monthly Premium</span>
+                <span className="font-mono font-semibold text-gray-200">{formatCurrency(result.monthlyPremium)}</span>
               </div>
-              <div className="flex justify-between items-center py-1.5 border-b border-gray-800">
-                <span className="text-gray-400">Monthly Savings</span>
-                <span className="font-mono font-semibold text-green-400">+{formatCurrency(result.monthlySavings)}/mo</span>
+              <div className="flex items-center justify-between border-b border-gray-800 py-1.5">
+                <span className="text-gray-400">Monthly Benefit</span>
+                <span className="font-mono font-semibold text-gray-200">{formatCurrency(result.monthlyBenefit)}</span>
               </div>
-              <div className="flex justify-between items-center py-1.5 border-b border-gray-800">
-                <span className="text-gray-400">EP Exposure Gap (Added Income Risk)</span>
-                <span className="font-mono font-bold text-amber-400">-{formatCurrency(result.riskGap)}</span>
+              <div className="flex items-center justify-between border-b border-gray-800 py-1.5">
+                <span className="text-gray-400">Annual Rate of Return</span>
+                <span className="font-mono font-semibold text-gray-200">{formatPlainPercent(result.annualRateOfReturn)}</span>
               </div>
-              <div className="flex justify-between items-center py-1.5 border-b border-gray-800">
-                <span className="text-gray-400">Year-1 Cost w/ Disability — Plan A</span>
-                <span className="font-mono text-gray-300">{formatCurrency(result.costWithClaimA)}</span>
+              <div className="flex items-center justify-between border-b border-gray-800 py-1.5">
+                <span className="text-gray-400">Benefits Received</span>
+                <span className="font-mono font-bold text-emerald-400">{formatCurrency(result.benefitsReceived)}</span>
               </div>
-              <div className="flex justify-between items-center py-1.5">
-                <span className="text-gray-400">Year-1 Cost w/ Disability — Plan B</span>
-                <span className="font-mono text-gray-300">{formatCurrency(result.costWithClaimB)}</span>
+              <div className="flex items-center justify-between py-1.5">
+                <span className="text-gray-400">Number of years you need to self insure</span>
+                <span className="font-mono font-bold text-blue-300">{formatDecimal(result.breakEvenYears, 2)}</span>
               </div>
             </CardContent>
           </Card>
 
-          {/* Worst-case notice */}
-          <Card className="border-red-900/40 bg-red-950/10">
-            <CardContent className="p-3 flex items-start gap-2">
-              <RiInformationLine className="size-4 text-red-400 mt-0.5 shrink-0" aria-hidden="true" />
-              <p className="text-xs text-gray-400">
-                <strong className="text-red-300">Worst Case:</strong> If a disability occurs immediately, Plan B costs{" "}
-                <strong className="text-red-300">{formatCurrency(result.claimDifference)}</strong> more than Plan A in Year 1 due to the longer elimination period.
-              </p>
+          <Card className="border-gray-800 bg-gray-900/25">
+            <CardContent className="p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Premium vs. Self Insurance</p>
+                <p className="text-xs text-gray-500">Investment at month {result.roundedBreakEvenMonths}: {formatCurrency(result.investmentAtRoundedBreakEven)}</p>
+              </div>
+              <div className="max-h-64 overflow-auto rounded-md border border-gray-800">
+                <table className="w-full text-left text-xs">
+                  <thead className="sticky top-0 bg-[#090E1A] text-[10px] uppercase tracking-wider text-gray-500">
+                    <tr>
+                      <th className="px-3 py-2 font-semibold">Month</th>
+                      <th className="px-3 py-2 text-right font-semibold">Investment</th>
+                      <th className="px-3 py-2 text-right font-semibold">Benefit</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-800">
+                    {visibleRows.map((row) => (
+                      <tr key={row.month} className={row.month === result.roundedBreakEvenMonths ? "bg-blue-950/30 text-blue-100" : "text-gray-300"}>
+                        <td className="px-3 py-2 font-mono">{row.month}</td>
+                        <td className="px-3 py-2 text-right font-mono">{formatCurrency(row.investmentBalance)}</td>
+                        <td className="px-3 py-2 text-right font-mono">{formatCurrency(row.cumulativeBenefits)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </CardContent>
           </Card>
         </div>
