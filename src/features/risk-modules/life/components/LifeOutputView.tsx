@@ -63,8 +63,8 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
       <div className="module-visual-dashboard">
         <Card className="module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
           <CardHeader className="shrink-0 px-6 pb-0 pt-5">
-            <div className="flex flex-wrap items-start gap-2">
-              <div className="flex-1 min-w-0">
+            <div className="relative flex items-start justify-center">
+              <div className="text-center">
                 <CardTitle className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">
                   {chartData.chartTitle}
                 </CardTitle>
@@ -73,7 +73,7 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
                 </p>
               </div>
               {selectedAge !== null && (
-                <div className="flex items-center gap-2">
+                <div className="absolute right-0 top-0 flex items-center gap-2">
                   <span className="text-xs font-semibold text-blue-300 bg-blue-900/40 border border-blue-700 rounded-full px-3 py-1">
                     Age {selectedAge}
                   </span>
@@ -119,7 +119,6 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
                       />
                       <YAxis tickFormatter={(v) => `$${Math.round(v / 1000)}k`} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} width={48} />
                       <Tooltip content={CustomTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-                      <Legend wrapperStyle={{ paddingTop: "12px" }} formatter={legendFormatter} />
                       <Bar dataKey="gliCovered" name="Covered by Group Life (GLI)" stackId="a" fill="#3b82f6" isAnimationActive={false} />
                       <Bar dataKey="privateCovered" name="Covered by Private Life Insurance" stackId="a" fill="#06b6d4" isAnimationActive={false} />
                       <Bar dataKey="survivorGap" name="Survivor Income Gap" stackId="a" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={false} />
@@ -128,6 +127,11 @@ export function LifeOutputView({ outputs }: LifeOutputViewProps) {
                 </div>
                 <div className="mt-1 text-center">
                   <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Age</span>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+                  <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400"><span className="inline-block h-2.5 w-4 rounded-sm bg-[#3b82f6]" />Covered by Group Life (GLI)</span>
+                  <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400"><span className="inline-block h-2.5 w-4 rounded-sm bg-[#06b6d4]" />Covered by Private Life Insurance</span>
+                  <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400"><span className="inline-block h-2.5 w-4 rounded-sm bg-[#ef4444]" />Survivor Income Gap</span>
                 </div>
               </div>
             </div>

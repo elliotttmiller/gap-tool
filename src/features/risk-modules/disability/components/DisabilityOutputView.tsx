@@ -174,8 +174,8 @@ export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewPr
           {/* ── CENTRE: chart panel ──────────────────────────────────── */}
           <Card className="disability-chart-panel module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
             <CardHeader className="shrink-0 px-6 pb-0 pt-5">
-              <div className="flex items-start justify-between flex-wrap gap-2">
-                <div className="flex-1 min-w-0">
+              <div className="relative flex items-start justify-center">
+                <div className="text-center">
                   <CardTitle className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">
                     Income vs. Disability Coverage — Annual Projection
                   </CardTitle>
@@ -183,7 +183,7 @@ export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewPr
                     LTD and individual DI benefits stacked against projected income need
                   </p>
                   {selectedAge !== null && (
-                    <div className="flex items-center gap-2 mt-1.5">
+                    <div className="flex items-center justify-center gap-2 mt-1.5">
                       <span className="text-xs font-semibold text-blue-300 bg-blue-900/40 border border-blue-700 rounded-full px-3 py-1">
                         Age {selectedAge}
                       </span>
@@ -198,7 +198,7 @@ export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewPr
                   )}
                 </div>
                 {/* Net / Gross toggle */}
-                <div className="flex rounded-md overflow-hidden border border-gray-700 text-xs shrink-0">
+                <div className="absolute right-0 top-0 flex rounded-md overflow-hidden border border-gray-700 text-xs shrink-0">
                   <button
                     onClick={() => setChartView("net")}
                     className={`px-3 py-1 transition-colors ${chartView === "net" ? "bg-brand-600 text-white" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}
@@ -256,7 +256,6 @@ export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewPr
                           width={48}
                         />
                         <Tooltip content={CustomTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-                        <Legend wrapperStyle={{ paddingTop: "12px" }} formatter={legendFormatter} />
                         <Bar
                           dataKey={ltdLabel}
                           stackId="a"
@@ -281,6 +280,11 @@ export function DisabilityOutputView({ outputs, inputs }: DisabilityOutputViewPr
                   </div>
                   <div className="mt-1 text-center">
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Age</span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+                    <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400"><span className="inline-block h-2.5 w-4 rounded-sm bg-[#3b82f6]" />{ltdLabel}</span>
+                    <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400"><span className="inline-block h-2.5 w-4 rounded-sm bg-[#06b6d4]" />Individual DI</span>
+                    <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400"><span className="inline-block h-2.5 w-4 rounded-sm bg-[#ef4444]" />Income Gap</span>
                   </div>
                 </div>
               </div>

@@ -46,8 +46,8 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
         {/* ── Chart panel ─────────────────────────────────────────────── */}
         <Card className="module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
           <CardHeader className="shrink-0 px-6 pb-0 pt-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
+            <div className="relative flex items-start justify-center">
+              <div className="text-center">
                 <CardTitle className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">
                   Liability Protection Stack
                 </CardTitle>
@@ -56,7 +56,7 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
                 </p>
               </div>
               {/* Coverage ratio badge */}
-              <div className="shrink-0 rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2 text-right">
+              <div className="absolute right-0 top-0 shrink-0 rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2 text-right">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Covered</p>
                 <p className={`text-lg font-bold leading-tight ${coveragePct >= 100 ? "text-emerald-400" : coveragePct >= 50 ? "text-amber-400" : "text-rose-400"}`}>
                   {coveragePct.toFixed(0)}%

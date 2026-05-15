@@ -101,7 +101,7 @@ export function AppShell() {
       )}
 
       <main className="pt-16">
-        <div className="mx-auto max-w-400 px-8 py-8">
+        <div className="mx-auto max-w-400 px-8 py-10 sm:px-12">
           <Outlet />
         </div>
       </main>

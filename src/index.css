@@ -137,6 +137,7 @@
 
   .module-output-container {
     container-type: inline-size;
+    padding-block: 0.5rem;
   }
 
   @keyframes chart-reveal {
