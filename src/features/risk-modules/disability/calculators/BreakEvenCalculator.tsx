@@ -98,6 +98,34 @@ interface BreakEvenChartPoint {
   remainingGap: number
 }
 
+type ChartRange = "breakeven" | "plus12" | "plus24" | "10y" | "20y" | "full"
+
+const CHART_RANGE_OPTIONS: { value: ChartRange; label: string }[] = [
+  { value: "breakeven", label: "To Break-Even" },
+  { value: "plus12", label: "+1 Year" },
+  { value: "plus24", label: "+2 Years" },
+  { value: "10y", label: "10 Years" },
+  { value: "20y", label: "20 Years" },
+  { value: "full", label: "Full" },
+]
+
+function getChartEndMonth(range: ChartRange, result: Extract<ReturnType<typeof calculateBreakEven>, { ok: true }>): number {
+  switch (range) {
+    case "breakeven":
+      return result.roundedBreakEvenMonths
+    case "plus12":
+      return result.roundedBreakEvenMonths + 12
+    case "plus24":
+      return result.roundedBreakEvenMonths + 24
+    case "10y":
+      return 120
+    case "20y":
+      return 240
+    case "full":
+      return result.schedule.length
+  }
+}
+
 function BreakEvenTooltip({ active, payload, label }: BreakEvenTooltipProps) {
   if (!active || !payload?.length) return null
 
@@ -131,6 +159,7 @@ export function BreakEvenCalculator() {
   const [monthlyBenefit, setMonthlyBenefit] = useState("10000")
   const [annualRateOfReturn, setAnnualRateOfReturn] = useState("6")
   const [monthsWithoutIncome, setMonthsWithoutIncome] = useState("12")
+  const [chartRange, setChartRange] = useState<ChartRange>("plus24")
 
   const handleCurrencyChange = useCallback(
     (setter: (v: string) => void) => (value: string) => validateNonNegative(value, setter),
@@ -155,9 +184,10 @@ export function BreakEvenCalculator() {
   const visibleRows = result.ok
     ? result.schedule.filter((row) => row.month <= Math.min(result.schedule.length, 12) || row.month % 24 === 0 || row.month === result.roundedBreakEvenMonths)
     : []
+  const chartEndMonth = result.ok ? Math.min(getChartEndMonth(chartRange, result), result.schedule.length) : 0
   const chartData: BreakEvenChartPoint[] = result.ok
     ? result.schedule
-        .filter((row) => row.month <= result.roundedBreakEvenMonths + 24)
+        .filter((row) => row.month <= chartEndMonth)
         .map((row) => ({
           month: row.month,
           "Self-Insurance Balance": row.investmentBalance,
@@ -256,12 +286,25 @@ export function BreakEvenCalculator() {
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Self-Insurance Break-Even Curve</p>
                   <p className="mt-1 text-xs text-gray-500">
-                    Premiums compound until the self-insurance balance reaches the benefit need.
+                    Showing months 1-{chartEndMonth}. Premiums compound until the self-insurance balance reaches the benefit need.
                   </p>
                 </div>
-                <p className="shrink-0 text-xs font-semibold text-blue-300">
-                  Break-even month {result.roundedBreakEvenMonths}
-                </p>
+                <div className="flex shrink-0 flex-wrap justify-end gap-1 rounded-lg border border-gray-800 bg-[#090E1A] p-1">
+                  {CHART_RANGE_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setChartRange(option.value)}
+                      className={`rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                        chartRange === option.value
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-400 hover:bg-gray-900 hover:text-gray-100"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="h-80 w-full">
                 <ResponsiveContainer width="100%" height="100%">

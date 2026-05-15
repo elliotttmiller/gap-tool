@@ -114,8 +114,8 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
         className={cx(
           "relative grid w-full min-w-0 items-start gap-5 transition-[grid-template-columns,gap] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:gap-6",
           inputsOpen
-            ? "xl:grid-cols-[minmax(24rem,28rem)_1.75rem_minmax(0,1fr)]"
-            : "xl:grid-cols-[0rem_1.75rem_minmax(0,1fr)] xl:gap-x-3",
+            ? "xl:grid-cols-[minmax(24rem,28rem)_1.25rem_minmax(0,1fr)]"
+            : "xl:grid-cols-[0rem_1.25rem_minmax(0,1fr)] xl:gap-x-0",
         )}
       >
         <div
@@ -133,7 +133,10 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
             aria-label={inputsOpen ? "Collapse input forms" : "Expand input forms"}
             aria-expanded={inputsOpen}
             onClick={() => setInputsOpen((open) => !open)}
-            className="flex h-9 w-7 items-center justify-center rounded-full border border-slate-700 bg-slate-950/95 text-slate-400 shadow-lg shadow-black/30 transition-colors hover:border-brand-600 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-500"
+            className={cx(
+              "flex h-9 w-6 items-center justify-center border border-slate-700/70 bg-slate-950/35 text-slate-400 shadow-lg shadow-black/20 backdrop-blur-md transition-colors hover:border-brand-500/80 hover:bg-brand-950/25 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-500",
+              inputsOpen ? "rounded-full" : "rounded-r-full border-l-0",
+            )}
           >
             {inputsOpen ? (
               <RiArrowLeftSLine className="size-5" aria-hidden="true" />

@@ -127,10 +127,7 @@ export function calculateBreakEven(inputs: BreakEvenInputs): BreakEvenResult {
   }
 
   const roundedBreakEvenMonths = Math.ceil(breakEvenMonths)
-  const scheduleMonths = Math.min(
-    MAX_SCHEDULE_MONTH,
-    Math.max(monthsWithoutIncome, roundedBreakEvenMonths),
-  )
+  const scheduleMonths = MAX_SCHEDULE_MONTH
   const schedule = buildSchedule({
     monthlyPremium,
     monthlyBenefit,

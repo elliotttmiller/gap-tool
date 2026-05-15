@@ -3,6 +3,16 @@ import { Card, CardContent } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import { getUnemploymentNarrative } from "../constants/moduleCopy"
 import { AnimatedSection } from "@/components/ui/animated-section"
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts"
 
 interface UnemploymentOutputViewProps {
   outputs: UnemploymentOutputs
@@ -13,136 +23,213 @@ function formatCompactCurrency(value: number): string {
     style: "currency",
     currency: "USD",
     notation: "compact",
-    maximumFractionDigits: 0,
+    maximumFractionDigits: 1,
   }).format(value)
 }
 
-function ReserveBucketGauge({ outputs }: { outputs: UnemploymentOutputs }) {
-  const maxTarget = Math.max(outputs.optimalReserveTarget, 1)
-  const reserveRatio = Math.min(Math.max(outputs.currentReserveLevel / maxTarget, 0), 1)
-  const reserveHeight = reserveRatio * 256
-  const reserveY = 288 - reserveHeight
-  const currentReserveMonths = outputs.monthlyIncome > 0 ? outputs.currentReserveLevel / outputs.monthlyIncome : 0
+function formatMonths(value: number): string {
+  return `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 }).format(value)} mo`
+}
+
+function MetricCard({
+  label,
+  value,
+  tone = "neutral",
+}: {
+  label: string
+  value: string
+  tone?: "neutral" | "good" | "warn" | "bad"
+}) {
+  const color = {
+    neutral: "text-slate-50",
+    good: "text-emerald-300",
+    warn: "text-amber-300",
+    bad: "text-red-300",
+  }[tone]
 
   return (
-    <div className="w-full overflow-hidden rounded-2xl border border-slate-800/90 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.10),rgba(15,23,42,0)_42%),linear-gradient(180deg,rgba(15,23,42,0.96),rgba(2,6,23,0.98))] p-5 shadow-2xl shadow-black/20">
-      <svg viewBox="0 0 760 420" className="h-auto w-full" role="img" aria-label="Emergency reserve savings bucket showing minimum and optimal reserve targets">
-        <defs>
-          <linearGradient id="reserveBucketFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#34d399" stopOpacity="0.98" />
-            <stop offset="48%" stopColor="#22d3ee" stopOpacity="0.88" />
-            <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.86" />
-          </linearGradient>
-          <linearGradient id="reserveBucketShell" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#1e293b" stopOpacity="0.98" />
-            <stop offset="100%" stopColor="#0f172a" stopOpacity="0.98" />
-          </linearGradient>
-          <linearGradient id="idealRange" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#22c55e" stopOpacity="0.24" />
-            <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.18" />
-          </linearGradient>
-          <linearGradient id="dangerRange" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#f97316" stopOpacity="0.12" />
-            <stop offset="100%" stopColor="#ef4444" stopOpacity="0.24" />
-          </linearGradient>
-          <filter id="bucketGlow" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="10" result="blur" />
-            <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.06 0 0 0 0 0.70 0 0 0 0 0.90 0 0 0 .26 0" />
-            <feBlend in="SourceGraphic" />
-          </filter>
-        </defs>
+    <Card className="h-full border-slate-800/90 bg-slate-950/70">
+      <CardContent className="p-4">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">{label}</div>
+        <div className={`mt-2 text-2xl font-bold tracking-tight ${color}`}>{value}</div>
+      </CardContent>
+    </Card>
+  )
+}
 
-        <g transform="translate(92 44)">
-          <text x="-14" y="12" textAnchor="end" fill="#e5e7eb" fontSize="20" fontWeight="800">6mo</text>
-          <text x="-14" y="144" textAnchor="end" fill="#e5e7eb" fontSize="20" fontWeight="800">3mo</text>
-          <text x="-14" y="276" textAnchor="end" fill="#94a3b8" fontSize="16" fontWeight="700">0mo</text>
+function TimelineTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null
+  const point = payload[0].payload
 
-          <rect x="0" y="0" width="294" height="288" rx="32" fill="url(#reserveBucketShell)" stroke="#334155" strokeWidth="1.5" />
-          <rect x="12" y="12" width="270" height="132" rx="24" fill="url(#idealRange)" />
-          <rect x="12" y="144" width="270" height="132" rx="24" fill="url(#dangerRange)" />
-          <line x1="0" y1="144" x2="294" y2="144" stroke="#e2e8f0" strokeOpacity="0.72" strokeWidth="2" strokeDasharray="10 10" />
-
-          <clipPath id="bucketClip">
-            <rect x="12" y="12" width="270" height="264" rx="23" />
-          </clipPath>
-          <g clipPath="url(#bucketClip)">
-            <rect x="12" y={reserveY} width="270" height={reserveHeight} fill="url(#reserveBucketFill)" filter="url(#bucketGlow)">
-              <animate attributeName="height" from="0" to={reserveHeight} dur="900ms" begin="180ms" fill="freeze" />
-              <animate attributeName="y" from="288" to={reserveY} dur="900ms" begin="180ms" fill="freeze" />
-            </rect>
-            <rect x="12" y="12" width="270" height="264" fill="url(#idealRange)" opacity="0.16" />
-          </g>
-
-          <text x="147" y="90" textAnchor="middle" fill="#f8fafc" fontSize="22" fontWeight="900" letterSpacing="1.8">IDEAL RANGE</text>
-          <text x="147" y="116" textAnchor="middle" fill="#cbd5e1" fontSize="15" fontWeight="600">3 to 6 months</text>
-          <text x="147" y="218" textAnchor="middle" fill="#f8fafc" fontSize="18" fontWeight="800" letterSpacing="1.2">MINIMUM</text>
-          <text x="147" y="314" textAnchor="middle" fill="#64748b" fontSize="13" fontWeight="800" letterSpacing="3.2">EMERGENCY RESERVE SAVINGS BUCKET</text>
-        </g>
-
-        <g transform="translate(440 48)">
-          <line x1="0" y1="0" x2="42" y2="0" stroke="#22c55e" strokeWidth="2" />
-          <text x="54" y="-8" fill="#22c55e" fontSize="15" fontWeight="900" letterSpacing="1.2">OPTIMAL TARGET</text>
-          <text x="54" y="25" fill="#f8fafc" fontSize="34" fontWeight="900">{formatCompactCurrency(outputs.optimalReserveTarget)}</text>
-          <text x="54" y="50" fill="#94a3b8" fontSize="16" fontWeight="600">6 months of income</text>
-        </g>
-
-        <g transform="translate(440 182)">
-          <line x1="0" y1="0" x2="42" y2="0" stroke="#f59e0b" strokeWidth="2" strokeDasharray="7 7" />
-          <text x="54" y="-8" fill="#22d3ee" fontSize="15" fontWeight="900" letterSpacing="1.2">MINIMUM RESERVE</text>
-          <text x="54" y="25" fill="#f8fafc" fontSize="34" fontWeight="900">{formatCompactCurrency(outputs.minimumReserveTarget)}</text>
-          <text x="54" y="50" fill="#94a3b8" fontSize="16" fontWeight="600">3 months of income</text>
-        </g>
-
-        <g transform="translate(440 316)">
-          <line x1="0" y1="0" x2="42" y2="0" stroke="#ef4444" strokeWidth="2" />
-          <text x="54" y="-8" fill="#ef4444" fontSize="15" fontWeight="900" letterSpacing="1.2">DANGER ZONE</text>
-          <text x="54" y="22" fill="#94a3b8" fontSize="16" fontWeight="600">Below 3 months</text>
-        </g>
-
-        <text x="92" y="390" fill="#64748b" fontSize="13" fontWeight="700">
-          Current reserve: {formatCompactCurrency(outputs.currentReserveLevel)} ({currentReserveMonths.toFixed(1)} months)
-        </text>
-      </svg>
+  return (
+    <div className="min-w-52 rounded-lg border border-slate-700 bg-slate-950 p-3 text-xs shadow-xl">
+      <p className="mb-2 font-semibold text-slate-100">Month {label}</p>
+      <div className="space-y-1">
+        <div className="flex justify-between gap-4">
+          <span className="text-slate-400">Reserve Balance</span>
+          <span className="font-mono text-slate-100">{formatCurrency(point.reserveBalance)}</span>
+        </div>
+        <div className="flex justify-between gap-4">
+          <span className="text-slate-400">Available Income</span>
+          <span className="font-mono text-slate-100">{formatCurrency(point.availableIncome)}</span>
+        </div>
+        <div className="flex justify-between gap-4">
+          <span className="text-red-300">Shortfall</span>
+          <span className="font-mono text-slate-100">{formatCurrency(point.shortfall)}</span>
+        </div>
+      </div>
     </div>
   )
 }
 
-function MetricCard({ label, value, delay }: { label: string; value: string; delay: number }) {
+function ReserveRangePanel({ outputs }: { outputs: UnemploymentOutputs }) {
+  const reserveMonths = outputs.reserveMonthsCurrent
+  const reservePct = Math.min(Math.max(reserveMonths / 6, 0), 1) * 100
+  const status =
+    reserveMonths >= 6
+      ? { label: "Optimal", color: "text-emerald-300", bar: "bg-emerald-400" }
+      : reserveMonths >= 3
+        ? { label: "In Range", color: "text-cyan-300", bar: "bg-cyan-400" }
+        : { label: "Below Minimum", color: "text-red-300", bar: "bg-red-400" }
+
   return (
-    <AnimatedSection delay={delay}>
-      <Card className="h-full border-slate-800/90 bg-slate-950/70 shadow-lg shadow-black/10">
-        <CardContent className="flex h-full flex-col justify-between p-5">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">{label}</div>
-          <div className="mt-3 text-2xl font-bold tracking-tight text-slate-50">{value}</div>
-        </CardContent>
-      </Card>
-    </AnimatedSection>
+    <Card className="h-full border-slate-800/90 bg-[linear-gradient(180deg,rgba(15,23,42,0.94),rgba(2,6,23,0.96))]">
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">Reserve Position</p>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-4xl font-bold text-slate-50">{formatMonths(reserveMonths)}</span>
+              <span className={`text-sm font-semibold uppercase tracking-wider ${status.color}`}>{status.label}</span>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Current Reserve</p>
+            <p className="mt-1 text-2xl font-bold text-slate-50">{formatCompactCurrency(outputs.currentReserveLevel)}</p>
+          </div>
+        </div>
+
+        <div className="mt-6 space-y-3">
+          <div className="relative h-4 overflow-hidden rounded-full bg-slate-800">
+            <div className="absolute inset-y-0 left-0 w-1/2 bg-red-500/20" />
+            <div className="absolute inset-y-0 left-1/2 w-1/2 bg-emerald-500/20" />
+            <div
+              className={`relative h-full rounded-full ${status.bar} shadow-[0_0_18px_rgba(34,211,238,0.28)] transition-[width] duration-700`}
+              style={{ width: `${reservePct}%` }}
+            />
+          </div>
+          <div className="grid grid-cols-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+            <span>0 mo</span>
+            <span className="text-center">3 mo minimum</span>
+            <span className="text-right">6 mo optimal</span>
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <div className="rounded-lg border border-amber-900/40 bg-amber-950/10 p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-300">Minimum Target</p>
+            <p className="mt-1 text-xl font-bold text-slate-50">{formatCompactCurrency(outputs.minimumReserveTarget)}</p>
+          </div>
+          <div className="rounded-lg border border-emerald-900/40 bg-emerald-950/10 p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-300">Optimal Target</p>
+            <p className="mt-1 text-xl font-bold text-slate-50">{formatCompactCurrency(outputs.optimalReserveTarget)}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function ReserveTimelineChart({ outputs }: { outputs: UnemploymentOutputs }) {
+  const data = outputs.timeline.map((point) => ({
+    ...point,
+    minimumTarget: outputs.minimumReserveTarget,
+  }))
+
+  return (
+    <Card className="h-full border-slate-800/90 bg-slate-950/70">
+      <CardContent className="p-5">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">Reserve Runway</p>
+            <p className="mt-1 text-xs text-slate-500">Projected balance through the job-search period.</p>
+          </div>
+          <p className="text-xs font-semibold text-slate-400">
+            {outputs.reserveDepletionMonth < 0 ? "No depletion" : `Depletes month ${outputs.reserveDepletionMonth}`}
+          </p>
+        </div>
+        <div className="h-64 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="reserveBalanceFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.42} />
+                  <stop offset="100%" stopColor="#22d3ee" stopOpacity={0.03} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid stroke="#1f2937" strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="month" tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} axisLine={false} />
+              <YAxis
+                width={56}
+                tick={{ fill: "#64748b", fontSize: 11 }}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(value) => `$${Math.round(Number(value) / 1000)}k`}
+              />
+              <Tooltip content={<TimelineTooltip />} cursor={{ stroke: "#475569", strokeDasharray: "4 4" }} />
+              <ReferenceLine y={outputs.minimumReserveTarget} stroke="#f59e0b" strokeDasharray="4 4" />
+              <Area
+                type="monotone"
+                dataKey="reserveBalance"
+                stroke="#22d3ee"
+                strokeWidth={3}
+                fill="url(#reserveBalanceFill)"
+                dot={false}
+                activeDot={{ r: 4, stroke: "#a5f3fc", strokeWidth: 2, fill: "#0891b2" }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
 export function UnemploymentOutputView({ outputs }: UnemploymentOutputViewProps) {
+  const reserveTone = outputs.reserveMonthsCurrent >= 3 ? "good" : "bad"
+  const depletionTone = outputs.reserveDepletionMonth < 0 ? "good" : "warn"
+  const shortfallTone = outputs.totalUncoveredShortfall > 0 ? "bad" : "good"
+
   return (
-    <div className="flex h-full w-full flex-col space-y-6">
+    <div className="flex h-full w-full flex-col space-y-4">
       <AnimatedSection delay={0}>
-        <ReserveBucketGauge outputs={outputs} />
+        <div className="grid gap-3 xl:grid-cols-4">
+          <MetricCard label="Current Reserve" value={formatCompactCurrency(outputs.currentReserveLevel)} tone={reserveTone} />
+          <MetricCard label="Reserve Months" value={formatMonths(outputs.reserveMonthsCurrent)} tone={reserveTone} />
+          <MetricCard label="Cash Depletion" value={outputs.reserveDepletionMonth < 0 ? "Never" : `Month ${outputs.reserveDepletionMonth}`} tone={depletionTone} />
+          <MetricCard label="Total Shortfall" value={formatCompactCurrency(outputs.totalUncoveredShortfall)} tone={shortfallTone} />
+        </div>
       </AnimatedSection>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Monthly Income" value={formatCompactCurrency(outputs.monthlyIncome)} delay={0.12} />
-        <MetricCard label="Minimum Reserve" value={formatCompactCurrency(outputs.minimumReserveTarget)} delay={0.2} />
-        <MetricCard label="Optimal Reserve" value={formatCompactCurrency(outputs.optimalReserveTarget)} delay={0.28} />
-        <MetricCard label="Annual Income at Risk" value={formatCompactCurrency(outputs.annualIncomeAtRisk)} delay={0.36} />
-      </div>
+      <AnimatedSection delay={0.12}>
+        <div className="grid gap-4 2xl:grid-cols-[0.95fr_1.05fr]">
+          <ReserveRangePanel outputs={outputs} />
+          <ReserveTimelineChart outputs={outputs} />
+        </div>
+      </AnimatedSection>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <MetricCard label="Current Reserve" value={formatCurrency(outputs.currentReserveLevel)} delay={0.44} />
-        <MetricCard label="Cash Depletion" value={outputs.reserveDepletionMonth < 0 ? "Never" : `Month ${outputs.reserveDepletionMonth}`} delay={0.52} />
-        <MetricCard label="Total Shortfall" value={formatCurrency(outputs.totalUncoveredShortfall)} delay={0.6} />
-      </div>
+      <AnimatedSection delay={0.24}>
+        <div className="grid gap-3 xl:grid-cols-[repeat(4,minmax(0,1fr))]">
+          <MetricCard label="Monthly Income" value={formatCompactCurrency(outputs.monthlyIncome)} />
+          <MetricCard label="Monthly Burn Rate" value={formatCompactCurrency(outputs.monthlyBurnRate)} />
+          <MetricCard label="Minimum Reserve" value={formatCompactCurrency(outputs.minimumReserveTarget)} />
+          <MetricCard label="Optimal Reserve" value={formatCompactCurrency(outputs.optimalReserveTarget)} />
+        </div>
+      </AnimatedSection>
 
-      <AnimatedSection delay={0.68}>
+      <AnimatedSection delay={0.32}>
         <Card className="border border-slate-800/90 bg-[#090E1A]">
-          <CardContent className="p-6">
+          <CardContent className="p-5">
             <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-blue-400">Advisor Narrative</h4>
             <p className="text-sm leading-relaxed text-gray-300">{getUnemploymentNarrative(outputs)}</p>
           </CardContent>
