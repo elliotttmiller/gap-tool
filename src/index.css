@@ -87,5 +87,104 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  .liability-output-container {
+    container-type: inline-size;
+  }
+
+  .liability-dashboard {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .liability-metric-rail {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    order: 2;
+  }
+
+  .liability-chart-panel {
+    order: 1;
+    min-width: 0;
+  }
+
+  .liability-chart-card {
+    height: auto;
+  }
+
+  @container (min-width: 760px) {
+    .liability-dashboard {
+      grid-template-columns: minmax(0, 1fr) minmax(13.5rem, 16rem);
+      align-items: start;
+    }
+
+    .liability-chart-panel {
+      order: 1;
+    }
+
+    .liability-metric-rail {
+      order: 2;
+      grid-template-columns: minmax(0, 1fr);
+      align-content: start;
+      gap: 0.75rem;
+    }
+  }
+
+  .liability-metric-rail > * {
+    min-height: 0;
+  }
+
+  .module-output-container {
+    container-type: inline-size;
+  }
+
+  .module-visual-dashboard {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .disability-coverage-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .module-visual-panel {
+    min-width: 0;
+  }
+
+  .module-metric-rail {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .module-kpi-card {
+    border-color: rgb(30 41 59 / 0.9);
+    background-color: rgb(2 6 23 / 0.7);
+  }
+
+  @container (min-width: 760px) {
+    .module-visual-dashboard {
+      grid-template-columns: minmax(0, 1fr) minmax(13.5rem, 17rem);
+      align-items: stretch;
+    }
+
+    .disability-coverage-grid {
+      grid-template-columns: minmax(12rem, 14rem) minmax(0, 1fr) minmax(13.5rem, 17rem);
+      align-items: start;
+    }
+
+    .module-visual-panel {
+      height: 100%;
+    }
+
+    .module-metric-rail {
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+      align-content: start;
+      gap: 0.75rem;
+    }
+  }
 }
 

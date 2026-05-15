@@ -58,20 +58,38 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
   const scenario = useAppStore((state) =>
     scenarioId ? state.scenarios.find((s) => s.id === scenarioId) : undefined,
   )
+  const client = useAppStore((state) =>
+    scenario ? state.clients.find((c) => c.id === scenario.clientId) : undefined,
+  )
   const setActiveModule = useAppStore((state) => state.setScenarioActiveModule)
   const includedTabs = scenario?.includedModules ?? []
 
   return (
-    <div className="w-full max-w-full space-y-6 overflow-x-hidden">
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-gray-800 pb-4">
+    <div className="w-full max-w-full space-y-3 overflow-x-hidden">
+      {/* ── Module header ──────────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-800 pb-3">
+        {/* Left: title + subtitle */}
         <div className="min-w-0">
-          <h2 className="text-xl font-semibold text-gray-50">{title}</h2>
-          <p className="text-sm text-gray-400 mt-1">{subtitle}</p>
+          <h2 className="text-base font-semibold text-gray-50">{title}</h2>
+          <p className="mt-0.5 text-xs text-gray-500">{subtitle}</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        {/* Centre: client name + updated */}
+        {client && scenario ? (
+          <div className="flex flex-col items-center gap-0.5 text-center">
+            <span className="text-xs font-semibold tracking-tight text-slate-300">
+              {client.displayName} Household Review
+            </span>
+            <span className="text-[10px] text-slate-600">
+              Updated: {new Date(scenario.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+            </span>
+          </div>
+        ) : null}
+
+        {/* Right: module tabs + actions */}
+        <div className="flex flex-wrap items-center gap-2">
           {includedTabs.length > 1 && scenarioId ? (
-            <div className="scrollbar-hide flex max-w-full items-center gap-1.5 overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70 p-1.5">
+            <div className="scrollbar-hide flex max-w-full items-center gap-1 overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/70 p-1">
               {includedTabs.map((module) => {
                 const tab = tabConfig[module]
                 if (!tab) return null
@@ -82,7 +100,7 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
                     onClick={() => setActiveModule(scenarioId, module)}
                     className={({ isActive }) =>
                       cx(
-                        "inline-flex min-h-9 items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all",
+                        "inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-semibold transition-all",
                         isActive
                           ? "bg-brand-950/70 text-white shadow-sm ring-1 ring-brand-700/70"
                           : "text-slate-400 hover:bg-slate-900 hover:text-slate-100",
@@ -96,12 +114,12 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
             </div>
           ) : null}
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {headerActions}
             {scenarioId ? (
-              <Button variant="secondary" asChild className="h-10 w-10 rounded-xl p-0">
+              <Button variant="secondary" asChild className="h-8 w-8 rounded-lg p-0">
                 <Link to={`/present/${scenarioId}`} aria-label="Presentation mode" title="Presentation mode">
-                  <RiSlideshow3Line className="size-5" aria-hidden="true" />
+                  <RiSlideshow3Line className="size-4" aria-hidden="true" />
                   <span className="sr-only">Presentation mode</span>
                 </Link>
               </Button>

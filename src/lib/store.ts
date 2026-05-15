@@ -159,6 +159,8 @@ function prefillDisabilityInputs(profile: ClientFinancialProfile, clientId: stri
     ltdTaxable: true,
     privateDiBenefitMonthly: profile.privateDisabilityBenefitMonthly ?? 0,
     privateDiBenefitPeriod: "",
+    breakEvenRateOfReturn: 0.06,
+    breakEvenMonthsWithoutIncome: 12,
   }
 }
 

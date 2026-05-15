@@ -155,6 +155,32 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
               ))}
             </select>
           </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="breakEvenRateOfReturn">Break-Even Rate of Return</Label>
+            <Input
+              id="breakEvenRateOfReturn"
+              type="number"
+              min={0}
+              max={30}
+              step={0.1}
+              suffix="%"
+              value={inputs.breakEvenRateOfReturn !== undefined ? Math.round(inputs.breakEvenRateOfReturn * 1000) / 10 : ""}
+              className="w-full"
+              onChange={(e) => handlePercent("breakEvenRateOfReturn", e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="breakEvenMonthsWithoutIncome">Months Without Income</Label>
+            <Input
+              id="breakEvenMonthsWithoutIncome"
+              type="number"
+              min={1}
+              step={1}
+              value={inputs.breakEvenMonthsWithoutIncome || ""}
+              className="w-full"
+              onChange={(e) => handleNumber("breakEvenMonthsWithoutIncome", e.target.value)}
+            />
+          </div>
       </CollapsibleInputSection>
     </div>
   )

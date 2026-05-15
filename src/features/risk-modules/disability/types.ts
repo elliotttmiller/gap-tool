@@ -27,6 +27,12 @@ export type DisabilityInputs = {
   privateDiBenefitPeriod: DiBenefitPeriod | "";
   /** Monthly premium paid for the individual DI policy (optional, defaults to 0). */
   privateDiMonthlyPremium?: number;
+
+  // ── Break-Even Calculator ─────────────────────────────────────────────────
+  /** Annual rate of return used in the break-even self-insurance calculation (e.g. 0.06 = 6%). */
+  breakEvenRateOfReturn?: number;
+  /** Number of months without income used in the break-even calculation. */
+  breakEvenMonthsWithoutIncome?: number;
 };
 
 export type DisabilityAssumptions = {

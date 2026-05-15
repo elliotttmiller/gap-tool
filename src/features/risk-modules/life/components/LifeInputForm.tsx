@@ -106,7 +106,7 @@ export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
           </div>
       </CollapsibleInputSection>
 
-      <CollapsibleInputSection title="Optional Advanced Life Needs" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
+      <CollapsibleInputSection title="Optional Advanced Life Needs" defaultOpen={false} contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor="debtsTotal">Outstanding Debts</Label>
             <AffixedInput id="debtsTotal" type="number" prefix="$" value={inputs.debtsTotal || ""} className="w-full" onChange={(e) => handleNumberChange("debtsTotal", e.target.value)} />

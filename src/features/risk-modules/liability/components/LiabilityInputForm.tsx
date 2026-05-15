@@ -16,7 +16,7 @@ export function LiabilityInputForm({ inputs, onChange }: LiabilityInputFormProps
 
   return (
     <div className="space-y-4">
-      <CollapsibleInputSection title="Advisor Reference Lawsuit Inputs" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
+      <CollapsibleInputSection title="Reference Lawsuit Inputs" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor="annualIncome">Primary Earner Annual Income</Label>
             <Input id="annualIncome" type="number" prefix="$" value={inputs.annualIncome || ""} className="w-full" onChange={(e) => handleChange("annualIncome", e.target.value)} />
@@ -47,7 +47,7 @@ export function LiabilityInputForm({ inputs, onChange }: LiabilityInputFormProps
           </div>
       </CollapsibleInputSection>
 
-      <CollapsibleInputSection title="Optional Extended Asset Inputs" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
+      <CollapsibleInputSection title="Optional Extended Asset Inputs" defaultOpen={false} contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor="homeValue">Primary Home Value</Label>
             <Input id="homeValue" type="number" prefix="$" value={inputs.homeValue || ""} className="w-full" onChange={(e) => handleChange("homeValue", e.target.value)} />
