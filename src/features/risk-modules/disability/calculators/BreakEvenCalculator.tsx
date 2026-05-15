@@ -268,7 +268,7 @@ export function BreakEvenCalculator({
                     </div>
                   </div>
 
-                {/* ── Input context bar: 3 inputs ──────────────────────── */}
+                {/* ── Input context bar: 4 inputs ──────────────────────── */}
                 <div className="mt-4 flex overflow-hidden rounded-lg border border-slate-800/60 bg-slate-950/40">
                   <div className="flex flex-1 flex-col items-center gap-0.5 px-3 py-2.5">
                     <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-600">Monthly Premium</span>
@@ -283,6 +283,11 @@ export function BreakEvenCalculator({
                   <div className="flex flex-1 flex-col items-center gap-0.5 px-3 py-2.5">
                     <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-600">Annual Return</span>
                     <span className="text-sm font-bold text-emerald-300">{formatPlainPercent(result.annualRateOfReturn)}</span>
+                  </div>
+                  <div className="w-px self-stretch bg-slate-800/60" />
+                  <div className="flex flex-1 flex-col items-center gap-0.5 px-3 py-2.5">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-600">Mo. Without Income</span>
+                    <span className="text-sm font-bold text-slate-200">{result.monthsWithoutIncome}</span>
                   </div>
                 </div>
 
