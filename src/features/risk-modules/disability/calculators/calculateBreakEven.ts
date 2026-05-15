@@ -3,7 +3,7 @@
  *
  * Mirrors docs/advisor-references/Calculator.xlsx:
  * - Presentation!H44 = 'Prem v Self'!T7
- * - Prem v Self!T7 = VLOOKUP(monthsWithoutIncome, monthly benefit schedule)
+ * - Prem v Self!T7 = VLOOKUP(monthsWithoutIncome, Q3:R82, 2) // capped at 80 months
  * - Presentation!H46 = NPER(rateOfReturn / 12, monthlyPremium, 0, -benefitsReceived)
  * - Presentation!H48 = breakEvenMonths / 12
  */
@@ -48,6 +48,7 @@ export interface BreakEvenOutputs {
 }
 
 const MAX_SCHEDULE_MONTH = 1200
+const MAX_BENEFIT_LOOKUP_MONTH = 80
 
 function excelNper(rate: number, payment: number, presentValue: number, futureValue: number): number {
   if (rate === 0) {
@@ -55,6 +56,11 @@ function excelNper(rate: number, payment: number, presentValue: number, futureVa
   }
 
   return Math.log((payment - futureValue * rate) / (payment + presentValue * rate)) / Math.log(1 + rate)
+}
+
+function lookupBenefitsReceived(monthlyBenefit: number, monthsWithoutIncome: number): number {
+  const lookupMonth = Math.min(monthsWithoutIncome, MAX_BENEFIT_LOOKUP_MONTH)
+  return monthlyBenefit * lookupMonth
 }
 
 function buildSchedule(inputs: {
@@ -119,7 +125,7 @@ export function calculateBreakEven(inputs: BreakEvenInputs): BreakEvenResult {
 
   const monthlyRateOfReturn = annualRateOfReturn / 12
   const monthlyReturnFactor = 1 + monthlyRateOfReturn
-  const benefitsReceived = monthlyBenefit * monthsWithoutIncome
+  const benefitsReceived = lookupBenefitsReceived(monthlyBenefit, monthsWithoutIncome)
   const breakEvenMonths = excelNper(monthlyRateOfReturn, monthlyPremium, 0, -benefitsReceived)
 
   if (!Number.isFinite(breakEvenMonths) || breakEvenMonths <= 0) {
