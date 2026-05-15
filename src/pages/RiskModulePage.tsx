@@ -2,7 +2,15 @@ import * as React from "react"
 import { Button } from "@/components/Button"
 import { DisclaimerBlock } from "@/components/global/DisclaimerBlock"
 import { Link, NavLink, useParams } from "react-router-dom"
-import { RiSlideshow3Line, RiHeartPulseLine, RiScalesLine, RiShieldCheckLine, RiUmbrellaLine } from "@remixicon/react"
+import {
+  RiArrowLeftSLine,
+  RiArrowRightSLine,
+  RiHeartPulseLine,
+  RiScalesLine,
+  RiShieldCheckLine,
+  RiSlideshow3Line,
+  RiUmbrellaLine,
+} from "@remixicon/react"
 import { useAppStore, RiskModuleType } from "@/lib/store"
 import { cx } from "@/lib/utils"
 
@@ -46,6 +54,7 @@ interface RiskModulePageProps {
  */
 export function RiskModulePage({ title, subtitle, headerActions, formSlot, outputSlot }: RiskModulePageProps) {
   const { scenarioId } = useParams()
+  const [inputsOpen, setInputsOpen] = React.useState(true)
   const scenario = useAppStore((state) =>
     scenarioId ? state.scenarios.find((s) => s.id === scenarioId) : undefined,
   )
@@ -101,11 +110,39 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
         </div>
       </div>
 
-      <div className="grid w-full min-w-0 items-start gap-5 transition-[gap] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:gap-6 xl:grid-cols-[minmax(24rem,28rem)_minmax(0,1fr)]">
-        <div className="min-w-0 w-full xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pr-1">
-          {formSlot}
+      <div
+        className={cx(
+          "relative grid w-full min-w-0 items-start gap-5 transition-[grid-template-columns,gap] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:gap-6",
+          inputsOpen
+            ? "xl:grid-cols-[minmax(24rem,28rem)_1.75rem_minmax(0,1fr)]"
+            : "xl:grid-cols-[0rem_1.75rem_minmax(0,1fr)] xl:gap-x-3",
+        )}
+      >
+        <div
+          className={cx(
+            "min-w-0 overflow-hidden transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+            inputsOpen ? "opacity-100 translate-x-0" : "pointer-events-none -translate-x-3 opacity-0",
+          )}
+          aria-hidden={!inputsOpen}
+        >
+          <div className="w-full min-w-[24rem] max-w-[28rem]">{formSlot}</div>
         </div>
-        <div className="min-w-0 w-full xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pr-1">
+        <div className="sticky top-24 z-20 hidden h-10 items-center xl:flex">
+          <button
+            type="button"
+            aria-label={inputsOpen ? "Collapse input forms" : "Expand input forms"}
+            aria-expanded={inputsOpen}
+            onClick={() => setInputsOpen((open) => !open)}
+            className="flex h-9 w-7 items-center justify-center rounded-full border border-slate-700 bg-slate-950/95 text-slate-400 shadow-lg shadow-black/30 transition-colors hover:border-brand-600 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-500"
+          >
+            {inputsOpen ? (
+              <RiArrowLeftSLine className="size-5" aria-hidden="true" />
+            ) : (
+              <RiArrowRightSLine className="size-5" aria-hidden="true" />
+            )}
+          </button>
+        </div>
+        <div className="min-w-0 w-full">
           {outputSlot}
         </div>
       </div>
