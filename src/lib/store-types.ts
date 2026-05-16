@@ -1,5 +1,5 @@
 import type { LifeInputs, LifeAssumptions, LifeOutputs, LifePolicyType } from "@/features/risk-modules/life/types"
-import type { DisabilityInputs, DisabilityAssumptions, DisabilityOutputs } from "@/features/risk-modules/disability/types"
+import type { DisabilityInputs, DisabilityAssumptions, DisabilityOutputs, DiBenefitPeriod } from "@/features/risk-modules/disability/types"
 import type { UnemploymentInputs, UnemploymentOutputs } from "@/features/risk-modules/unemployment/types"
 import type { LiabilityInputs, LiabilityOutputs } from "@/features/risk-modules/liability/types"
 
@@ -44,7 +44,14 @@ export interface ClientFinancialProfile {
   spouseNonQualifiedAssets?: number
   employerStdBenefitMonthly?: number
   employerLtdBenefitMonthly?: number
+  ltdCoveragePercent?: number
+  ltdMonthlyCap?: number
+  ltdTaxable?: boolean
   privateDisabilityBenefitMonthly?: number
+  privateDisabilityMonthlyPremium?: number
+  privateDisabilityBenefitPeriod?: DiBenefitPeriod | ""
+  disabilityBreakEvenRateOfReturn?: number
+  disabilityBreakEvenMonthsWithoutIncome?: number
   stateBenefitEstimateMonthly?: number
   homeValue?: number
   mortgageBalance?: number
@@ -139,6 +146,14 @@ export interface CreateClientPayload {
   privateLifePolicyType?: LifePolicyType
   privateLifeTermYears?: number
   nonQualifiedAssets?: number
+  ltdCoveragePercent?: number
+  ltdMonthlyCap?: number
+  ltdTaxable?: boolean
+  privateDisabilityBenefitMonthly?: number
+  privateDisabilityMonthlyPremium?: number
+  privateDisabilityBenefitPeriod?: DiBenefitPeriod | ""
+  disabilityBreakEvenRateOfReturn?: number
+  disabilityBreakEvenMonthsWithoutIncome?: number
   spouseName?: string
   spouseAge?: number
   spouseAnnualIncome?: number
