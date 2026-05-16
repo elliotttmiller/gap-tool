@@ -176,14 +176,9 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
       <div className="space-y-4">
         <Card className="border-gray-800 bg-gray-900/25">
           <CardContent className="p-4">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-gray-400">Policy Parameters</p>
-                <p className="mt-1 text-sm text-gray-500">Move the sliders live with the client to compare policy protection against self-funding the same disability event.</p>
-              </div>
-              <div className="rounded-full border border-brand-500/30 bg-brand-500/10 px-3 py-1 text-xs font-semibold text-brand-200">
-                Premium vs Self-Insured
-              </div>
+            <div className="mb-3">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-gray-400">Policy Parameters</p>
+              <p className="mt-1 text-sm text-gray-500">Move the sliders live with the client to compare policy protection against self-funding the same disability event.</p>
             </div>
             <div className="grid gap-3 xl:grid-cols-2">
               <SliderRow
