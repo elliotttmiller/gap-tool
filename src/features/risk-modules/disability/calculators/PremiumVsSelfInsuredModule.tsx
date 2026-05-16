@@ -35,6 +35,14 @@ interface PremiumChartPoint {
   remainingGap: number
 }
 
+interface DisabilityScenario {
+  year: number
+  fund: number
+  covered: boolean
+  delta: number
+  label: string
+}
+
 function roundToStep(value: number, step: number): number {
   if (!Number.isFinite(value)) return step
   return Math.round(value / step) * step
@@ -168,8 +176,19 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
     }))
   const yearOneFund = result.schedule[11]?.investmentBalance ?? 0
   const yearOneGap = Math.max(result.benefitsReceived - yearOneFund, 0)
-  const yearOneCoveragePct = result.benefitsReceived > 0 ? Math.min((yearOneFund / result.benefitsReceived) * 100, 100) : 0
   const scenarioYears = [1, 2, 5, 10]
+  const disabilityScenarios: DisabilityScenario[] = scenarioYears.map((year) => {
+    const fund = result.schedule[Math.min(year * 12 - 1, result.schedule.length - 1)]?.investmentBalance ?? 0
+    const covered = fund >= result.benefitsReceived
+    const delta = Math.abs(result.benefitsReceived - fund)
+    return {
+      year,
+      fund,
+      covered,
+      delta,
+      label: covered ? "Covered" : "Short",
+    }
+  })
 
   return (
     <div className="module-output-container">
@@ -281,54 +300,65 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                 </ResponsiveContainer>
               </div>
 
-              <div className="mt-4">
-                <div className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500">Year 1 protection coverage</div>
-                <div className="flex h-2 overflow-hidden rounded-full bg-gray-800">
-                  <div className="bg-[#1D9E75] transition-all duration-500" style={{ width: `${yearOneCoveragePct}%` }} />
-                  <div className="flex-1 bg-[#D85A30]" />
-                </div>
-                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-gray-500">
-                  <span><span className="mr-1 inline-block h-2 w-2 rounded-sm bg-[#1D9E75]" />Self-fund accumulated</span>
-                  <span><span className="mr-1 inline-block h-2 w-2 rounded-sm bg-[#D85A30]" />Unprotected gap</span>
-                </div>
-              </div>
-
               <div className="mt-4 rounded-r-xl border-l-4 border-[#D85A30] bg-gray-950/60 px-4 py-3 text-xs leading-5 text-gray-400">
                 Policy pays <strong className="font-semibold text-gray-100">{formatCurrency(result.benefitsReceived)}</strong> starting day one. Self-insuring at the selected assumptions reaches the same amount around <strong className="font-semibold text-amber-300">year {formatDecimal(result.breakEvenYears, 1)}</strong>, leaving a <strong className="font-semibold text-gray-100">{formatCurrency(yearOneGap)}</strong> year-1 gap.
               </div>
             </CardContent>
           </Card>
 
-          <div className="space-y-4">
-            <div>
-              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500">Key Metrics</div>
-              <div className="space-y-2">
-                <Card className="border-gray-800 bg-gray-900/25"><CardContent className="p-3"><p className="text-lg font-semibold text-emerald-300">{formatCurrency(result.benefitsReceived)}</p><p className="text-[10px] text-gray-500">Benefits with insurance</p></CardContent></Card>
-                <Card className="border-gray-800 bg-gray-900/25"><CardContent className="p-3"><p className="text-lg font-semibold text-gray-100">{formatCurrency(result.totalPremiumsToBreakEven)}</p><p className="text-[10px] text-gray-500">Premiums paid to break-even</p></CardContent></Card>
-                <Card className="border-gray-800 bg-gray-900/25"><CardContent className="p-3"><p className="text-lg font-semibold text-[#D85A30]">{formatCurrency(yearOneGap)}</p><p className="text-[10px] text-gray-500">Self-insure gap at year 1</p></CardContent></Card>
-                <Card className="border-gray-800 bg-gray-900/25"><CardContent className="p-3"><p className="text-lg font-semibold text-gray-100">Month {result.roundedBreakEvenMonths}</p><p className="text-[10px] text-gray-500">Break-even month</p></CardContent></Card>
-              </div>
-            </div>
-
-            <div>
-              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500">If disabled at...</div>
-              <div className="grid grid-cols-2 gap-2">
-                {scenarioYears.map((year) => {
-                  const fund = result.schedule[Math.min(year * 12 - 1, result.schedule.length - 1)]?.investmentBalance ?? 0
-                  const covered = fund >= result.benefitsReceived
-                  const delta = Math.abs(result.benefitsReceived - fund)
-                  return (
-                    <div key={year} className="rounded-lg border border-gray-800 bg-gray-950/50 p-2 text-center">
-                      <div className="mb-1 text-[9px] font-bold uppercase tracking-[0.14em] text-gray-600">Yr {year}</div>
-                      <div className={`text-xs font-semibold ${covered ? "text-emerald-300" : "text-[#D85A30]"}`}>{covered ? "Covered" : "Short"}</div>
-                      <div className="mt-0.5 text-[10px] text-gray-500">{covered ? "+" : "-"}{formatCompactCurrency(delta)}</div>
-                    </div>
-                  )
-                })}
-              </div>
+          <div>
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500">Key Metrics</div>
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+              <Card className="border-gray-800 bg-gray-900/25"><CardContent className="p-3"><p className="text-lg font-semibold text-emerald-300">{formatCurrency(result.benefitsReceived)}</p><p className="text-[10px] text-gray-500">Benefits with insurance</p></CardContent></Card>
+              <Card className="border-gray-800 bg-gray-900/25"><CardContent className="p-3"><p className="text-lg font-semibold text-gray-100">{formatCurrency(result.totalPremiumsToBreakEven)}</p><p className="text-[10px] text-gray-500">Premiums paid to break-even</p></CardContent></Card>
+              <Card className="border-gray-800 bg-gray-900/25"><CardContent className="p-3"><p className="text-lg font-semibold text-[#D85A30]">{formatCurrency(yearOneGap)}</p><p className="text-[10px] text-gray-500">Self-insure gap at year 1</p></CardContent></Card>
+              <Card className="border-gray-800 bg-gray-900/25"><CardContent className="p-3"><p className="text-lg font-semibold text-gray-100">Month {result.roundedBreakEvenMonths}</p><p className="text-[10px] text-gray-500">Break-even month</p></CardContent></Card>
             </div>
           </div>
         </div>
+
+        <Card className="border-gray-800 bg-gray-900/25">
+          <CardContent className="p-4">
+            <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500">If disabled after...</p>
+                <p className="mt-1 text-sm text-gray-500">How much of the modeled benefit need could be self-funded at each timing point.</p>
+              </div>
+              <div className="rounded-full border border-gray-800 bg-gray-950 px-3 py-1 text-[11px] font-semibold text-gray-400">
+                Benefit need: <span className="text-gray-100">{formatCurrency(result.benefitsReceived)}</span>
+              </div>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {disabilityScenarios.map((scenario) => {
+                const coveragePct = result.benefitsReceived > 0 ? Math.min((scenario.fund / result.benefitsReceived) * 100, 100) : 0
+                return (
+                  <div key={scenario.year} className="rounded-xl border border-gray-800 bg-gray-950/55 p-3">
+                    <div className="mb-2 flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-gray-600">Year {scenario.year}</p>
+                        <p className={`mt-1 text-sm font-semibold ${scenario.covered ? "text-emerald-300" : "text-[#D85A30]"}`}>{scenario.label}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-semibold text-gray-100">{scenario.covered ? "+" : "-"}{formatCompactCurrency(scenario.delta)}</p>
+                        <p className="text-[10px] text-gray-600">{scenario.covered ? "surplus" : "gap"}</p>
+                      </div>
+                    </div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-gray-800">
+                      <div
+                        className={`h-full transition-all duration-500 ${scenario.covered ? "bg-[#1D9E75]" : "bg-[#D85A30]"}`}
+                        style={{ width: `${coveragePct}%` }}
+                      />
+                    </div>
+                    <div className="mt-2 flex items-center justify-between text-[10px] text-gray-500">
+                      <span>Self-funded</span>
+                      <span className="font-mono text-gray-300">{formatCompactCurrency(scenario.fund)}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
