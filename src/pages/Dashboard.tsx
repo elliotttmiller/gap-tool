@@ -10,6 +10,7 @@ import {
   DrawerTrigger,
 } from "@/components/Drawer"
 import { Input } from "@/components/Input"
+import type { DiBenefitPeriod } from "@/features/risk-modules/disability/types"
 import { ClientRecord, RiskModuleType, useAppStore } from "@/lib/store"
 import { cx, formatDate } from "@/lib/utils"
 import {
@@ -33,6 +34,17 @@ const moduleLabel: Record<RiskModuleType, string> = {
 const advisorReferenceModules: RiskModuleType[] = ["life", "liability", "unemployment", "disability"]
 const allModuleTypes: RiskModuleType[] = ["life", "liability", "unemployment", "disability"]
 
+const selectClass = "h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50"
+
+const BENEFIT_PERIOD_OPTIONS: { value: DiBenefitPeriod | ""; label: string }[] = [
+  { value: "", label: "Select a period…" },
+  { value: "2y", label: "2 Years" },
+  { value: "5y", label: "5 Years" },
+  { value: "10y", label: "10 Years" },
+  { value: "A65", label: "To Age 65" },
+  { value: "A67", label: "To Age 67" },
+  { value: "A70", label: "To Age 70" },
+]
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return <p className="pt-2 text-xs font-semibold uppercase tracking-widest text-gray-500">{children}</p>
@@ -96,13 +108,36 @@ function AddClientDrawer() {
             <Input type="number" min={0} placeholder="Group Life death benefit ($)" value={form.groupLifeCoverage} onChange={(event) => setField("groupLifeCoverage", event.target.value)} />
             <Input type="number" min={0} placeholder="Private Life death benefit ($)" value={form.privateLifeCoverage} onChange={(event) => setField("privateLifeCoverage", event.target.value)} />
             <div className="col-span-2 grid grid-cols-2 gap-3">
-              <select value={form.privateLifePolicyType} onChange={(event) => setField("privateLifePolicyType", event.target.value as "term" | "permanent")} className="h-9 rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50">
+              <select value={form.privateLifePolicyType} onChange={(event) => setField("privateLifePolicyType", event.target.value as "term" | "permanent")} className={selectClass}>
                 <option value="term">Term</option>
                 <option value="permanent">Permanent</option>
               </select>
               {form.privateLifePolicyType === "term" ? <Input type="number" min={0} placeholder="Term length (years)" value={form.privateLifeTermYears} onChange={(event) => setField("privateLifeTermYears", event.target.value)} /> : <div />}
             </div>
             <Input type="number" min={0} placeholder="Non-qualified assets ($)" value={form.nonQualifiedAssets} onChange={(event) => setField("nonQualifiedAssets", event.target.value)} />
+          </div>
+
+          <SectionTitle>Group Long Term Disability (LTD)</SectionTitle>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Input type="number" min={0} max={100} step={1} placeholder="Coverage of Income (%)" value={form.ltdCoveragePercent} onChange={(event) => setField("ltdCoveragePercent", event.target.value)} />
+            <Input type="number" min={0} placeholder="Monthly Cap ($)" value={form.ltdMonthlyCap} onChange={(event) => setField("ltdMonthlyCap", event.target.value)} />
+            <select value={form.ltdTaxable ? "true" : "false"} onChange={(event) => setField("ltdTaxable", event.target.value === "true")} className="col-span-2 h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50">
+              <option value="true">Taxable? Yes — 70% of gross</option>
+              <option value="false">Taxable? No — full benefit</option>
+            </select>
+          </div>
+
+          <SectionTitle>Individual Disability Insurance</SectionTitle>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Input type="number" min={0} placeholder="Monthly Benefit ($)" value={form.privateDisabilityBenefitMonthly} onChange={(event) => setField("privateDisabilityBenefitMonthly", event.target.value)} />
+            <Input type="number" min={0} placeholder="Monthly Premium ($)" value={form.privateDisabilityMonthlyPremium} onChange={(event) => setField("privateDisabilityMonthlyPremium", event.target.value)} />
+            <select value={form.privateDisabilityBenefitPeriod} onChange={(event) => setField("privateDisabilityBenefitPeriod", event.target.value as DiBenefitPeriod | "")} className="col-span-2 h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50">
+              {BENEFIT_PERIOD_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+            <Input type="number" min={0} max={30} step={0.1} placeholder="Break-Even Rate of Return (%)" value={form.disabilityBreakEvenRateOfReturn} onChange={(event) => setField("disabilityBreakEvenRateOfReturn", event.target.value)} />
+            <Input type="number" min={1} step={1} placeholder="Months Without Income" value={form.disabilityBreakEvenMonthsWithoutIncome} onChange={(event) => setField("disabilityBreakEvenMonthsWithoutIncome", event.target.value)} />
           </div>
 
           {isCouple ? (
@@ -116,7 +151,7 @@ function AddClientDrawer() {
                 <Input type="number" min={0} placeholder="Secondary Private Life ($)" value={form.spousePrivateLifeCoverage} onChange={(event) => setField("spousePrivateLifeCoverage", event.target.value)} />
                 <Input type="number" min={0} placeholder="Secondary non-qualified assets ($)" value={form.spouseNonQualifiedAssets} onChange={(event) => setField("spouseNonQualifiedAssets", event.target.value)} />
                 <div className="col-span-2 grid grid-cols-2 gap-3">
-                  <select value={form.spousePrivateLifePolicyType} onChange={(event) => setField("spousePrivateLifePolicyType", event.target.value as "term" | "permanent")} className="h-9 rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50">
+                  <select value={form.spousePrivateLifePolicyType} onChange={(event) => setField("spousePrivateLifePolicyType", event.target.value as "term" | "permanent")} className={selectClass}>
                     <option value="term">Term</option>
                     <option value="permanent">Permanent</option>
                   </select>
