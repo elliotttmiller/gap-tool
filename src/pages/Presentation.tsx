@@ -36,6 +36,8 @@ function formatModuleGap(module: RiskModuleType, record: ScenarioModuleRecords) 
 
 type InputSpec = { label: string; value: string }
 
+type InputSpecVariant = "block" | "rail"
+
 function getPresentationInputSpecs(module: RiskModuleType, records: ScenarioModuleRecords): InputSpec[] {
   if (module === "life" && records.life) {
     const inputs = records.life.inputs
@@ -82,9 +84,41 @@ function getPresentationInputSpecs(module: RiskModuleType, records: ScenarioModu
   return []
 }
 
-function ModuleInputSpecs({ module, records }: { module: RiskModuleType; records: ScenarioModuleRecords }) {
+function ModuleInputSpecs({
+  module,
+  records,
+  variant = "block",
+}: {
+  module: RiskModuleType
+  records: ScenarioModuleRecords
+  variant?: InputSpecVariant
+}) {
   const specs = getPresentationInputSpecs(module, records)
   if (!specs.length) return null
+
+  if (variant === "rail") {
+    return (
+      <aside className="rounded-xl border border-gray-800 bg-gray-950/55 p-3.5 shadow-inner shadow-black/20 xl:sticky xl:top-0">
+        <div className="mb-3 flex items-center justify-between gap-3 border-b border-gray-800 pb-2.5">
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-gray-400">
+            Input Snapshot
+          </p>
+          <span className="rounded-full border border-gray-800 bg-[#090E1A] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+            Live Data
+          </span>
+        </div>
+        <div className="grid gap-2">
+          {specs.map((spec) => (
+            <div key={spec.label} className="rounded-lg border border-gray-800/90 bg-[#090E1A] px-3 py-2.5">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-gray-600">{spec.label}</p>
+              <p className="mt-1 truncate text-sm font-semibold leading-tight text-gray-100" title={spec.value}>{spec.value}</p>
+            </div>
+          ))}
+        </div>
+      </aside>
+    )
+  }
+
   return (
     <div className="mb-5 rounded-lg border border-gray-800 bg-gray-950/60 p-4">
       <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">
@@ -214,8 +248,10 @@ export function Presentation() {
                     })}
                   </div>
                 </div>
-                <ModuleInputSpecs module={selectedModule} records={records} />
-                {renderModule(selectedModule)}
+                <div className="grid min-h-0 gap-5 xl:grid-cols-[17rem_minmax(0,1fr)] xl:items-start">
+                  <ModuleInputSpecs module={selectedModule} records={records} variant="rail" />
+                  <div className="min-w-0">{renderModule(selectedModule)}</div>
+                </div>
               </div>
             ) : (
               <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-gray-800 text-sm text-gray-400">
