@@ -1,5 +1,6 @@
 import { z } from "zod"
 import type { LifePolicyType } from "@/features/risk-modules/life/types"
+import type { DiBenefitPeriod } from "@/features/risk-modules/disability/types"
 import type { ClientRecord, CreateClientPayload } from "@/lib/store-types"
 import { toNumber, numberToInput } from "@/lib/utils"
 
@@ -18,6 +19,14 @@ export type ClientFormState = {
   privateLifePolicyType: LifePolicyType
   privateLifeTermYears: string
   nonQualifiedAssets: string
+  ltdCoveragePercent: string
+  ltdMonthlyCap: string
+  ltdTaxable: boolean
+  privateDisabilityBenefitMonthly: string
+  privateDisabilityMonthlyPremium: string
+  privateDisabilityBenefitPeriod: DiBenefitPeriod | ""
+  disabilityBreakEvenRateOfReturn: string
+  disabilityBreakEvenMonthsWithoutIncome: string
   spouseName: string
   spouseAge: string
   spouseAnnualIncome: string
@@ -44,6 +53,14 @@ export const emptyClientForm: ClientFormState = {
   privateLifePolicyType: "term",
   privateLifeTermYears: "20",
   nonQualifiedAssets: "",
+  ltdCoveragePercent: "60",
+  ltdMonthlyCap: "",
+  ltdTaxable: true,
+  privateDisabilityBenefitMonthly: "",
+  privateDisabilityMonthlyPremium: "",
+  privateDisabilityBenefitPeriod: "",
+  disabilityBreakEvenRateOfReturn: "6",
+  disabilityBreakEvenMonthsWithoutIncome: "12",
   spouseName: "",
   spouseAge: "",
   spouseAnnualIncome: "",
@@ -71,6 +88,14 @@ export function formFromClient(client: ClientRecord): ClientFormState {
     privateLifePolicyType: client.profile.privateLifePolicyType ?? "term",
     privateLifeTermYears: numberToInput(client.profile.privateLifeTermYears),
     nonQualifiedAssets: numberToInput(client.profile.nonQualifiedAssets),
+    ltdCoveragePercent: numberToInput((client.profile.ltdCoveragePercent ?? 0.60) * 100),
+    ltdMonthlyCap: numberToInput(client.profile.ltdMonthlyCap),
+    ltdTaxable: client.profile.ltdTaxable ?? true,
+    privateDisabilityBenefitMonthly: numberToInput(client.profile.privateDisabilityBenefitMonthly),
+    privateDisabilityMonthlyPremium: numberToInput(client.profile.privateDisabilityMonthlyPremium),
+    privateDisabilityBenefitPeriod: client.profile.privateDisabilityBenefitPeriod ?? "",
+    disabilityBreakEvenRateOfReturn: numberToInput((client.profile.disabilityBreakEvenRateOfReturn ?? 0.06) * 100),
+    disabilityBreakEvenMonthsWithoutIncome: numberToInput(client.profile.disabilityBreakEvenMonthsWithoutIncome ?? 12),
     spouseName: client.profile.spouseIncomeEarnerName ?? "",
     spouseAge: numberToInput(client.profile.spouseCurrentAge),
     spouseAnnualIncome: numberToInput(client.profile.spouseAnnualIncome),
@@ -84,6 +109,11 @@ export function formFromClient(client: ClientRecord): ClientFormState {
 }
 
 // ── Convert form state to store payload ───────────────────────────────────────
+
+function toPercentNumber(value: string): number | undefined {
+  const parsed = toNumber(value)
+  return parsed === undefined ? undefined : parsed / 100
+}
 
 export function formToPayload(form: ClientFormState): CreateClientPayload {
   return {
@@ -99,6 +129,14 @@ export function formToPayload(form: ClientFormState): CreateClientPayload {
     privateLifePolicyType: form.privateLifePolicyType,
     privateLifeTermYears: toNumber(form.privateLifeTermYears),
     nonQualifiedAssets: toNumber(form.nonQualifiedAssets),
+    ltdCoveragePercent: toPercentNumber(form.ltdCoveragePercent),
+    ltdMonthlyCap: toNumber(form.ltdMonthlyCap),
+    ltdTaxable: form.ltdTaxable,
+    privateDisabilityBenefitMonthly: toNumber(form.privateDisabilityBenefitMonthly),
+    privateDisabilityMonthlyPremium: toNumber(form.privateDisabilityMonthlyPremium),
+    privateDisabilityBenefitPeriod: form.privateDisabilityBenefitPeriod,
+    disabilityBreakEvenRateOfReturn: toPercentNumber(form.disabilityBreakEvenRateOfReturn),
+    disabilityBreakEvenMonthsWithoutIncome: toNumber(form.disabilityBreakEvenMonthsWithoutIncome),
     spouseName: form.spouseName || undefined,
     spouseAge: toNumber(form.spouseAge),
     spouseAnnualIncome: toNumber(form.spouseAnnualIncome),
