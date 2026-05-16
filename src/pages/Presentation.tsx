@@ -194,6 +194,9 @@ export function Presentation() {
     : visibleModules.includes(scenario.activeModule)
       ? scenario.activeModule
       : visibleModules[0]
+  const selectedModuleHasSnapshot = selectedModule
+    ? getPresentationInputSpecs(selectedModule, records).length > 0
+    : false
 
   function renderModule(module: RiskModuleType) {
     if (module === "life" && lifeOutputs) return <LifeOutputView outputs={lifeOutputs} />
@@ -248,10 +251,14 @@ export function Presentation() {
                     })}
                   </div>
                 </div>
-                <div className="grid min-h-0 gap-5 xl:grid-cols-[17rem_minmax(0,1fr)] xl:items-start">
-                  <ModuleInputSpecs module={selectedModule} records={records} variant="rail" />
+                {selectedModuleHasSnapshot ? (
+                  <div className="grid min-h-0 gap-5 xl:grid-cols-[17rem_minmax(0,1fr)] xl:items-start">
+                    <ModuleInputSpecs module={selectedModule} records={records} variant="rail" />
+                    <div className="min-w-0">{renderModule(selectedModule)}</div>
+                  </div>
+                ) : (
                   <div className="min-w-0">{renderModule(selectedModule)}</div>
-                </div>
+                )}
               </div>
             ) : (
               <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-gray-800 text-sm text-gray-400">
