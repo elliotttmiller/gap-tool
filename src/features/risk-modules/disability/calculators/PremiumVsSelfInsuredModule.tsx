@@ -176,7 +176,6 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
     }))
   const yearOneFund = result.schedule[11]?.investmentBalance ?? 0
   const yearOneGap = Math.max(result.benefitsReceived - yearOneFund, 0)
-  const yearOneCoveragePct = result.benefitsReceived > 0 ? Math.min((yearOneFund / result.benefitsReceived) * 100, 100) : 0
   const scenarioYears = [1, 2, 5, 10]
   const disabilityScenarios: DisabilityScenario[] = scenarioYears.map((year) => {
     const fund = result.schedule[Math.min(year * 12 - 1, result.schedule.length - 1)]?.investmentBalance ?? 0
@@ -299,18 +298,6 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                     />
                   </LineChart>
                 </ResponsiveContainer>
-              </div>
-
-              <div className="mt-4">
-                <div className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500">Year 1 protection coverage</div>
-                <div className="flex h-2 overflow-hidden rounded-full bg-gray-800">
-                  <div className="bg-[#1D9E75] transition-all duration-500" style={{ width: `${yearOneCoveragePct}%` }} />
-                  <div className="flex-1 bg-[#D85A30]" />
-                </div>
-                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-gray-500">
-                  <span><span className="mr-1 inline-block h-2 w-2 rounded-sm bg-[#1D9E75]" />Self-fund accumulated</span>
-                  <span><span className="mr-1 inline-block h-2 w-2 rounded-sm bg-[#D85A30]" />Unprotected gap</span>
-                </div>
               </div>
 
               <div className="mt-4 rounded-r-xl border-l-4 border-[#D85A30] bg-gray-950/60 px-4 py-3 text-xs leading-5 text-gray-400">
