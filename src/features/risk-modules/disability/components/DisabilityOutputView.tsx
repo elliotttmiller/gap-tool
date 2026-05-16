@@ -115,7 +115,7 @@ export function DisabilityOutputView({ outputs, inputs, formOpen = false }: Disa
     if (!active || !payload?.length) return null
     const assumedIncomeAnnual = payload[0]?.payload?.[assumedIncomeKey] ?? 0
     return (
-      <div className="bg-gray-900 p-3 border border-gray-700 rounded-lg shadow-lg text-sm min-w-52">
+      <div className="bg-gray-900 p-3 border border-gray-700 rounded-lg shadow-lg text-sm min-w-[13rem]">
         <p className="font-semibold text-gray-100 mb-2">Age {label}</p>
         <div className="flex justify-between gap-4 mb-1.5">
           <span className="text-xs text-slate-300">{assumedIncomeLabel}:</span>
@@ -165,7 +165,7 @@ export function DisabilityOutputView({ outputs, inputs, formOpen = false }: Disa
 
         {visualization === "coverage" ? (
           <div className="module-output-container">
-          <div className={`disability-coverage-grid${formOpen ? " disability-coverage-grid--form-open" : ""}`}>
+            <div className={`disability-coverage-grid${formOpen ? " disability-coverage-grid--form-open" : ""}`}>
 
           {/* ── SUMMARY: below chart (narrow) / left column (wide) ───── */}
           <div className="disability-summary-rail">
@@ -175,13 +175,13 @@ export function DisabilityOutputView({ outputs, inputs, formOpen = false }: Disa
                 <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
                   Lifetime Coverage
                 </div>
-                  <div className="divide-y divide-slate-800/80 text-xs">
-                    <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">Proj. Income</span>
-                      <span className="font-mono font-semibold text-slate-200">{formatCurrency(projectedIncomeDisplay)}</span>
-                    </div>
-                    <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">Group LTD</span>
+                <div className="divide-y divide-slate-800/80 text-xs">
+                  <div className="flex items-center justify-between py-1.5">
+                    <span className="text-slate-400">Proj. Income</span>
+                    <span className="font-mono font-semibold text-slate-200">{formatCurrency(projectedIncomeDisplay)}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5">
+                    <span className="text-slate-400">Group LTD</span>
                     <span className="font-mono font-semibold text-blue-300">{formatCurrency(outputs.totalGroupLTDCoverage)}</span>
                   </div>
                   <div className="flex items-center justify-between py-1.5">
@@ -202,19 +202,19 @@ export function DisabilityOutputView({ outputs, inputs, formOpen = false }: Disa
                 <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
                   At Retirement
                 </div>
-                  <div className="divide-y divide-slate-800/80 text-xs">
-                    <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">Annual Income</span>
-                      <span className="font-mono font-semibold text-slate-200">{formatCurrency(retirementIncomeDisplay)}</span>
-                    </div>
-                    <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">Uncov. Gap</span>
-                      <span className="font-mono font-semibold text-red-400">{formatCurrency(totalGapDisplay)}</span>
-                    </div>
-                    <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">Coverage</span>
-                      <span className="font-mono font-semibold text-slate-200">{formatPercent(averageCoverageRateDisplay)}</span>
-                    </div>
+                <div className="divide-y divide-slate-800/80 text-xs">
+                  <div className="flex items-center justify-between py-1.5">
+                    <span className="text-slate-400">Annual Income</span>
+                    <span className="font-mono font-semibold text-slate-200">{formatCurrency(retirementIncomeDisplay)}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5">
+                    <span className="text-slate-400">Uncov. Gap</span>
+                    <span className="font-mono font-semibold text-red-400">{formatCurrency(totalGapDisplay)}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5">
+                    <span className="text-slate-400">Coverage</span>
+                    <span className="font-mono font-semibold text-slate-200">{formatPercent(averageCoverageRateDisplay)}</span>
+                  </div>
                   {outputs.lifetimeIDIExpense > 0 && (
                     <div className="flex items-center justify-between py-1.5">
                       <span className="text-slate-400">IDI Expense</span>
