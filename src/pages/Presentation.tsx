@@ -13,6 +13,7 @@ import { calculateLiabilityGap } from "@/features/risk-modules/liability/calcula
 import { DisclaimerBlock } from "@/components/global/DisclaimerBlock"
 import { RiskModuleType, ScenarioModuleRecords, useAppStore } from "@/lib/store"
 import { formatGapCurrency, getModuleGapValue } from "@/lib/scenarioMetrics"
+import { formatCurrency, formatPercent } from "@/lib/utils"
 import "@/styles/print.css"
 
 const moduleCopy: Record<RiskModuleType, { title: string; tabLabel: string }> = {
@@ -31,6 +32,74 @@ const moduleIcons: Record<RiskModuleType, React.ComponentType<{ className?: stri
 
 function formatModuleGap(module: RiskModuleType, record: ScenarioModuleRecords) {
   return formatGapCurrency(getModuleGapValue(module, record))
+}
+
+type InputSpec = { label: string; value: string }
+
+function getPresentationInputSpecs(module: RiskModuleType, records: ScenarioModuleRecords): InputSpec[] {
+  if (module === "life" && records.life) {
+    const inputs = records.life.inputs
+    return [
+      { label: "Annual Income", value: formatCurrency(inputs.annualIncome) },
+      { label: "Current Age", value: String(inputs.currentAge) },
+      { label: "Retirement Age", value: String(inputs.retirementAge) },
+      { label: "Income Replacement Ratio", value: formatPercent(inputs.incomeReplacementRatio) },
+      { label: "Group Life Coverage", value: formatCurrency(inputs.groupLifeCoverage) },
+      { label: "Private Life Coverage", value: formatCurrency(inputs.privateLifeCoverage) },
+      {
+        label: "Private Policy",
+        value: inputs.privateLifePolicyType === "term"
+          ? `Term${inputs.privateLifeTermYears ? ` (${inputs.privateLifeTermYears} yrs)` : ""}`
+          : "Permanent",
+      },
+    ]
+  }
+
+  if (module === "disability" && records.disability) {
+    const inputs = records.disability.inputs
+    const periodLabel = inputs.privateDiBenefitPeriod
+      ? ({
+          "2y": "2 years",
+          "5y": "5 years",
+          "10y": "10 years",
+          A65: "To age 65",
+          A67: "To age 67",
+          A70: "To age 70",
+        } as const)[inputs.privateDiBenefitPeriod]
+      : "Until retirement"
+    return [
+      { label: "Annual Income", value: formatCurrency(inputs.annualEarnedIncome) },
+      { label: "Current Age", value: String(inputs.currentAge) },
+      { label: "Retirement Age", value: String(inputs.retirementAge) },
+      { label: "LTD Coverage", value: formatPercent(inputs.ltdCoveragePercent) },
+      { label: "LTD Monthly Cap", value: formatCurrency(inputs.ltdMonthlyCap) },
+      { label: "LTD Taxable", value: inputs.ltdTaxable ? "Yes (70% net assumption)" : "No" },
+      { label: "Individual DI Benefit", value: `${formatCurrency(inputs.privateDiBenefitMonthly)}/mo` },
+      { label: "DI Benefit Period", value: periodLabel },
+    ]
+  }
+
+  return []
+}
+
+function ModuleInputSpecs({ module, records }: { module: RiskModuleType; records: ScenarioModuleRecords }) {
+  const specs = getPresentationInputSpecs(module, records)
+  if (!specs.length) return null
+  return (
+    <div className="mb-5 rounded-lg border border-gray-800 bg-gray-950/60 p-4">
+      <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">
+        Input Snapshot
+      </p>
+      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        {specs.map((spec) => (
+          <div key={spec.label} className="rounded-md border border-gray-800 bg-[#090E1A] px-3 py-2">
+            <p className="text-[10px] uppercase tracking-wider text-gray-500">{spec.label}</p>
+            <p className="mt-1 text-sm font-semibold text-gray-100">{spec.value}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export function Presentation() {
@@ -144,6 +213,7 @@ export function Presentation() {
                     })}
                   </div>
                 </div>
+                <ModuleInputSpecs module={selectedModule} records={records} />
                 {renderModule(selectedModule)}
               </div>
             ) : (
@@ -184,6 +254,7 @@ export function Presentation() {
                 <p className="mb-6 text-sm text-gray-400">
                   Modeled gap: {formatModuleGap(module, records)}
                 </p>
+                <ModuleInputSpecs module={module} records={records} />
                 {renderModule(module)}
               </div>
             ))}
