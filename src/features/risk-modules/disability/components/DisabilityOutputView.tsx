@@ -214,8 +214,8 @@ export function DisabilityOutputView({
 
           <Card className="disability-chart-panel module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
             <CardHeader className="shrink-0 px-6 pt-5 pb-0">
-              <div className="relative flex items-start justify-center">
-                <div className="text-center">
+              <div className="grid gap-3">
+                <div className="min-w-0 text-center">
                   <CardTitle className="text-xs font-bold tracking-[0.15em] text-slate-500 uppercase">
                     Income vs. Disability Coverage — Annual Projection
                   </CardTitle>
@@ -227,9 +227,11 @@ export function DisabilityOutputView({
                     </div>
                   ) : null}
                 </div>
-                <div className="absolute top-0 right-0 flex shrink-0 overflow-hidden rounded-md border border-gray-700 text-xs">
-                  <button onClick={() => setChartView("net")} className={`px-3 py-1 transition-colors ${chartView === "net" ? "bg-brand-600 text-white" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}>Net</button>
-                  <button onClick={() => setChartView("gross")} className={`px-3 py-1 transition-colors ${chartView === "gross" ? "bg-brand-600 text-white" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}>Gross</button>
+                <div className="flex justify-center sm:justify-end">
+                  <div className="flex shrink-0 overflow-hidden rounded-md border border-gray-700 text-xs">
+                    <button onClick={() => setChartView("net")} className={`px-3 py-1 transition-colors ${chartView === "net" ? "bg-brand-600 text-white" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}>Net</button>
+                    <button onClick={() => setChartView("gross")} className={`px-3 py-1 transition-colors ${chartView === "gross" ? "bg-brand-600 text-white" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}>Gross</button>
+                  </div>
                 </div>
               </div>
             </CardHeader>
