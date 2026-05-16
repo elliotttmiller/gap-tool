@@ -114,7 +114,6 @@ export function Presentation() {
     scenarioId ? state.moduleRecordsByScenarioId[scenarioId] : undefined,
   )
 
-  // Memoize all module calculations so they don't re-run on every render.
   const lifeOutputs = useMemo(
     () => records?.life ? (records.life.output ?? calculateLifeInsuranceGap(records.life.inputs, records.life.assumptions)) : null,
     [records?.life],
@@ -164,7 +163,9 @@ export function Presentation() {
 
   function renderModule(module: RiskModuleType) {
     if (module === "life" && lifeOutputs) return <LifeOutputView outputs={lifeOutputs} />
-    if (module === "disability" && disabilityOutputs) return <DisabilityOutputView outputs={disabilityOutputs} inputs={records?.disability?.inputs} />
+    if (module === "disability" && disabilityOutputs) {
+      return <DisabilityOutputView outputs={disabilityOutputs} inputs={records?.disability?.inputs} mode="presentation" />
+    }
     if (module === "unemployment" && unemploymentOutputs) return <UnemploymentOutputView outputs={unemploymentOutputs} />
     if (module === "liability" && liabilityOutputs) return <LiabilityOutputView outputs={liabilityOutputs} />
     return null
