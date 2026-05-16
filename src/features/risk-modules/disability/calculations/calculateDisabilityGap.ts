@@ -53,6 +53,7 @@ export function calculateDisabilityGap(
   for (let year = 0; year <= yearsToRetirement; year++) {
     const age = currentAge + year;
     const annualIncomeAtAge = roundCurrency(annualIncome * Math.pow(1 + growthRate, year));
+    const annualIncomeNetAtAge = roundCurrency(annualIncomeAtAge * 0.70);
 
     // Group LTD re-applies the coverage percentage each year against the grown income
     // (still capped at the monthly cap), then applies the taxability factor.
@@ -67,14 +68,23 @@ export function calculateDisabilityGap(
     const individualDIAnnualBenefit = diIsActive ? roundCurrency(privateDiMonthly * 12) : 0;
 
     const totalAnnualBenefit = roundCurrency(ltdAnnualBenefit + individualDIAnnualBenefit);
-    const annualGap = roundCurrency(Math.max(0, annualIncomeAtAge - totalAnnualBenefit));
+    const annualGap = roundCurrency(Math.max(0, annualIncomeNetAtAge - totalAnnualBenefit));
 
-    projection.push({ age, annualIncome: annualIncomeAtAge, ltdAnnualBenefitGross, ltdAnnualBenefit, individualDIAnnualBenefit, totalAnnualBenefit, annualGap });
+    projection.push({
+      age,
+      annualIncome: annualIncomeAtAge,
+      annualIncomeNet: annualIncomeNetAtAge,
+      ltdAnnualBenefitGross,
+      ltdAnnualBenefit,
+      individualDIAnnualBenefit,
+      totalAnnualBenefit,
+      annualGap,
+    });
   }
 
   // ── Aggregate stats ───────────────────────────────────────────────────────
-  const projectedIncomeAtRetirement = projection.at(-1)?.annualIncome ?? 0;
-  const totalProjectedIncome = projection.reduce((s, p) => s + p.annualIncome, 0);
+  const projectedIncomeAtRetirement = projection.at(-1)?.annualIncomeNet ?? 0;
+  const totalProjectedIncome = projection.reduce((s, p) => s + p.annualIncomeNet, 0);
   const totalGroupLTDCoverage = projection.reduce((s, p) => s + p.ltdAnnualBenefit, 0);
   const totalIndividualDICoverage = projection.reduce((s, p) => s + p.individualDIAnnualBenefit, 0);
   const totalCoverage = totalGroupLTDCoverage + totalIndividualDICoverage;

@@ -28,13 +28,20 @@ interface DisabilityOutputViewProps {
 function getMonthlyStatsAtAge(outputs: DisabilityOutputs, age: number) {
   const point = outputs.incomeProjection.find((p) => p.age === age)
   if (!point) {
+    const startingPoint = outputs.incomeProjection[0]
+    const incomeGrossMonthly = (startingPoint?.annualIncome ?? 0) / 12
+    const incomeNetMonthly = (startingPoint?.annualIncomeNet ?? 0) / 12
+    const totalGrossMonthly = outputs.ltdComputedMonthlyBenefit + outputs.privateDiMonthlyBenefit
     return {
       ltdNetMonthly: outputs.ltdNetMonthlyBenefit,
       ltdGrossMonthly: outputs.ltdComputedMonthlyBenefit,
       individualDIMonthly: outputs.privateDiMonthlyBenefit,
       totalNetMonthly: outputs.totalNetMonthlyBenefit,
-      totalGrossMonthly: outputs.ltdComputedMonthlyBenefit + outputs.privateDiMonthlyBenefit,
-      incomeLossNet: outputs.incomeLossNet,
+      totalGrossMonthly,
+      incomeGrossMonthly,
+      incomeNetMonthly,
+      incomeLossNet: incomeNetMonthly - outputs.totalNetMonthlyBenefit,
+      incomeLossGross: incomeGrossMonthly - totalGrossMonthly,
     }
   }
   const ltdNetMonthly = point.ltdAnnualBenefit / 12
@@ -42,23 +49,21 @@ function getMonthlyStatsAtAge(outputs: DisabilityOutputs, age: number) {
   const individualDIMonthly = point.individualDIAnnualBenefit / 12
   const totalNetMonthly = point.totalAnnualBenefit / 12
   const totalGrossMonthly = ltdGrossMonthly + individualDIMonthly
-  const incomeLossNet = (point.annualIncome * 0.70 / 12) - totalNetMonthly
-  return { ltdNetMonthly, ltdGrossMonthly, individualDIMonthly, totalNetMonthly, totalGrossMonthly, incomeLossNet }
-}
-
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (!active || !payload?.length) return null
-  return (
-    <div className="bg-gray-900 p-3 border border-gray-700 rounded-lg shadow-lg text-sm min-w-45">
-      <p className="font-semibold text-gray-100 mb-2">Age {label}</p>
-      {payload.map((entry: any) => (
-        <div key={entry.name} className="flex justify-between gap-4 mb-1">
-          <span style={{ color: entry.color }} className="text-xs">{entry.name}:</span>
-          <span className="font-semibold text-xs text-gray-100">{formatCurrency(entry.value)}/yr</span>
-        </div>
-      ))}
-    </div>
-  )
+  const incomeGrossMonthly = point.annualIncome / 12
+  const incomeNetMonthly = point.annualIncomeNet / 12
+  const incomeLossNet = incomeNetMonthly - totalNetMonthly
+  const incomeLossGross = incomeGrossMonthly - totalGrossMonthly
+  return {
+    ltdNetMonthly,
+    ltdGrossMonthly,
+    individualDIMonthly,
+    totalNetMonthly,
+    totalGrossMonthly,
+    incomeGrossMonthly,
+    incomeNetMonthly,
+    incomeLossNet,
+    incomeLossGross,
+  }
 }
 
 const legendFormatter = (value: string) => (
@@ -79,7 +84,56 @@ export function DisabilityOutputView({ outputs, inputs, formOpen = false }: Disa
 
   const ltdDisplayMonthly = chartView === "gross" ? monthly.ltdGrossMonthly : monthly.ltdNetMonthly
   const totalDisplayMonthly = chartView === "gross" ? monthly.totalGrossMonthly : monthly.totalNetMonthly
+  const incomeLossDisplayMonthly = chartView === "gross" ? monthly.incomeLossGross : monthly.incomeLossNet
+  const assumedIncomeKey = chartView === "gross" ? "Assumed Income (Gross)" : "Assumed Income (Net)"
+  const assumedIncomeLabel = chartView === "gross" ? "Assumed Income (Gross)" : "Assumed Income (Net)"
   const ltdLabel = chartView === "gross" ? "Group LTD (Gross)" : "Group LTD (Net)"
+  const totalBenefitLabel = chartView === "gross" ? "Total Benefit (Gross)" : "Total Benefit (Net)"
+  const incomeLossLabel = chartView === "gross" ? "Income Loss (Gross)" : "Income Loss (Net)"
+  const incomeLossDescription = chartView === "gross"
+    ? "Assumed gross income minus total gross monthly benefit"
+    : "Assumed net income minus total net monthly benefit"
+
+  const totalProjectedIncomeGross = outputs.incomeProjection.reduce((sum, point) => sum + point.annualIncome, 0)
+  const projectedIncomeAtRetirementGross = outputs.incomeProjection.at(-1)?.annualIncome ?? 0
+  const totalCoverageGross = outputs.incomeProjection.reduce(
+    (sum, point) => sum + point.ltdAnnualBenefitGross + point.individualDIAnnualBenefit,
+    0,
+  )
+  const totalGapGross = outputs.incomeProjection.reduce(
+    (sum, point) => sum + Math.max(0, point.annualIncome - (point.ltdAnnualBenefitGross + point.individualDIAnnualBenefit)),
+    0,
+  )
+  const averageCoverageRateGross = totalProjectedIncomeGross > 0 ? totalCoverageGross / totalProjectedIncomeGross : 0
+
+  const projectedIncomeDisplay = chartView === "gross" ? totalProjectedIncomeGross : outputs.totalProjectedIncome
+  const retirementIncomeDisplay = chartView === "gross" ? projectedIncomeAtRetirementGross : outputs.projectedIncomeAtRetirement
+  const totalGapDisplay = chartView === "gross" ? totalGapGross : outputs.totalGap
+  const averageCoverageRateDisplay = chartView === "gross" ? averageCoverageRateGross : outputs.averageCoverageRate
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload?.length) return null
+    const assumedIncomeAnnual = payload[0]?.payload?.[assumedIncomeKey] ?? 0
+    return (
+      <div className="bg-gray-900 p-3 border border-gray-700 rounded-lg shadow-lg text-sm min-w-52">
+        <p className="font-semibold text-gray-100 mb-2">Age {label}</p>
+        <div className="flex justify-between gap-4 mb-1.5">
+          <span className="text-xs text-slate-300">{assumedIncomeLabel}:</span>
+          <span className="font-semibold text-xs text-slate-100">
+            {formatCurrency(assumedIncomeAnnual)}/yr · {formatCurrency(assumedIncomeAnnual / 12)}/mo
+          </span>
+        </div>
+        {payload.map((entry: any) => (
+          <div key={entry.name} className="flex justify-between gap-4 mb-1">
+            <span style={{ color: entry.color }} className="text-xs">{entry.name}:</span>
+            <span className="font-semibold text-xs text-gray-100">
+              {formatCurrency(entry.value)}/yr · {formatCurrency(entry.value / 12)}/mo
+            </span>
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6 flex flex-col h-full">
@@ -121,13 +175,13 @@ export function DisabilityOutputView({ outputs, inputs, formOpen = false }: Disa
                 <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
                   Lifetime Coverage
                 </div>
-                <div className="divide-y divide-slate-800/80 text-xs">
-                  <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Proj. Income</span>
-                    <span className="font-mono font-semibold text-slate-200">{formatCurrency(outputs.totalProjectedIncome)}</span>
-                  </div>
-                  <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Group LTD</span>
+                  <div className="divide-y divide-slate-800/80 text-xs">
+                    <div className="flex items-center justify-between py-1.5">
+                      <span className="text-slate-400">Proj. Income</span>
+                      <span className="font-mono font-semibold text-slate-200">{formatCurrency(projectedIncomeDisplay)}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-1.5">
+                      <span className="text-slate-400">Group LTD</span>
                     <span className="font-mono font-semibold text-blue-300">{formatCurrency(outputs.totalGroupLTDCoverage)}</span>
                   </div>
                   <div className="flex items-center justify-between py-1.5">
@@ -148,19 +202,19 @@ export function DisabilityOutputView({ outputs, inputs, formOpen = false }: Disa
                 <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
                   At Retirement
                 </div>
-                <div className="divide-y divide-slate-800/80 text-xs">
-                  <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Annual Income</span>
-                    <span className="font-mono font-semibold text-slate-200">{formatCurrency(outputs.projectedIncomeAtRetirement)}</span>
-                  </div>
-                  <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Uncov. Gap</span>
-                    <span className="font-mono font-semibold text-red-400">{formatCurrency(outputs.totalGap)}</span>
-                  </div>
-                  <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Coverage</span>
-                    <span className="font-mono font-semibold text-slate-200">{formatPercent(outputs.averageCoverageRate)}</span>
-                  </div>
+                  <div className="divide-y divide-slate-800/80 text-xs">
+                    <div className="flex items-center justify-between py-1.5">
+                      <span className="text-slate-400">Annual Income</span>
+                      <span className="font-mono font-semibold text-slate-200">{formatCurrency(retirementIncomeDisplay)}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-1.5">
+                      <span className="text-slate-400">Uncov. Gap</span>
+                      <span className="font-mono font-semibold text-red-400">{formatCurrency(totalGapDisplay)}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-1.5">
+                      <span className="text-slate-400">Coverage</span>
+                      <span className="font-mono font-semibold text-slate-200">{formatPercent(averageCoverageRateDisplay)}</span>
+                    </div>
                   {outputs.lifetimeIDIExpense > 0 && (
                     <div className="flex items-center justify-between py-1.5">
                       <span className="text-slate-400">IDI Expense</span>
@@ -296,9 +350,9 @@ export function DisabilityOutputView({ outputs, inputs, formOpen = false }: Disa
           <div className="module-metric-rail">
             <MetricGroup title="Monthly Benefits">
               <ModuleMetricCard
-                label="Group LTD (Net)"
+                label={ltdLabel}
                 value={<>{formatCurrency(ltdDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>}
-                description="Net after-tax LTD monthly benefit"
+                description={chartView === "gross" ? "Gross monthly LTD benefit" : "Net after-tax LTD monthly benefit"}
                 accent="blue"
               />
               <ModuleMetricCard
@@ -308,18 +362,18 @@ export function DisabilityOutputView({ outputs, inputs, formOpen = false }: Disa
                 accent="cyan"
               />
               <ModuleMetricCard
-                label="Total Benefit"
+                label={totalBenefitLabel}
                 value={<>{formatCurrency(totalDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>}
-                description="Combined LTD + individual DI"
+                description="Combined LTD + individual DI monthly benefit"
                 accent="slate"
               />
             </MetricGroup>
             <MetricGroupDivider />
             <MetricGroup title="Gap">
               <ModuleMetricCard
-                label="Income Loss (Net)"
-                value={<>{formatCurrency(monthly.incomeLossNet)}<span className="text-sm font-normal text-gray-400">/mo</span></>}
-                description="70% of income minus total monthly benefit"
+                label={incomeLossLabel}
+                value={<>{formatCurrency(incomeLossDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>}
+                description={incomeLossDescription}
                 accent="red"
               />
             </MetricGroup>

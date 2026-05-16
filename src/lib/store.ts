@@ -393,7 +393,7 @@ export const useAppStore = create<AppState>()(
         const scenarioId = crypto.randomUUID()
         const includedModules: RiskModuleType[] = payload.includedModules.length
           ? payload.includedModules
-          : ["life", "liability", "unemployment"]
+          : ["life", "disability", "liability", "unemployment"]
         const activeModule = includedModules.includes(payload.activeModule) ? payload.activeModule : includedModules[0]
         const scenario: ScenarioRecord = {
           id: scenarioId,

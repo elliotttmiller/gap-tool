@@ -2,6 +2,8 @@ import { DisabilityOutputs, DisabilityIncomeProjectionPoint } from "../types"
 
 export type DisabilityProjectionChartPoint = {
   age: number
+  "Assumed Income (Gross)": number
+  "Assumed Income (Net)": number
   "Group LTD (Net)": number
   "Group LTD (Gross)": number
   "Individual DI": number
@@ -23,6 +25,8 @@ export function transformDisabilityChartData(outputs: DisabilityOutputs): Disabi
   const projectionChartData: DisabilityProjectionChartPoint[] = outputs.incomeProjection.map(
     (point: DisabilityIncomeProjectionPoint) => ({
       age: point.age,
+      "Assumed Income (Gross)": point.annualIncome,
+      "Assumed Income (Net)": point.annualIncomeNet,
       "Group LTD (Net)": point.ltdAnnualBenefit,
       "Group LTD (Gross)": point.ltdAnnualBenefitGross,
       "Individual DI": point.individualDIAnnualBenefit,

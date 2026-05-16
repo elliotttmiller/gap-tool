@@ -44,6 +44,8 @@ export type DisabilityIncomeProjectionPoint = {
   age: number;
   /** Projected annual income at this age (growing at the assumption rate). */
   annualIncome: number;
+  /** Projected annual net income at this age using the 70% tax-adjustment assumption. */
+  annualIncomeNet: number;
   /** Gross annual group LTD benefit at this age (before taxability). */
   ltdAnnualBenefitGross: number;
   /** Net annual group LTD benefit at this age (after taxability and income-scaling). */
