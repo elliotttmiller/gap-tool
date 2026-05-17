@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react"
 import { Link, Outlet, useLocation } from "react-router-dom"
 import { ArrowLeft, Settings, X } from "lucide-react"
 import { AssumptionsPage } from "@/pages/Assumptions"
+import { InstallPWAButton } from "./InstallPWAButton"
+import { PWAUpdateToast } from "./PWAUpdateToast"
 
 export function AppShell() {
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -36,6 +38,7 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen min-w-7xl bg-[#0d1b2a]">
+      <PWAUpdateToast />
       <header className="fixed inset-x-0 top-0 z-50 h-16 border-b border-brand-500/30 bg-linear-to-br from-[#0d1b2a] to-[#1e3248] shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
         <div className="mx-auto flex h-full max-w-400 items-center px-8">
           <div className="flex flex-1 justify-start">
@@ -61,7 +64,8 @@ export function AppShell() {
             </Link>
           </div>
 
-          <div className="flex flex-1 justify-end">
+          <div className="flex flex-1 justify-end gap-1">
+            <InstallPWAButton />
             <button
               ref={buttonRef}
               aria-label="Settings"
