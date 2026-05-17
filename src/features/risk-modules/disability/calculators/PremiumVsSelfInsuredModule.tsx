@@ -12,6 +12,7 @@ import {
 } from "recharts"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
+import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
 import { calculateBreakEven } from "./calculateBreakEven"
 import type { DisabilityInputs } from "../types"
 
@@ -112,11 +113,11 @@ function PremiumTooltip({ active, payload, label }: any) {
       <p className="mb-2 font-semibold text-gray-100">Month {label}</p>
       <div className="space-y-1.5">
         <div className="flex justify-between gap-4">
-          <span className="text-emerald-300">Self-insurance fund</span>
+          <span className="text-emerald-400">Self-insurance fund</span>
           <span className="font-mono text-gray-100">{formatCurrency(point["Self-Insurance Fund"])}</span>
         </div>
         <div className="flex justify-between gap-4">
-          <span className="text-orange-300">Benefit needed</span>
+          <span className="text-rose-400">Benefit needed</span>
           <span className="font-mono text-gray-100">{formatCurrency(point["Benefit Needed"])}</span>
         </div>
         <div className="flex justify-between gap-4 border-t border-gray-800 pt-1.5">
@@ -238,110 +239,101 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
           </CardContent>
         </Card>
 
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_13rem]">
-          <Card className="border-gray-800 bg-gray-900/25">
-            <CardContent className="p-4">
-              <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-gray-400">
-                <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-[#1D9E75]" />Self-insurance fund</span>
-                <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-[#D85A30]" />Benefit needed</span>
-              </div>
-              <div className="chart-reveal h-56 sm:h-64">
-                <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                  <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
-                    <CartesianGrid stroke="#1f2937" strokeDasharray="3 3" vertical={false} />
-                    <XAxis
-                      dataKey="month"
-                      type="number"
-                      domain={[0, chartEndMonth]}
-                      tick={{ fill: "#64748b", fontSize: 10 }}
-                      tickLine={{ stroke: "#1f2937" }}
-                      axisLine={{ stroke: "#1f2937" }}
-                      ticks={Array.from({ length: Math.floor(chartEndMonth / 12) + 1 }, (_, i) => i * 12).filter((m) => m % 24 === 0)}
-                      tickFormatter={(value) => `Yr ${Number(value) / 12}`}
-                    />
-                    <YAxis
-                      tick={{ fill: "#64748b", fontSize: 10 }}
-                      tickLine={false}
-                      axisLine={false}
-                      width={52}
-                      tickFormatter={(value) => `$${Math.round(Number(value) / 1000)}k`}
-                    />
-                    <Tooltip content={<PremiumTooltip />} cursor={{ stroke: "#475569", strokeDasharray: "4 4" }} />
-                    {result.roundedBreakEvenMonths <= chartEndMonth ? (
-                      <ReferenceLine
-                        x={result.roundedBreakEvenMonths}
-                        stroke="#f59e0b"
-                        strokeDasharray="4 4"
-                        label={{ value: "Break-even", fill: "#fbbf24", fontSize: 11, position: "insideTopRight" }}
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_19rem]">
+          <div className="flex flex-col gap-3">
+            <Card className="border-gray-800 bg-gray-900/25">
+              <CardContent className="p-4">
+                <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-gray-400">
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-emerald-400" />Self-insurance fund</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-rose-500" />Benefit needed</span>
+                </div>
+                <div className="chart-reveal h-56 sm:h-64">
+                  <ResponsiveContainer width="100%" height="100%" debounce={100}>
+                    <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
+                      <CartesianGrid stroke="#1f2937" strokeDasharray="3 3" vertical={false} />
+                      <XAxis
+                        dataKey="month"
+                        type="number"
+                        domain={[0, chartEndMonth]}
+                        tick={{ fill: "#64748b", fontSize: 10 }}
+                        tickLine={{ stroke: "#1f2937" }}
+                        axisLine={{ stroke: "#1f2937" }}
+                        ticks={Array.from({ length: Math.floor(chartEndMonth / 12) + 1 }, (_, i) => i * 12).filter((m) => m % 24 === 0)}
+                        tickFormatter={(value) => `Yr ${Number(value) / 12}`}
                       />
-                    ) : null}
-                    <Line
-                      type="monotone"
-                      dataKey="Self-Insurance Fund"
-                      stroke="#1D9E75"
-                      strokeWidth={2.5}
-                      dot={false}
-                      strokeDasharray="5 3"
-                      activeDot={{ r: 4, stroke: "#a7f3d0", strokeWidth: 2, fill: "#1D9E75" }}
-                      isAnimationActive
-                      animationDuration={650}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="Benefit Needed"
-                      stroke="#D85A30"
-                      strokeWidth={2.5}
-                      dot={false}
-                      activeDot={false}
-                      isAnimationActive
-                      animationDuration={650}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+                      <YAxis
+                        tick={{ fill: "#64748b", fontSize: 10 }}
+                        tickLine={false}
+                        axisLine={false}
+                        width={52}
+                        tickFormatter={(value) => `$${Math.round(Number(value) / 1000)}k`}
+                      />
+                      <Tooltip content={<PremiumTooltip />} cursor={{ stroke: "#475569", strokeDasharray: "4 4" }} />
+                      {result.roundedBreakEvenMonths <= chartEndMonth ? (
+                        <ReferenceLine
+                          x={result.roundedBreakEvenMonths}
+                          stroke="#f59e0b"
+                          strokeDasharray="4 4"
+                          label={{ value: "Break-even", fill: "#fbbf24", fontSize: 11, position: "insideTopRight" }}
+                        />
+                      ) : null}
+                      <Line
+                        type="monotone"
+                        dataKey="Self-Insurance Fund"
+                        stroke="#34d399"
+                        strokeWidth={2.5}
+                        dot={false}
+                        strokeDasharray="5 3"
+                        activeDot={{ r: 4, stroke: "#6ee7b7", strokeWidth: 2, fill: "#34d399" }}
+                        isAnimationActive
+                        animationDuration={650}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="Benefit Needed"
+                        stroke="#f43f5e"
+                        strokeWidth={2.5}
+                        dot={false}
+                        activeDot={false}
+                        isAnimationActive
+                        animationDuration={650}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
 
-
-            </CardContent>
-          </Card>
-
-          <div>
-            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500">Key Metrics</div>
-            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
-              <Card className="border-gray-800 bg-gray-900/25"><CardContent className="p-3"><p className="text-lg font-semibold text-emerald-300">{formatCurrency(result.benefitsReceived)}</p><p className="text-[10px] text-gray-500">Benefits with insurance</p></CardContent></Card>
-              <Card className="border-amber-500/30 bg-amber-500/5"><CardContent className="p-3"><p className="text-lg font-semibold text-amber-300">{formatDecimal(result.breakEvenYears, 1)} years</p><p className="text-[10px] text-gray-500">Break-even</p></CardContent></Card>
-              <Card className="border-gray-800 bg-gray-900/25"><CardContent className="p-3"><p className="text-lg font-semibold text-gray-100">Month {result.roundedBreakEvenMonths}</p><p className="text-[10px] text-gray-500">Break-even month</p></CardContent></Card>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <ModuleMetricCard
+                label={`Premium invested to age ${retirementAge}`}
+                value={formatCurrency(investedPremiumFV)}
+                description={`${yearsToRetirement} yrs · ${formatCurrency(values.monthlyPremium)}/mo · ${formatPlainPercent(values.annualRateOfReturn)} return`}
+                accent="green"
+              />
+              <ModuleMetricCard
+                label="Months of disability funded"
+                value={<>{formatDecimal(monthsOfCoverage, 1)} <span className="text-sm font-normal text-slate-400">months</span></>}
+                description={`Fund value ÷ ${formatCurrency(values.monthlyBenefit)}/mo benefit`}
+                accent="blue"
+              />
+              <ModuleMetricCard
+                label="Years of disability funded"
+                value={<>{formatDecimal(yearsOfCoverage, 1)} <span className="text-sm font-normal text-slate-400">years</span></>}
+                description="Months of coverage ÷ 12"
+                accent="cyan"
+              />
             </div>
           </div>
-        </div>
 
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Card className="border-gray-800 bg-gray-900/25">
-            <CardContent className="p-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500 mb-1">Premium invested to age {retirementAge}</p>
-              <p className="text-xl font-semibold text-emerald-300">{formatCurrency(investedPremiumFV)}</p>
-              <p className="mt-1 text-[11px] text-gray-500">
-                {yearsToRetirement} yrs · {formatCurrency(values.monthlyPremium)}/mo · {formatPlainPercent(values.annualRateOfReturn)} return
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border-gray-800 bg-gray-900/25">
-            <CardContent className="p-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500 mb-1">Months of disability funded</p>
-              <p className="text-xl font-semibold text-gray-100">{formatDecimal(monthsOfCoverage, 1)} <span className="text-sm font-normal text-gray-400">months</span></p>
-              <p className="mt-1 text-[11px] text-gray-500">
-                Fund value ÷ {formatCurrency(values.monthlyBenefit)}/mo benefit
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border-amber-500/30 bg-amber-500/5">
-            <CardContent className="p-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500 mb-1">Years of disability funded</p>
-              <p className="text-xl font-semibold text-amber-300">{formatDecimal(yearsOfCoverage, 1)} <span className="text-sm font-normal text-gray-400">years</span></p>
-              <p className="mt-1 text-[11px] text-gray-500">
-                Months of coverage ÷ 12
-              </p>
-            </CardContent>
-          </Card>
+          <div>
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">Key Metrics</div>
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+              <ModuleMetricCard label="Benefits with insurance" value={formatCurrency(result.benefitsReceived)} description="Monthly DI benefit × disability duration" accent="green" />
+              <ModuleMetricCard label="Break-even" value={`${formatDecimal(result.breakEvenYears, 1)} years`} description="Month where self-insurance fund = benefit needed" accent="amber" />
+              <ModuleMetricCard label="Break-even month" value={`Month ${result.roundedBreakEvenMonths}`} description="Break-even years × 12 months" accent="slate" />
+            </div>
+          </div>
         </div>
 
       </div>

@@ -258,7 +258,7 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
         </div>
 
         {/* ── Stacked bar chart + metrics ───────────────────────────────────── */}
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_11rem]">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_19rem]">
           <Card className="border-gray-800 bg-gray-900/25">
             <CardContent className="p-4">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
