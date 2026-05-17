@@ -124,7 +124,7 @@ export function DisabilityOutputView({
     if (!active || !payload?.length) return null
     const assumedIncomeAnnual = payload[0]?.payload?.[assumedIncomeKey] ?? 0
     return (
-      <div className="min-w-[13rem] rounded-lg border border-gray-700 bg-gray-900 p-3 text-sm shadow-lg">
+      <div className="min-w-52 rounded-lg border border-gray-700 bg-gray-900 p-3 text-sm shadow-lg">
         <p className="mb-2 font-semibold text-gray-100">Age {label}</p>
         <div className="mb-1.5 flex justify-between gap-4">
           <span className="text-xs text-slate-300">{assumedIncomeLabel}:</span>
