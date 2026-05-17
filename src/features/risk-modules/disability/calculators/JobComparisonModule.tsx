@@ -179,7 +179,7 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
       <div className="space-y-4">
 
         {/* ── Input cards ────────────────────────────────────────────────────── */}
-        <div className="grid gap-4 xl:grid-cols-2">
+        <div className="grid items-start gap-4 xl:grid-cols-2">
           <Card className="border-t-4 border-gray-800 border-t-emerald-500 bg-gray-900/25">
             <CardContent className="p-4">
               <div className="mb-3 flex items-center justify-between">
@@ -204,16 +204,17 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
                   </div>
                 </div>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-3 gap-3">
                 <NumberField label="Annual income" value={jobA.salary} step={5000} prefix="$" onChange={(salary) => setJobA({ ...jobA, salary })} />
                 <NumberField label="Group LTD (% of income)" value={jobA.groupPct} step={1} suffix="%" onChange={(groupPct) => setJobA({ ...jobA, groupPct })} />
-                {jobA.hasIdi && (
-                  <>
-                    <NumberField label="IDI monthly premium" value={jobA.monthlyPremium} step={50} prefix="$" onChange={(monthlyPremium) => setJobA({ ...jobA, monthlyPremium })} />
-                    <NumberField label="IDI monthly benefit" value={jobA.idiBenefit} step={500} prefix="$" onChange={(idiBenefit) => setJobA({ ...jobA, idiBenefit })} />
-                  </>
-                )}
+                <NumberField label="Group LTD cap ($/mo)" value={jobA.groupCap} step={500} prefix="$" onChange={(groupCap) => setJobA({ ...jobA, groupCap })} />
               </div>
+              {jobA.hasIdi && (
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  <NumberField label="IDI monthly premium" value={jobA.monthlyPremium} step={50} prefix="$" onChange={(monthlyPremium) => setJobA({ ...jobA, monthlyPremium })} />
+                  <NumberField label="IDI monthly benefit" value={jobA.idiBenefit} step={500} prefix="$" onChange={(idiBenefit) => setJobA({ ...jobA, idiBenefit })} />
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -241,16 +242,17 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
                   </div>
                 </div>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-3 gap-3">
                 <NumberField label="Annual income" value={jobB.salary} step={5000} prefix="$" onChange={(salary) => setJobB({ ...jobB, salary })} />
                 <NumberField label="Group LTD (% of income)" value={jobB.groupPct} step={1} suffix="%" onChange={(groupPct) => setJobB({ ...jobB, groupPct })} />
-                {jobB.hasIdi && (
-                  <>
-                    <NumberField label="IDI monthly premium" value={jobB.monthlyPremium} step={50} prefix="$" onChange={(monthlyPremium) => setJobB({ ...jobB, monthlyPremium })} />
-                    <NumberField label="IDI monthly benefit" value={jobB.idiBenefit} step={500} prefix="$" onChange={(idiBenefit) => setJobB({ ...jobB, idiBenefit })} />
-                  </>
-                )}
+                <NumberField label="Group LTD cap ($/mo)" value={jobB.groupCap} step={500} prefix="$" onChange={(groupCap) => setJobB({ ...jobB, groupCap })} />
               </div>
+              {jobB.hasIdi && (
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  <NumberField label="IDI monthly premium" value={jobB.monthlyPremium} step={50} prefix="$" onChange={(monthlyPremium) => setJobB({ ...jobB, monthlyPremium })} />
+                  <NumberField label="IDI monthly benefit" value={jobB.idiBenefit} step={500} prefix="$" onChange={(idiBenefit) => setJobB({ ...jobB, idiBenefit })} />
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -334,16 +336,19 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
             <MetricCard
               label="IDI benefit"
               value={`${formatCurrency(annualIDI)}/yr`}
+              sub="IDI monthly benefit × 12 months"
               accent="cyan"
             />
             <MetricCard
               label="Income difference"
               value={`${formatCurrency(Math.abs(jobA.salary - totalBar_B))}/yr`}
+              sub="Job A income − Job B income"
               accent={jobA.salary >= totalBar_B ? "default" : "green"}
             />
             <MetricCard
               label="Gap difference"
               value={`${formatCurrency(Math.abs(incomeGap_A - incomeGap_B))}/yr`}
+              sub="Job A income gap − Job B income gap"
               accent={incomeGap_A > incomeGap_B ? "red" : "green"}
             />
           </div>
