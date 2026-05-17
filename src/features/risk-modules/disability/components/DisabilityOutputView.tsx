@@ -21,6 +21,8 @@ interface DisabilityOutputViewProps {
   inputs?: DisabilityInputs
   formOpen?: boolean
   mode?: "builder" | "presentation"
+  visualization?: DisabilityVisualization
+  onVisualizationChange?: (v: DisabilityVisualization) => void
 }
 
 type DisabilityVisualization = "incomeGap" | "premiumVsSelfInsured" | "jobComparison"
@@ -71,11 +73,19 @@ export function DisabilityOutputView({
   inputs,
   formOpen = false,
   mode = "builder",
+  visualization: visualizationProp,
+  onVisualizationChange,
 }: DisabilityOutputViewProps) {
   const chartData = transformDisabilityChartData(outputs)
   const [selectedAge, setSelectedAge] = useState<number | null>(null)
   const [chartView, setChartView] = useState<"net" | "gross">("net")
-  const [visualization, setVisualization] = useState<DisabilityVisualization>("incomeGap")
+  const [visualizationInternal, setVisualizationInternal] = useState<DisabilityVisualization>("incomeGap")
+
+  const visualization = visualizationProp ?? visualizationInternal
+  function setVisualization(v: DisabilityVisualization) {
+    setVisualizationInternal(v)
+    onVisualizationChange?.(v)
+  }
 
   const startAge = outputs.incomeProjection[0]?.age ?? 0
   const displayAge = selectedAge ?? startAge

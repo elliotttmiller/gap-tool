@@ -165,6 +165,7 @@ export function Presentation() {
     [records?.liability],
   )
   const [activeModule, setActiveModule] = useState<RiskModuleType | null>(null)
+  const [disabilityVisualization, setDisabilityVisualization] = useState<"incomeGap" | "premiumVsSelfInsured" | "jobComparison">("incomeGap")
 
   if (!scenarioId || !scenario || !client || !records) {
     return (
@@ -195,13 +196,14 @@ export function Presentation() {
       ? scenario.activeModule
       : visibleModules[0]
   const selectedModuleHasSnapshot = selectedModule
-    ? getPresentationInputSpecs(selectedModule, records).length > 0
+    ? getPresentationInputSpecs(selectedModule, records).length > 0 &&
+      (selectedModule !== "disability" || disabilityVisualization === "incomeGap")
     : false
 
   function renderModule(module: RiskModuleType) {
     if (module === "life" && lifeOutputs) return <LifeOutputView outputs={lifeOutputs} />
     if (module === "disability" && disabilityOutputs) {
-      return <DisabilityOutputView outputs={disabilityOutputs} inputs={records?.disability?.inputs} mode="presentation" />
+      return <DisabilityOutputView outputs={disabilityOutputs} inputs={records?.disability?.inputs} mode="presentation" visualization={disabilityVisualization} onVisualizationChange={setDisabilityVisualization} />
     }
     if (module === "unemployment" && unemploymentOutputs) return <UnemploymentOutputView outputs={unemploymentOutputs} />
     if (module === "liability" && liabilityOutputs) return <LiabilityOutputView outputs={liabilityOutputs} />
