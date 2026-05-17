@@ -34,7 +34,20 @@ export function DisabilityModulePage() {
       title="Disability Insurance Risk Analysis"
       subtitle="If I cannot work due to illness or injury, how does my financial plan change?"
       formSlot={<DisabilityInputForm inputs={moduleState.inputs} onChange={(next) => updateInputs(scenarioId, next)} />}
-      outputSlot={(inputsOpen) => <DisabilityOutputView outputs={outputs} inputs={moduleState.inputs} formOpen={inputsOpen} />}
+      outputSlot={(inputsOpen, setInputsOpen) => (
+        <DisabilityOutputView
+          outputs={outputs}
+          inputs={moduleState.inputs}
+          formOpen={inputsOpen}
+          onVisualizationChange={(v) => {
+            if (v === "premiumVsSelfInsured" || v === "jobComparison") {
+              setInputsOpen(false)
+            } else {
+              setInputsOpen(true)
+            }
+          }}
+        />
+      )}
     />
   )
 }

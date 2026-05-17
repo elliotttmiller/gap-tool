@@ -3,6 +3,8 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
+  LabelList,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -12,293 +14,341 @@ import { Card, CardContent } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import type { DisabilityInputs } from "../types"
 
-type CompareView = "monthly" | "gap" | "coverage"
-
 interface JobComparisonModuleProps {
   inputs?: DisabilityInputs
 }
 
-interface JobState {
+interface JobAState {
   salary: number
-  bonus: number
   groupPct: number
   groupCap: number
   hasIdi: boolean
+  monthlyPremium: number
   idiBenefit: number
 }
 
-interface JobResult {
-  gross: number
-  taxRate: number
-  netMonthly: number
-  groupDiMonthly: number
-  idiMonthly: number
-  totalDiMonthly: number
-  gapMonthly: number
-  coveragePct: number
+interface JobBState {
+  salary: number
+  groupPct: number
+  groupCap: number
+  hasIdi: boolean
+  monthlyPremium: number
+  idiBenefit: number
 }
 
-const BRACKETS_MFJ = [
-  { rate: 0.10, up: 23200 },
-  { rate: 0.12, up: 94300 },
-  { rate: 0.22, up: 201050 },
-  { rate: 0.24, up: 383900 },
-  { rate: 0.32, up: 487450 },
-  { rate: 0.35, up: 731200 },
-  { rate: 0.37, up: Infinity },
-]
-
-function marginalRate(income: number): number {
-  for (const bracket of BRACKETS_MFJ) {
-    if (income <= bracket.up) return bracket.rate
-  }
-  return 0.37
-}
-
-function formatCompactCurrency(value: number): string {
-  if (Math.abs(value) >= 1000) return `$${Math.round(value / 1000)}k`
-  return formatCurrency(value)
-}
-
-function calculateJob(job: JobState): JobResult {
-  const gross = job.salary + job.bonus
-  const taxRate = marginalRate(gross)
-  const netMonthly = gross * (1 - taxRate) / 12
-  const groupDiMonthly = Math.min((job.salary * (job.groupPct / 100)) / 12, job.groupCap || 999999)
-  const idiMonthly = job.hasIdi ? job.idiBenefit : 0
-  const totalDiMonthly = groupDiMonthly + idiMonthly
-  const gapMonthly = Math.max(netMonthly - totalDiMonthly, 0)
-  const coveragePct = netMonthly > 0 ? Math.min((totalDiMonthly / netMonthly) * 100, 100) : 0
-
-  return { gross, taxRate, netMonthly, groupDiMonthly, idiMonthly, totalDiMonthly, gapMonthly, coveragePct }
-}
-
-function getInitialJobs(inputs?: DisabilityInputs): { jobA: JobState; jobB: JobState } {
-  const baseSalary = inputs?.annualEarnedIncome && inputs.annualEarnedIncome > 0 ? inputs.annualEarnedIncome : 100000
-  const basePct = inputs?.ltdCoveragePercent ? Math.round(inputs.ltdCoveragePercent * 100) : 60
-  const baseCap = inputs?.ltdMonthlyCap && inputs.ltdMonthlyCap > 0 ? inputs.ltdMonthlyCap : 6000
-  const baseIdi = inputs?.privateDiBenefitMonthly && inputs.privateDiBenefitMonthly > 0 ? inputs.privateDiBenefitMonthly : 2000
-
+function getInitialJobs(inputs?: DisabilityInputs): { jobA: JobAState; jobB: JobBState } {
+  const salary = inputs?.annualEarnedIncome ?? 100000
+  const groupPct = inputs?.ltdCoveragePercent ? Math.round(inputs.ltdCoveragePercent * 100) : 60
+  const groupCap = inputs?.ltdMonthlyCap ?? 0
+  const idiBenefit = inputs?.privateDiBenefitMonthly ?? 0
+  const monthlyPremium = inputs?.privateDiMonthlyPremium ?? 0
   return {
-    jobA: {
-      salary: Math.round(baseSalary),
-      bonus: 0,
-      groupPct: basePct,
-      groupCap: baseCap,
-      hasIdi: false,
-      idiBenefit: baseIdi,
-    },
-    jobB: {
-      salary: Math.round(baseSalary * 1.3),
-      bonus: Math.round(baseSalary * 0.15),
-      groupPct: Math.max(0, basePct - 10),
-      groupCap: Math.max(0, baseCap - 1000),
-      hasIdi: false,
-      idiBenefit: baseIdi,
-    },
+    jobA: { salary, groupPct, groupCap, hasIdi: false, monthlyPremium: 0, idiBenefit: 0 },
+    jobB: { salary, groupPct, groupCap, hasIdi: idiBenefit > 0 || monthlyPremium > 0, monthlyPremium, idiBenefit },
   }
 }
 
-function NumberField({ label, value, step = 1000, min = 0, onChange }: { label: string; value: number; step?: number; min?: number; onChange: (value: number) => void }) {
+function calcGroupLTDAnnual(salary: number, groupPct: number, groupCap: number): number {
+  const uncapped = salary * (groupPct / 100)
+  return groupCap > 0 ? Math.min(uncapped, groupCap * 12) : uncapped
+}
+
+function NumberField({
+  label,
+  value,
+  step = 1000,
+  min = 0,
+  prefix,
+  suffix,
+  onChange,
+}: {
+  label: string
+  value: number
+  step?: number
+  min?: number
+  prefix?: string
+  suffix?: string
+  onChange: (v: number) => void
+}) {
   return (
-    <label className="space-y-1">
+    <label className="flex flex-col gap-1">
       <span className="text-[11px] text-gray-400">{label}</span>
-      <input
-        type="number"
-        value={value}
-        min={min}
-        step={step}
-        onChange={(event) => onChange(Number(event.target.value) || 0)}
-        className="h-9 w-full rounded-md border border-gray-700 bg-gray-950 px-2.5 text-sm text-gray-100 outline-none transition focus:border-brand-600 focus:ring-0"
-      />
+      <div className="relative flex items-center">
+        {prefix && (
+          <span className="pointer-events-none absolute left-2.5 text-xs text-gray-500">{prefix}</span>
+        )}
+        <input
+          type="number"
+          value={value}
+          min={min}
+          step={step}
+          onChange={(e) => onChange(Number(e.target.value) || 0)}
+          className={`h-9 w-full rounded-md border border-gray-700 bg-gray-950 text-sm text-gray-100 outline-none transition focus:border-brand-600 ${prefix ? "pl-6 pr-2.5" : suffix ? "pl-2.5 pr-6" : "px-2.5"}`}
+        />
+        {suffix && (
+          <span className="pointer-events-none absolute right-2.5 text-xs text-gray-500">{suffix}</span>
+        )}
+      </div>
     </label>
   )
 }
 
-function JobCard({
-  title,
-  accent,
-  job,
-  setJob,
-}: {
-  title: string
-  accent: "green" | "blue"
-  job: JobState
-  setJob: (job: JobState) => void
-}) {
-  const accentClass = accent === "green" ? "border-t-[#1D9E75] text-[#1D9E75]" : "border-t-[#378ADD] text-[#378ADD]"
-
+function GapTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null
+  const total = payload.reduce((sum: number, p: any) => sum + (p.value ?? 0), 0)
   return (
-    <Card className={`border-gray-800 border-t-4 ${accentClass} bg-gray-900/25`}>
-      <CardContent className="p-4">
-        <div className={`mb-3 text-sm font-semibold ${accentClass}`}>{title}</div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <NumberField label="Annual salary" value={job.salary} step={5000} onChange={(salary) => setJob({ ...job, salary })} />
-          <NumberField label="Annual bonus" value={job.bonus} step={1000} onChange={(bonus) => setJob({ ...job, bonus })} />
-          <NumberField label="Group DI (% of salary)" value={job.groupPct} step={1} onChange={(groupPct) => setJob({ ...job, groupPct })} />
-          <NumberField label="Group DI cap ($/mo)" value={job.groupCap} step={500} onChange={(groupCap) => setJob({ ...job, groupCap })} />
-          <label className="space-y-1">
-            <span className="text-[11px] text-gray-400">Has IDI policy?</span>
-            <select
-              value={job.hasIdi ? "1" : "0"}
-              onChange={(event) => setJob({ ...job, hasIdi: event.target.value === "1" })}
-              className="h-9 w-full rounded-md border border-gray-700 bg-gray-950 px-2.5 text-sm text-gray-100 outline-none transition focus:border-brand-600 focus:ring-0"
-            >
-              <option value="0">No</option>
-              <option value="1">Yes</option>
-            </select>
-          </label>
-          <NumberField label="IDI monthly benefit" value={job.idiBenefit} step={500} onChange={(idiBenefit) => setJob({ ...job, idiBenefit })} />
+    <div className="min-w-52 rounded-xl border border-gray-700 bg-gray-950/95 p-3 text-xs shadow-2xl backdrop-blur">
+      <p className="mb-2 font-semibold text-gray-100">{label}</p>
+      <div className="space-y-1.5">
+        {payload.map((entry: any) => (
+          <div key={entry.name} className="flex justify-between gap-4">
+            <span style={{ color: entry.color }}>{entry.name}</span>
+            <span className="font-mono text-gray-100">{formatCurrency(entry.value)}/yr</span>
+          </div>
+        ))}
+        <div className="flex justify-between gap-4 border-t border-gray-800 pt-1.5">
+          <span className="text-gray-400">Total bar</span>
+          <span className="font-mono text-gray-100">{formatCurrency(total)}/yr</span>
         </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-function StatRow({ label, value, tone = "default" }: { label: string; value: string; tone?: "default" | "good" | "gap" | "blue" }) {
-  const toneClass = tone === "good" ? "text-[#1D9E75]" : tone === "gap" ? "text-[#D85A30]" : tone === "blue" ? "text-[#378ADD]" : "text-gray-100"
-  return (
-    <div className="flex items-baseline justify-between border-b border-gray-800 py-1 last:border-b-0">
-      <span className="text-xs text-gray-500">{label}</span>
-      <span className={`text-right font-mono text-xs font-semibold ${toneClass}`}>{value}</span>
+      </div>
     </div>
   )
 }
 
-function CompareTooltip({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null
+function MetricCard({
+  label,
+  value,
+  sub,
+  accent = "default",
+}: {
+  label: string
+  value: string
+  sub?: string
+  accent?: "green" | "red" | "cyan" | "default"
+}) {
+  const valClass =
+    accent === "green" ? "text-emerald-300"
+    : accent === "red" ? "text-[#ef4444]"
+    : accent === "cyan" ? "text-cyan-300"
+    : "text-gray-100"
   return (
-    <div className="rounded-xl border border-gray-700 bg-gray-950/95 p-3 text-xs shadow-2xl backdrop-blur">
-      <p className="mb-2 font-semibold text-gray-100">{label}</p>
-      <div className="space-y-1">
-        {payload.map((entry: any) => (
-          <div key={entry.name} className="flex justify-between gap-4">
-            <span style={{ color: entry.color }}>{entry.name}</span>
-            <span className="font-mono text-gray-100">{entry.payload?.unit === "%" ? `${entry.value}%` : formatCurrency(entry.value)}</span>
-          </div>
-        ))}
-      </div>
+    <div className="rounded-xl border border-gray-800 bg-gray-900/30 p-3.5">
+      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-gray-500">{label}</p>
+      <p className={`mt-1 text-lg font-semibold ${valClass}`}>{value}</p>
+      {sub && <p className="mt-0.5 text-[11px] text-gray-500">{sub}</p>}
     </div>
   )
 }
 
 export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
   const initial = useMemo(() => getInitialJobs(inputs), [inputs])
-  const [jobA, setJobA] = useState<JobState>(initial.jobA)
-  const [jobB, setJobB] = useState<JobState>(initial.jobB)
-  const [view, setView] = useState<CompareView>("monthly")
+  const [jobA, setJobA] = useState<JobAState>(initial.jobA)
+  const [jobB, setJobB] = useState<JobBState>(initial.jobB)
 
-  const a = useMemo(() => calculateJob(jobA), [jobA])
-  const b = useMemo(() => calculateJob(jobB), [jobB])
-  const winner = a.gapMonthly <= b.gapMonthly ? "A" : "B"
-  const winnerColor = winner === "A" ? "text-[#1D9E75]" : "text-[#378ADD]"
-  const betterGap = Math.abs(a.gapMonthly - b.gapMonthly)
+  // ── Job A ──────────────────────────────────────────────────────────────────
+  const groupLTD_A = calcGroupLTDAnnual(jobA.salary, jobA.groupPct, jobA.groupCap)
+  const annualIDI_A = jobA.hasIdi ? jobA.idiBenefit * 12 : 0
+  const annualPremium_A = jobA.hasIdi ? jobA.monthlyPremium * 12 : 0
+  const totalBar_A = Math.max(jobA.salary - annualPremium_A, 0)
+  const incomeGap_A = Math.max(totalBar_A - groupLTD_A - annualIDI_A, 0)
 
-  const chartData = useMemo(() => {
-    if (view === "monthly") {
-      return [
-        { label: "Take-home", "Job A": Math.round(a.netMonthly), "Job B": Math.round(b.netMonthly), unit: "$" },
-        { label: "Group DI", "Job A": Math.round(a.groupDiMonthly), "Job B": Math.round(b.groupDiMonthly), unit: "$" },
-        { label: "IDI benefit", "Job A": Math.round(a.idiMonthly), "Job B": Math.round(b.idiMonthly), unit: "$" },
-        { label: "Total DI", "Job A": Math.round(a.totalDiMonthly), "Job B": Math.round(b.totalDiMonthly), unit: "$" },
-        { label: "Gap", "Job A": Math.round(a.gapMonthly), "Job B": Math.round(b.gapMonthly), unit: "$" },
-      ]
-    }
-    if (view === "gap") {
-      return [
-        { label: "Monthly income", "Job A": Math.round(a.netMonthly), "Job B": Math.round(b.netMonthly), unit: "$" },
-        { label: "DI benefit", "Job A": Math.round(a.totalDiMonthly), "Job B": Math.round(b.totalDiMonthly), unit: "$" },
-        { label: "Unprotected gap", "Job A": Math.round(a.gapMonthly), "Job B": Math.round(b.gapMonthly), unit: "$" },
-      ]
-    }
-    return [
-      { label: "Coverage %", "Job A": Math.round(a.coveragePct), "Job B": Math.round(b.coveragePct), unit: "%" },
-      { label: "Gap %", "Job A": Math.round(100 - a.coveragePct), "Job B": Math.round(100 - b.coveragePct), unit: "%" },
-    ]
-  }, [a, b, view])
+  // ── Job B ──────────────────────────────────────────────────────────────────
+  const annualPremium = jobB.hasIdi ? jobB.monthlyPremium * 12 : 0
+  const annualIDI = jobB.hasIdi ? jobB.idiBenefit * 12 : 0
+  const groupLTD_B = calcGroupLTDAnnual(jobB.salary, jobB.groupPct, jobB.groupCap)
+  const totalBar_B = Math.max(jobB.salary - annualPremium, 0)
+  const incomeGap_B = Math.max(totalBar_B - groupLTD_B - annualIDI, 0)
+
+  const chartData = [
+    {
+      name: "Job A",
+      "Group LTD": Math.round(groupLTD_A),
+      "IDI Benefit": Math.round(annualIDI_A),
+      "Income Gap": Math.round(incomeGap_A),
+    },
+    {
+      name: "Job B",
+      "Group LTD": Math.round(groupLTD_B),
+      "IDI Benefit": Math.round(annualIDI),
+      "Income Gap": Math.round(incomeGap_B),
+    },
+  ]
 
   return (
     <div className="module-output-container">
       <div className="space-y-4">
+
+        {/* ── Input cards ────────────────────────────────────────────────────── */}
         <div className="grid gap-4 xl:grid-cols-2">
-          <JobCard title="Job A" accent="green" job={jobA} setJob={setJobA} />
-          <JobCard title="Job B" accent="blue" job={jobB} setJob={setJobB} />
-        </div>
-
-        <div className="flex items-center gap-3 rounded-xl border border-gray-800 bg-gray-900/25 px-4 py-3 text-sm text-gray-400">
-          <span className={`text-lg ${winnerColor}`}>●</span>
-          <span>
-            Job <strong className="font-semibold text-gray-100">{winner}</strong> provides better disability protection — <strong className="font-semibold text-gray-100">{formatCurrency(betterGap)}/mo</strong> smaller income gap. Coverage: Job A <strong className="font-semibold text-gray-100">{Math.round(a.coveragePct)}%</strong> · Job B <strong className="font-semibold text-gray-100">{Math.round(b.coveragePct)}%</strong>
-          </span>
-        </div>
-
-        <Card className="border-gray-800 bg-gray-900/25">
-          <CardContent className="p-4">
-            <div className="mb-3 flex flex-wrap items-center gap-3">
-              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500">View</div>
-              <select
-                value={view}
-                onChange={(event) => setView(event.target.value as CompareView)}
-                className="h-8 rounded-md border border-gray-700 bg-gray-950 px-3 text-xs text-gray-100 outline-none focus:border-brand-600 focus:ring-0"
-              >
-                <option value="monthly">Monthly income comparison</option>
-                <option value="gap">Income gap comparison</option>
-                <option value="coverage">Coverage % comparison</option>
-              </select>
-              <div className="ml-auto flex gap-4 text-[11px] text-gray-500">
-                <span><span className="mr-1 inline-block h-2 w-2 rounded-sm bg-[#1D9E75]" />Job A</span>
-                <span><span className="mr-1 inline-block h-2 w-2 rounded-sm bg-[#378ADD]" />Job B</span>
+          <Card className="border-t-4 border-gray-800 border-t-emerald-500 bg-gray-900/25">
+            <CardContent className="p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-sm font-semibold text-emerald-400">Job A</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-gray-400">Has IDI policy?</span>
+                  <div className="flex gap-1">
+                    {(["Yes", "No"] as const).map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setJobA({ ...jobA, hasIdi: opt === "Yes" })}
+                        className={`rounded-md px-3 py-1 text-xs font-semibold transition-colors ${
+                          (opt === "Yes") === jobA.hasIdi
+                            ? "bg-emerald-600 text-white"
+                            : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="chart-reveal h-64">
-              <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                <BarChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 4 }} barCategoryGap="22%">
-                  <CartesianGrid stroke="#1f2937" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="label" tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} axisLine={false} />
-                  <YAxis
-                    tick={{ fill: "#64748b", fontSize: 11 }}
-                    tickLine={false}
-                    axisLine={false}
-                    width={54}
-                    tickFormatter={(value) => (view === "coverage" ? `${value}%` : `$${Math.round(Number(value) / 1000)}k`)}
-                  />
-                  <Tooltip content={<CompareTooltip />} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-                  <Bar dataKey="Job A" fill="#1D9E75" radius={[4, 4, 0, 0]} isAnimationActive animationDuration={550} />
-                  <Bar dataKey="Job B" fill="#378ADD" radius={[4, 4, 0, 0]} isAnimationActive animationDuration={550} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <NumberField label="Annual income" value={jobA.salary} step={5000} prefix="$" onChange={(salary) => setJobA({ ...jobA, salary })} />
+                <NumberField label="Group LTD (% of income)" value={jobA.groupPct} step={1} suffix="%" onChange={(groupPct) => setJobA({ ...jobA, groupPct })} />
+                {jobA.hasIdi && (
+                  <>
+                    <NumberField label="IDI monthly premium" value={jobA.monthlyPremium} step={50} prefix="$" onChange={(monthlyPremium) => setJobA({ ...jobA, monthlyPremium })} />
+                    <NumberField label="IDI monthly benefit" value={jobA.idiBenefit} step={500} prefix="$" onChange={(idiBenefit) => setJobA({ ...jobA, idiBenefit })} />
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-        <div className="grid gap-4 xl:grid-cols-2">
-          <div>
-            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#1D9E75]">Job A Breakdown</div>
-            <Card className="border-gray-800 bg-gray-900/25"><CardContent className="p-4">
-              <StatRow label="Gross income" value={formatCurrency(a.gross)} />
-              <StatRow label="Tax bracket" value={`${Math.round(a.taxRate * 100)}%`} />
-              <StatRow label="Monthly take-home" value={formatCurrency(a.netMonthly)} tone="good" />
-              <StatRow label="Group DI benefit" value={formatCurrency(a.groupDiMonthly)} />
-              {a.idiMonthly > 0 ? <StatRow label="IDI benefit" value={formatCurrency(a.idiMonthly)} tone="blue" /> : null}
-              <StatRow label="Total DI coverage" value={formatCurrency(a.totalDiMonthly)} />
-              <StatRow label="Monthly income gap" value={formatCurrency(a.gapMonthly)} tone="gap" />
-              <StatRow label="Coverage rate" value={`${Math.round(a.coveragePct)}%`} />
-            </CardContent></Card>
-          </div>
-          <div>
-            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#378ADD]">Job B Breakdown</div>
-            <Card className="border-gray-800 bg-gray-900/25"><CardContent className="p-4">
-              <StatRow label="Gross income" value={formatCurrency(b.gross)} />
-              <StatRow label="Tax bracket" value={`${Math.round(b.taxRate * 100)}%`} />
-              <StatRow label="Monthly take-home" value={formatCurrency(b.netMonthly)} tone="good" />
-              <StatRow label="Group DI benefit" value={formatCurrency(b.groupDiMonthly)} />
-              {b.idiMonthly > 0 ? <StatRow label="IDI benefit" value={formatCurrency(b.idiMonthly)} tone="blue" /> : null}
-              <StatRow label="Total DI coverage" value={formatCurrency(b.totalDiMonthly)} />
-              <StatRow label="Monthly income gap" value={formatCurrency(b.gapMonthly)} tone="gap" />
-              <StatRow label="Coverage rate" value={`${Math.round(b.coveragePct)}%`} />
-            </CardContent></Card>
+          <Card className="border-t-4 border-gray-800 border-t-[#378ADD] bg-gray-900/25">
+            <CardContent className="p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-sm font-semibold text-[#378ADD]">Job B</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-gray-400">Has IDI policy?</span>
+                  <div className="flex gap-1">
+                    {(["Yes", "No"] as const).map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setJobB({ ...jobB, hasIdi: opt === "Yes" })}
+                        className={`rounded-md px-3 py-1 text-xs font-semibold transition-colors ${
+                          (opt === "Yes") === jobB.hasIdi
+                            ? "bg-[#378ADD] text-white"
+                            : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <NumberField label="Annual income" value={jobB.salary} step={5000} prefix="$" onChange={(salary) => setJobB({ ...jobB, salary })} />
+                <NumberField label="Group LTD (% of income)" value={jobB.groupPct} step={1} suffix="%" onChange={(groupPct) => setJobB({ ...jobB, groupPct })} />
+                {jobB.hasIdi && (
+                  <>
+                    <NumberField label="IDI monthly premium" value={jobB.monthlyPremium} step={50} prefix="$" onChange={(monthlyPremium) => setJobB({ ...jobB, monthlyPremium })} />
+                    <NumberField label="IDI monthly benefit" value={jobB.idiBenefit} step={500} prefix="$" onChange={(idiBenefit) => setJobB({ ...jobB, idiBenefit })} />
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ── Stacked bar chart + metrics ───────────────────────────────────── */}
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_11rem]">
+          <Card className="border-gray-800 bg-gray-900/25">
+            <CardContent className="p-4">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-gray-400">Income Gap Comparison</p>
+                  <p className="mt-0.5 text-xs text-gray-500">Annual income breakdown — covered vs. unprotected</p>
+                </div>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-400">
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-4 rounded-sm bg-[#3b82f6]" />Group LTD</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-4 rounded-sm bg-[#06b6d4]" />IDI Benefit</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-4 rounded-sm bg-[#ef4444]" />Income Gap</span>
+                </div>
+              </div>
+
+              <div className="chart-reveal h-80">
+                <ResponsiveContainer width="100%" height="100%" debounce={100}>
+                  <BarChart
+                    data={chartData}
+                    margin={{ top: 16, right: 16, left: 0, bottom: 4 }}
+                    barCategoryGap="40%"
+                  >
+                    <CartesianGrid stroke="#1f2937" strokeDasharray="3 3" vertical={false} />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fill: "#94a3b8", fontSize: 13, fontWeight: 600 }}
+                      tickLine={false}
+                      axisLine={{ stroke: "#1f2937" }}
+                    />
+                    <YAxis
+                      tick={{ fill: "#64748b", fontSize: 10 }}
+                      tickLine={false}
+                      axisLine={false}
+                      width={56}
+                      tickFormatter={(v) => `$${Math.round(Number(v) / 1000)}k`}
+                    />
+                    <Tooltip content={<GapTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+
+                    <Bar dataKey="Group LTD" stackId="stack" fill="#3b82f6" isAnimationActive animationDuration={550}>
+                      <LabelList
+                        dataKey="Group LTD"
+                        position="center"
+                        formatter={(v: number) => v > 0 ? formatCurrency(v) : ""}
+                        style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }}
+                      />
+                    </Bar>
+
+                    <Bar dataKey="IDI Benefit" stackId="stack" isAnimationActive animationDuration={550}>
+                      {chartData.map((entry, index) => (
+                        <Cell key={`idi-${index}`} fill={entry["IDI Benefit"] > 0 ? "#06b6d4" : "transparent"} />
+                      ))}
+                      <LabelList
+                        dataKey="IDI Benefit"
+                        position="center"
+                        formatter={(v: number) => v > 0 ? formatCurrency(v) : ""}
+                        style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }}
+                      />
+                    </Bar>
+
+                    <Bar dataKey="Income Gap" stackId="stack" fill="#ef4444" radius={[4, 4, 0, 0]} isAnimationActive animationDuration={550}>
+                      <LabelList
+                        dataKey="Income Gap"
+                        position="center"
+                        formatter={(v: number) => v > 0 ? formatCurrency(v) : ""}
+                        style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }}
+                      />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* ── Side metric cards ─────────────────────────────────────────── */}
+          <div className="flex flex-col gap-3 xl:justify-center">
+            <MetricCard
+              label="IDI benefit"
+              value={`${formatCurrency(annualIDI)}/yr`}
+              accent="cyan"
+            />
+            <MetricCard
+              label="Income difference"
+              value={`${formatCurrency(Math.abs(jobA.salary - totalBar_B))}/yr`}
+              accent={jobA.salary >= totalBar_B ? "default" : "green"}
+            />
+            <MetricCard
+              label="Gap difference"
+              value={`${formatCurrency(Math.abs(incomeGap_A - incomeGap_B))}/yr`}
+              accent={incomeGap_A > incomeGap_B ? "red" : "green"}
+            />
           </div>
         </div>
+
       </div>
     </div>
   )

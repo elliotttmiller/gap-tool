@@ -92,17 +92,6 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="ltdMonthlyCap">Monthly Cap</Label>
-            <Input
-              id="ltdMonthlyCap"
-              type="number"
-              prefix="$"
-              value={inputs.ltdMonthlyCap || ""}
-              className="w-full"
-              onChange={(e) => handleNumber("ltdMonthlyCap", e.target.value)}
-            />
-          </div>
-          <div className="flex flex-col gap-2 sm:col-span-2">
             <Label htmlFor="ltdTaxable">Taxable?</Label>
             <select
               id="ltdTaxable"
@@ -142,19 +131,6 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
               onChange={(e) => handleNumber("privateDiMonthlyPremium", e.target.value)}
             />
           </div>
-          <div className="flex flex-col gap-2 sm:col-span-2">
-            <Label htmlFor="privateDiBenefitPeriod">Benefit Period</Label>
-            <select
-              id="privateDiBenefitPeriod"
-              value={inputs.privateDiBenefitPeriod}
-              onChange={(e) => onChange({ ...inputs, privateDiBenefitPeriod: e.target.value as DiBenefitPeriod | "" })}
-              className={selectClass}
-            >
-              {BENEFIT_PERIOD_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="breakEvenRateOfReturn">Break-Even Rate of Return</Label>
             <Input
@@ -180,6 +156,19 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
               className="w-full"
               onChange={(e) => handleNumber("breakEvenMonthsWithoutIncome", e.target.value)}
             />
+          </div>
+          <div className="flex flex-col gap-2 sm:col-span-2">
+            <Label htmlFor="privateDiBenefitPeriod">Benefit Period</Label>
+            <select
+              id="privateDiBenefitPeriod"
+              value={inputs.privateDiBenefitPeriod}
+              onChange={(e) => onChange({ ...inputs, privateDiBenefitPeriod: e.target.value as DiBenefitPeriod | "" })}
+              className={selectClass}
+            >
+              {BENEFIT_PERIOD_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
           </div>
       </CollapsibleInputSection>
     </div>

@@ -51,10 +51,9 @@ export default defineConfig({
       },
 
       devOptions: {
-        // Enable the SW in Vite dev mode so the install prompt can be tested
-        // locally without a production build.
-        enabled: true,
-        type: 'module',
+        // Disabled in dev — no need to run a real SW locally.
+        // Enabling it generates dev-dist/ and can interfere with HMR.
+        enabled: false,
       },
     }),
   ],

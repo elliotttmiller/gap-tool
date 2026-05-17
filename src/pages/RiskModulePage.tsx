@@ -44,7 +44,7 @@ interface RiskModulePageProps {
   subtitle: string
   headerActions?: React.ReactNode
   formSlot: React.ReactNode
-  outputSlot: React.ReactNode | ((inputsOpen: boolean) => React.ReactNode)
+  outputSlot: React.ReactNode | ((inputsOpen: boolean, setInputsOpen: (open: boolean) => void) => React.ReactNode)
 }
 
 /**
@@ -173,7 +173,7 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
           </div>
         </div>
         <div className="min-w-0 w-full">
-          {typeof outputSlot === "function" ? outputSlot(inputsOpen) : outputSlot}
+          {typeof outputSlot === "function" ? outputSlot(inputsOpen, setInputsOpen) : outputSlot}
         </div>
       </div>
 

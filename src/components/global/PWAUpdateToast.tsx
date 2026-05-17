@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { RefreshCw, X } from 'lucide-react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 
@@ -25,13 +26,20 @@ export function PWAUpdateToast() {
     },
   });
 
+  // When the new SW takes control, reload to apply the update.
+  useEffect(() => {
+    const handler = () => window.location.reload();
+    navigator.serviceWorker?.addEventListener('controllerchange', handler);
+    return () => navigator.serviceWorker?.removeEventListener('controllerchange', handler);
+  }, []);
+
   if (!needRefresh) return null;
 
   return (
     <div
       role="alert"
       aria-live="assertive"
-      className="fixed inset-x-0 top-0 z-[9999] flex items-center justify-between gap-4 bg-brand-600 px-6 py-3 shadow-lg"
+      className="fixed inset-x-0 top-0 z-9999 flex items-center justify-between gap-4 bg-brand-600 px-6 py-3 shadow-lg"
     >
       <p className="text-sm font-medium text-white">
         A new version of NorthStar is available.

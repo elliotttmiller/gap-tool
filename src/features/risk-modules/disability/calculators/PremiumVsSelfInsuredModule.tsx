@@ -13,12 +13,14 @@ import {
 import { Card, CardContent } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import { calculateBreakEven } from "./calculateBreakEven"
+import type { DisabilityInputs } from "../types"
 
 interface PremiumVsSelfInsuredModuleProps {
   monthlyPremium: number
   monthlyBenefit: number
   annualRateOfReturn: number
   monthsWithoutIncome: number
+  inputs?: DisabilityInputs
 }
 
 interface PremiumVsSelfInsuredState {
@@ -137,6 +139,29 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
 
   const result = useMemo(() => calculateBreakEven(values), [values])
 
+  // Derive retirement age from benefit period (A65/A67/A70) or fall back to retirementAge input.
+  const currentAge = props.inputs?.currentAge ?? 0
+  const benefitPeriod = props.inputs?.privateDiBenefitPeriod ?? ""
+  const retirementAge = benefitPeriod === "A65" ? 65
+    : benefitPeriod === "A67" ? 67
+    : benefitPeriod === "A70" ? 70
+    : props.inputs?.retirementAge ?? 65
+  const yearsToRetirement = Math.max(retirementAge - currentAge, 0)
+
+  // Card A: FV of investing the monthly premium until retirement at the slider's rate of return.
+  // Using FV of annuity: PMT * [((1 + r/12)^n - 1) / (r/12)]
+  const monthlyRate = values.annualRateOfReturn / 12
+  const nMonths = yearsToRetirement * 12
+  const investedPremiumFV = monthlyRate > 0
+    ? values.monthlyPremium * ((Math.pow(1 + monthlyRate, nMonths) - 1) / monthlyRate)
+    : values.monthlyPremium * nMonths
+
+  // Card B: FV ÷ monthly premium = how many months of benefit the fund could cover.
+  const monthsOfCoverage = values.monthlyPremium > 0 ? investedPremiumFV / values.monthlyBenefit : 0
+
+  // Card C: months ÷ 12 = years of disability coverage.
+  const yearsOfCoverage = monthsOfCoverage / 12
+
   if (result.ok === false) {
     return (
       <div className="module-output-container">
@@ -226,11 +251,13 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                     <CartesianGrid stroke="#1f2937" strokeDasharray="3 3" vertical={false} />
                     <XAxis
                       dataKey="month"
+                      type="number"
+                      domain={[0, chartEndMonth]}
                       tick={{ fill: "#64748b", fontSize: 10 }}
-                      tickLine={false}
-                      axisLine={false}
-                      interval="preserveStartEnd"
-                      tickFormatter={(value) => (Number(value) % 24 === 0 ? `Yr ${Number(value) / 12}` : "")}
+                      tickLine={{ stroke: "#1f2937" }}
+                      axisLine={{ stroke: "#1f2937" }}
+                      ticks={Array.from({ length: Math.floor(chartEndMonth / 12) + 1 }, (_, i) => i * 12).filter((m) => m % 24 === 0)}
+                      tickFormatter={(value) => `Yr ${Number(value) / 12}`}
                     />
                     <YAxis
                       tick={{ fill: "#64748b", fontSize: 10 }}
@@ -285,6 +312,36 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
               <Card className="border-gray-800 bg-gray-900/25"><CardContent className="p-3"><p className="text-lg font-semibold text-gray-100">Month {result.roundedBreakEvenMonths}</p><p className="text-[10px] text-gray-500">Break-even month</p></CardContent></Card>
             </div>
           </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Card className="border-gray-800 bg-gray-900/25">
+            <CardContent className="p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500 mb-1">Premium invested to age {retirementAge}</p>
+              <p className="text-xl font-semibold text-emerald-300">{formatCurrency(investedPremiumFV)}</p>
+              <p className="mt-1 text-[11px] text-gray-500">
+                {yearsToRetirement} yrs · {formatCurrency(values.monthlyPremium)}/mo · {formatPlainPercent(values.annualRateOfReturn)} return
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-gray-800 bg-gray-900/25">
+            <CardContent className="p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500 mb-1">Months of disability funded</p>
+              <p className="text-xl font-semibold text-gray-100">{formatDecimal(monthsOfCoverage, 1)} <span className="text-sm font-normal text-gray-400">months</span></p>
+              <p className="mt-1 text-[11px] text-gray-500">
+                Fund value ÷ {formatCurrency(values.monthlyBenefit)}/mo benefit
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-amber-500/30 bg-amber-500/5">
+            <CardContent className="p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-500 mb-1">Years of disability funded</p>
+              <p className="text-xl font-semibold text-amber-300">{formatDecimal(yearsOfCoverage, 1)} <span className="text-sm font-normal text-gray-400">years</span></p>
+              <p className="mt-1 text-[11px] text-gray-500">
+                Months of coverage ÷ 12
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
       </div>

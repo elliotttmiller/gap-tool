@@ -7,7 +7,6 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 import { getDisabilityNarrative } from "../constants/moduleCopy"
 import { AnimatedSection } from "@/components/ui/animated-section"
 import { transformDisabilityChartData } from "../transformers/transformDisabilityChartData"
-import { BreakEvenCalculator } from "../calculators/BreakEvenCalculator"
 import { PremiumVsSelfInsuredModule } from "../calculators/PremiumVsSelfInsuredModule"
 import { JobComparisonModule } from "../calculators/JobComparisonModule"
 import {
@@ -146,19 +145,13 @@ export function DisabilityOutputView({
 
   function renderVisualization() {
     if (visualization === "premiumVsSelfInsured") {
-      return mode === "presentation" ? (
+      return (
         <PremiumVsSelfInsuredModule
           monthlyPremium={inputs?.privateDiMonthlyPremium ?? 0}
           monthlyBenefit={inputs?.privateDiBenefitMonthly ?? 0}
           annualRateOfReturn={inputs?.breakEvenRateOfReturn ?? 0.06}
           monthsWithoutIncome={inputs?.breakEvenMonthsWithoutIncome ?? 12}
-        />
-      ) : (
-        <BreakEvenCalculator
-          monthlyPremium={inputs?.privateDiMonthlyPremium ?? 0}
-          monthlyBenefit={inputs?.privateDiBenefitMonthly ?? 0}
-          annualRateOfReturn={inputs?.breakEvenRateOfReturn ?? 0.06}
-          monthsWithoutIncome={inputs?.breakEvenMonthsWithoutIncome ?? 12}
+          inputs={inputs}
         />
       )
     }
