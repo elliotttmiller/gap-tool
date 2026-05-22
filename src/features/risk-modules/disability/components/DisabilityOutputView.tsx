@@ -312,20 +312,22 @@ export function DisabilityOutputView({
   return (
     <div className="flex h-full flex-col space-y-6">
       <AnimatedSection delay={0.3}>
-        <div className="mb-3 inline-flex max-w-full overflow-x-auto border-b border-gray-800 text-xs">
-          {([
-            ["incomeGap", "Income Gap"],
-            ["premiumVsSelfInsured", "Premium vs Self-Insured"],
-            ["jobComparison", "Job A vs Job B"],
-          ] as const).map(([value, label]) => (
+        <div className="flex flex-wrap gap-1 mb-4">
+          {(
+            [
+              { value: "incomeGap", label: "Income Gap", active: "bg-blue-900/60 border border-blue-700 text-blue-200" },
+              { value: "premiumVsSelfInsured", label: "Premium vs Self-Insured", active: "bg-emerald-900/60 border border-emerald-700 text-emerald-200" },
+              { value: "jobComparison", label: "Job A vs Job B", active: "bg-violet-900/60 border border-violet-700 text-violet-200" },
+            ] as const
+          ).map(({ value, label, active }) => (
             <button
               key={value}
               type="button"
               onClick={() => setVisualization(value)}
-              className={`border-b-2 px-5 py-2.5 font-semibold whitespace-nowrap transition-colors ${
+              className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-colors ${
                 visualization === value
-                  ? "border-gray-100 text-gray-100"
-                  : "border-transparent text-gray-500 hover:text-gray-200"
+                  ? active
+                  : "bg-slate-900/40 border border-slate-800 text-slate-400 hover:text-slate-200"
               }`}
             >
               {label}
