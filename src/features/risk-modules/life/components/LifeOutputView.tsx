@@ -24,10 +24,12 @@ interface LifeOutputViewProps {
 
 // ── Shared tooltip ────────────────────────────────────────────────────────────
 
+const TOOLTIP_CLASS = "bg-gray-900 p-3 border border-gray-700 rounded-lg shadow-lg text-sm min-w-48"
+
 const M1Tooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-gray-900 p-3 border border-gray-700 rounded-lg shadow-lg text-sm min-w-48">
+    <div className={TOOLTIP_CLASS}>
       <p className="font-semibold text-gray-100 mb-2">Age {label}</p>
       {payload.map((entry: any) => (
         <div key={entry.name} className="flex justify-between gap-4 mb-1">
@@ -44,7 +46,7 @@ const M2Tooltip = ({ active, payload, label }: any) => {
   const point = payload[0]?.payload
   const isCovered = point?.isCoveredMax
   return (
-    <div className="bg-gray-900 p-3 border border-gray-700 rounded-lg shadow-lg text-sm min-w-48">
+    <div className={TOOLTIP_CLASS}>
       <p className="font-semibold text-gray-100 mb-2">Age {label}</p>
       <div className="flex justify-between gap-4 mb-1">
         <span className="text-xs text-gray-400">Status:</span>

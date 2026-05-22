@@ -5,6 +5,16 @@ import { CollapsibleInputSection } from "@/components/ui/collapsible-input-secti
 
 const selectClass = "flex h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-1 text-sm text-gray-50 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
 
+/** Convert a decimal rate (0.04) to a display percentage value (4). */
+function toPercent(rate: number): number {
+  return Math.round(rate * 1000) / 10
+}
+
+/** Convert a percentage input string ("4") back to a decimal rate (0.04). */
+function fromPercent(value: string): number {
+  return value === "" ? 0 : Number(value) / 100
+}
+
 interface LifeInputFormProps {
   inputs: LifeInputs
   onChange: (inputs: LifeInputs) => void
@@ -128,19 +138,19 @@ export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
       <CollapsibleInputSection title="Income Gap Analysis" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2 sm:col-span-2">
             <Label htmlFor="assetBase">Asset Base (Available for Income Replacement)</Label>
-            <AffixedInput id="assetBase" type="number" prefix="$" value={inputs.assetBase ?? inputs.nonQualifiedAssets ?? ""} className="w-full" onChange={(e) => handleNumberChange("assetBase", e.target.value)} placeholder="Total assets at death (investments, policy value, etc.)" />
+            <AffixedInput id="assetBase" type="number" prefix="$" value={inputs.assetBase ?? ""} className="w-full" onChange={(e) => handleNumberChange("assetBase", e.target.value)} placeholder="Total assets at death (investments, policy value, etc.)" />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="safeWithdrawalRate">Safe Withdrawal Rate</Label>
-            <AffixedInput id="safeWithdrawalRate" type="number" min={0} max={25} step={0.5} suffix="%" value={Math.round(((inputs.safeWithdrawalRate ?? 0.04)) * 1000) / 10 || ""} className="w-full" onChange={(e) => onChange({ ...inputs, safeWithdrawalRate: (e.target.value === "" ? 0 : Number(e.target.value)) / 100 })} placeholder="4" />
+            <AffixedInput id="safeWithdrawalRate" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.safeWithdrawalRate ?? 0.04) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, safeWithdrawalRate: fromPercent(e.target.value) })} placeholder="4" />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="maxWithdrawalRate">Max Return / Draw Rate (Module 2)</Label>
-            <AffixedInput id="maxWithdrawalRate" type="number" min={0} max={25} step={0.5} suffix="%" value={Math.round(((inputs.maxWithdrawalRate ?? 0.06)) * 1000) / 10 || ""} className="w-full" onChange={(e) => onChange({ ...inputs, maxWithdrawalRate: (e.target.value === "" ? 0 : Number(e.target.value)) / 100 })} placeholder="6" />
+            <AffixedInput id="maxWithdrawalRate" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.maxWithdrawalRate ?? 0.06) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, maxWithdrawalRate: fromPercent(e.target.value) })} placeholder="6" />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="incomeGapRoi">ROI for Death Benefit Calc</Label>
-            <AffixedInput id="incomeGapRoi" type="number" min={0} max={25} step={0.5} suffix="%" value={Math.round(((inputs.incomeGapRoi ?? 0.05)) * 1000) / 10 || ""} className="w-full" onChange={(e) => onChange({ ...inputs, incomeGapRoi: (e.target.value === "" ? 0 : Number(e.target.value)) / 100 })} placeholder="5" />
+            <AffixedInput id="incomeGapRoi" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.incomeGapRoi ?? 0.05) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, incomeGapRoi: fromPercent(e.target.value) })} placeholder="5" />
           </div>
       </CollapsibleInputSection>
     </div>
