@@ -20,6 +20,8 @@ interface LifeOutputViewProps {
   inputs: LifeInputs
   assumptions: LifeAssumptions
   incomeGapOutputs: IncomeGapOutputs
+  activeTab?: "safe" | "max"
+  onActiveTabChange?: (tab: "safe" | "max") => void
 }
 
 // ── Shared tooltip ────────────────────────────────────────────────────────────
@@ -192,8 +194,13 @@ function Module2Boxes({ m2 }: { m2: IncomeGapModule2 }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function LifeOutputView({ outputs, incomeGapOutputs }: LifeOutputViewProps) {
-  const [activeTab, setActiveTab] = useState<"safe" | "max">("safe")
+export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTabProp, onActiveTabChange }: LifeOutputViewProps) {
+  const [activeTabInternal, setActiveTabInternal] = useState<"safe" | "max">("safe")
+  const activeTab = activeTabProp ?? activeTabInternal
+  const setActiveTab = (tab: "safe" | "max") => {
+    setActiveTabInternal(tab)
+    onActiveTabChange?.(tab)
+  }
   const { module1, module2 } = incomeGapOutputs
 
   const m1TickAges = buildTickAges(module1.yearlyData)

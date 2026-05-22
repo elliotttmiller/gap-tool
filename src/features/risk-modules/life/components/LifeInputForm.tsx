@@ -18,6 +18,7 @@ function fromPercent(value: string): number {
 interface LifeInputFormProps {
   inputs: LifeInputs
   onChange: (inputs: LifeInputs) => void
+  showMaxWithdrawalRateInput?: boolean
 }
 
 function AffixedInput({
@@ -36,7 +37,7 @@ function AffixedInput({
   )
 }
 
-export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
+export function LifeInputForm({ inputs, onChange, showMaxWithdrawalRateInput = false }: LifeInputFormProps) {
   const handleNumberChange = (field: keyof LifeInputs, value: string) => {
     const numericValue = value === "" ? 0 : Number(value)
     onChange({ ...inputs, [field]: numericValue })
@@ -144,10 +145,12 @@ export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
             <Label htmlFor="safeWithdrawalRate">Safe Withdrawal Rate</Label>
             <AffixedInput id="safeWithdrawalRate" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.safeWithdrawalRate ?? 0.04) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, safeWithdrawalRate: fromPercent(e.target.value) })} placeholder="4" />
           </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="maxWithdrawalRate">Max Return / Draw Rate (Module 2)</Label>
-            <AffixedInput id="maxWithdrawalRate" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.maxWithdrawalRate ?? 0.06) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, maxWithdrawalRate: fromPercent(e.target.value) })} placeholder="6" />
-          </div>
+          {showMaxWithdrawalRateInput ? (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="maxWithdrawalRate">Max Return / Draw Rate</Label>
+              <AffixedInput id="maxWithdrawalRate" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.maxWithdrawalRate ?? 0.06) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, maxWithdrawalRate: fromPercent(e.target.value) })} placeholder="6" />
+            </div>
+          ) : null}
           <div className="flex flex-col gap-2">
             <Label htmlFor="incomeGapRoi">ROI for Death Benefit Calc</Label>
             <AffixedInput id="incomeGapRoi" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.incomeGapRoi ?? 0.05) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, incomeGapRoi: fromPercent(e.target.value) })} placeholder="5" />
