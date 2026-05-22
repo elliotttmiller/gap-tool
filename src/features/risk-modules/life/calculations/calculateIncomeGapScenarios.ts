@@ -114,6 +114,7 @@ export function calculateIncomeGapScenarios(
       age,
       projectedIncome: roundCurrency(projectedIncome),
       safeWD: roundCurrency(annualSafeWD),
+      incomeGap: roundCurrency(Math.max(0, projectedIncome - annualSafeWD)),
       maxCovered: roundCurrency(maxCovered),
       isCoveredMax,
     });

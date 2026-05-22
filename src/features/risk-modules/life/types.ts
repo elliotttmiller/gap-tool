@@ -97,6 +97,8 @@ export interface IncomeGapYearlyPoint {
   projectedIncome: number;
   /** Module 1: flat safe withdrawal amount (same every year = assetBase × safeWithdrawalRate). */
   safeWD: number;
+  /** Module 1: survivor income gap for this year = max(0, projectedIncome − safeWD). */
+  incomeGap: number;
   /** Module 2: income actually covered this year — projectedIncome if covered, 0 if depleted. */
   maxCovered: number;
   /** Module 2: whether this year has full income coverage. */
