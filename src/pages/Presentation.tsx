@@ -4,6 +4,7 @@ import { ArrowLeft, BriefcaseBusiness, HeartPulse, Printer, Scale, ShieldAlert }
 import { Button } from "@/components/ui/button"
 import { LifeOutputView } from "@/features/risk-modules/life/components/LifeOutputView"
 import { calculateLifeInsuranceGap } from "@/features/risk-modules/life/calculations/calculateLifeInsuranceGap"
+import { calculateIncomeGapScenarios } from "@/features/risk-modules/life/calculations/calculateIncomeGapScenarios"
 import { DisabilityOutputView } from "@/features/risk-modules/disability/components/DisabilityOutputView"
 import { calculateDisabilityGap } from "@/features/risk-modules/disability/calculations/calculateDisabilityGap"
 import { UnemploymentOutputView } from "@/features/risk-modules/unemployment/components/UnemploymentOutputView"
@@ -152,6 +153,10 @@ export function Presentation() {
     () => records?.life ? (records.life.output ?? calculateLifeInsuranceGap(records.life.inputs, records.life.assumptions)) : null,
     [records?.life],
   )
+  const lifeIncomeGapOutputs = useMemo(
+    () => records?.life ? calculateIncomeGapScenarios(records.life.inputs, records.life.assumptions) : null,
+    [records?.life],
+  )
   const disabilityOutputs = useMemo(
     () => records?.disability ? (records.disability.output ?? calculateDisabilityGap(records.disability.inputs, records.disability.assumptions)) : null,
     [records?.disability],
@@ -201,7 +206,16 @@ export function Presentation() {
     : false
 
   function renderModule(module: RiskModuleType) {
-    if (module === "life" && lifeOutputs) return <LifeOutputView outputs={lifeOutputs} />
+    if (module === "life" && lifeOutputs && lifeIncomeGapOutputs && records?.life) {
+      return (
+        <LifeOutputView
+          outputs={lifeOutputs}
+          inputs={records.life.inputs}
+          assumptions={records.life.assumptions}
+          incomeGapOutputs={lifeIncomeGapOutputs}
+        />
+      )
+    }
     if (module === "disability" && disabilityOutputs) {
       return <DisabilityOutputView outputs={disabilityOutputs} inputs={records?.disability?.inputs} mode="presentation" visualization={disabilityVisualization} onVisualizationChange={setDisabilityVisualization} />
     }
