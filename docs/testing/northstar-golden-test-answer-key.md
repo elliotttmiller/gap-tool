@@ -14,6 +14,12 @@ Run the golden calculation check with:
 npm run test:golden
 ```
 
+Run full end-to-end validation (calculation truth + page/tab wiring coverage) with:
+
+```bash
+npm run test:validation
+```
+
 ## Purpose
 
 This is not an investment prediction, underwriting model, tax opinion, or legal opinion. It is a production QA artifact for validating that the current advisor-facing gap-analysis calculators compute exactly what the code and Northstar assumptions require.
@@ -273,3 +279,22 @@ The tables above summarize the visible and highest-value testing metrics. The co
 - Break-even schedule checkpoints for months 1, 12, 135, 240, and 300.
 
 For exact scalar targets and checkpoint arrays, use `src/golden/northstarGoldenAnswerKey.ts`.
+
+## Route + page + tab coverage checks
+
+`npm run test:golden:surface` runs `src/golden/northstarSurfaceCoverageCheck.ts`, which verifies calculation coverage across the app surface by asserting:
+
+- Route coverage in `src/App.tsx` for dashboard, client overview, scenario routes, each risk-module route, presentation, settings, and fallback.
+- Module tab coverage in `src/pages/ScenarioDetail.tsx`, `src/pages/RiskModulePage.tsx`, and `src/pages/Presentation.tsx`.
+- Page-to-calculator bindings in all module pages:
+	- `LifeModulePage` → `calculateLifeInsuranceGap`, `calculateIncomeGapScenarios`
+	- `DisabilityModulePage` → `calculateDisabilityGap`
+	- `UnemploymentModulePage` → `calculateUnemploymentGap`
+	- `LiabilityModulePage` → `calculateLiabilityGap`
+- Tab-level output coverage:
+	- `LifeOutputView` safe/max withdrawal tabs
+	- `DisabilityOutputView` income-gap, premium-vs-self-insured, and job-comparison tabs
+- Formula version registry presence in `src/features/risk-modules/core/registry.ts`.
+- Scenario summary gap mapping across life/disability/unemployment/liability in `src/lib/scenarioMetrics.ts`.
+
+This complements the scalar golden answer-key assertions by proving every modeled module tab/page route remains connected to the expected formulas.

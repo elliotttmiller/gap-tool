@@ -288,4 +288,77 @@ export const northstarGoldenAnswerKey = {
     liabilityGapValue: 876092.8310553343,
     largestScenarioGap: 4134320,
   },
+  uiDisplaySnapshots: {
+    disabilityIncomeGapTab: {
+      chartData: {
+        count: 26,
+        first: {
+          age: 40,
+          "Assumed Income (Gross)": 150000,
+          "Assumed Income (Net)": 105000,
+          "Group LTD (Net)": 63000,
+          "Group LTD (Gross)": 90000,
+          "Individual DI": 48000,
+          "Income Gap": 0,
+        },
+        last: {
+          age: 65,
+          "Assumed Income (Gross)": 314067,
+          "Assumed Income (Net)": 219847,
+          "Group LTD (Net)": 67200,
+          "Group LTD (Gross)": 96000,
+          "Individual DI": 48000,
+          "Income Gap": 104647,
+        },
+        animationKey: "1074391:2988327:0.7382:26",
+      },
+      monthlyStatsAtStartAge: {
+        age: 40,
+        ltdNetMonthly: 5250,
+        ltdGrossMonthly: 7500,
+        individualDIMonthly: 4000,
+        totalNetMonthly: 9250,
+        totalGrossMonthly: 11500,
+        incomeGrossMonthly: 12500,
+        incomeNetMonthly: 8750,
+        incomeLossNet: -500,
+        incomeLossGross: 1000,
+      },
+    },
+    unemploymentDashboard: {
+      monthlyIncomeDisplay: "$13K",
+      minimumReserveDisplay: "$38K",
+      optimalReserveDisplay: "$75K",
+      annualIncomeAtRiskDisplay: "$150K",
+    },
+    liabilityDashboard: {
+      totalRisk: 2376092.8310553343,
+      coveragePctRaw: 10.521474444622742,
+      coveragePctRoundedDisplay: "11%",
+      chartData: {
+        protectionStackData: [
+          {
+            name: "Household Liability Risk",
+            Coverage: 250000,
+            ExposureGap: 2126092.8310553343,
+          },
+        ],
+        animationKey: "250000:2126092.8310553343:2376092.8310553343",
+      },
+      metricDisplays: {
+        wageGarnishmentRisk: "$1.88M",
+        nonQualifiedAssetsAtRisk: "$500K",
+        totalLiabilityExposure: "$2.38M",
+        autoLiabilityCoverage: "$250K",
+        unprotectedLiabilityGap: "$2.13M",
+      },
+    },
+    presentationModeGapLabels: {
+      life: "$4,134,320",
+      disability: "$1,074,391",
+      unemployment: "$0",
+      liability: "$876,093",
+      largest: "$4,134,320",
+    },
+  },
 } as const;

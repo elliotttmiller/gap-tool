@@ -8,7 +8,9 @@ import { calculateSsdi } from "../features/risk-modules/disability/calculators/c
 import { calculateSavingsBridge } from "../features/risk-modules/disability/calculators/calculateSavingsBridge";
 import { calculateUnemploymentGap } from "../features/risk-modules/unemployment/calculations/calculateUnemploymentGap";
 import { calculateLiabilityGap } from "../features/risk-modules/liability/calculations/calculateLiabilityGap";
-import { getLargestScenarioGap, getModuleGapValue } from "../lib/scenarioMetrics";
+import { transformDisabilityChartData } from "../features/risk-modules/disability/transformers/transformDisabilityChartData";
+import { transformLiabilityChartData } from "../features/risk-modules/liability/transformers/transformLiabilityChartData";
+import { formatGapCurrency, getLargestScenarioGap, getModuleGapValue } from "../lib/scenarioMetrics";
 import type { ScenarioModuleRecords } from "../lib/store-types";
 import {
   northstarGoldenBenefitTaxInputs,
@@ -125,6 +127,64 @@ function calculatePremiumVsSelfInsuredDerived() {
   };
 }
 
+function formatAdvisorCurrency(value: number): string {
+  return `$${Math.round(value / 1000)}K`;
+}
+
+function formatLiabilityMetric(value: number): string {
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000) return `$${(value / 1_000_000).toFixed(2)}M`;
+  if (abs >= 1_000) return `$${Math.round(value / 1_000)}K`;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function getMonthlyStatsAtAgeForGolden(outputs: ReturnType<typeof calculateDisabilityGap>, age: number) {
+  const point = outputs.incomeProjection.find((p) => p.age === age);
+  if (!point) {
+    const startingPoint = outputs.incomeProjection[0];
+    const incomeGrossMonthly = (startingPoint?.annualIncome ?? 0) / 12;
+    const incomeNetMonthly = (startingPoint?.annualIncomeNet ?? 0) / 12;
+    const totalGrossMonthly = outputs.ltdComputedMonthlyBenefit + outputs.privateDiMonthlyBenefit;
+    return {
+      age,
+      ltdNetMonthly: outputs.ltdNetMonthlyBenefit,
+      ltdGrossMonthly: outputs.ltdComputedMonthlyBenefit,
+      individualDIMonthly: outputs.privateDiMonthlyBenefit,
+      totalNetMonthly: outputs.totalNetMonthlyBenefit,
+      totalGrossMonthly,
+      incomeGrossMonthly,
+      incomeNetMonthly,
+      incomeLossNet: incomeNetMonthly - outputs.totalNetMonthlyBenefit,
+      incomeLossGross: incomeGrossMonthly - totalGrossMonthly,
+    };
+  }
+
+  const ltdNetMonthly = point.ltdAnnualBenefit / 12;
+  const ltdGrossMonthly = point.ltdAnnualBenefitGross / 12;
+  const individualDIMonthly = point.individualDIAnnualBenefit / 12;
+  const totalNetMonthly = point.totalAnnualBenefit / 12;
+  const totalGrossMonthly = ltdGrossMonthly + individualDIMonthly;
+  const incomeGrossMonthly = point.annualIncome / 12;
+  const incomeNetMonthly = point.annualIncomeNet / 12;
+
+  return {
+    age,
+    ltdNetMonthly,
+    ltdGrossMonthly,
+    individualDIMonthly,
+    totalNetMonthly,
+    totalGrossMonthly,
+    incomeGrossMonthly,
+    incomeNetMonthly,
+    incomeLossNet: incomeNetMonthly - totalNetMonthly,
+    incomeLossGross: incomeGrossMonthly - totalGrossMonthly,
+  };
+}
+
 function calculateJobComparisonDerived() {
   const salary = northstarGoldenDisabilityInputs.annualEarnedIncome;
   const groupPct = Math.round(northstarGoldenDisabilityInputs.ltdCoveragePercent * 100);
@@ -224,6 +284,22 @@ function runGoldenCheck() {
   };
   assertDeepClose(disabilityCoreForKey, northstarGoldenAnswerKey.disabilityCore, "disabilityCore");
   assertDeepClose(calculateDisabilityDisplay(disabilityCore), northstarGoldenAnswerKey.disabilityDisplay, "disabilityDisplay");
+  const disabilityChartData = transformDisabilityChartData(disabilityCore);
+  assertDeepClose(
+    {
+      count: disabilityChartData.projectionChartData.length,
+      first: disabilityChartData.projectionChartData[0],
+      last: disabilityChartData.projectionChartData.at(-1),
+      animationKey: disabilityChartData.animationKey,
+    },
+    northstarGoldenAnswerKey.uiDisplaySnapshots.disabilityIncomeGapTab.chartData,
+    "uiDisplaySnapshots.disabilityIncomeGapTab.chartData",
+  );
+  assertDeepClose(
+    getMonthlyStatsAtAgeForGolden(disabilityCore, disabilityCore.incomeProjection[0]?.age ?? northstarGoldenDisabilityInputs.currentAge),
+    northstarGoldenAnswerKey.uiDisplaySnapshots.disabilityIncomeGapTab.monthlyStatsAtStartAge,
+    "uiDisplaySnapshots.disabilityIncomeGapTab.monthlyStatsAtStartAge",
+  );
 
   const breakEven = calculateBreakEven(northstarGoldenBreakEvenInputs);
   assert(breakEven.ok, "Break-even calculator should return ok.");
@@ -253,9 +329,39 @@ function runGoldenCheck() {
 
   const unemployment = calculateUnemploymentGap(northstarGoldenUnemploymentInputs);
   assertDeepClose(unemployment, northstarGoldenAnswerKey.unemployment, "unemployment");
+  assertDeepClose(
+    {
+      monthlyIncomeDisplay: formatAdvisorCurrency(unemployment.monthlyIncome),
+      minimumReserveDisplay: formatAdvisorCurrency(unemployment.minimumReserveTarget),
+      optimalReserveDisplay: formatAdvisorCurrency(unemployment.optimalReserveTarget),
+      annualIncomeAtRiskDisplay: formatAdvisorCurrency(unemployment.annualIncomeAtRisk),
+    },
+    northstarGoldenAnswerKey.uiDisplaySnapshots.unemploymentDashboard,
+    "uiDisplaySnapshots.unemploymentDashboard",
+  );
 
   const liability = calculateLiabilityGap(northstarGoldenLiabilityInputs);
   assertDeepClose(liability, northstarGoldenAnswerKey.liability, "liability");
+  const liabilityChartData = transformLiabilityChartData(liability);
+  const totalRisk = liability.totalHouseholdLiabilityRisk || liability.householdAutoLiabilityCoverage + liability.householdLiabilityGap;
+  const coveragePctRaw = totalRisk > 0 ? Math.min(100, (liability.householdAutoLiabilityCoverage / totalRisk) * 100) : 0;
+  assertDeepClose(
+    {
+      totalRisk,
+      coveragePctRaw,
+      coveragePctRoundedDisplay: `${coveragePctRaw.toFixed(0)}%`,
+      chartData: liabilityChartData,
+      metricDisplays: {
+        wageGarnishmentRisk: formatLiabilityMetric(liability.householdWageGarnishmentRisk),
+        nonQualifiedAssetsAtRisk: formatLiabilityMetric(liability.nonQualifiedAssetsAtRisk),
+        totalLiabilityExposure: formatLiabilityMetric(totalRisk),
+        autoLiabilityCoverage: formatLiabilityMetric(liability.householdAutoLiabilityCoverage),
+        unprotectedLiabilityGap: formatLiabilityMetric(liability.householdLiabilityGap),
+      },
+    },
+    northstarGoldenAnswerKey.uiDisplaySnapshots.liabilityDashboard,
+    "uiDisplaySnapshots.liabilityDashboard",
+  );
 
   const scenarioRecord: ScenarioModuleRecords = {
     life: { inputs: northstarGoldenLifeInputs, assumptions: northstarGoldenLifeAssumptions, output: lifeCore, updatedAt: "2026-05-22T00:00:00.000Z" },
@@ -271,6 +377,17 @@ function runGoldenCheck() {
     largestScenarioGap: getLargestScenarioGap(scenarioRecord),
   };
   assertDeepClose(scenarioSummary, northstarGoldenAnswerKey.scenarioSummary, "scenarioSummary");
+  assertDeepClose(
+    {
+      life: formatGapCurrency(scenarioSummary.lifeGapValue),
+      disability: formatGapCurrency(scenarioSummary.disabilityGapValue),
+      unemployment: formatGapCurrency(scenarioSummary.unemploymentGapValue),
+      liability: formatGapCurrency(scenarioSummary.liabilityGapValue),
+      largest: formatGapCurrency(scenarioSummary.largestScenarioGap),
+    },
+    northstarGoldenAnswerKey.uiDisplaySnapshots.presentationModeGapLabels,
+    "uiDisplaySnapshots.presentationModeGapLabels",
+  );
   console.log("Northstar golden calculation check passed.");
 }
 

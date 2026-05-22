@@ -8,7 +8,9 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
-    "test:golden": "tsx --tsconfig tsconfig.json src/golden/northstarGoldenCheck.ts"
+    "test:golden": "tsx --tsconfig tsconfig.json src/golden/northstarGoldenCheck.ts",
+    "test:golden:surface": "tsx --tsconfig tsconfig.json src/golden/northstarSurfaceCoverageCheck.ts",
+    "test:validation": "npm run test:golden && npm run test:golden:surface"
   },
   "dependencies": {
     "@babel/runtime": "^7.29.2",
