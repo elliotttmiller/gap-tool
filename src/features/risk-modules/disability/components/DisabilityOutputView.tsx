@@ -2,7 +2,7 @@ import { useState } from "react"
 import { DisabilityOutputs } from "../types"
 import type { DisabilityInputs } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatCurrency, formatPercent } from "@/lib/utils"
+import { formatCurrency } from "@/lib/utils"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import { getDisabilityNarrative } from "../constants/moduleCopy"
 import { AnimatedSection } from "@/components/ui/animated-section"
@@ -103,21 +103,23 @@ export function DisabilityOutputView({
     : "Assumed net income minus total net monthly benefit"
 
   const totalProjectedIncomeGross = outputs.incomeProjection.reduce((sum, point) => sum + point.annualIncome, 0)
-  const projectedIncomeAtRetirementGross = outputs.incomeProjection.at(-1)?.annualIncome ?? 0
+  const totalGroupLTDCoverageGross = outputs.incomeProjection.reduce(
+    (sum, point) => sum + point.ltdAnnualBenefitGross,
+    0,
+  )
   const totalCoverageGross = outputs.incomeProjection.reduce(
     (sum, point) => sum + point.ltdAnnualBenefitGross + point.individualDIAnnualBenefit,
     0,
   )
-  const totalGapGross = outputs.incomeProjection.reduce(
-    (sum, point) => sum + Math.max(0, point.annualIncome - (point.ltdAnnualBenefitGross + point.individualDIAnnualBenefit)),
-    0,
-  )
-  const averageCoverageRateGross = totalProjectedIncomeGross > 0 ? totalCoverageGross / totalProjectedIncomeGross : 0
 
   const projectedIncomeDisplay = chartView === "gross" ? totalProjectedIncomeGross : outputs.totalProjectedIncome
-  const retirementIncomeDisplay = chartView === "gross" ? projectedIncomeAtRetirementGross : outputs.projectedIncomeAtRetirement
-  const totalGapDisplay = chartView === "gross" ? totalGapGross : outputs.totalGap
-  const averageCoverageRateDisplay = chartView === "gross" ? averageCoverageRateGross : outputs.averageCoverageRate
+
+  // ── 3-card grid derived metrics ────────────────────────────────────────────
+  const groupLTDDisplay = chartView === "gross" ? totalGroupLTDCoverageGross : outputs.totalGroupLTDCoverage
+  const totalIncomeReplacedDisplay = chartView === "gross" ? totalCoverageGross : outputs.totalCoverage
+  const incomeGap1Display = projectedIncomeDisplay - groupLTDDisplay
+  const incomeGap2Display = projectedIncomeDisplay - totalIncomeReplacedDisplay
+  const incomeGapDiffDisplay = incomeGap1Display - incomeGap2Display
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null
@@ -169,20 +171,16 @@ export function DisabilityOutputView({
                 <div className="mb-2 text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase">Lifetime Coverage</div>
                 <div className="divide-y divide-slate-800/80 text-xs">
                   <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Proj. Income</span>
-                    <span className="font-mono font-semibold text-slate-200">{formatCurrency(projectedIncomeDisplay)}</span>
-                  </div>
-                  <div className="flex items-center justify-between py-1.5">
                     <span className="text-slate-400">Group LTD</span>
-                    <span className="font-mono font-semibold text-blue-300">{formatCurrency(outputs.totalGroupLTDCoverage)}</span>
+                    <span className="font-mono font-semibold text-blue-300">{formatCurrency(groupLTDDisplay)}</span>
                   </div>
                   <div className="flex items-center justify-between py-1.5">
                     <span className="text-slate-400">Individual DI</span>
                     <span className="font-mono font-semibold text-cyan-300">{formatCurrency(outputs.totalIndividualDICoverage)}</span>
                   </div>
                   <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Total</span>
-                    <span className="font-mono font-semibold text-emerald-400">{formatCurrency(outputs.totalCoverage)}</span>
+                    <span className="text-slate-400">Total Income Replaced</span>
+                    <span className="font-mono font-semibold text-emerald-400">{formatCurrency(totalIncomeReplacedDisplay)}</span>
                   </div>
                 </div>
               </CardContent>
@@ -190,26 +188,36 @@ export function DisabilityOutputView({
 
             <Card className="module-kpi-card">
               <CardContent className="p-3.5">
-                <div className="mb-2 text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase">At Retirement</div>
+                <div className="mb-2 text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase">Lifetime Income</div>
                 <div className="divide-y divide-slate-800/80 text-xs">
                   <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Annual Income</span>
-                    <span className="font-mono font-semibold text-slate-200">{formatCurrency(retirementIncomeDisplay)}</span>
+                    <span className="text-slate-400">Projected Income ({chartView === "gross" ? "Gross" : "Net"})</span>
+                    <span className="font-mono font-semibold text-slate-200">{formatCurrency(projectedIncomeDisplay)}</span>
                   </div>
                   <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Uncov. Gap</span>
-                    <span className="font-mono font-semibold text-red-400">{formatCurrency(totalGapDisplay)}</span>
+                    <span className="text-slate-400">Income Gap #1</span>
+                    <span className="font-mono font-semibold text-red-400">{formatCurrency(incomeGap1Display)}</span>
                   </div>
                   <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Coverage</span>
-                    <span className="font-mono font-semibold text-slate-200">{formatPercent(averageCoverageRateDisplay)}</span>
+                    <span className="text-slate-400">Income Gap #2</span>
+                    <span className="font-mono font-semibold text-orange-400">{formatCurrency(incomeGap2Display)}</span>
                   </div>
-                  {outputs.lifetimeIDIExpense > 0 ? (
-                    <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">IDI Expense</span>
-                      <span className="font-mono font-semibold text-amber-400">{formatCurrency(outputs.lifetimeIDIExpense)}</span>
-                    </div>
-                  ) : null}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="module-kpi-card">
+              <CardContent className="p-3.5">
+                <div className="mb-2 text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase">Outcome</div>
+                <div className="divide-y divide-slate-800/80 text-xs">
+                  <div className="flex items-center justify-between py-1.5">
+                    <span className="text-slate-400">Gap Difference</span>
+                    <span className="font-mono font-semibold text-emerald-400">{formatCurrency(incomeGapDiffDisplay)}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5">
+                    <span className="text-slate-400">IDI Expense</span>
+                    <span className="font-mono font-semibold text-amber-400">{formatCurrency(outputs.lifetimeIDIExpense)}</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
