@@ -28,15 +28,27 @@ const TOOLTIP_CLASS = "bg-gray-900 p-3 border border-gray-700 rounded-lg shadow-
 
 const M1Tooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
+  // payload[0] = safeWD, payload[1] = incomeGap (stacked)
+  const safeWD = payload.find((p: any) => p.dataKey === "safeWD")?.value ?? 0
+  const incomeGap = payload.find((p: any) => p.dataKey === "incomeGap")?.value ?? 0
+  const totalNeed = safeWD + incomeGap
   return (
     <div className={TOOLTIP_CLASS}>
       <p className="font-semibold text-gray-100 mb-2">Age {label}</p>
-      {payload.map((entry: any) => (
-        <div key={entry.name} className="flex justify-between gap-4 mb-1">
-          <span style={{ color: entry.color }} className="text-xs">{entry.name}:</span>
-          <span className="font-semibold text-xs text-gray-100">{formatCurrency(entry.value)}</span>
+      <div className="flex justify-between gap-4 mb-1">
+        <span className="text-xs text-gray-400">Income Need:</span>
+        <span className="font-semibold text-xs text-gray-100">{formatCurrency(totalNeed)}</span>
+      </div>
+      <div className="flex justify-between gap-4 mb-1">
+        <span className="text-xs text-blue-400">Safe Withdrawal:</span>
+        <span className="font-semibold text-xs text-blue-300">{formatCurrency(safeWD)}</span>
+      </div>
+      {incomeGap > 0 && (
+        <div className="flex justify-between gap-4">
+          <span className="text-xs text-rose-400">Income Gap:</span>
+          <span className="font-semibold text-xs text-rose-300">{formatCurrency(incomeGap)}</span>
         </div>
-      ))}
+      )}
     </div>
   )
 }
@@ -45,6 +57,7 @@ const M2Tooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
   const point = payload[0]?.payload
   const isCovered = point?.isCoveredMax
+  const income = point?.projectedIncome ?? 0
   return (
     <div className={TOOLTIP_CLASS}>
       <p className="font-semibold text-gray-100 mb-2">Age {label}</p>
@@ -56,12 +69,12 @@ const M2Tooltip = ({ active, payload, label }: any) => {
       </div>
       <div className="flex justify-between gap-4 mb-1">
         <span className="text-xs text-gray-400">Income Need:</span>
-        <span className="font-semibold text-xs text-gray-100">{formatCurrency(point?.projectedIncome ?? 0)}</span>
+        <span className="font-semibold text-xs text-gray-100">{formatCurrency(income)}</span>
       </div>
       {isCovered && (
         <div className="flex justify-between gap-4">
-          <span className="text-xs text-gray-400">Covered:</span>
-          <span className="font-semibold text-xs text-emerald-300">{formatCurrency(point?.maxCovered ?? 0)}</span>
+          <span className="text-xs text-emerald-400">Covered:</span>
+          <span className="font-semibold text-xs text-emerald-300">{formatCurrency(income)}</span>
         </div>
       )}
     </div>
@@ -269,8 +282,9 @@ export function LifeOutputView({ outputs, incomeGapOutputs }: LifeOutputViewProp
                             width={48}
                           />
                           <Tooltip content={M1Tooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-                          {/* Flat safe withdrawal bars — same height every year */}
-                          <Bar dataKey="safeWD" name="Safe Withdrawal" fill="#3b82f6" radius={[2, 2, 0, 0]} isAnimationActive={false} />
+                          {/* Stacked bars: safe withdrawal (blue, bottom) + income gap (red, top) */}
+                          <Bar dataKey="safeWD" name="Safe Withdrawal" stackId="income" fill="#3b82f6" radius={[0, 0, 0, 0]} isAnimationActive={false} />
+                          <Bar dataKey="incomeGap" name="Income Gap" stackId="income" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={false} />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
@@ -281,6 +295,10 @@ export function LifeOutputView({ outputs, incomeGapOutputs }: LifeOutputViewProp
                       <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400">
                         <span className="inline-block h-2.5 w-4 rounded-sm bg-[#3b82f6]" />
                         Safe Withdrawal ({Math.round(module1.safeWithdrawalRate * 100)}% / yr)
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400">
+                        <span className="inline-block h-2.5 w-4 rounded-sm bg-[#ef4444]" />
+                        Income Gap
                       </span>
                     </div>
                   </div>
@@ -352,8 +370,8 @@ export function LifeOutputView({ outputs, incomeGapOutputs }: LifeOutputViewProp
                             width={48}
                           />
                           <Tooltip content={M2Tooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-                          {/* Green = covered, red = gap */}
-                          <Bar dataKey="maxCovered" name="Income Covered" radius={[2, 2, 0, 0]} isAnimationActive={false}>
+                          {/* Full bar at projectedIncome height — green = covered, red = gap */}
+                          <Bar dataKey="projectedIncome" name="Annual Income" radius={[2, 2, 0, 0]} isAnimationActive={false}>
                             {module2.yearlyData.map((entry, index) => (
                               <Cell
                                 key={`cell-${index}`}
