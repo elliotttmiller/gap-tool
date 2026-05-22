@@ -214,10 +214,12 @@ export function DisabilityOutputView({
                     <span className="text-slate-400">Gap Difference</span>
                     <span className="font-mono font-semibold text-emerald-400">{formatCurrency(incomeGapDiffDisplay)}</span>
                   </div>
-                  <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">IDI Expense</span>
-                    <span className="font-mono font-semibold text-amber-400">{formatCurrency(outputs.lifetimeIDIExpense)}</span>
-                  </div>
+                  {outputs.lifetimeIDIExpense > 0 ? (
+                    <div className="flex items-center justify-between py-1.5">
+                      <span className="text-slate-400">IDI Expense</span>
+                      <span className="font-mono font-semibold text-amber-400">{formatCurrency(outputs.lifetimeIDIExpense)}</span>
+                    </div>
+                  ) : null}
                 </div>
               </CardContent>
             </Card>
