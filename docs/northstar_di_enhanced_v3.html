@@ -1,0 +1,271 @@
+
+<h2 class="sr-only">Northstar Resource Group — DI Income Gap Analysis: Job Comparison and Premium vs Self-Insurance modules</h2>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.wrap{padding:1.25rem 0}
+.tab-row{display:flex;gap:0;margin-bottom:1.5rem;border-bottom:0.5px solid var(--color-border-tertiary)}
+.tab{font-size:13px;padding:9px 20px;border:none;background:none;color:var(--color-text-secondary);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:var(--font-sans);font-weight:400}
+.tab.active{color:var(--color-text-primary);border-bottom-color:var(--color-text-primary);font-weight:500}
+.panel{display:none}.panel.active{display:block}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem}
+.sec{font-size:10px;font-weight:500;color:var(--color-text-tertiary);letter-spacing:.09em;text-transform:uppercase;margin-bottom:8px}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:11px;color:var(--color-text-secondary)}
+.field input,.field select{font-size:14px;font-family:var(--font-sans);border-radius:var(--border-radius-md)}
+.job-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem}
+.job-card{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem}
+.job-card.a{border-top:3px solid #1D9E75}.job-card.b{border-top:3px solid #378ADD}
+.job-title{font-size:13px;font-weight:500;margin-bottom:10px}
+.stat-row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px}
+.stat-row:last-child{border-bottom:none}
+.stat-label{color:var(--color-text-secondary)}
+.stat-val{font-weight:500;color:var(--color-text-primary);font-size:13px}
+.stat-val.gap{color:#D85A30}.stat-val.good{color:#1D9E75}.stat-val.blue{color:#378ADD}
+.winner-banner{display:flex;align-items:center;gap:8px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.65rem 1rem;margin-bottom:1rem;font-size:13px;color:var(--color-text-secondary)}
+.winner-banner strong{color:var(--color-text-primary)}
+
+/* PREM PANEL LAYOUT */
+.prem-sliders{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;margin-bottom:1rem}
+.sl-row{display:flex;align-items:center;gap:8px}
+.sl-row label{font-size:11px;color:var(--color-text-secondary);width:130px;flex-shrink:0;white-space:nowrap}
+.sl-row input[type=range]{flex:1;height:2px;accent-color:#378ADD}
+.sl-val{font-size:12px;font-weight:500;color:var(--color-text-primary);min-width:68px;text-align:right}
+.prem-body{display:flex;gap:16px;align-items:flex-start}
+.chart-col{flex:1;min-width:0}
+.chart-wrap{position:relative;width:100%;height:220px}
+.stats-col{width:200px;flex-shrink:0;display:flex;flex-direction:column;gap:10px}
+.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.6rem .75rem}
+.metric .mv{font-size:17px;font-weight:500;color:var(--color-text-primary);line-height:1.2}
+.metric .ml{font-size:10px;color:var(--color-text-secondary);margin-top:2px;line-height:1.3}
+.metric.red .mv{color:#D85A30}.metric.grn .mv{color:#1D9E75}
+.sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sc{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:.5rem .6rem;text-align:center}
+.sc .sc-yr{font-size:9px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
+.sc .sc-val{font-size:13px;font-weight:500}
+.sc .sc-val.safe{color:#1D9E75}.sc .sc-val.danger{color:#D85A30}
+.sc .sc-sub{font-size:9px;color:var(--color-text-secondary);margin-top:1px}
+.pb-track{height:7px;border-radius:4px;background:var(--color-background-secondary);overflow:hidden;position:relative;display:flex;margin:4px 0 6px}
+.pb-covered{background:#1D9E75;height:100%;transition:width .4s}
+.pb-gap{background:#D85A30;height:100%;flex:1}
+.leg{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:10px;color:var(--color-text-secondary)}
+.dot{width:7px;height:7px;border-radius:2px;display:inline-block;margin-right:3px;vertical-align:middle}
+.insight{border-left:3px solid #D85A30;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;padding:.6rem .8rem;font-size:11px;color:var(--color-text-secondary);line-height:1.55;background:var(--color-background-secondary)}
+.insight strong{color:var(--color-text-primary);font-weight:500}
+
+.chart-legend{display:flex;gap:14px;font-size:10px;color:var(--color-text-secondary);margin-bottom:6px}
+</style>
+
+<div class="wrap">
+<div class="tab-row">
+  <button class="tab active" onclick="sw('compare',this)">Job A vs Job B</button>
+  <button class="tab" onclick="sw('prem',this)">Premium vs self-insure</button>
+</div>
+
+<!-- JOB COMPARE PANEL -->
+<div id="panel-compare" class="panel active">
+  <div class="job-grid">
+    <div class="job-card a">
+      <div class="job-title" style="color:#1D9E75">Job A</div>
+      <div class="field-grid">
+        <div class="field"><label>Annual salary</label><input type="number" id="ja-sal" value="100000" step="5000" oninput="cmp()"></div>
+        <div class="field"><label>Annual bonus</label><input type="number" id="ja-bon" value="0" step="1000" oninput="cmp()"></div>
+      </div>
+      <div class="field-grid">
+        <div class="field"><label>Group DI (% of salary)</label><input type="number" id="ja-pct" value="60" min="0" max="100" oninput="cmp()"></div>
+        <div class="field"><label>Group DI cap ($/mo)</label><input type="number" id="ja-cap" value="6000" step="500" oninput="cmp()"></div>
+      </div>
+      <div class="field-grid">
+        <div class="field"><label>Has IDI policy?</label><select id="ja-idi" oninput="cmp()" style="font-size:14px;font-family:var(--font-sans);border-radius:var(--border-radius-md)"><option value="0">No</option><option value="1">Yes</option></select></div>
+        <div class="field"><label>IDI monthly benefit</label><input type="number" id="ja-idiben" value="2000" step="500" oninput="cmp()"></div>
+      </div>
+    </div>
+    <div class="job-card b">
+      <div class="job-title" style="color:#378ADD">Job B</div>
+      <div class="field-grid">
+        <div class="field"><label>Annual salary</label><input type="number" id="jb-sal" value="130000" step="5000" oninput="cmp()"></div>
+        <div class="field"><label>Annual bonus</label><input type="number" id="jb-bon" value="15000" step="1000" oninput="cmp()"></div>
+      </div>
+      <div class="field-grid">
+        <div class="field"><label>Group DI (% of salary)</label><input type="number" id="jb-pct" value="50" min="0" max="100" oninput="cmp()"></div>
+        <div class="field"><label>Group DI cap ($/mo)</label><input type="number" id="jb-cap" value="5000" step="500" oninput="cmp()"></div>
+      </div>
+      <div class="field-grid">
+        <div class="field"><label>Has IDI policy?</label><select id="jb-idi" oninput="cmp()" style="font-size:14px;font-family:var(--font-sans);border-radius:var(--border-radius-md)"><option value="0">No</option><option value="1">Yes</option></select></div>
+        <div class="field"><label>IDI monthly benefit</label><input type="number" id="jb-idiben" value="2000" step="500" oninput="cmp()"></div>
+      </div>
+    </div>
+  </div>
+  <div id="cmp-winner" class="winner-banner"></div>
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:6px">
+    <div class="sec" style="margin:0">View</div>
+    <select id="cmp-view" onchange="drawCmpChart()" style="font-size:12px;font-family:var(--font-sans);border-radius:var(--border-radius-md);padding:4px 8px">
+      <option value="monthly">Monthly income comparison</option>
+      <option value="gap">Income gap comparison</option>
+      <option value="coverage">Coverage % comparison</option>
+    </select>
+  </div>
+  <div style="position:relative;width:100%;height:260px"><canvas id="cmpChart" role="img" aria-label="Bar chart comparing Job A and Job B income metrics.">Job comparison chart.</canvas></div>
+  <div id="cmp-stats" style="margin-top:1rem;display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
+</div>
+
+<!-- PREMIUM PANEL -->
+<div id="panel-prem" class="panel">
+  <div class="card" style="margin-bottom:1rem">
+    <div class="prem-sliders">
+      <div class="sl-row"><label>Monthly premium</label><input type="range" min="100" max="2000" step="50" value="450" id="sl-p" oninput="cp()"><span class="sl-val" id="o-p">$450/mo</span></div>
+      <div class="sl-row"><label>Monthly DI benefit</label><input type="range" min="1000" max="20000" step="500" value="10000" id="sl-b" oninput="cp()"><span class="sl-val" id="o-b">$10,000/mo</span></div>
+      <div class="sl-row"><label>Disability duration</label><input type="range" min="3" max="60" step="1" value="12" id="sl-d" oninput="cp()"><span class="sl-val" id="o-d">12 months</span></div>
+      <div class="sl-row"><label>Investment return (annual)</label><input type="range" min="2" max="12" step="0.5" value="6" id="sl-r" oninput="cp()"><span class="sl-val" id="o-r">6.0%</span></div>
+    </div>
+  </div>
+
+  <div class="prem-body">
+    <div class="chart-col">
+      <div class="chart-legend">
+        <span><span class="dot" style="background:#1D9E75"></span>Self-insurance fund</span>
+        <span><span class="dot" style="background:#D85A30;border-style:none"></span>Benefit needed</span>
+      </div>
+      <div class="chart-wrap"><canvas id="premChart" role="img" aria-label="Line chart comparing self-insurance fund growth versus benefit needed over time.">Premium vs self-insure chart.</canvas></div>
+      <div style="margin-top:10px">
+        <div class="sec">Year 1 protection coverage</div>
+        <div class="pb-track"><div class="pb-covered" id="pb-fill"></div><div class="pb-gap"></div></div>
+        <div class="leg">
+          <span><span class="dot" style="background:#1D9E75"></span>Self-fund accumulated</span>
+          <span><span class="dot" style="background:#D85A30"></span>Unprotected gap</span>
+        </div>
+      </div>
+      <div class="insight" id="prem-insight" style="margin-top:10px"></div>
+    </div>
+
+    <div class="stats-col">
+      <div>
+        <div class="sec">Key metrics</div>
+        <div class="metric grn" style="margin-bottom:6px"><div class="mv" id="pm-benefit">—</div><div class="ml">Benefits with insurance</div></div>
+        <div class="metric" style="margin-bottom:6px"><div class="mv" id="pm-premtotal">—</div><div class="ml">Premiums paid to breakeven</div></div>
+        <div class="metric red" style="margin-bottom:6px"><div class="mv" id="pm-gap">—</div><div class="ml">Self-insure gap at year 1</div></div>
+        <div class="metric"><div class="mv" id="pm-bemonth">—</div><div class="ml">Breakeven month</div></div>
+      </div>
+      <div>
+        <div class="sec">If disabled at...</div>
+        <div id="sc-grid" class="sc-grid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const BRACKETS=[{r:.10,u:23200},{r:.12,u:94300},{r:.22,u:201050},{r:.24,u:383900},{r:.32,u:487450},{r:.35,u:731200},{r:.37,u:Infinity}];
+function taxRate(g){for(const b of BRACKETS)if(g<=b.u)return b.r;return .37}
+function fmt(n){return '$'+Math.round(n).toLocaleString()}
+function fmtK(n){return n>=1000?'$'+Math.round(n/1000)+'k':fmt(n)}
+let cmpChart=null,premChart=null,cmpData={};
+
+function sw(name,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  el.classList.add('active');
+  if(name==='prem')setTimeout(cp,50);
+}
+
+function calcJob(sal,bon,pct,cap,hasIdi,idiBen){
+  const gross=sal+bon,rate=taxRate(gross),netMo=gross*(1-rate)/12;
+  const groupDI=Math.min(sal*(pct/100)/12,cap),idiMo=hasIdi?idiBen:0;
+  const totalDI=groupDI+idiMo,gap=Math.max(netMo-totalDI,0),covPct=Math.min(totalDI/netMo*100,100);
+  return{gross,rate,netMo,groupDI,idiMo,totalDI,gap,covPct};
+}
+
+function cmp(){
+  const a=calcJob(+document.getElementById('ja-sal').value||0,+document.getElementById('ja-bon').value||0,+document.getElementById('ja-pct').value||0,+document.getElementById('ja-cap').value||999999,+document.getElementById('ja-idi').value,+document.getElementById('ja-idiben').value||0);
+  const b=calcJob(+document.getElementById('jb-sal').value||0,+document.getElementById('jb-bon').value||0,+document.getElementById('jb-pct').value||0,+document.getElementById('jb-cap').value||999999,+document.getElementById('jb-idi').value,+document.getElementById('jb-idiben').value||0);
+  cmpData={a,b};
+  const winner=a.gap<=b.gap?'A':'B',betterGap=Math.abs(a.gap-b.gap),wc=winner==='A'?'#1D9E75':'#378ADD';
+  document.getElementById('cmp-winner').innerHTML=`<i class="ti ti-shield-check" style="color:${wc};font-size:18px" aria-hidden="true"></i><span>Job <strong>${winner}</strong> provides better disability protection — ${fmt(betterGap)}/mo smaller income gap. Coverage: Job A <strong>${Math.round(a.covPct)}%</strong> · Job B <strong>${Math.round(b.covPct)}%</strong></span>`;
+  function sr(l,v,cls=''){return`<div class="stat-row"><span class="stat-label">${l}</span><span class="stat-val ${cls}">${v}</span></div>`}
+  document.getElementById('cmp-stats').innerHTML=`
+    <div><div class="sec" style="color:#1D9E75">Job A breakdown</div>${sr('Gross income',fmt(a.gross))}${sr('Tax bracket',Math.round(a.rate*100)+'%')}${sr('Monthly take-home',fmt(a.netMo),'good')}${sr('Group DI benefit',fmt(a.groupDI))}${a.idiMo?sr('IDI benefit',fmt(a.idiMo),'blue'):''}${sr('Total DI coverage',fmt(a.totalDI))}${sr('Monthly income gap',fmt(a.gap),'gap')}${sr('Coverage rate',Math.round(a.covPct)+'%')}</div>
+    <div><div class="sec" style="color:#378ADD">Job B breakdown</div>${sr('Gross income',fmt(b.gross))}${sr('Tax bracket',Math.round(b.rate*100)+'%')}${sr('Monthly take-home',fmt(b.netMo),'good')}${sr('Group DI benefit',fmt(b.groupDI))}${b.idiMo?sr('IDI benefit',fmt(b.idiMo),'blue'):''}${sr('Total DI coverage',fmt(b.totalDI))}${sr('Monthly income gap',fmt(b.gap),'gap')}${sr('Coverage rate',Math.round(b.covPct)+'%')}</div>`;
+  drawCmpChart();
+}
+
+function drawCmpChart(){
+  if(!cmpData.a)return;
+  const{a,b}=cmpData,view=document.getElementById('cmp-view').value;
+  let datasets,labels;
+  if(view==='monthly'){
+    labels=['Take-home','Group DI','IDI benefit','Total DI','Gap'];
+    datasets=[
+      {label:'Job A',data:[Math.round(a.netMo),Math.round(a.groupDI),Math.round(a.idiMo),Math.round(a.totalDI),Math.round(a.gap)],backgroundColor:'rgba(29,158,117,0.75)',borderColor:'#1D9E75',borderWidth:1.5,borderSkipped:false,borderRadius:4},
+      {label:'Job B',data:[Math.round(b.netMo),Math.round(b.groupDI),Math.round(b.idiMo),Math.round(b.totalDI),Math.round(b.gap)],backgroundColor:'rgba(55,138,221,0.75)',borderColor:'#378ADD',borderWidth:1.5,borderSkipped:false,borderRadius:4}
+    ];
+  } else if(view==='gap'){
+    labels=['Monthly income','DI benefit','Unprotected gap'];
+    datasets=[
+      {label:'Job A',data:[Math.round(a.netMo),Math.round(a.totalDI),Math.round(a.gap)],backgroundColor:['rgba(29,158,117,0.75)','rgba(29,158,117,0.45)','rgba(216,90,48,0.75)'],borderColor:['#1D9E75','#1D9E75','#D85A30'],borderWidth:1.5,borderSkipped:false,borderRadius:4},
+      {label:'Job B',data:[Math.round(b.netMo),Math.round(b.totalDI),Math.round(b.gap)],backgroundColor:['rgba(55,138,221,0.75)','rgba(55,138,221,0.45)','rgba(216,90,48,0.55)'],borderColor:['#378ADD','#378ADD','#D85A30'],borderWidth:1.5,borderSkipped:false,borderRadius:4}
+    ];
+  } else {
+    labels=['Coverage %','Gap %'];
+    datasets=[
+      {label:'Job A',data:[Math.round(a.covPct),Math.round(100-a.covPct)],backgroundColor:['rgba(29,158,117,0.75)','rgba(216,90,48,0.75)'],borderColor:['#1D9E75','#D85A30'],borderWidth:1.5,borderSkipped:false,borderRadius:4},
+      {label:'Job B',data:[Math.round(b.covPct),Math.round(100-b.covPct)],backgroundColor:['rgba(55,138,221,0.75)','rgba(216,90,48,0.55)'],borderColor:['#378ADD','#D85A30'],borderWidth:1.5,borderSkipped:false,borderRadius:4}
+    ];
+  }
+  if(cmpChart)cmpChart.destroy();
+  cmpChart=new Chart(document.getElementById('cmpChart'),{type:'bar',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+(view==='coverage'?ctx.raw+'%':'$'+ctx.raw.toLocaleString())}}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:'rgba(128,128,128,0.08)'},ticks:{callback:v=>view==='coverage'?v+'%':'$'+Math.round(v/1000)+'k',font:{size:11}}}}}});
+}
+
+function cp(){
+  const prem=+document.getElementById('sl-p').value;
+  const ben=+document.getElementById('sl-b').value;
+  const dur=+document.getElementById('sl-d').value;
+  const retA=+document.getElementById('sl-r').value/100/12;
+  document.getElementById('o-p').textContent='$'+prem.toLocaleString()+'/mo';
+  document.getElementById('o-b').textContent='$'+ben.toLocaleString()+'/mo';
+  document.getElementById('o-d').textContent=dur+' months';
+  document.getElementById('o-r').textContent=(+document.getElementById('sl-r').value).toFixed(1)+'%';
+
+  const totalBen=ben*dur;
+  let fund=0,bMonth=null;
+  const selfFunds=[],labels=[];
+  for(let m=1;m<=240;m++){
+    fund=fund*(1+retA)+prem;
+    selfFunds.push(Math.round(fund));
+    labels.push(m);
+    if(!bMonth&&fund>=totalBen)bMonth=m;
+  }
+
+  document.getElementById('pm-benefit').textContent='$'+Math.round(totalBen).toLocaleString();
+  document.getElementById('pm-premtotal').textContent=bMonth?'$'+(bMonth*prem).toLocaleString():'N/A';
+  const gapYr1=Math.max(totalBen-selfFunds[11],0);
+  document.getElementById('pm-gap').textContent='$'+Math.round(gapYr1).toLocaleString();
+  document.getElementById('pm-bemonth').textContent=bMonth?'Month '+bMonth:'270+';
+
+  document.getElementById('sc-grid').innerHTML=[1,2,5,10].map(yr=>{
+    const sf=selfFunds[Math.min(yr*12-1,selfFunds.length-1)];
+    const covered=sf>=totalBen;
+    const delta=Math.abs(totalBen-sf);
+    return`<div class="sc"><div class="sc-yr">Yr ${yr}</div><div class="sc-val ${covered?'safe':'danger'}">${covered?'Covered':'Short'}</div><div class="sc-sub">${covered?'+':'-'}${fmtK(delta)}</div></div>`;
+  }).join('');
+
+  const pct=Math.min(selfFunds[11]/totalBen*100,100);
+  document.getElementById('pb-fill').style.width=pct.toFixed(1)+'%';
+
+  const benLine=labels.map(()=>totalBen);
+  if(premChart)premChart.destroy();
+  premChart=new Chart(document.getElementById('premChart'),{type:'line',data:{labels,datasets:[
+    {label:'Self-insurance fund',data:selfFunds,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,0.07)',tension:.35,pointRadius:0,fill:true,borderDash:[5,3],borderWidth:2},
+    {label:'Benefit needed',data:benLine,borderColor:'#D85A30',backgroundColor:'rgba(216,90,48,0.06)',tension:0,pointRadius:0,fill:true,borderWidth:2}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{label:ctx=>'$'+ctx.raw.toLocaleString()}}},scales:{x:{grid:{display:false},ticks:{maxTicksLimit:10,callback:(v,i)=>{const m=labels[i];return m%24===0?'Yr '+(m/12):null},font:{size:10}}},y:{grid:{color:'rgba(128,128,128,0.08)'},ticks:{callback:v=>'$'+Math.round(v/1000)+'k',font:{size:10}}}}}});
+
+  const yrBE=bMonth?(bMonth/12).toFixed(1):null;
+  document.getElementById('prem-insight').innerHTML=`Policy pays <strong>$${Math.round(totalBen).toLocaleString()}</strong> starting <strong>day one</strong>. Self-insuring, the client needs <strong>${yrBE?'year '+yrBE:'20+ years'}</strong> to accumulate the same — leaving a <strong>$${Math.round(gapYr1).toLocaleString()}</strong> year-1 gap.`;
+}
+
+cmp();
+setTimeout(cp,100);
+</script>

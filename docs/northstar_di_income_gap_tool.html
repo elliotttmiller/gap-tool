@@ -1,0 +1,311 @@
+
+<h2 class="sr-only">Northstar Resource Group — DI Income Gap Analysis Tool with premium vs self-insurance breakeven calculator</h2>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.tool-wrap { padding: 1.5rem 0; }
+.section-label { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px; }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem; }
+.tab-row { display: flex; gap: 6px; margin-bottom: 1.5rem; border-bottom: 0.5px solid var(--color-border-tertiary); padding-bottom: 0; }
+.tab { font-size: 13px; padding: 8px 16px; border: none; background: none; color: var(--color-text-secondary); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: var(--font-sans); }
+.tab.active { color: var(--color-text-primary); border-bottom-color: var(--color-text-primary); font-weight: 500; }
+.panel { display: none; } .panel.active { display: block; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 12px; color: var(--color-text-secondary); }
+.field input, .field select { border-radius: var(--border-radius-md); font-family: var(--font-sans); font-size: 14px; }
+.result-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 1.25rem 0; }
+.metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.85rem 1rem; }
+.metric .mlabel { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.metric .mval { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+.metric.gap .mval { color: #D85A30; }
+.metric.good .mval { color: #1D9E75; }
+.gap-bar-wrap { margin: 1rem 0; }
+.gap-bar-bg { background: var(--color-background-secondary); border-radius: 4px; height: 10px; overflow: hidden; }
+.gap-bar-fill { height: 100%; border-radius: 4px; background: #1D9E75; transition: width 0.3s; }
+.gap-bar-gap { position: absolute; right: 0; top: 0; height: 100%; background: #D85A30; border-radius: 0 4px 4px 0; }
+.gap-bar-rel { position: relative; background: var(--color-background-secondary); border-radius: 4px; height: 10px; overflow: hidden; }
+.tax-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; background: var(--color-background-info); color: var(--color-text-info); padding: 3px 10px; border-radius: var(--border-radius-md); margin-bottom: 1rem; }
+.sep { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: 1rem 0; }
+.insight-box { border: 0.5px solid var(--color-border-tertiary); border-left: 3px solid #D85A30; border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; padding: 0.75rem 1rem; font-size: 13px; color: var(--color-text-secondary); line-height: 1.5; margin-top: 1rem; }
+.insight-box strong { color: var(--color-text-primary); font-weight: 500; }
+.slider-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.slider-row label { font-size: 12px; color: var(--color-text-secondary); min-width: 160px; }
+.slider-row input[type=range] { flex: 1; }
+.slider-val { font-size: 13px; font-weight: 500; color: var(--color-text-primary); min-width: 70px; text-align: right; }
+.breakeven-callout { display: flex; gap: 16px; margin: 1rem 0; }
+.be-stat { flex: 1; background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.85rem; text-align: center; }
+.be-stat .bval { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+.be-stat .blabel { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+</style>
+
+<div class="tool-wrap">
+  <div class="tab-row">
+    <button class="tab active" onclick="switchTab('gap')">Income gap</button>
+    <button class="tab" onclick="switchTab('breakeven')">Premium vs self-insure</button>
+    <button class="tab" onclick="switchTab('compare')">Job A vs Job B</button>
+  </div>
+
+  <div id="panel-gap" class="panel active">
+    <div class="card">
+      <p class="section-label">Client income</p>
+      <div class="field-row">
+        <div class="field">
+          <label>Base salary</label>
+          <input type="number" id="salary" value="180000" step="1000" oninput="calcGap()">
+        </div>
+        <div class="field">
+          <label>Annual bonus</label>
+          <input type="number" id="bonus" value="20000" step="1000" oninput="calcGap()">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Group DI benefit (% of salary)</label>
+          <input type="number" id="groupPct" value="60" min="0" max="100" step="1" oninput="calcGap()">
+        </div>
+        <div class="field">
+          <label>Group DI monthly cap ($)</label>
+          <input type="number" id="groupCap" value="6000" step="500" oninput="calcGap()">
+        </div>
+      </div>
+    </div>
+
+    <div id="gap-results" style="margin-top: 1rem;">
+      <div id="tax-badge-el" class="tax-badge"><i class="ti ti-calculator" aria-hidden="true"></i> <span id="bracket-label"></span></div>
+      <div class="result-grid">
+        <div class="metric good">
+          <div class="mlabel">Take-home (working)</div>
+          <div class="mval" id="r-net"></div>
+        </div>
+        <div class="metric">
+          <div class="mlabel">Group DI (after tax)</div>
+          <div class="mval" id="r-di"></div>
+        </div>
+        <div class="metric gap">
+          <div class="mlabel">Monthly income gap</div>
+          <div class="mval" id="r-gap"></div>
+        </div>
+      </div>
+      <div class="gap-bar-wrap">
+        <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 4px;">
+          <span>Disability income</span><span>Working income</span>
+        </div>
+        <div class="gap-bar-rel">
+          <div class="gap-bar-fill" id="gap-fill"></div>
+          <div class="gap-bar-gap" id="gap-gap"></div>
+        </div>
+      </div>
+      <div class="insight-box" id="insight-text"></div>
+    </div>
+  </div>
+
+  <div id="panel-breakeven" class="panel">
+    <div class="card" style="margin-bottom: 1rem;">
+      <p class="section-label">Policy parameters</p>
+      <div class="slider-row">
+        <label>Monthly premium</label>
+        <input type="range" min="100" max="2000" step="50" value="450" id="sl-prem" oninput="calcBreakeven()">
+        <span class="slider-val" id="out-prem">$450/mo</span>
+      </div>
+      <div class="slider-row">
+        <label>Monthly DI benefit</label>
+        <input type="range" min="1000" max="20000" step="500" value="10000" id="sl-ben" oninput="calcBreakeven()">
+        <span class="slider-val" id="out-ben">$10,000/mo</span>
+      </div>
+      <div class="slider-row">
+        <label>Investment return (annual)</label>
+        <input type="range" min="2" max="12" step="0.5" value="6" id="sl-ret" oninput="calcBreakeven()">
+        <span class="slider-val" id="out-ret">6.0%</span>
+      </div>
+      <div class="slider-row">
+        <label>Disability duration (months)</label>
+        <input type="range" min="3" max="60" step="1" value="12" id="sl-dur" oninput="calcBreakeven()">
+        <span class="slider-val" id="out-dur">12 mo</span>
+      </div>
+    </div>
+    <div class="breakeven-callout">
+      <div class="be-stat">
+        <div class="bval" id="be-month">—</div>
+        <div class="blabel">Breakeven month</div>
+      </div>
+      <div class="be-stat">
+        <div class="bval" id="be-years">—</div>
+        <div class="blabel">Years to self-insure</div>
+      </div>
+      <div class="be-stat">
+        <div class="bval" id="be-benefit">—</div>
+        <div class="blabel">Benefits if disabled</div>
+      </div>
+    </div>
+    <div style="position: relative; width: 100%; height: 260px; margin-top: 0.5rem;">
+      <canvas id="beChart" role="img" aria-label="Line chart comparing premium cost accumulation versus self-insurance savings over time, showing where they intersect.">Breakeven chart for premium vs self-insurance.</canvas>
+    </div>
+  </div>
+
+  <div id="panel-compare" class="panel">
+    <div class="card" style="margin-bottom: 1rem;">
+      <p class="section-label">Job A</p>
+      <div class="field-row">
+        <div class="field"><label>Salary</label><input type="number" id="ja-sal" value="100000" step="5000" oninput="calcCompare()"></div>
+        <div class="field"><label>Group DI % of salary</label><input type="number" id="ja-pct" value="60" min="0" max="100" oninput="calcCompare()"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom: 1rem;">
+      <p class="section-label">Job B</p>
+      <div class="field-row">
+        <div class="field"><label>Salary</label><input type="number" id="jb-sal" value="120000" step="5000" oninput="calcCompare()"></div>
+        <div class="field"><label>Group DI % of salary</label><input type="number" id="jb-pct" value="40" min="0" max="100" oninput="calcCompare()"></div>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+      <div>
+        <div class="section-label" style="margin-bottom: 8px;">Job A</div>
+        <div class="metric good" style="margin-bottom: 8px;"><div class="mlabel">Monthly take-home</div><div class="mval" id="ja-net">—</div></div>
+        <div class="metric" style="margin-bottom: 8px;"><div class="mlabel">DI benefit (monthly)</div><div class="mval" id="ja-di">—</div></div>
+        <div class="metric gap"><div class="mlabel">Monthly gap if disabled</div><div class="mval" id="ja-gap">—</div></div>
+      </div>
+      <div>
+        <div class="section-label" style="margin-bottom: 8px;">Job B</div>
+        <div class="metric good" style="margin-bottom: 8px;"><div class="mlabel">Monthly take-home</div><div class="mval" id="jb-net">—</div></div>
+        <div class="metric" style="margin-bottom: 8px;"><div class="mlabel">DI benefit (monthly)</div><div class="mval" id="jb-di">—</div></div>
+        <div class="metric gap"><div class="mlabel">Monthly gap if disabled</div><div class="mval" id="jb-gap">—</div></div>
+      </div>
+    </div>
+    <div class="insight-box" id="compare-insight" style="margin-top: 1rem;"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const BRACKETS_MFJ = [
+  { rate: 0.10, up: 23200 },
+  { rate: 0.12, up: 94300 },
+  { rate: 0.22, up: 201050 },
+  { rate: 0.24, up: 383900 },
+  { rate: 0.32, up: 487450 },
+  { rate: 0.35, up: 731200 },
+  { rate: 0.37, up: Infinity }
+];
+
+function marginalRate(income) {
+  for (const b of BRACKETS_MFJ) if (income <= b.up) return b.rate;
+  return 0.37;
+}
+
+function fmt(n) {
+  return '$' + Math.round(n).toLocaleString();
+}
+function fmtMo(n) {
+  return '$' + Math.round(n).toLocaleString() + '/mo';
+}
+
+function calcGap() {
+  const salary = parseFloat(document.getElementById('salary').value) || 0;
+  const bonus = parseFloat(document.getElementById('bonus').value) || 0;
+  const groupPct = parseFloat(document.getElementById('groupPct').value) / 100 || 0;
+  const groupCap = parseFloat(document.getElementById('groupCap').value) || 9999999;
+  const gross = salary + bonus;
+  const rate = marginalRate(gross);
+  const netAnnual = gross * (1 - rate);
+  const netMonthly = netAnnual / 12;
+  const groupDIMonthly = Math.min(salary * groupPct / 12, groupCap);
+  const diAfterTax = groupDIMonthly;
+  const gapMonthly = Math.max(netMonthly - diAfterTax, 0);
+  const coverPct = Math.min(diAfterTax / netMonthly * 100, 100);
+
+  document.getElementById('bracket-label').textContent = `Marginal tax bracket: ${Math.round(rate*100)}% — using 2024 MFJ rates`;
+  document.getElementById('r-net').textContent = fmtMo(netMonthly);
+  document.getElementById('r-di').textContent = fmtMo(diAfterTax);
+  document.getElementById('r-gap').textContent = fmtMo(gapMonthly);
+  document.getElementById('gap-fill').style.width = coverPct.toFixed(1) + '%';
+  document.getElementById('gap-gap').style.width = (100 - coverPct).toFixed(1) + '%';
+  const gapAnnual = gapMonthly * 12;
+  document.getElementById('insight-text').innerHTML =
+    `Group DI covers <strong>${Math.round(coverPct)}%</strong> of take-home pay. The annual income gap is <strong>${fmt(gapAnnual)}</strong>. ` +
+    `An individual DI policy targeting this gap would cost roughly <strong>${fmt(gapAnnual * 0.015 / 12)}/mo</strong> to <strong>${fmt(gapAnnual * 0.03 / 12)}/mo</strong> (est. 1.5–3% of benefit).`;
+}
+
+let beChartInst = null;
+function calcBreakeven() {
+  const prem = parseFloat(document.getElementById('sl-prem').value);
+  const ben = parseFloat(document.getElementById('sl-ben').value);
+  const ret = parseFloat(document.getElementById('sl-ret').value) / 100 / 12;
+  const dur = parseFloat(document.getElementById('sl-dur').value);
+  document.getElementById('out-prem').textContent = '$' + prem.toLocaleString() + '/mo';
+  document.getElementById('out-ben').textContent = '$' + ben.toLocaleString() + '/mo';
+  document.getElementById('out-ret').textContent = parseFloat(document.getElementById('sl-ret').value).toFixed(1) + '%';
+  document.getElementById('out-dur').textContent = dur + ' mo';
+
+  const totalBenefit = ben * dur;
+  let selfFund = 0;
+  let premAcc = 0;
+  let bMonth = null;
+  const labels = [], selfData = [], premData = [];
+  for (let m = 1; m <= 360; m++) {
+    selfFund = selfFund * (1 + ret) + prem;
+    premAcc += prem;
+    if (bMonth === null && selfFund >= totalBenefit) bMonth = m;
+    if (m <= 240) { labels.push(m); selfData.push(Math.round(selfFund)); premData.push(Math.round(totalBenefit)); }
+  }
+  const bYears = bMonth ? (bMonth / 12).toFixed(1) : '—';
+  document.getElementById('be-month').textContent = bMonth ? 'Month ' + bMonth : 'Never';
+  document.getElementById('be-years').textContent = bMonth ? bYears + ' yrs' : '—';
+  document.getElementById('be-benefit').textContent = '$' + Math.round(totalBenefit).toLocaleString();
+
+  if (beChartInst) beChartInst.destroy();
+  beChartInst = new Chart(document.getElementById('beChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Self-insurance savings', data: selfData, borderColor: '#1D9E75', backgroundColor: 'rgba(29,158,117,0.08)', tension: 0.3, pointRadius: 0, fill: true, borderDash: [6,3] },
+        { label: 'Benefit needed', data: premData, borderColor: '#D85A30', backgroundColor: 'rgba(216,90,48,0.06)', tension: 0, pointRadius: 0, fill: true }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => '$' + ctx.raw.toLocaleString() } } },
+      scales: {
+        x: { ticks: { maxTicksLimit: 10, callback: v => 'Mo ' + labels[v] }, grid: { display: false } },
+        y: { ticks: { callback: v => '$' + (v >= 1000 ? Math.round(v/1000) + 'k' : v) }, grid: { color: 'rgba(128,128,128,0.1)' } }
+      }
+    }
+  });
+}
+
+function calcCompare() {
+  function calc(sal, pct) {
+    const rate = marginalRate(sal);
+    const net = sal * (1 - rate) / 12;
+    const di = sal * (pct/100) / 12;
+    const gap = Math.max(net - di, 0);
+    return { net, di, gap };
+  }
+  const a = calc(parseFloat(document.getElementById('ja-sal').value)||0, parseFloat(document.getElementById('ja-pct').value)||0);
+  const b = calc(parseFloat(document.getElementById('jb-sal').value)||0, parseFloat(document.getElementById('jb-pct').value)||0);
+  document.getElementById('ja-net').textContent = fmtMo(a.net);
+  document.getElementById('ja-di').textContent = fmtMo(a.di);
+  document.getElementById('ja-gap').textContent = fmtMo(a.gap);
+  document.getElementById('jb-net').textContent = fmtMo(b.net);
+  document.getElementById('jb-di').textContent = fmtMo(b.di);
+  document.getElementById('jb-gap').textContent = fmtMo(b.gap);
+  const winner = a.gap <= b.gap ? 'Job A' : 'Job B';
+  const diff = Math.abs(a.gap - b.gap);
+  document.getElementById('compare-insight').innerHTML =
+    `<strong>${winner}</strong> leaves a ${fmtMo(diff)} smaller monthly income gap if disabled — better DI protection for the client.`;
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`#panel-${name}`).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'breakeven') setTimeout(calcBreakeven, 50);
+}
+
+calcGap();
+calcCompare();
+setTimeout(calcBreakeven, 200);
+</script>

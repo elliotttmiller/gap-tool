@@ -363,27 +363,43 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
                 <ResponsiveContainer width="100%" height="100%" debounce={100}>
                   <BarChart
                     data={chartData}
-                    margin={{ top: 16, right: 16, left: 0, bottom: 4 }}
-                    barCategoryGap="40%"
+                    margin={{ top: 16, right: 40, left: 0, bottom: 12 }}
+                    barSize={96}
+                    barCategoryGap="50%"
                   >
-                    <CartesianGrid stroke="#1f2937" strokeDasharray="3 3" vertical={false} />
+                    <CartesianGrid stroke="rgba(148,163,184,0.06)" strokeDasharray="4 4" vertical={false} />
                     <XAxis
                       dataKey="name"
-                      tick={{ fill: "#94a3b8", fontSize: 13, fontWeight: 600 }}
-                      tickLine={false}
-                      axisLine={{ stroke: "#1f2937" }}
-                    />
-                    <YAxis
-                      tick={{ fill: "#64748b", fontSize: 10 }}
+                      tick={{ fill: "#94a3b8", fontSize: 12, fontWeight: 600 }}
                       tickLine={false}
                       axisLine={false}
-                      width={56}
+                      dy={6}
+                    />
+                    <YAxis
+                      tick={{ fill: "#64748b", fontSize: 11 }}
+                      tickLine={false}
+                      axisLine={false}
+                      width={54}
                       domain={[0, (dataMax: number) => Math.max(1, Math.ceil((dataMax * 1.15) / 1000) * 1000)]}
                       tickFormatter={(v) => `$${Math.round(Number(v) / 1000)}k`}
                     />
-                    <Tooltip content={<GapTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+                    <Tooltip content={<GapTooltip />} cursor={{ fill: "rgba(255,255,255,0.025)" }} />
 
-                    <Bar dataKey="Group LTD" stackId="stack" fill="#3b82f6" isAnimationActive animationDuration={550}>
+                    <Bar
+                      dataKey="Group LTD"
+                      stackId="stack"
+                      fill="#3b82f6"
+                      isAnimationActive={true}
+                      animationBegin={0}
+                      animationDuration={1400}
+                      animationEasing="ease-out"
+                    >
+                      {chartData.map((entry, index) => {
+                        const hasIdi = entry["IDI Benefit"] > 0
+                        const hasGap = entry["Income Gap"] > 0
+                        const isTopSegment = !hasIdi && !hasGap
+                        return <Cell key={`group-${index}`} radius={isTopSegment ? [6, 6, 0, 0] : [0, 0, 0, 0]} />
+                      })}
                       <LabelList
                         dataKey="Group LTD"
                         position="center"
@@ -392,10 +408,26 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
                       />
                     </Bar>
 
-                    <Bar dataKey="IDI Benefit" stackId="stack" isAnimationActive animationDuration={550}>
-                      {chartData.map((entry, index) => (
-                        <Cell key={`idi-${index}`} fill={entry["IDI Benefit"] > 0 ? "#06b6d4" : "transparent"} />
-                      ))}
+                    <Bar
+                      dataKey="IDI Benefit"
+                      stackId="stack"
+                      fill="#06b6d4"
+                      isAnimationActive={true}
+                      animationBegin={200}
+                      animationDuration={1400}
+                      animationEasing="ease-out"
+                    >
+                      {chartData.map((entry, index) => {
+                        const hasGap = entry["Income Gap"] > 0
+                        const isTopSegment = entry["IDI Benefit"] > 0 && !hasGap
+                        return (
+                          <Cell
+                            key={`idi-${index}`}
+                            fill={entry["IDI Benefit"] > 0 ? "#06b6d4" : "transparent"}
+                            radius={isTopSegment ? [6, 6, 0, 0] : [0, 0, 0, 0]}
+                          />
+                        )
+                      })}
                       <LabelList
                         dataKey="IDI Benefit"
                         position="center"
@@ -404,7 +436,16 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
                       />
                     </Bar>
 
-                    <Bar dataKey="Income Gap" stackId="stack" fill="#ef4444" isAnimationActive animationDuration={550}>
+                    <Bar
+                      dataKey="Income Gap"
+                      stackId="stack"
+                      fill="#ef4444"
+                      radius={[6, 6, 0, 0]}
+                      isAnimationActive={true}
+                      animationBegin={400}
+                      animationDuration={1400}
+                      animationEasing="ease-out"
+                    >
                       <LabelList
                         dataKey="Income Gap"
                         content={renderAdaptiveSegmentLabel}
