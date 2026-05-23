@@ -371,7 +371,7 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
                 </div>
               </div>
 
-              <div className="chart-reveal h-80">
+              <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%" debounce={100}>
                   <BarChart
                     data={chartData}
@@ -422,7 +422,7 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
                       stackId="stack"
                       fill="#06b6d4"
                       isAnimationActive={true}
-                      animationBegin={200}
+                      animationBegin={140}
                       animationDuration={1400}
                       animationEasing="ease-out"
                     >
@@ -448,7 +448,7 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
                       fill="#ef4444"
                       radius={[6, 6, 0, 0]}
                       isAnimationActive={true}
-                      animationBegin={400}
+                      animationBegin={200}
                       animationDuration={1400}
                       animationEasing="ease-out"
                     >
