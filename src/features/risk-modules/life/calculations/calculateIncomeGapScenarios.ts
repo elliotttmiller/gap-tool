@@ -69,7 +69,7 @@ export function calculateIncomeGapScenarios(
     inputs.incomeGapRoi ??
     assumptions.deathBenefitIncomeYieldAnnual ??
     0.05;
-  const assetBase = nonNegative(inputs.assetBase ?? inputs.nonQualifiedAssets ?? 0);
+  const assetBase = nonNegative(inputs.assetBase ?? (nonNegative(inputs.groupLifeCoverage) + nonNegative(inputs.privateLifeCoverage)));
   const safeWithdrawalRate = nonNegative(inputs.safeWithdrawalRate ?? 0.04);
   // maxWithdrawalRate doubles as the annual investment return on the asset base
   // in Module 2's aggressive draw-down scenario.
