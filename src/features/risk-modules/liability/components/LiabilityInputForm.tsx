@@ -13,6 +13,10 @@ export function LiabilityInputForm({ inputs, onChange }: LiabilityInputFormProps
     const numericValue = value === "" ? 0 : Number(value)
     onChange({ ...inputs, [field]: numericValue })
   }
+  const handlePercentChange = (field: keyof LiabilityInputs, value: string) => {
+    const numericValue = value === "" ? 0 : Number(value) / 100
+    onChange({ ...inputs, [field]: numericValue })
+  }
 
   return (
     <div className="space-y-4">
@@ -38,12 +42,38 @@ export function LiabilityInputForm({ inputs, onChange }: LiabilityInputFormProps
             <Input id="retirementAge" type="number" value={inputs.retirementAge || ""} className="w-full" onChange={(e) => handleChange("retirementAge", e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
+            <Label htmlFor="garnishmentRate" className="whitespace-nowrap">Garnishment Rate</Label>
+            <Input
+              id="garnishmentRate"
+              type="number"
+              suffix="%"
+              value={inputs.garnishmentRate !== undefined ? inputs.garnishmentRate * 100 : ""}
+              className="w-full"
+              onChange={(e) => handlePercentChange("garnishmentRate", e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="incomeGrowthRate" className="whitespace-nowrap">Income Growth Rate</Label>
+            <Input
+              id="incomeGrowthRate"
+              type="number"
+              suffix="%"
+              value={inputs.incomeGrowthRate !== undefined ? inputs.incomeGrowthRate * 100 : ""}
+              className="w-full"
+              onChange={(e) => handlePercentChange("incomeGrowthRate", e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
             <Label htmlFor="nonQualifiedAssets" className="whitespace-nowrap">Non-Qualified Assets</Label>
             <Input id="nonQualifiedAssets" type="number" prefix="$" value={inputs.nonQualifiedAssets || ""} className="w-full" onChange={(e) => handleChange("nonQualifiedAssets", e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="autoLiabilityLimit" className="whitespace-nowrap">Auto Liability Limit</Label>
             <Input id="autoLiabilityLimit" type="number" prefix="$" value={inputs.autoLiabilityLimit || ""} className="w-full" onChange={(e) => handleChange("autoLiabilityLimit", e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="umbrellaCoverage" className="whitespace-nowrap">Existing Umbrella Coverage</Label>
+            <Input id="umbrellaCoverage" type="number" prefix="$" value={inputs.umbrellaCoverage || ""} className="w-full" onChange={(e) => handleChange("umbrellaCoverage", e.target.value)} />
           </div>
       </CollapsibleInputSection>
 
@@ -57,8 +87,12 @@ export function LiabilityInputForm({ inputs, onChange }: LiabilityInputFormProps
             <Input id="mortgageBalance" type="number" prefix="$" value={inputs.mortgageBalance || ""} className="w-full" onChange={(e) => handleChange("mortgageBalance", e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="investmentAssets" className="whitespace-nowrap">Non-Qualified Investments</Label>
+            <Label htmlFor="investmentAssets" className="whitespace-nowrap">Investment / Taxable Accounts</Label>
             <Input id="investmentAssets" type="number" prefix="$" value={inputs.investmentAssets || ""} className="w-full" onChange={(e) => handleChange("investmentAssets", e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="businessOwnershipValue" className="whitespace-nowrap">Business Ownership Value</Label>
+            <Input id="businessOwnershipValue" type="number" prefix="$" value={inputs.businessOwnershipValue || ""} className="w-full" onChange={(e) => handleChange("businessOwnershipValue", e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="savingsAssets" className="whitespace-nowrap">Liquid Savings</Label>
@@ -67,10 +101,6 @@ export function LiabilityInputForm({ inputs, onChange }: LiabilityInputFormProps
           <div className="flex flex-col gap-2">
             <Label htmlFor="homeLiabilityLimit" className="whitespace-nowrap">Home Liability Limit</Label>
             <Input id="homeLiabilityLimit" type="number" prefix="$" value={inputs.homeLiabilityLimit || ""} className="w-full" onChange={(e) => handleChange("homeLiabilityLimit", e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="umbrellaCoverage" className="whitespace-nowrap">Umbrella Policy</Label>
-            <Input id="umbrellaCoverage" type="number" prefix="$" value={inputs.umbrellaCoverage || ""} className="w-full" onChange={(e) => handleChange("umbrellaCoverage", e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="estimatedLawsuitExposure" className="whitespace-nowrap">Lawsuit Exposure</Label>

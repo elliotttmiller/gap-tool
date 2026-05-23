@@ -6,6 +6,11 @@ export interface LiabilityInputs {
   spouseCurrentAge?: number;
   retirementAge?: number;
   nonQualifiedAssets?: number;
+  businessOwnershipValue?: number;
+  /** Wage garnishment rate as decimal (e.g., 0.25 = 25%). */
+  garnishmentRate?: number;
+  /** Annual income growth rate as decimal (e.g., 0.03 = 3%). */
+  incomeGrowthRate?: number;
 
   homeValue: number;
   mortgageBalance: number;
@@ -32,5 +37,13 @@ export interface LiabilityOutputs {
   nonQualifiedAssetsAtRisk: number;
   totalHouseholdLiabilityRisk: number;
   householdAutoLiabilityCoverage: number;
+  householdUmbrellaCoverage: number;
+  householdTotalCoverage: number;
   householdLiabilityGap: number;
+
+  recommendedUmbrellaCoverage: number;
+  umbrellaCoverageShortfall: number;
+
+  assumptionGarnishmentRate: number;
+  assumptionIncomeGrowthRate: number;
 }

@@ -270,7 +270,10 @@ function prefillLiabilityInputs(profile: ClientFinancialProfile): LiabilityInput
     currentAge: profile.currentAge ?? 40,
     spouseCurrentAge: profile.spouseCurrentAge ?? profile.currentAge ?? 40,
     retirementAge: profile.expectedRetirementAge ?? DEFAULT_RETIREMENT_AGE,
+    garnishmentRate: 0.25,
+    incomeGrowthRate: 0.03,
     nonQualifiedAssets,
+    businessOwnershipValue: 0,
     homeValue: profile.homeValue ?? 0,
     mortgageBalance: profile.mortgageBalance ?? 0,
     // investmentAssets mirrors nonQualifiedAssets for backward compatibility with the liability calculator.

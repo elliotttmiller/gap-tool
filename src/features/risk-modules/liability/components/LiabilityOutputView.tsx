@@ -36,8 +36,8 @@ function formatLiabilityMetric(value: number): string {
 
 export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
   const chartData = transformLiabilityChartData(outputs)
-  const totalRisk = outputs.totalHouseholdLiabilityRisk || outputs.householdAutoLiabilityCoverage + outputs.householdLiabilityGap
-  const coveragePct = totalRisk > 0 ? Math.min(100, (outputs.householdAutoLiabilityCoverage / totalRisk) * 100) : 0
+  const totalRisk = outputs.totalHouseholdLiabilityRisk || outputs.householdTotalCoverage + outputs.householdLiabilityGap
+  const coveragePct = totalRisk > 0 ? Math.min(100, (outputs.householdTotalCoverage / totalRisk) * 100) : 0
 
   return (
     <div className="module-output-container">
@@ -52,7 +52,7 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
                   Liability Protection Stack
                 </CardTitle>
                 <p className="mt-1 text-sm leading-snug text-slate-400">
-                  Auto coverage applied against total household liability exposure
+                  Before vs. after umbrella coverage against household liability exposure
                 </p>
               </div>
               {/* Coverage ratio badge */}
@@ -101,13 +101,24 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
                       />
                       <Tooltip content={CustomTooltip} cursor={{ fill: "rgba(255,255,255,0.025)" }} />
                       <Bar
-                        dataKey="Coverage"
+                        dataKey="AutoCoverage"
                         name="Auto Liability Coverage"
                         stackId="a"
                         fill="#22c55e"
-                        radius={outputs.householdLiabilityGap > 0 ? [0, 0, 0, 0] : [6, 6, 0, 0]}
+                        radius={[0, 0, 0, 0]}
                         isAnimationActive={true}
                         animationBegin={0}
+                        animationDuration={1400}
+                        animationEasing="ease-out"
+                      />
+                      <Bar
+                        dataKey="UmbrellaCoverage"
+                        name="Umbrella Coverage"
+                        stackId="a"
+                        fill="#06b6d4"
+                        radius={[0, 0, 0, 0]}
+                        isAnimationActive={true}
+                        animationBegin={140}
                         animationDuration={1400}
                         animationEasing="ease-out"
                       />
@@ -138,6 +149,10 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
               <span className="inline-flex items-center gap-2 text-xs font-medium text-slate-400">
                 <span className="h-2 w-4 rounded-sm bg-emerald-500" />
                 Auto Liability Coverage
+              </span>
+              <span className="inline-flex items-center gap-2 text-xs font-medium text-slate-400">
+                <span className="h-2 w-4 rounded-sm bg-cyan-500" />
+                Umbrella Coverage
               </span>
               <span className="inline-flex items-center gap-2 text-xs font-medium text-slate-400">
                 <span className="h-2 w-4 rounded-sm bg-rose-500" />
@@ -180,10 +195,45 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
               accent="green"
             />
             <ModuleMetricCard
+              label="Umbrella Coverage"
+              value={formatLiabilityMetric(outputs.householdUmbrellaCoverage)}
+              description="Existing umbrella policy limit"
+              accent="cyan"
+            />
+            <ModuleMetricCard
               label="Unprotected Liability Gap"
               value={formatLiabilityMetric(outputs.householdLiabilityGap)}
-              description="Total exposure minus auto coverage"
+              description="Total exposure minus auto + umbrella"
               accent={outputs.householdLiabilityGap > 0 ? "red" : "green"}
+            />
+            <ModuleMetricCard
+              label="Recommended Umbrella"
+              value={formatLiabilityMetric(outputs.recommendedUmbrellaCoverage)}
+              description="Max(net worth at risk, income × 5, $1M floor)"
+              accent="amber"
+            />
+            <ModuleMetricCard
+              label="Umbrella Needed"
+              value={formatLiabilityMetric(outputs.umbrellaCoverageShortfall)}
+              description="Recommended umbrella minus existing umbrella"
+              accent={outputs.umbrellaCoverageShortfall > 0 ? "red" : "green"}
+            />
+          </MetricGroup>
+
+          <MetricGroupDivider />
+
+          <MetricGroup title="Assumptions">
+            <ModuleMetricCard
+              label="Garnishment Rate"
+              value={`${Math.round(outputs.assumptionGarnishmentRate * 100)}%`}
+              description="Applied to projected earned income"
+              accent="slate"
+            />
+            <ModuleMetricCard
+              label="Income Growth Rate"
+              value={`${Math.round(outputs.assumptionIncomeGrowthRate * 100)}%/yr`}
+              description="Used in wage-risk projection to age 65"
+              accent="slate"
             />
           </MetricGroup>
         </div>
