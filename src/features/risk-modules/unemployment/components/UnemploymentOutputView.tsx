@@ -1,6 +1,7 @@
 import { UnemploymentOutputs } from "../types"
 import { ModuleMetricCard, MetricGroup, MetricGroupDivider } from "@/features/risk-modules/core/ModuleMetricCard"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Bar, BarChart, CartesianGrid, LabelList, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
 interface UnemploymentOutputViewProps {
   outputs: UnemploymentOutputs
@@ -10,7 +11,41 @@ function formatAdvisorCurrency(value: number): string {
   return `$${Math.round(value / 1000)}K`
 }
 
+function formatMonths(value: number, monthlyIncome: number): string {
+  if (monthlyIncome <= 0) return "0mo"
+  return `${Math.round(value / monthlyIncome)}mo`
+}
+
+const ReserveTooltip = ({ active, payload, label, monthlyIncome }: any) => {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="rounded-xl border border-slate-700/60 bg-slate-900/95 px-4 py-3 text-sm shadow-xl backdrop-blur-sm">
+      <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+      {payload.map((entry: any, index: number) => (
+        <div key={index} className="flex items-center justify-between gap-6">
+          <span className="flex items-center gap-2 text-slate-300">
+            <span className="inline-block h-2 w-2 rounded-full" style={{ background: entry.fill }} />
+            {entry.name}
+          </span>
+          <span className="font-bold text-slate-100">{formatAdvisorCurrency(entry.value)} ({formatMonths(entry.value, monthlyIncome)})</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function AdvisorReserveVisualization({ outputs }: { outputs: UnemploymentOutputs }) {
+  const effectiveReserveAtOnset = outputs.currentReserveLevel + outputs.severanceTotal
+  const reserveData = [
+    {
+      name: "Savings Bucket",
+      MinimumReserve: outputs.minimumReserveTarget,
+      IdealExtension: Math.max(outputs.optimalReserveTarget - outputs.minimumReserveTarget, 0),
+      EffectiveReserve: Math.min(effectiveReserveAtOnset, outputs.optimalReserveTarget),
+    },
+  ]
+  const ticks = [0, 1, 2, 3, 4, 5, 6].map((month) => month * outputs.monthlyIncome)
+
   return (
     <Card className="module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
       <CardHeader className="shrink-0 px-6 pb-0 pt-5 text-center">
@@ -21,73 +56,136 @@ function AdvisorReserveVisualization({ outputs }: { outputs: UnemploymentOutputs
           Optimal savings runway target based on monthly income
         </p>
       </CardHeader>
-      <CardContent className="flex flex-1 flex-col min-h-0 items-center justify-center px-6 pb-6 pt-4">
-        <div className="mx-auto w-full max-w-176">
-            <svg viewBox="0 0 620 318" className="h-auto w-full overflow-hidden" role="img" aria-label="Emergency reserve range from zero to six months">
-          <defs>
-            <linearGradient id="unemploymentIdealFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#22c55e" stopOpacity="0.92" />
-              <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.82" />
-            </linearGradient>
-            <linearGradient id="unemploymentMinimumFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.42" />
-              <stop offset="100%" stopColor="#ef4444" stopOpacity="0.34" />
-            </linearGradient>
-            <linearGradient id="unemploymentGlass" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.18" />
-              <stop offset="48%" stopColor="#ffffff" stopOpacity="0.02" />
-              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.1" />
-            </linearGradient>
-            <filter id="unemploymentSoftShadow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="16" stdDeviation="16" floodColor="#020617" floodOpacity="0.34" />
-            </filter>
-          </defs>
+      <CardContent className="flex flex-1 flex-col min-h-0 px-6 pb-6 pt-4">
+        <div className="flex flex-1 min-h-0 items-stretch gap-2">
+          <div className="flex w-4 shrink-0 items-center justify-center">
+            <span
+              style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+              className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider text-slate-600"
+            >
+              Reserve Runway
+            </span>
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col">
+            <div className="flex-1 min-h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%" debounce={100}>
+                <BarChart
+                  data={reserveData}
+                  margin={{ top: 16, right: 160, left: 0, bottom: 12 }}
+                  barSize={112}
+                  barCategoryGap="50%"
+                >
+                  <defs>
+                    <linearGradient id="unemp-ideal-segment" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#22c55e" stopOpacity="0.95" />
+                      <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.84" />
+                    </linearGradient>
+                    <linearGradient id="unemp-min-segment" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#0891b2" stopOpacity="0.8" />
+                      <stop offset="100%" stopColor="#ef4444" stopOpacity="0.58" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid stroke="rgba(148,163,184,0.06)" strokeDasharray="4 4" vertical={false} />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fill: "#94a3b8", fontSize: 12, fontWeight: 600 }}
+                    axisLine={false}
+                    tickLine={false}
+                    dy={6}
+                  />
+                  <YAxis
+                    tickFormatter={(val) => formatMonths(Number(val), outputs.monthlyIncome)}
+                    tick={{ fill: "#64748b", fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                    ticks={ticks}
+                    domain={[0, outputs.optimalReserveTarget]}
+                    width={54}
+                  />
+                  <Tooltip content={<ReserveTooltip monthlyIncome={outputs.monthlyIncome} />} cursor={{ fill: "rgba(255,255,255,0.025)" }} />
+                  <ReferenceLine y={outputs.minimumReserveTarget} stroke="#e2e8f0" strokeDasharray="7 5" strokeOpacity={0.75} />
+                  <ReferenceLine y={effectiveReserveAtOnset} stroke="#f43f5e" strokeWidth={2} strokeOpacity={0.9} />
 
-          {[0, 1, 2, 3, 4, 5, 6].map((month) => {
-            const y = 238 - month * 31
-            const isKey = month === 0 || month === 3 || month === 6
-            return (
-              <g key={month}>
-                <line x1={isKey ? 150 : 162} y1={y} x2="178" y2={y} stroke={isKey ? "rgba(248,250,252,0.9)" : "rgba(148,163,184,0.3)"} strokeWidth={isKey ? 1.5 : 1} />
-                <text x="144" y={y + 4} textAnchor="end" fontSize={isKey ? 12 : 10} fontWeight={isKey ? 700 : 600} fill={isKey ? "#f8fafc" : "#94a3b8"}>
-                  {month}mo
-                </text>
-              </g>
-            )
-          })}
-
-          <rect x="180" y="52" width="260" height="186" rx="18" fill="rgba(2,6,23,0.36)" stroke="rgba(226,232,240,0.16)" strokeWidth="2" filter="url(#unemploymentSoftShadow)" />
-          <clipPath id="unemploymentBucketClip">
-            <rect x="180" y="52" width="260" height="186" rx="18" />
-          </clipPath>
-          <g clipPath="url(#unemploymentBucketClip)">
-            <rect x="180" y="52" width="260" height="93" fill="url(#unemploymentIdealFill)" />
-            <rect x="180" y="145" width="260" height="93" fill="url(#unemploymentMinimumFill)" />
-            <rect x="180" y="52" width="260" height="186" fill="url(#unemploymentGlass)" />
-          </g>
-          <line x1="172" y1="145" x2="448" y2="145" stroke="rgba(248,250,252,0.7)" strokeWidth="2" strokeDasharray="7 5" />
-          <rect x="180" y="52" width="260" height="186" rx="18" fill="none" stroke="rgba(226,232,240,0.24)" strokeWidth="2" />
-
-          <text x="310" y="120" textAnchor="middle" fontSize="15" fontWeight="800" letterSpacing="1.6" fill="#ffffff">IDEAL RANGE</text>
-          <text x="310" y="139" textAnchor="middle" fontSize="11" fontWeight="700" fill="rgba(255,255,255,0.76)">3 to 6 months</text>
-          <text x="310" y="196" textAnchor="middle" fontSize="12" fontWeight="800" letterSpacing="1.3" fill="rgba(255,255,255,0.64)">MINIMUM</text>
-
-          <line x1="440" y1="62" x2="465" y2="62" stroke="#22c55e" strokeWidth="2" />
-          <text x="474" y="64" fontSize="11" fontWeight="800" letterSpacing="1.2" fill="#22c55e">OPTIMAL TARGET</text>
-          <text x="474" y="84" fontSize="20" fontWeight="800" fill="#ffffff">{formatAdvisorCurrency(outputs.optimalReserveTarget)}</text>
-          <text x="474" y="102" fontSize="10" fontWeight="700" fill="rgba(226,232,240,0.66)">6 months of income</text>
-
-          <line x1="440" y1="145" x2="465" y2="145" stroke="#22d3ee" strokeWidth="2" />
-          <text x="474" y="141" fontSize="11" fontWeight="800" letterSpacing="1.2" fill="#22d3ee">MINIMUM RESERVE</text>
-          <text x="474" y="161" fontSize="20" fontWeight="800" fill="#ffffff">{formatAdvisorCurrency(outputs.minimumReserveTarget)}</text>
-          <text x="474" y="179" fontSize="10" fontWeight="700" fill="rgba(226,232,240,0.66)">3 months of income</text>
-
-          <line x1="440" y1="226" x2="465" y2="226" stroke="#fb7185" strokeWidth="2" />
-          <text x="474" y="220" fontSize="11" fontWeight="800" letterSpacing="1.2" fill="#fb7185">DANGER ZONE</text>
-          <text x="474" y="238" fontSize="10" fontWeight="700" fill="rgba(226,232,240,0.66)">Below 3 months</text>
-
-          <text x="310" y="292" textAnchor="middle" fontSize="11" fontWeight="800" letterSpacing="1.6" fill="rgba(226,232,240,0.48)">EMERGENCY RESERVE SAVINGS BUCKET</text>
-        </svg>
+                  <Bar
+                    dataKey="MinimumReserve"
+                    name="Minimum Zone"
+                    stackId="a"
+                    fill="url(#unemp-min-segment)"
+                    radius={outputs.optimalReserveTarget <= outputs.minimumReserveTarget ? [18, 18, 0, 0] : [0, 0, 0, 0]}
+                    isAnimationActive={true}
+                    animationBegin={0}
+                    animationDuration={1400}
+                    animationEasing="ease-out"
+                  />
+                  <Bar
+                    dataKey="IdealExtension"
+                    name="Ideal Extension"
+                    stackId="a"
+                    fill="url(#unemp-ideal-segment)"
+                    radius={[18, 18, 0, 0]}
+                    isAnimationActive={true}
+                    animationBegin={200}
+                    animationDuration={1400}
+                    animationEasing="ease-out"
+                  >
+                    <LabelList
+                      dataKey="IdealExtension"
+                      position="center"
+                      formatter={() => "IDEAL RANGE"}
+                      style={{ fill: "#ffffff", fontSize: 12, fontWeight: 800, letterSpacing: "0.14em" }}
+                    />
+                  </Bar>
+                  <Bar
+                    dataKey="EffectiveReserve"
+                    name="Available at Onset"
+                    stackId="overlay"
+                    fill="rgba(248,250,252,0.1)"
+                    stroke="#f8fafc"
+                    strokeOpacity={0.55}
+                    strokeWidth={2}
+                    radius={[18, 18, 0, 0]}
+                    isAnimationActive={true}
+                    animationBegin={400}
+                    animationDuration={1400}
+                    animationEasing="ease-out"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-4 shrink-0 flex items-center justify-center gap-6 border-t border-slate-800/50 pt-4">
+              <span className="inline-flex items-center gap-2 text-xs font-medium text-slate-400">
+                <span className="h-2 w-4 rounded-sm bg-cyan-400/70" />
+                Minimum Zone
+              </span>
+              <span className="inline-flex items-center gap-2 text-xs font-medium text-slate-400">
+                <span className="h-2 w-4 rounded-sm bg-emerald-500/80" />
+                Ideal Extension
+              </span>
+              <span className="inline-flex items-center gap-2 text-xs font-medium text-slate-400">
+                <span className="h-2 w-4 rounded-sm border border-slate-200/60 bg-slate-50/10" />
+                Available at Onset
+              </span>
+            </div>
+            <div className="mt-1 text-center">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+                Emergency Reserve Savings Bucket
+              </span>
+            </div>
+          </div>
+          <div className="hidden w-40 shrink-0 pt-4 lg:block">
+            <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-emerald-400">Optimal Target</p>
+            <p className="mt-0.5 text-2xl font-bold text-slate-50">{formatAdvisorCurrency(outputs.optimalReserveTarget)}</p>
+            <p className="text-xs text-slate-400">6 months of income</p>
+            <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.15em] text-cyan-400">Minimum Reserve</p>
+            <p className="mt-0.5 text-2xl font-bold text-slate-50">{formatAdvisorCurrency(outputs.minimumReserveTarget)}</p>
+            <p className="text-xs text-slate-400">3 months of income</p>
+            <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.15em] text-rose-400">Current Reserve</p>
+            <p className="mt-0.5 text-2xl font-bold text-slate-50">{formatAdvisorCurrency(outputs.currentReserveLevel)}</p>
+            <p className="text-xs text-slate-400">{formatMonths(outputs.currentReserveLevel, outputs.monthlyIncome)} held today</p>
+            <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.15em] text-slate-200">Available at Onset</p>
+            <p className="mt-0.5 text-2xl font-bold text-slate-50">{formatAdvisorCurrency(effectiveReserveAtOnset)}</p>
+            <p className="text-xs text-slate-400">Current reserve + severance</p>
+          </div>
         </div>
       </CardContent>
     </Card>

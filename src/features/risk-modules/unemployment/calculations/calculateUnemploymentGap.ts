@@ -1,23 +1,32 @@
 import { UnemploymentInputs, UnemploymentOutputs } from "../types";
 
 export function calculateUnemploymentGap(inputs: UnemploymentInputs): UnemploymentOutputs {
-  const monthlySalary = inputs.annualIncome / 12;
-  const spouseMonthly = inputs.spouseIncome / 12;
-  const expenses = inputs.monthlyExpenses;
+  const annualIncome = Math.max(inputs.annualIncome, 0);
+  const spouseIncome = Math.max(inputs.spouseIncome, 0);
+  const monthlyExpenses = Math.max(inputs.monthlyExpenses, 0);
+  const emergencySavings = Math.max(inputs.emergencySavings, 0);
+  const severanceMonths = Math.max(Math.floor(inputs.severanceMonths), 0);
+  const unemploymentBenefitMonthly = Math.max(inputs.unemploymentBenefitMonthly, 0);
+  const unemploymentBenefitDurationMonths = Math.max(Math.floor(inputs.unemploymentBenefitDurationMonths), 0);
+  const estimatedJobSearchMonths = Math.max(Math.floor(inputs.estimatedJobSearchMonths), 0);
+
+  const monthlySalary = annualIncome / 12;
+  const spouseMonthly = spouseIncome / 12;
+  const expenses = monthlyExpenses;
   
-  const severanceTotal = monthlySalary * inputs.severanceMonths;
-  let currentSavings = inputs.emergencySavings + severanceTotal;
+  const severanceTotal = monthlySalary * severanceMonths;
+  let currentSavings = emergencySavings + severanceTotal;
   
   let depletionMonth = -1;
   let totalShortfall = 0;
   
   const timeline = [];
   
-  for (let month = 1; month <= inputs.estimatedJobSearchMonths; month++) {
+  for (let month = 1; month <= estimatedJobSearchMonths; month++) {
     let availableIncome = spouseMonthly;
     
-    if (month <= inputs.unemploymentBenefitDurationMonths) {
-      availableIncome += inputs.unemploymentBenefitMonthly;
+    if (month <= unemploymentBenefitDurationMonths) {
+      availableIncome += unemploymentBenefitMonthly;
     }
     
     const gap = expenses - availableIncome;
@@ -49,12 +58,12 @@ export function calculateUnemploymentGap(inputs: UnemploymentInputs): Unemployme
   }
 
   if (depletionMonth === -1) {
-    let checkMonth = inputs.estimatedJobSearchMonths + 1;
+    let checkMonth = estimatedJobSearchMonths + 1;
     let simSavings = currentSavings;
     while (simSavings > 0 && checkMonth < 120) {
       let simIncome = spouseMonthly;
-      if (checkMonth <= inputs.unemploymentBenefitDurationMonths) {
-        simIncome += inputs.unemploymentBenefitMonthly;
+      if (checkMonth <= unemploymentBenefitDurationMonths) {
+        simIncome += unemploymentBenefitMonthly;
       }
       const gap = expenses - simIncome;
       if (gap > 0) {
@@ -78,11 +87,11 @@ export function calculateUnemploymentGap(inputs: UnemploymentInputs): Unemployme
     severanceTotal,
     reserveDepletionMonth: depletionMonth,
     totalUncoveredShortfall: totalShortfall,
-    currentReserveLevel: inputs.emergencySavings,
+    currentReserveLevel: emergencySavings,
     optimalReserveTarget: monthlySalary * 6,
     minimumReserveTarget: monthlySalary * 3,
-    annualIncomeAtRisk: inputs.annualIncome,
-    reserveMonthsCurrent: monthlySalary > 0 ? inputs.emergencySavings / monthlySalary : 0,
+    annualIncomeAtRisk: annualIncome,
+    reserveMonthsCurrent: monthlySalary > 0 ? emergencySavings / monthlySalary : 0,
     timeline,
   };
 }
