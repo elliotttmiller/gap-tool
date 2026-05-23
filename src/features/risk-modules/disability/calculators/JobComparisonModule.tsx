@@ -64,6 +64,7 @@ function NumberField({
   min = 0,
   prefix,
   suffix,
+  showZeroAsEmpty = false,
   onChange,
 }: {
   label: string
@@ -72,8 +73,11 @@ function NumberField({
   min?: number
   prefix?: string
   suffix?: string
+  showZeroAsEmpty?: boolean
   onChange: (v: number) => void
 }) {
+  const displayValue = showZeroAsEmpty && value === 0 ? "" : value
+
   return (
     <label className="flex flex-col gap-1">
       <span className="text-[11px] text-gray-400">{label}</span>
@@ -83,7 +87,7 @@ function NumberField({
         )}
         <input
           type="number"
-          value={value}
+          value={displayValue}
           min={min}
           step={step}
           onChange={(e) => onChange(Number(e.target.value) || 0)}
@@ -297,8 +301,8 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
               </div>
               {jobA.hasIdi && (
                 <div className="mt-3 grid grid-cols-2 gap-3">
-                  <NumberField label="IDI monthly premium" value={jobA.monthlyPremium} step={50} prefix="$" onChange={(monthlyPremium) => setJobA({ ...jobA, monthlyPremium })} />
-                  <NumberField label="IDI monthly benefit" value={jobA.idiBenefit} step={500} prefix="$" onChange={(idiBenefit) => setJobA({ ...jobA, idiBenefit })} />
+                  <NumberField label="IDI monthly premium" value={jobA.monthlyPremium} step={50} prefix="$" showZeroAsEmpty onChange={(monthlyPremium) => setJobA({ ...jobA, monthlyPremium })} />
+                  <NumberField label="IDI monthly benefit" value={jobA.idiBenefit} step={500} prefix="$" showZeroAsEmpty onChange={(idiBenefit) => setJobA({ ...jobA, idiBenefit })} />
                 </div>
               )}
             </CardContent>
@@ -335,8 +339,8 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
               </div>
               {jobB.hasIdi && (
                 <div className="mt-3 grid grid-cols-2 gap-3">
-                  <NumberField label="IDI monthly premium" value={jobB.monthlyPremium} step={50} prefix="$" onChange={(monthlyPremium) => setJobB({ ...jobB, monthlyPremium })} />
-                  <NumberField label="IDI monthly benefit" value={jobB.idiBenefit} step={500} prefix="$" onChange={(idiBenefit) => setJobB({ ...jobB, idiBenefit })} />
+                  <NumberField label="IDI monthly premium" value={jobB.monthlyPremium} step={50} prefix="$" showZeroAsEmpty onChange={(monthlyPremium) => setJobB({ ...jobB, monthlyPremium })} />
+                  <NumberField label="IDI monthly benefit" value={jobB.idiBenefit} step={500} prefix="$" showZeroAsEmpty onChange={(idiBenefit) => setJobB({ ...jobB, idiBenefit })} />
                 </div>
               )}
             </CardContent>
@@ -394,12 +398,9 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
                       animationDuration={1400}
                       animationEasing="ease-out"
                     >
-                      {chartData.map((entry, index) => {
-                        const hasIdi = entry["IDI Benefit"] > 0
-                        const hasGap = entry["Income Gap"] > 0
-                        const isTopSegment = !hasIdi && !hasGap
-                        return <Cell key={`group-${index}`} radius={isTopSegment ? [6, 6, 0, 0] : [0, 0, 0, 0]} />
-                      })}
+                      {chartData.map((_, index) => (
+                        <Cell key={`group-${index}`} />
+                      ))}
                       <LabelList
                         dataKey="Group LTD"
                         position="center"
@@ -418,13 +419,10 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
                       animationEasing="ease-out"
                     >
                       {chartData.map((entry, index) => {
-                        const hasGap = entry["Income Gap"] > 0
-                        const isTopSegment = entry["IDI Benefit"] > 0 && !hasGap
                         return (
                           <Cell
                             key={`idi-${index}`}
                             fill={entry["IDI Benefit"] > 0 ? "#06b6d4" : "transparent"}
-                            radius={isTopSegment ? [6, 6, 0, 0] : [0, 0, 0, 0]}
                           />
                         )
                       })}
