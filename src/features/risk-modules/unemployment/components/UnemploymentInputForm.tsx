@@ -20,6 +20,10 @@ export function UnemploymentInputForm({ inputs, onChange }: UnemploymentInputFor
     return Math.min(normalized, max)
   }
 
+  const toWholeDollar = (value: string) => {
+    return Math.round(toNonNegative(value))
+  }
+
   const handleCurrency = (field: keyof UnemploymentInputs, value: string) => {
     onChange({ ...inputs, [field]: toNonNegative(value) })
   }
@@ -41,7 +45,16 @@ export function UnemploymentInputForm({ inputs, onChange }: UnemploymentInputFor
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="monthlyExpenses">Monthly Burn Rate</Label>
-            <Input id="monthlyExpenses" type="number" min={0} prefix="$" value={inputs.monthlyExpenses || ""} className="w-full" onChange={(e) => handleCurrency("monthlyExpenses", e.target.value)} />
+            <Input
+              id="monthlyExpenses"
+              type="number"
+              min={0}
+              step={1}
+              prefix="$"
+              value={inputs.monthlyExpenses || ""}
+              className="w-full"
+              onChange={(e) => onChange({ ...inputs, monthlyExpenses: toWholeDollar(e.target.value) })}
+            />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="emergencySavings">Liquid Emergency Savings</Label>
