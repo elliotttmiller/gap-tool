@@ -128,7 +128,8 @@ function GroupCapField({
 
 function GapTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null
-  const total = payload.reduce((sum: number, p: any) => sum + (p.value ?? 0), 0)
+  const stackedTotal = payload.reduce((sum: number, p: any) => sum + (p.value ?? 0), 0)
+  const netTotalBar = payload[0]?.payload?.totalBar ?? stackedTotal
   return (
     <div className="min-w-52 rounded-xl border border-gray-700 bg-gray-950/95 p-3 text-xs shadow-2xl backdrop-blur">
       <p className="mb-2 font-semibold text-gray-100">{label}</p>
@@ -141,10 +142,57 @@ function GapTooltip({ active, payload, label }: any) {
         ))}
         <div className="flex justify-between gap-4 border-t border-gray-800 pt-1.5">
           <span className="text-gray-400">Total bar</span>
-          <span className="font-mono text-gray-100">{formatCurrency(total)}/yr</span>
+          <span className="font-mono text-gray-100">{formatCurrency(netTotalBar)}/yr</span>
         </div>
       </div>
     </div>
+  )
+}
+
+function renderAdaptiveSegmentLabel(props: any) {
+  const { x = 0, y = 0, width = 0, height = 0, value } = props ?? {}
+  if (!value || Number(value) <= 0) return null
+
+  const cx = Number(x) + Number(width) / 2
+  const h = Number(height)
+  const canFitInside = h >= 14
+
+  if (canFitInside) {
+    return (
+      <text
+        x={cx}
+        y={Number(y) + h / 2 + 4}
+        textAnchor="middle"
+        fill="#ffffff"
+        fontSize={11}
+        fontWeight={600}
+      >
+        {formatCurrency(Number(value))}
+      </text>
+    )
+  }
+
+  return (
+    <g>
+      <line
+        x1={cx}
+        y1={Number(y)}
+        x2={cx}
+        y2={Number(y) - 6}
+        stroke="#94a3b8"
+        strokeWidth={1}
+      />
+      <text
+        x={cx}
+        y={Number(y) - 8}
+        textAnchor="middle"
+        fill="#ffffff"
+        fontSize={10}
+        fontWeight={600}
+      >
+        {formatCurrency(Number(value))}
+      </text>
+    </g>
   )
 }
 
@@ -183,30 +231,35 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
   const annualIDI_A = jobA.hasIdi ? jobA.idiBenefit * 12 : 0
   const annualPremium_A = jobA.hasIdi ? jobA.monthlyPremium * 12 : 0
   const totalBar_A = Math.max(jobA.salary - annualPremium_A, 0)
-  const incomeGap_A = Math.max(totalBar_A - groupLTD_A - annualIDI_A, 0)
+  const groupCovered_A = Math.min(groupLTD_A, totalBar_A)
+  const idiCovered_A = Math.min(annualIDI_A, Math.max(totalBar_A - groupCovered_A, 0))
+  const incomeGap_A = Math.max(jobA.salary - groupCovered_A - idiCovered_A, 0)
 
   // ── Job B ──────────────────────────────────────────────────────────────────
   const annualPremium = jobB.hasIdi ? jobB.monthlyPremium * 12 : 0
   const annualIDI = jobB.hasIdi ? jobB.idiBenefit * 12 : 0
   const groupLTD_B = calcGroupLTDAnnual(jobB.salary, jobB.groupPct, parseWholeNumberInput(jobB.groupCap))
   const totalBar_B = Math.max(jobB.salary - annualPremium, 0)
-  const incomeGap_B = Math.max(totalBar_B - groupLTD_B - annualIDI, 0)
+  const groupCovered_B = Math.min(groupLTD_B, totalBar_B)
+  const idiCovered_B = Math.min(annualIDI, Math.max(totalBar_B - groupCovered_B, 0))
+  const incomeGap_B = Math.max(jobB.salary - groupCovered_B - idiCovered_B, 0)
 
   const chartData = [
     {
       name: "Job A",
-      "Group LTD": Math.round(groupLTD_A),
-      "IDI Benefit": Math.round(annualIDI_A),
+      "Group LTD": Math.round(groupCovered_A),
+      "IDI Benefit": Math.round(idiCovered_A),
       "Income Gap": Math.round(incomeGap_A),
+      totalBar: Math.round(totalBar_A),
     },
     {
       name: "Job B",
-      "Group LTD": Math.round(groupLTD_B),
-      "IDI Benefit": Math.round(annualIDI),
+      "Group LTD": Math.round(groupCovered_B),
+      "IDI Benefit": Math.round(idiCovered_B),
       "Income Gap": Math.round(incomeGap_B),
+      totalBar: Math.round(totalBar_B),
     },
   ]
-
   return (
     <div className="module-output-container">
       <div className="space-y-4">
@@ -325,6 +378,7 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
                       tickLine={false}
                       axisLine={false}
                       width={56}
+                      domain={[0, (dataMax: number) => Math.max(1, Math.ceil((dataMax * 1.15) / 1000) * 1000)]}
                       tickFormatter={(v) => `$${Math.round(Number(v) / 1000)}k`}
                     />
                     <Tooltip content={<GapTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
@@ -350,12 +404,10 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
                       />
                     </Bar>
 
-                    <Bar dataKey="Income Gap" stackId="stack" fill="#ef4444" radius={[4, 4, 0, 0]} isAnimationActive animationDuration={550}>
+                    <Bar dataKey="Income Gap" stackId="stack" fill="#ef4444" isAnimationActive animationDuration={550}>
                       <LabelList
                         dataKey="Income Gap"
-                        position="center"
-                        formatter={(v: number) => v > 0 ? formatCurrency(v) : ""}
-                        style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }}
+                        content={renderAdaptiveSegmentLabel}
                       />
                     </Bar>
                   </BarChart>
@@ -374,9 +426,9 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
             />
             <MetricCard
               label="Income difference"
-              value={`${formatCurrency(Math.abs(jobA.salary - totalBar_B))}/yr`}
+              value={`${formatCurrency(Math.abs(totalBar_A - totalBar_B))}/yr`}
               sub="Job A income − Job B income"
-              accent={jobA.salary >= totalBar_B ? "default" : "green"}
+              accent={totalBar_A >= totalBar_B ? "default" : "green"}
             />
             <MetricCard
               label="Gap difference"

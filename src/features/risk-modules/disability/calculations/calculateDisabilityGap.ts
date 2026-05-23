@@ -50,7 +50,7 @@ export function calculateDisabilityGap(
   const projection: DisabilityIncomeProjectionPoint[] = [];
   const yearsToRetirement = retirementAge - currentAge;
 
-  for (let year = 0; year <= yearsToRetirement; year++) {
+  for (let year = 0; year < yearsToRetirement; year++) {
     const age = currentAge + year;
     const annualIncomeAtAge = roundCurrency(annualIncome * Math.pow(1 + growthRate, year));
     const annualIncomeNetAtAge = roundCurrency(annualIncomeAtAge * 0.70);

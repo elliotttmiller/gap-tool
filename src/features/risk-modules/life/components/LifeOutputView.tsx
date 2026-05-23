@@ -11,7 +11,6 @@ import {
   Cell,
   ResponsiveContainer,
 } from "recharts"
-import { getLifeInsuranceNarrative } from "../constants/moduleCopy"
 import { AnimatedSection } from "@/components/ui/animated-section"
 import { ModuleMetricCard, MetricGroup, MetricGroupDivider } from "@/features/risk-modules/core/ModuleMetricCard"
 
@@ -229,6 +228,13 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
   const m1TickAges = buildAgeTicks(module1.yearlyData)
   const m2TickAges = buildAgeTicks(module2.yearlyData)
   const retirementAge = (module1.yearlyData.at(-1)?.age ?? 64) + 1
+  const activeModule = activeTab === "safe" ? module1 : module2
+  const replacedPct = activeModule.projectedNetIncomeTotal > 0
+    ? Math.round((activeModule.totalIncomeReplaced / activeModule.projectedNetIncomeTotal) * 100)
+    : 0
+  const activeNarrative = activeModule.survivorGap <= 0
+    ? "Based on the assumptions entered, projected income needs appear fully covered through the selected projection horizon."
+    : `A protection gap of ${formatCurrency(activeModule.survivorGap)} remains after applying modeled income replacement (${formatCurrency(activeModule.totalIncomeReplaced)} total — ${replacedPct}% of projected need). This gap represents income that would go unfunded if the client passed away today. The Death Benefit Needed value estimates the additional coverage required to close this shortfall at the selected ROI.`
 
   return (
     <div className="module-output-container">
@@ -430,7 +436,7 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
       <Card className="bg-[#090E1A] border border-gray-800 mt-4">
         <CardContent className="p-6">
           <h4 className="font-semibold text-blue-400 mb-2 uppercase tracking-wider text-xs">Planning Narrative</h4>
-          <p className="text-sm text-gray-300 leading-relaxed">{getLifeInsuranceNarrative(outputs)}</p>
+          <p className="text-sm text-gray-300 leading-relaxed">{activeNarrative}</p>
         </CardContent>
       </Card>
     </div>
