@@ -73,6 +73,74 @@ function toDisplayName(firstName: string, lastName: string, displayName?: string
   return displayName?.trim() || `${firstName.trim()} ${lastName.trim()}`.trim()
 }
 
+type SharedProjectionInputs = {
+  annualIncome: number
+  currentAge: number
+  retirementAge: number
+}
+
+function syncSharedProjectionInputs(
+  records: ScenarioModuleRecords,
+  shared: SharedProjectionInputs,
+  timestamp: string,
+): ScenarioModuleRecords {
+  const synced: ScenarioModuleRecords = { ...records }
+  const incomeReplacementYears = Math.max(0, shared.retirementAge - shared.currentAge)
+
+  if (synced.life) {
+    synced.life = {
+      ...synced.life,
+      inputs: {
+        ...synced.life.inputs,
+        annualIncome: shared.annualIncome,
+        currentAge: shared.currentAge,
+        retirementAge: shared.retirementAge,
+        incomeReplacementYears,
+      },
+      updatedAt: timestamp,
+    }
+  }
+
+  if (synced.disability) {
+    synced.disability = {
+      ...synced.disability,
+      inputs: {
+        ...synced.disability.inputs,
+        annualEarnedIncome: shared.annualIncome,
+        currentAge: shared.currentAge,
+        retirementAge: shared.retirementAge,
+      },
+      updatedAt: timestamp,
+    }
+  }
+
+  if (synced.unemployment) {
+    synced.unemployment = {
+      ...synced.unemployment,
+      inputs: {
+        ...synced.unemployment.inputs,
+        annualIncome: shared.annualIncome,
+      },
+      updatedAt: timestamp,
+    }
+  }
+
+  if (synced.liability) {
+    synced.liability = {
+      ...synced.liability,
+      inputs: {
+        ...synced.liability.inputs,
+        annualIncome: shared.annualIncome,
+        currentAge: shared.currentAge,
+        retirementAge: shared.retirementAge,
+      },
+      updatedAt: timestamp,
+    }
+  }
+
+  return synced
+}
+
 function getProfileCompletion(profile: ClientFinancialProfile): ProfileCompletionStatus {
   if (!profile.primaryIncomeEarnerName || !profile.currentAge || !profile.annualEarnedIncome) return "missing_required_info"
   if (profile.groupLifeCoverage !== undefined && profile.privateLifeCoverage !== undefined && profile.autoLiabilityLimit !== undefined) return "ready_full_analysis"
@@ -456,16 +524,46 @@ export const useAppStore = create<AppState>()(
 
       updateLifeInputs: (scenarioId, inputs) =>
         set((state) => {
-          const record = state.moduleRecordsByScenarioId[scenarioId]?.life
-          if (!record) return state
-          return { moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: { ...state.moduleRecordsByScenarioId[scenarioId], life: { ...record, inputs, updatedAt: nowIso() } } } }
+          const scenarioRecords = state.moduleRecordsByScenarioId[scenarioId]
+          const record = scenarioRecords?.life
+          if (!scenarioRecords || !record) return state
+          const timestamp = nowIso()
+          const withLifeInputs: ScenarioModuleRecords = {
+            ...scenarioRecords,
+            life: { ...record, inputs, updatedAt: timestamp },
+          }
+          const synced = syncSharedProjectionInputs(
+            withLifeInputs,
+            {
+              annualIncome: inputs.annualIncome,
+              currentAge: inputs.currentAge,
+              retirementAge: inputs.retirementAge,
+            },
+            timestamp,
+          )
+          return { moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: synced } }
         }),
 
       updateDisabilityInputs: (scenarioId, inputs) =>
         set((state) => {
-          const record = state.moduleRecordsByScenarioId[scenarioId]?.disability
-          if (!record) return state
-          return { moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: { ...state.moduleRecordsByScenarioId[scenarioId], disability: { ...record, inputs, updatedAt: nowIso() } } } }
+          const scenarioRecords = state.moduleRecordsByScenarioId[scenarioId]
+          const record = scenarioRecords?.disability
+          if (!scenarioRecords || !record) return state
+          const timestamp = nowIso()
+          const withDisabilityInputs: ScenarioModuleRecords = {
+            ...scenarioRecords,
+            disability: { ...record, inputs, updatedAt: timestamp },
+          }
+          const synced = syncSharedProjectionInputs(
+            withDisabilityInputs,
+            {
+              annualIncome: inputs.annualEarnedIncome,
+              currentAge: inputs.currentAge,
+              retirementAge: inputs.retirementAge,
+            },
+            timestamp,
+          )
+          return { moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: synced } }
         }),
 
       updateUnemploymentInputs: (scenarioId, inputs) =>

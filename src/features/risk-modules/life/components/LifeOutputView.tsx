@@ -138,7 +138,7 @@ function Module1Boxes({ m1, projectionEndAge }: { m1: IncomeGapModule1; projecti
     <div className="space-y-2">
       <MetricGroup>
         <ModuleMetricCard
-          label={`Projected Net Income to Age ${projectionEndAge} (Total)`}
+          label={`Projected Net Income to Age ${projectionEndAge}`}
           value={formatCurrency(m1.projectedNetIncomeTotal)}
           description="Total projected net income from current age to retirement"
           accent="slate"
@@ -179,7 +179,7 @@ function Module2Boxes({ m2, projectionEndAge }: { m2: IncomeGapModule2; projecti
     <div className="space-y-2">
       <MetricGroup>
         <ModuleMetricCard
-          label={`Projected Net Income to Age ${projectionEndAge} (Total)`}
+          label={`Projected Net Income to Age ${projectionEndAge}`}
           value={formatCurrency(m2.projectedNetIncomeTotal)}
           description="Total projected net income from current age to retirement"
           accent="slate"

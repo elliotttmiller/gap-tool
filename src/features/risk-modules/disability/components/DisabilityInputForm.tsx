@@ -37,9 +37,9 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
   return (
     <div className="space-y-3">
       {/* ── Income Profile ────────────────────────────────────────────────── */}
-      <CollapsibleInputSection title="Income Profile" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="annualEarnedIncome">Annual Income</Label>
+      <CollapsibleInputSection title="Income Profile" contentClassName="grid grid-cols-1 gap-2 px-5 pt-3 pb-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,0.8fr)_minmax(0,1.15fr)]">
+          <div className="flex min-w-0 flex-col gap-2">
+            <Label htmlFor="annualEarnedIncome" className="whitespace-nowrap">Annual Income</Label>
             <Input
               id="annualEarnedIncome"
               type="number"
@@ -49,8 +49,8 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
               onChange={(e) => handleNumber("annualEarnedIncome", e.target.value)}
             />
           </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="currentAge">Current Age</Label>
+          <div className="flex min-w-0 flex-col gap-2">
+            <Label htmlFor="currentAge" className="whitespace-nowrap">Current Age</Label>
             <Input
               id="currentAge"
               type="number"
@@ -61,8 +61,8 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
               onChange={(e) => handleNumber("currentAge", e.target.value)}
             />
           </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="retirementAge">Projection End Age</Label>
+          <div className="flex min-w-0 flex-col gap-2">
+            <Label htmlFor="retirementAge" className="whitespace-nowrap">Projection End Age</Label>
             <Input
               id="retirementAge"
               type="number"
@@ -76,9 +76,9 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
       </CollapsibleInputSection>
 
       {/* ── Group Long Term Disability ────────────────────────────────────── */}
-      <CollapsibleInputSection title="Group Long Term Disability (LTD)" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
+      <CollapsibleInputSection title="Group Long Term Disability (LTD)" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="ltdCoveragePercent">Coverage of Income</Label>
+            <Label htmlFor="ltdCoveragePercent" className="whitespace-nowrap">Coverage %</Label>
             <Input
               id="ltdCoveragePercent"
               type="number"
@@ -106,7 +106,8 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
       </CollapsibleInputSection>
 
       {/* ── Individual Disability Insurance ──────────────────────────────── */}
-      <CollapsibleInputSection title="Individual Disability Insurance" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
+      <CollapsibleInputSection title="Individual Disability Insurance" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor="privateDiBenefitMonthly">Monthly Benefit</Label>
             <Input
@@ -131,8 +132,10 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
               onChange={(e) => handleNumber("privateDiMonthlyPremium", e.target.value)}
             />
           </div>
+          </div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)_minmax(0,1fr)]">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="breakEvenRateOfReturn">Break-Even Rate of Return</Label>
+            <Label htmlFor="breakEvenRateOfReturn" className="whitespace-nowrap">Break-Even Rate</Label>
             <Input
               id="breakEvenRateOfReturn"
               type="number"
@@ -146,7 +149,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="breakEvenMonthsWithoutIncome">Months Without Income</Label>
+            <Label htmlFor="breakEvenMonthsWithoutIncome" className="whitespace-nowrap">Months w/o Income</Label>
             <Input
               id="breakEvenMonthsWithoutIncome"
               type="number"
@@ -157,8 +160,8 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
               onChange={(e) => handleNumber("breakEvenMonthsWithoutIncome", e.target.value)}
             />
           </div>
-          <div className="flex flex-col gap-2 sm:col-span-2">
-            <Label htmlFor="privateDiBenefitPeriod">Benefit Period</Label>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="privateDiBenefitPeriod" className="whitespace-nowrap">Benefit Period</Label>
             <select
               id="privateDiBenefitPeriod"
               value={inputs.privateDiBenefitPeriod}
@@ -169,6 +172,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
+          </div>
           </div>
       </CollapsibleInputSection>
     </div>

@@ -26,6 +26,30 @@ interface DisabilityOutputViewProps {
 
 type DisabilityVisualization = "incomeGap" | "premiumVsSelfInsured" | "jobComparison"
 
+function buildAgeTicks(data: { age: number }[], targetTickCount = 8): number[] {
+  if (data.length === 0) return []
+  const firstAge = data[0].age
+  const lastAge = data[data.length - 1].age
+  if (firstAge === lastAge) return [firstAge]
+
+  const span = lastAge - firstAge
+  const rawStep = Math.max(1, Math.ceil(span / Math.max(1, targetTickCount - 1)))
+
+  const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)))
+  const normalized = rawStep / magnitude
+  const snappedBase = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10
+  const step = snappedBase * magnitude
+
+  const ticks: number[] = [firstAge]
+  let age = firstAge + step
+  while (age < lastAge) {
+    ticks.push(age)
+    age += step
+  }
+  ticks.push(lastAge)
+  return ticks
+}
+
 function getMonthlyStatsAtAge(outputs: DisabilityOutputs, age: number) {
   const point = outputs.incomeProjection.find((p) => p.age === age)
   if (!point) {
@@ -76,6 +100,7 @@ export function DisabilityOutputView({
   onVisualizationChange,
 }: DisabilityOutputViewProps) {
   const chartData = transformDisabilityChartData(outputs)
+  const ageTicks = buildAgeTicks(chartData.projectionChartData)
   const [selectedAge, setSelectedAge] = useState<number | null>(null)
   const [chartView, setChartView] = useState<"net" | "gross">("net")
   const [visualizationInternal, setVisualizationInternal] = useState<DisabilityVisualization>("incomeGap")
@@ -265,12 +290,9 @@ export function DisabilityOutputView({
                       >
                         <XAxis
                           dataKey="age"
-                          tick={({ x, y, payload }) => {
-                            const ages = chartData.projectionChartData.map((d) => d.age)
-                            const step = Math.ceil(ages.length / 8)
-                            const showTick = ages.indexOf(payload.value) % step === 0 || payload.value === ages.at(-1)
-                            return showTick ? <text x={x} y={y + 12} textAnchor="middle" fill="#64748b" fontSize={11}>{payload.value}</text> : <g />
-                          }}
+                          ticks={ageTicks}
+                          interval={0}
+                          tick={{ fill: "#64748b", fontSize: 11 }}
                           axisLine={false}
                           tickLine={false}
                         />

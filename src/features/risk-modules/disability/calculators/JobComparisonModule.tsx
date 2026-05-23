@@ -21,7 +21,7 @@ interface JobComparisonModuleProps {
 interface JobAState {
   salary: number
   groupPct: number
-  groupCap: number
+  groupCap: string
   hasIdi: boolean
   monthlyPremium: number
   idiBenefit: number
@@ -30,7 +30,7 @@ interface JobAState {
 interface JobBState {
   salary: number
   groupPct: number
-  groupCap: number
+  groupCap: string
   hasIdi: boolean
   monthlyPremium: number
   idiBenefit: number
@@ -39,7 +39,7 @@ interface JobBState {
 function getInitialJobs(inputs?: DisabilityInputs): { jobA: JobAState; jobB: JobBState } {
   const salary = inputs?.annualEarnedIncome ?? 100000
   const groupPct = inputs?.ltdCoveragePercent ? Math.round(inputs.ltdCoveragePercent * 100) : 60
-  const groupCap = inputs?.ltdMonthlyCap ?? 0
+  const groupCap = (inputs?.ltdMonthlyCap ?? 0) > 0 ? String(inputs?.ltdMonthlyCap) : ""
   const idiBenefit = inputs?.privateDiBenefitMonthly ?? 0
   const monthlyPremium = inputs?.privateDiMonthlyPremium ?? 0
   return {
@@ -51,6 +51,10 @@ function getInitialJobs(inputs?: DisabilityInputs): { jobA: JobAState; jobB: Job
 function calcGroupLTDAnnual(salary: number, groupPct: number, groupCap: number): number {
   const uncapped = salary * (groupPct / 100)
   return groupCap > 0 ? Math.min(uncapped, groupCap * 12) : uncapped
+}
+
+function parseWholeNumberInput(value: string): number {
+  return Number(value) || 0
 }
 
 function NumberField({
@@ -88,6 +92,35 @@ function NumberField({
         {suffix && (
           <span className="pointer-events-none absolute right-2.5 text-xs text-gray-500">{suffix}</span>
         )}
+      </div>
+    </label>
+  )
+}
+
+function GroupCapField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+}) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-[11px] text-gray-400">{label}</span>
+      <div className="relative flex items-center">
+        <span className="pointer-events-none absolute left-2.5 text-xs text-gray-500">$</span>
+        <input
+          type="text"
+          inputMode="numeric"
+          value={value}
+          onChange={(e) => {
+            const next = e.target.value.replace(/[^\d]/g, "")
+            onChange(next)
+          }}
+          className="h-9 w-full rounded-md border border-gray-700 bg-gray-950 pl-6 pr-2.5 text-sm text-gray-100 outline-none transition focus:border-brand-600"
+        />
       </div>
     </label>
   )
@@ -146,7 +179,7 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
   const [jobB, setJobB] = useState<JobBState>(initial.jobB)
 
   // ── Job A ──────────────────────────────────────────────────────────────────
-  const groupLTD_A = calcGroupLTDAnnual(jobA.salary, jobA.groupPct, jobA.groupCap)
+  const groupLTD_A = calcGroupLTDAnnual(jobA.salary, jobA.groupPct, parseWholeNumberInput(jobA.groupCap))
   const annualIDI_A = jobA.hasIdi ? jobA.idiBenefit * 12 : 0
   const annualPremium_A = jobA.hasIdi ? jobA.monthlyPremium * 12 : 0
   const totalBar_A = Math.max(jobA.salary - annualPremium_A, 0)
@@ -155,7 +188,7 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
   // ── Job B ──────────────────────────────────────────────────────────────────
   const annualPremium = jobB.hasIdi ? jobB.monthlyPremium * 12 : 0
   const annualIDI = jobB.hasIdi ? jobB.idiBenefit * 12 : 0
-  const groupLTD_B = calcGroupLTDAnnual(jobB.salary, jobB.groupPct, jobB.groupCap)
+  const groupLTD_B = calcGroupLTDAnnual(jobB.salary, jobB.groupPct, parseWholeNumberInput(jobB.groupCap))
   const totalBar_B = Math.max(jobB.salary - annualPremium, 0)
   const incomeGap_B = Math.max(totalBar_B - groupLTD_B - annualIDI, 0)
 
@@ -207,7 +240,7 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
               <div className="grid grid-cols-3 gap-3">
                 <NumberField label="Annual income" value={jobA.salary} step={5000} prefix="$" onChange={(salary) => setJobA({ ...jobA, salary })} />
                 <NumberField label="Group LTD (% of income)" value={jobA.groupPct} step={1} suffix="%" onChange={(groupPct) => setJobA({ ...jobA, groupPct })} />
-                <NumberField label="Group LTD cap ($/mo)" value={jobA.groupCap} step={500} prefix="$" onChange={(groupCap) => setJobA({ ...jobA, groupCap })} />
+                <GroupCapField label="Group LTD cap ($/mo)" value={jobA.groupCap} onChange={(groupCap) => setJobA({ ...jobA, groupCap })} />
               </div>
               {jobA.hasIdi && (
                 <div className="mt-3 grid grid-cols-2 gap-3">
@@ -245,7 +278,7 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
               <div className="grid grid-cols-3 gap-3">
                 <NumberField label="Annual income" value={jobB.salary} step={5000} prefix="$" onChange={(salary) => setJobB({ ...jobB, salary })} />
                 <NumberField label="Group LTD (% of income)" value={jobB.groupPct} step={1} suffix="%" onChange={(groupPct) => setJobB({ ...jobB, groupPct })} />
-                <NumberField label="Group LTD cap ($/mo)" value={jobB.groupCap} step={500} prefix="$" onChange={(groupCap) => setJobB({ ...jobB, groupCap })} />
+                <GroupCapField label="Group LTD cap ($/mo)" value={jobB.groupCap} onChange={(groupCap) => setJobB({ ...jobB, groupCap })} />
               </div>
               {jobB.hasIdi && (
                 <div className="mt-3 grid grid-cols-2 gap-3">

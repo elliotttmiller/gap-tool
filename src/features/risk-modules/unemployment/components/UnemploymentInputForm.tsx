@@ -35,13 +35,13 @@ export function UnemploymentInputForm({ inputs, onChange }: UnemploymentInputFor
           </div>
       </CollapsibleInputSection>
 
-      <CollapsibleInputSection title="Transition Offsets" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
+      <CollapsibleInputSection title="Transition Offsets" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="severanceMonths">Expected Severance</Label>
+            <Label htmlFor="severanceMonths" className="whitespace-nowrap">Severance</Label>
             <Input id="severanceMonths" type="number" suffix="mo" value={inputs.severanceMonths || ""} className="w-full" onChange={(e) => handleChange("severanceMonths", e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="unemploymentBenefitMonthly">Expected Unemployment Benefit</Label>
+            <Label htmlFor="unemploymentBenefitMonthly" className="whitespace-nowrap">Expected Unemployment Benefit</Label>
             <Input id="unemploymentBenefitMonthly" type="number" prefix="$" suffix="/mo" value={inputs.unemploymentBenefitMonthly || ""} className="w-full" onChange={(e) => handleChange("unemploymentBenefitMonthly", e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
