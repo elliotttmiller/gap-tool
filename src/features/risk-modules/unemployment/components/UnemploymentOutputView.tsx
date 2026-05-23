@@ -1,22 +1,28 @@
 import { UnemploymentOutputs } from "../types"
 import { ModuleMetricCard, MetricGroup, MetricGroupDivider } from "@/features/risk-modules/core/ModuleMetricCard"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Bar, BarChart, CartesianGrid, LabelList, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, LabelList, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
 interface UnemploymentOutputViewProps {
   outputs: UnemploymentOutputs
 }
 
-function formatAdvisorCurrency(value: number): string {
-  return `$${Math.round(value / 1000)}K`
+function formatAdvisorCurrency(value: number, decimalsInThousands = 0): string {
+  const abs = Math.abs(value)
+  if (abs >= 1_000_000) {
+    return `$${(value / 1_000_000).toFixed(2).replace(/\.00$/, "")}M`
+  }
+  const inThousands = value / 1000
+  const rendered = inThousands.toFixed(decimalsInThousands).replace(/\.0$/, "")
+  return `$${rendered}K`
 }
 
-function formatMonths(value: number, monthlyIncome: number): string {
-  if (monthlyIncome <= 0) return "0mo"
-  return `${Math.round(value / monthlyIncome)}mo`
+function formatMonths(value: number, monthlyBurnRate: number): string {
+  if (monthlyBurnRate <= 0) return "0mo"
+  return `${Math.round(value / monthlyBurnRate)}mo`
 }
 
-const ReserveTooltip = ({ active, payload, label, monthlyIncome }: any) => {
+const ReserveTooltip = ({ active, payload, label, monthlyBurnRate }: any) => {
   if (!active || !payload?.length) return null
   return (
     <div className="rounded-xl border border-slate-700/60 bg-slate-900/95 px-4 py-3 text-sm shadow-xl backdrop-blur-sm">
@@ -27,7 +33,7 @@ const ReserveTooltip = ({ active, payload, label, monthlyIncome }: any) => {
             <span className="inline-block h-2 w-2 rounded-full" style={{ background: entry.fill }} />
             {entry.name}
           </span>
-          <span className="font-bold text-slate-100">{formatAdvisorCurrency(entry.value)} ({formatMonths(entry.value, monthlyIncome)})</span>
+          <span className="font-bold text-slate-100">{formatAdvisorCurrency(entry.value)} ({formatMonths(entry.value, monthlyBurnRate)})</span>
         </div>
       ))}
     </div>
@@ -44,7 +50,10 @@ function AdvisorReserveVisualization({ outputs }: { outputs: UnemploymentOutputs
       EffectiveReserve: Math.min(effectiveReserveAtOnset, outputs.optimalReserveTarget),
     },
   ]
-  const ticks = [0, 1, 2, 3, 4, 5, 6].map((month) => month * outputs.monthlyIncome)
+  const dynamicTop = Math.max(outputs.optimalReserveTarget, effectiveReserveAtOnset)
+  const topMonths = outputs.monthlyBurnRate > 0 ? Math.max(6, Math.ceil(dynamicTop / outputs.monthlyBurnRate)) : 6
+  const tickMonths = Array.from({ length: topMonths + 1 }, (_, i) => i)
+  const ticks = tickMonths.map((month) => month * outputs.monthlyBurnRate)
 
   return (
     <Card className="module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
@@ -53,7 +62,7 @@ function AdvisorReserveVisualization({ outputs }: { outputs: UnemploymentOutputs
           Emergency Reserve Dashboard
         </CardTitle>
         <p className="mt-1 text-sm leading-snug text-slate-400">
-          Optimal savings runway target based on monthly income
+          Reserve runway target based on monthly burn rate
         </p>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col min-h-0 px-6 pb-6 pt-4">
@@ -94,17 +103,36 @@ function AdvisorReserveVisualization({ outputs }: { outputs: UnemploymentOutputs
                     dy={6}
                   />
                   <YAxis
-                    tickFormatter={(val) => formatMonths(Number(val), outputs.monthlyIncome)}
+                    tickFormatter={(val) => formatMonths(Number(val), outputs.monthlyBurnRate)}
                     tick={{ fill: "#64748b", fontSize: 11 }}
                     axisLine={false}
                     tickLine={false}
                     ticks={ticks}
-                    domain={[0, outputs.optimalReserveTarget]}
+                    domain={[0, (dataMax: number) => Math.max(dataMax, dynamicTop)]}
                     width={54}
                   />
-                  <Tooltip content={<ReserveTooltip monthlyIncome={outputs.monthlyIncome} />} cursor={{ fill: "rgba(255,255,255,0.025)" }} />
+                  <Tooltip content={<ReserveTooltip monthlyBurnRate={outputs.monthlyBurnRate} />} cursor={{ fill: "rgba(255,255,255,0.025)" }} />
                   <ReferenceLine y={outputs.minimumReserveTarget} stroke="#e2e8f0" strokeDasharray="7 5" strokeOpacity={0.75} />
+                  <ReferenceLine y={outputs.currentReserveLevel} stroke="#fb7185" strokeDasharray="3 3" strokeWidth={1.5} strokeOpacity={0.9} />
                   <ReferenceLine y={effectiveReserveAtOnset} stroke="#f43f5e" strokeWidth={2} strokeOpacity={0.9} />
+                  <ReferenceDot
+                    x="Savings Bucket"
+                    y={outputs.currentReserveLevel}
+                    r={5}
+                    fill="#fb7185"
+                    stroke="#ffffff"
+                    strokeWidth={1.5}
+                    ifOverflow="extendDomain"
+                  />
+                  <ReferenceDot
+                    x="Savings Bucket"
+                    y={effectiveReserveAtOnset}
+                    r={5}
+                    fill="#f43f5e"
+                    stroke="#ffffff"
+                    strokeWidth={1.5}
+                    ifOverflow="extendDomain"
+                  />
 
                   <Bar
                     dataKey="MinimumReserve"
@@ -165,6 +193,10 @@ function AdvisorReserveVisualization({ outputs }: { outputs: UnemploymentOutputs
                 <span className="h-2 w-4 rounded-sm border border-slate-200/60 bg-slate-50/10" />
                 Available at Onset
               </span>
+              <span className="inline-flex items-center gap-2 text-xs font-medium text-slate-400">
+                <span className="h-2 w-4 rounded-sm bg-rose-400/80" />
+                Current Position
+              </span>
             </div>
             <div className="mt-1 text-center">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600">
@@ -175,15 +207,15 @@ function AdvisorReserveVisualization({ outputs }: { outputs: UnemploymentOutputs
           <div className="hidden w-40 shrink-0 pt-4 lg:block">
             <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-emerald-400">Optimal Target</p>
             <p className="mt-0.5 text-2xl font-bold text-slate-50">{formatAdvisorCurrency(outputs.optimalReserveTarget)}</p>
-            <p className="text-xs text-slate-400">6 months of income</p>
+            <p className="text-xs text-slate-400">6 months of burn rate</p>
             <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.15em] text-cyan-400">Minimum Reserve</p>
             <p className="mt-0.5 text-2xl font-bold text-slate-50">{formatAdvisorCurrency(outputs.minimumReserveTarget)}</p>
-            <p className="text-xs text-slate-400">3 months of income</p>
+            <p className="text-xs text-slate-400">3 months of burn rate</p>
             <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.15em] text-rose-400">Current Reserve</p>
-            <p className="mt-0.5 text-2xl font-bold text-slate-50">{formatAdvisorCurrency(outputs.currentReserveLevel)}</p>
-            <p className="text-xs text-slate-400">{formatMonths(outputs.currentReserveLevel, outputs.monthlyIncome)} held today</p>
+            <p className="mt-0.5 text-2xl font-bold text-slate-50">{formatAdvisorCurrency(outputs.currentReserveLevel, 1)}</p>
+            <p className="text-xs text-slate-400">{formatMonths(outputs.currentReserveLevel, outputs.monthlyBurnRate)} held today</p>
             <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.15em] text-slate-200">Available at Onset</p>
-            <p className="mt-0.5 text-2xl font-bold text-slate-50">{formatAdvisorCurrency(effectiveReserveAtOnset)}</p>
+            <p className="mt-0.5 text-2xl font-bold text-slate-50">{formatAdvisorCurrency(effectiveReserveAtOnset, 1)}</p>
             <p className="text-xs text-slate-400">Current reserve + severance</p>
           </div>
         </div>
@@ -193,18 +225,64 @@ function AdvisorReserveVisualization({ outputs }: { outputs: UnemploymentOutputs
 }
 
 function AdvisorReserveDashboard({ outputs }: { outputs: UnemploymentOutputs }) {
+  const monthlyCashFlow = outputs.monthlyIncome - outputs.monthlyBurnRate
+  const isCashFlowNegative = monthlyCashFlow < 0
+  const currentRunwayMonths = outputs.monthlyBurnRate > 0 ? outputs.currentReserveLevel / outputs.monthlyBurnRate : 0
+  const projectedRunwayMonths = outputs.monthlyBurnRate > 0 ? (outputs.currentReserveLevel + outputs.severanceTotal) / outputs.monthlyBurnRate : 0
+  const depletionText = outputs.reserveDepletionMonth > 0 ? `Month ${outputs.reserveDepletionMonth}` : "No depletion modeled"
+
   return (
     <div className="module-visual-dashboard">
       <AdvisorReserveVisualization outputs={outputs} />
 
       <div className="module-metric-rail">
         <MetricGroup title="Income">
-          <ModuleMetricCard label="Monthly Income" value={formatAdvisorCurrency(outputs.monthlyIncome)} description="Current monthly earnings" accent="slate" />
+          <ModuleMetricCard label="Monthly Income" value={formatAdvisorCurrency(outputs.monthlyIncome, 1)} description="Current monthly earnings" accent="slate" />
+          <ModuleMetricCard label="Spouse Income" value={formatAdvisorCurrency(outputs.monthlyAvailableIncomeBase, 1)} description="Base monthly household offset" accent="cyan" />
+          <ModuleMetricCard
+            label="Monthly Cash Flow"
+            value={`${monthlyCashFlow < 0 ? "-" : "+"}${formatAdvisorCurrency(Math.abs(monthlyCashFlow), 1)}`}
+            description={isCashFlowNegative ? "Burn rate exceeds income" : "Income covers burn rate"}
+            accent={isCashFlowNegative ? "red" : "green"}
+          />
         </MetricGroup>
         <MetricGroupDivider />
         <MetricGroup title="Reserve Targets">
-          <ModuleMetricCard label="Minimum Reserve" value={formatAdvisorCurrency(outputs.minimumReserveTarget)} description="3 months — floor of the goal range" accent="cyan" />
-          <ModuleMetricCard label="Optimal Reserve" value={formatAdvisorCurrency(outputs.optimalReserveTarget)} description="6 months — top of the goal range" accent="green" />
+          <ModuleMetricCard label="Minimum Reserve" value={formatAdvisorCurrency(outputs.minimumReserveTarget)} description="3 months of burn rate — floor of the goal range" accent="cyan" />
+          <ModuleMetricCard label="Optimal Reserve" value={formatAdvisorCurrency(outputs.optimalReserveTarget)} description="6 months of burn rate — top of the goal range" accent="green" />
+          <ModuleMetricCard
+            label="Current Runway"
+            value={`${currentRunwayMonths.toFixed(1)} mo`}
+            description="Liquid savings ÷ monthly burn rate"
+            accent={currentRunwayMonths < 3 ? "red" : currentRunwayMonths < 6 ? "cyan" : "green"}
+          />
+          <ModuleMetricCard
+            label="Runway at Onset"
+            value={`${projectedRunwayMonths.toFixed(1)} mo`}
+            description="(Savings + severance) ÷ burn rate"
+            accent={projectedRunwayMonths < 3 ? "red" : projectedRunwayMonths < 6 ? "cyan" : "green"}
+          />
+        </MetricGroup>
+        <MetricGroupDivider />
+        <MetricGroup title="Transition Impact">
+          <ModuleMetricCard
+            label="Severance Buffer"
+            value={formatAdvisorCurrency(outputs.severanceTotal, 1)}
+            description="Salary-based offset added at job loss"
+            accent="slate"
+          />
+          <ModuleMetricCard
+            label="Reserve Depletion"
+            value={depletionText}
+            description="Month reserves are expected to run out"
+            accent={outputs.reserveDepletionMonth > 0 ? "red" : "green"}
+          />
+          <ModuleMetricCard
+            label="Uncovered Shortfall"
+            value={formatAdvisorCurrency(outputs.totalUncoveredShortfall, 1)}
+            description="Cumulative uncovered gap in the modeled search period"
+            accent={outputs.totalUncoveredShortfall > 0 ? "red" : "green"}
+          />
         </MetricGroup>
         <MetricGroupDivider />
         <MetricGroup title="Exposure">

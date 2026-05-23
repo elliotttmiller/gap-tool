@@ -88,10 +88,10 @@ export function calculateUnemploymentGap(inputs: UnemploymentInputs): Unemployme
     reserveDepletionMonth: depletionMonth,
     totalUncoveredShortfall: totalShortfall,
     currentReserveLevel: emergencySavings,
-    optimalReserveTarget: monthlySalary * 6,
-    minimumReserveTarget: monthlySalary * 3,
+    optimalReserveTarget: expenses * 6,
+    minimumReserveTarget: expenses * 3,
     annualIncomeAtRisk: annualIncome,
-    reserveMonthsCurrent: monthlySalary > 0 ? emergencySavings / monthlySalary : 0,
+    reserveMonthsCurrent: expenses > 0 ? emergencySavings / expenses : 0,
     timeline,
   };
 }
