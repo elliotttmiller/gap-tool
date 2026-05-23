@@ -4,6 +4,7 @@ import type { LifeInputs, LifeAssumptions, LifeOutputs } from "@/features/risk-m
 import type { DisabilityInputs, DisabilityAssumptions, DisabilityOutputs } from "@/features/risk-modules/disability/types"
 import type { UnemploymentInputs, UnemploymentOutputs } from "@/features/risk-modules/unemployment/types"
 import type { LiabilityInputs, LiabilityOutputs } from "@/features/risk-modules/liability/types"
+import { getTotalDeathBenefit } from "@/features/risk-modules/life/utils/getTotalDeathBenefit"
 import type {
   ClientFinancialProfile,
   ClientRecord,
@@ -151,8 +152,9 @@ function prefillLifeInputs(profile: ClientFinancialProfile, clientId: string, sc
     educationGoal: profile.educationFundingGoal ?? 0,
     finalExpenses: profile.finalExpenses ?? 25000,
     liquidAssetsAllocated: profile.savingsAssets ?? 0,
-    // Income Gap Analysis defaults — use total death benefit as the investment base
-    assetBase: (profile.groupLifeCoverage ?? 0) + (profile.privateLifeCoverage ?? 0),
+    // Income Gap Analysis defaults — prefill `assetBase` with existing death-benefit
+    // proceeds (group + private), not with investable financial assets.
+    assetBase: getTotalDeathBenefit(profile.groupLifeCoverage, profile.privateLifeCoverage),
     safeWithdrawalRate: 0.04,
     maxWithdrawalRate: 0.06,
     incomeGapRoi: 0.05,

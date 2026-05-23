@@ -76,6 +76,16 @@ function assertDeepClose(actual: unknown, expected: unknown, path = "value") {
   throw new Error(`${path}: unsupported expected value ${String(expected)}`);
 }
 
+function expectThrows(fn: () => unknown, message: string) {
+  let threw = false;
+  try {
+    fn();
+  } catch {
+    threw = true;
+  }
+  assert(threw, message);
+}
+
 function calculateDisabilityDisplay(outputs: ReturnType<typeof calculateDisabilityGap>) {
   const totalProjectedIncomeGross = outputs.incomeProjection.reduce((sum, point) => sum + point.annualIncome, 0);
   const totalGroupLTDCoverageGross = outputs.incomeProjection.reduce((sum, point) => sum + point.ltdAnnualBenefitGross, 0);
@@ -256,6 +266,47 @@ function runGoldenCheck() {
   assertDeepClose(lifeCoreForKey, northstarGoldenAnswerKey.lifeCore, "lifeCore");
 
   const incomeGap = calculateIncomeGapScenarios(northstarGoldenLifeInputs, northstarGoldenLifeAssumptions);
+  // Invariants: Box arithmetic and spec policy alignment for life income-gap modules.
+  assertNumberClose(
+    incomeGap.module1.survivorGap,
+    incomeGap.module1.projectedNetIncomeTotal - incomeGap.module1.totalIncomeReplaced,
+    "lifeIncomeGap.module1.survivorGapIdentity",
+    1
+  );
+  assertNumberClose(
+    incomeGap.module2.survivorGap,
+    incomeGap.module2.projectedNetIncomeTotal - incomeGap.module2.totalIncomeReplaced,
+    "lifeIncomeGap.module2.survivorGapIdentity",
+    1
+  );
+  const m2GreenBarsSum = incomeGap.module2.yearlyData
+    .filter((p) => p.isCoveredMax)
+    .reduce((sum, p) => sum + p.projectedIncome, 0);
+  assertNumberClose(
+    incomeGap.module2.totalIncomeReplaced,
+    m2GreenBarsSum,
+    "lifeIncomeGap.module2.greenBarsOnlyTotalIncomeReplaced",
+    1
+  );
+
+  // Strict-required contract: missing required inputs should throw instead of defaulting.
+  expectThrows(
+    () =>
+      calculateIncomeGapScenarios(
+        { ...northstarGoldenLifeInputs, safeWithdrawalRate: undefined },
+        northstarGoldenLifeAssumptions
+      ),
+    "lifeIncomeGap.strictRequired.safeWithdrawalRate should throw when missing"
+  );
+  expectThrows(
+    () =>
+      calculateIncomeGapScenarios(
+        { ...northstarGoldenLifeInputs, incomeGapRoi: undefined },
+        northstarGoldenLifeAssumptions
+      ),
+    "lifeIncomeGap.strictRequired.incomeGapRoi should throw when missing"
+  );
+
   const incomeGapForKey = {
     yearsToRetirement: incomeGap.yearsToRetirement,
     module1: {

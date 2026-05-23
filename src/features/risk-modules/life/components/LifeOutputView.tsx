@@ -123,7 +123,7 @@ function Module1Boxes({ m1 }: { m1: IncomeGapModule1 }) {
         <ModuleMetricCard
           label="Safe Withdrawal Rate to Age 65"
           value={<>{formatCurrency(m1.annualSafeWD)}<span className="text-sm font-normal text-gray-400"> / yr</span></>}
-          description={`${Math.round(m1.safeWithdrawalRate * 100)}% of asset base — consistent, sustainable annual income`}
+          description={`${Math.round(m1.safeWithdrawalRate * 100)}% annual return assumption with level payout to retirement`}
           accent="blue"
         />
         <ModuleMetricCard
@@ -245,7 +245,7 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
                     Safe Withdrawal Rate — Annual Income to Age {retirementAge}
                   </CardTitle>
                   <p className="mt-1 text-sm leading-snug text-slate-400">
-                    Flat, sustainable annual safe withdrawal from asset base
+                    Level annual withdrawal modeled to last through retirement age
                   </p>
                 </div>
               </CardHeader>
@@ -301,7 +301,7 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
                     <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
                       <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400">
                         <span className="inline-block h-2.5 w-4 rounded-sm bg-[#3b82f6]" />
-                        Safe Withdrawal ({Math.round(module1.safeWithdrawalRate * 100)}% / yr)
+                        Safe Withdrawal (Modeled at {Math.round(module1.safeWithdrawalRate * 100)}% / yr)
                       </span>
                       <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400">
                         <span className="inline-block h-2.5 w-4 rounded-sm bg-[#ef4444]" />

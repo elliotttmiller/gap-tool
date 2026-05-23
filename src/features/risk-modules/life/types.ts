@@ -32,7 +32,8 @@ export interface LifeInputs {
   /** Total assets available for income replacement (death benefit + investments).
    *  Pre-fills from nonQualifiedAssets. Used as the asset base for both withdrawal modules. */
   assetBase?: number;
-  /** Safe withdrawal rate for Module 1 (4% rule). e.g. 0.04 = 4%. Default: 0.04 */
+  /** Annual return assumption used to compute a level payout-annuity withdrawal
+   *  that depletes `assetBase` by retirement in Module 1. e.g. 0.04 = 4%. */
   safeWithdrawalRate?: number;
   /** Aggressive asset return / max withdrawal rate for Module 2.
    *  Represents the annual investment return on the asset base while drawing full income. Default: 0.06 */
@@ -95,7 +96,7 @@ export interface IncomeGapYearlyPoint {
   age: number;
   /** Projected annual income need for this year (grows at incomeGrowthRate). */
   projectedIncome: number;
-  /** Module 1: flat safe withdrawal amount (same every year = assetBase × safeWithdrawalRate). */
+  /** Module 1: flat annual payout-annuity withdrawal (same every year). */
   safeWD: number;
   /** Module 1: survivor income gap for this year = max(0, projectedIncome − safeWD). */
   incomeGap: number;
@@ -110,7 +111,7 @@ export interface IncomeGapModule1 {
   yearlyData: IncomeGapYearlyPoint[];
   /** Box 1 — Sum of all projected annual net income from current age to retirement age. */
   projectedNetIncomeTotal: number;
-  /** Box 2 — Annual safe withdrawal dollar amount (flat, same every year = assetBase × safeWithdrawalRate). */
+  /** Box 2 — Level annual withdrawal from a payout-annuity model over yearsToRetirement. */
   annualSafeWD: number;
   /** Box 3 — Total income replaced = annualSafeWD × yearsToRetirement. */
   totalIncomeReplaced: number;
@@ -133,7 +134,7 @@ export interface IncomeGapModule2 {
   startCoverageAge: number;
   /** Last age with full coverage (used for sub-label). */
   endCoverageAge: number;
-  /** Box 3 — Sum of income during covered (green) years only. */
+  /** Box 3 — Sum of income during fully covered (green) years only. */
   totalIncomeReplaced: number;
   /** Box 4 — Survivor gap = Box 1 − Box 3. */
   survivorGap: number;
