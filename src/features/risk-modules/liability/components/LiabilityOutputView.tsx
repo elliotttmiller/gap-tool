@@ -40,12 +40,12 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
   const coveragePct = totalRisk > 0 ? Math.min(100, (outputs.householdTotalCoverage / totalRisk) * 100) : 0
 
   return (
-    <div className="module-output-container">
+    <div className="module-output-container liability-output-container">
       <div className="module-visual-dashboard">
 
         {/* ── Chart panel ─────────────────────────────────────────────── */}
         <Card className="module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
-          <CardHeader className="shrink-0 px-6 pb-0 pt-5">
+          <CardHeader className="shrink-0 px-5 pb-0 pt-4">
             <div className="relative flex items-start justify-center">
               <div className="text-center">
                 <CardTitle className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">
@@ -65,7 +65,7 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
             </div>
           </CardHeader>
 
-          <CardContent className="flex flex-1 flex-col min-h-0 px-6 pb-6 pt-4">
+          <CardContent className="flex flex-1 flex-col min-h-0 px-5 pb-4 pt-3">
             <div className="flex flex-1 min-h-0 items-stretch gap-2">
               <div className="flex w-4 shrink-0 items-center justify-center">
                 <span
@@ -76,7 +76,7 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
                 </span>
               </div>
               <div className="flex min-w-0 flex-1 flex-col">
-                <div className="flex-1 min-h-64 w-full">
+                <div className="h-[clamp(20rem,43vh,27.5rem)] w-full">
                   <ResponsiveContainer width="100%" height="100%" debounce={100}>
                     <BarChart
                       data={chartData.protectionStackData}
@@ -145,7 +145,7 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
             </div>
 
             {/* Legend */}
-            <div className="mt-4 shrink-0 flex items-center justify-center gap-6 border-t border-slate-800/50 pt-4">
+            <div className="mt-3 shrink-0 flex items-center justify-center gap-4 border-t border-slate-800/50 pt-3">
               <span className="inline-flex items-center gap-2 text-xs font-medium text-slate-400">
                 <span className="h-2 w-4 rounded-sm bg-emerald-500" />
                 Auto Liability Coverage
@@ -189,18 +189,6 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
 
           <MetricGroup title="Coverage &amp; Gap">
             <ModuleMetricCard
-              label="Auto Liability Coverage"
-              value={formatLiabilityMetric(outputs.householdAutoLiabilityCoverage)}
-              description="Underlying auto policy limit"
-              accent="green"
-            />
-            <ModuleMetricCard
-              label="Umbrella Coverage"
-              value={formatLiabilityMetric(outputs.householdUmbrellaCoverage)}
-              description="Existing umbrella policy limit"
-              accent="cyan"
-            />
-            <ModuleMetricCard
               label="Unprotected Liability Gap"
               value={formatLiabilityMetric(outputs.householdLiabilityGap)}
               description="Total exposure minus auto + umbrella"
@@ -217,23 +205,6 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
               value={formatLiabilityMetric(outputs.umbrellaCoverageShortfall)}
               description="Recommended umbrella minus existing umbrella"
               accent={outputs.umbrellaCoverageShortfall > 0 ? "red" : "green"}
-            />
-          </MetricGroup>
-
-          <MetricGroupDivider />
-
-          <MetricGroup title="Assumptions">
-            <ModuleMetricCard
-              label="Garnishment Rate"
-              value={`${Math.round(outputs.assumptionGarnishmentRate * 100)}%`}
-              description="Applied to projected earned income"
-              accent="slate"
-            />
-            <ModuleMetricCard
-              label="Income Growth Rate"
-              value={`${Math.round(outputs.assumptionIncomeGrowthRate * 100)}%/yr`}
-              description="Used in wage-risk projection to age 65"
-              accent="slate"
             />
           </MetricGroup>
         </div>
