@@ -151,8 +151,8 @@ function prefillLifeInputs(profile: ClientFinancialProfile, clientId: string, sc
     educationGoal: profile.educationFundingGoal ?? 0,
     finalExpenses: profile.finalExpenses ?? 25000,
     liquidAssetsAllocated: profile.savingsAssets ?? 0,
-    // Income Gap Analysis defaults
-    assetBase: profile.nonQualifiedAssets ?? 0,
+    // Income Gap Analysis defaults — use total death benefit as the investment base
+    assetBase: (profile.groupLifeCoverage ?? 0) + (profile.privateLifeCoverage ?? 0),
     safeWithdrawalRate: 0.04,
     maxWithdrawalRate: 0.06,
     incomeGapRoi: 0.05,
