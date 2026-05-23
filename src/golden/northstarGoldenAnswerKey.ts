@@ -75,7 +75,7 @@ export const northstarGoldenAnswerKey = {
       annualSafeWD: 51210,
       totalIncomeReplaced: 1280239,
       survivorGap: 2365687,
-      deathBenefitNeeded: 1186763,
+      deathBenefitNeeded: 1333675,
       safeWithdrawalRate: 0.04,
       roi: 0.05,
       yearlyDataCheckpoints: {
@@ -93,7 +93,7 @@ export const northstarGoldenAnswerKey = {
       endCoverageAge: 48,
       totalIncomeReplaced: 1015911,
       survivorGap: 2630016,
-      deathBenefitNeeded: 1113850,
+      deathBenefitNeeded: 1482692,
       maxWithdrawalRate: 0.06,
       roi: 0.05,
     },

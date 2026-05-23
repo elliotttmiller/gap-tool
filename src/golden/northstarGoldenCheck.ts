@@ -86,6 +86,96 @@ function expectThrows(fn: () => unknown, message: string) {
   assert(threw, message);
 }
 
+function oracleRoundCurrency(value: number): number {
+  return Number.isFinite(value) ? Math.round(value) : 0;
+}
+
+function oraclePayoutAnnuityWithdrawal(principal: number, rate: number, years: number): number {
+  const pv = Math.max(0, principal);
+  const n = Math.max(0, Math.floor(years));
+  if (!pv || !n) return 0;
+  if (rate === 0) return pv / n;
+  return (pv * rate) / (1 - Math.pow(1 + rate, -n));
+}
+
+function oraclePresentValueLevelGap(totalGap: number, rate: number, years: number): number {
+  const gap = Math.max(0, totalGap);
+  const n = Math.max(0, Math.floor(years));
+  if (!gap || !n) return 0;
+  const annualGap = gap / n;
+  if (rate === 0) return annualGap * n;
+  return (annualGap * (1 - Math.pow(1 + rate, -n))) / rate;
+}
+
+function assertLifeIncomeGapOracle(
+  actual: ReturnType<typeof calculateIncomeGapScenarios>,
+  inputs: typeof northstarGoldenLifeInputs,
+  assumptions: typeof northstarGoldenLifeAssumptions
+) {
+  const currentAge = Math.max(0, inputs.currentAge);
+  const retirementAge = Math.max(0, inputs.retirementAge);
+  const yearsToRetirement = Math.max(0, retirementAge - currentAge);
+  const incomeGrowthRate = Math.max(0, assumptions.incomeGrowthRateAnnual);
+  const roi = Math.max(0, inputs.incomeGapRoi);
+  const assetBase = Math.max(0, inputs.assetBase);
+  const safeWithdrawalRate = Math.max(0, inputs.safeWithdrawalRate);
+  const maxWithdrawalRate = Math.max(0, inputs.maxWithdrawalRate);
+  const annualBaseNeed = Math.max(
+    0,
+    Math.max(0, inputs.annualIncome) * Math.max(0, inputs.incomeReplacementRatio) -
+      Math.max(0, inputs.spouseAnnualIncome)
+  );
+
+  const annualSafeWD = oraclePayoutAnnuityWithdrawal(assetBase, safeWithdrawalRate, yearsToRetirement);
+  let projectedNetIncomeTotal = 0;
+  let module2Balance = assetBase;
+  let m2TotalReplacedGreenOnly = 0;
+
+  for (let i = 0; i < yearsToRetirement; i++) {
+    const projectedIncome = annualBaseNeed * Math.pow(1 + incomeGrowthRate, i);
+    module2Balance *= 1 + maxWithdrawalRate;
+    const maxCovered = Math.min(module2Balance, projectedIncome);
+    const isCoveredMax = maxCovered >= projectedIncome && projectedIncome > 0;
+    module2Balance = Math.max(0, module2Balance - maxCovered);
+    if (isCoveredMax) m2TotalReplacedGreenOnly += projectedIncome;
+
+    projectedNetIncomeTotal += projectedIncome;
+    const actualPoint = actual.module1.yearlyData[i];
+    assert(actualPoint !== undefined, `lifeIncomeGap.oracle.yearlyData missing point at index ${i}`);
+    assertNumberClose(actualPoint.projectedIncome, oracleRoundCurrency(projectedIncome), `lifeIncomeGap.oracle.yearlyData[${i}].projectedIncome`, 1);
+    assertNumberClose(actualPoint.safeWD, oracleRoundCurrency(annualSafeWD), `lifeIncomeGap.oracle.yearlyData[${i}].safeWD`, 1);
+    assertNumberClose(actualPoint.maxCovered, oracleRoundCurrency(maxCovered), `lifeIncomeGap.oracle.yearlyData[${i}].maxCovered`, 1);
+    assert(Object.is(actualPoint.isCoveredMax, isCoveredMax), `lifeIncomeGap.oracle.yearlyData[${i}].isCoveredMax mismatch`);
+  }
+
+  const expectedM1TotalReplaced = annualSafeWD * yearsToRetirement;
+  const expectedM1SurvivorGap = Math.max(0, projectedNetIncomeTotal - expectedM1TotalReplaced);
+  const expectedM1DeathBenefitNeeded = oraclePresentValueLevelGap(
+    expectedM1SurvivorGap,
+    roi,
+    yearsToRetirement
+  );
+
+  const expectedM2SurvivorGap = Math.max(0, projectedNetIncomeTotal - m2TotalReplacedGreenOnly);
+  const expectedM2DeathBenefitNeeded = oraclePresentValueLevelGap(
+    expectedM2SurvivorGap,
+    roi,
+    yearsToRetirement
+  );
+
+  assertNumberClose(actual.yearsToRetirement, yearsToRetirement, "lifeIncomeGap.oracle.yearsToRetirement");
+  assertNumberClose(actual.module1.projectedNetIncomeTotal, oracleRoundCurrency(projectedNetIncomeTotal), "lifeIncomeGap.oracle.module1.projectedNetIncomeTotal", 1);
+  assertNumberClose(actual.module1.annualSafeWD, oracleRoundCurrency(annualSafeWD), "lifeIncomeGap.oracle.module1.annualSafeWD", 1);
+  assertNumberClose(actual.module1.totalIncomeReplaced, oracleRoundCurrency(expectedM1TotalReplaced), "lifeIncomeGap.oracle.module1.totalIncomeReplaced", 1);
+  assertNumberClose(actual.module1.survivorGap, oracleRoundCurrency(expectedM1SurvivorGap), "lifeIncomeGap.oracle.module1.survivorGap", 1);
+  assertNumberClose(actual.module1.deathBenefitNeeded, oracleRoundCurrency(expectedM1DeathBenefitNeeded), "lifeIncomeGap.oracle.module1.deathBenefitNeeded", 1);
+
+  assertNumberClose(actual.module2.projectedNetIncomeTotal, oracleRoundCurrency(projectedNetIncomeTotal), "lifeIncomeGap.oracle.module2.projectedNetIncomeTotal", 1);
+  assertNumberClose(actual.module2.totalIncomeReplaced, oracleRoundCurrency(m2TotalReplacedGreenOnly), "lifeIncomeGap.oracle.module2.totalIncomeReplaced", 1);
+  assertNumberClose(actual.module2.survivorGap, oracleRoundCurrency(expectedM2SurvivorGap), "lifeIncomeGap.oracle.module2.survivorGap", 1);
+  assertNumberClose(actual.module2.deathBenefitNeeded, oracleRoundCurrency(expectedM2DeathBenefitNeeded), "lifeIncomeGap.oracle.module2.deathBenefitNeeded", 1);
+}
+
 function calculateDisabilityDisplay(outputs: ReturnType<typeof calculateDisabilityGap>) {
   const totalProjectedIncomeGross = outputs.incomeProjection.reduce((sum, point) => sum + point.annualIncome, 0);
   const totalGroupLTDCoverageGross = outputs.incomeProjection.reduce((sum, point) => sum + point.ltdAnnualBenefitGross, 0);
@@ -266,6 +356,7 @@ function runGoldenCheck() {
   assertDeepClose(lifeCoreForKey, northstarGoldenAnswerKey.lifeCore, "lifeCore");
 
   const incomeGap = calculateIncomeGapScenarios(northstarGoldenLifeInputs, northstarGoldenLifeAssumptions);
+  assertLifeIncomeGapOracle(incomeGap, northstarGoldenLifeInputs, northstarGoldenLifeAssumptions);
   // Invariants: Box arithmetic and spec policy alignment for life income-gap modules.
   assertNumberClose(
     incomeGap.module1.survivorGap,
@@ -305,6 +396,22 @@ function runGoldenCheck() {
         northstarGoldenLifeAssumptions
       ),
     "lifeIncomeGap.strictRequired.incomeGapRoi should throw when missing"
+  );
+  expectThrows(
+    () =>
+      calculateIncomeGapScenarios(
+        { ...northstarGoldenLifeInputs, assetBase: -1 },
+        northstarGoldenLifeAssumptions
+      ),
+    "lifeIncomeGap.strictRequired.assetBase should throw when negative"
+  );
+  expectThrows(
+    () =>
+      calculateIncomeGapScenarios(
+        northstarGoldenLifeInputs,
+        { ...northstarGoldenLifeAssumptions, incomeGrowthRateAnnual: undefined }
+      ),
+    "lifeIncomeGap.strictRequired.incomeGrowthRateAnnual should throw when missing"
   );
 
   const incomeGapForKey = {

@@ -85,8 +85,31 @@ const M2Tooltip = ({ active, payload, label }: any) => {
 
 // ── Tick helper shared by both charts ────────────────────────────────────────
 
-function buildTickAges(data: { age: number }[]): Set<number> {
-  return new Set(data.filter((_, i) => i % 2 === 0).map((p) => p.age))
+function buildAgeTicks(data: { age: number }[], targetTickCount = 8): number[] {
+  if (data.length === 0) return []
+
+  const firstAge = data[0].age
+  const lastAge = data[data.length - 1].age
+  if (firstAge === lastAge) return [firstAge]
+
+  const span = lastAge - firstAge
+  const rawStep = Math.max(1, Math.ceil(span / Math.max(1, targetTickCount - 1)))
+
+  // Snap to readable intervals to avoid cluttered labels.
+  const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)))
+  const normalized = rawStep / magnitude
+  const snappedBase = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10
+  const step = snappedBase * magnitude
+
+  const ticks: number[] = [firstAge]
+  let tickAge = firstAge + step
+  while (tickAge < lastAge) {
+    ticks.push(tickAge)
+    tickAge += step
+  }
+  ticks.push(lastAge)
+
+  return ticks
 }
 
 // ── Death Benefit Needed — prominent card ─────────────────────────────────────
@@ -109,19 +132,19 @@ function DeathBenefitBox({ amount, roi }: { amount: number; roi: number }) {
 
 // ── Module 1 metric boxes ──────────────────────────────────────────────────────
 
-function Module1Boxes({ m1 }: { m1: IncomeGapModule1 }) {
+function Module1Boxes({ m1, projectionEndAge }: { m1: IncomeGapModule1; projectionEndAge: number }) {
   const hasGap = m1.survivorGap > 0
   return (
     <div className="space-y-2">
       <MetricGroup>
         <ModuleMetricCard
-          label="Projected Net Income to Age 65 (Total)"
+          label={`Projected Net Income to Age ${projectionEndAge} (Total)`}
           value={formatCurrency(m1.projectedNetIncomeTotal)}
           description="Total projected net income from current age to retirement"
           accent="slate"
         />
         <ModuleMetricCard
-          label="Safe Withdrawal Rate to Age 65"
+          label={`Safe Withdrawal Rate to Age ${projectionEndAge}`}
           value={<>{formatCurrency(m1.annualSafeWD)}<span className="text-sm font-normal text-gray-400"> / yr</span></>}
           description={`${Math.round(m1.safeWithdrawalRate * 100)}% annual return assumption with level payout to retirement`}
           accent="blue"
@@ -149,14 +172,14 @@ function Module1Boxes({ m1 }: { m1: IncomeGapModule1 }) {
 
 // ── Module 2 metric boxes ──────────────────────────────────────────────────────
 
-function Module2Boxes({ m2 }: { m2: IncomeGapModule2 }) {
+function Module2Boxes({ m2, projectionEndAge }: { m2: IncomeGapModule2; projectionEndAge: number }) {
   const hasGap = m2.survivorGap > 0
   const hasCoverage = m2.yearsOfMaxWD > 0
   return (
     <div className="space-y-2">
       <MetricGroup>
         <ModuleMetricCard
-          label="Projected Net Income to Age 65 (Total)"
+          label={`Projected Net Income to Age ${projectionEndAge} (Total)`}
           value={formatCurrency(m2.projectedNetIncomeTotal)}
           description="Total projected net income from current age to retirement"
           accent="slate"
@@ -203,8 +226,8 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
   }
   const { module1, module2 } = incomeGapOutputs
 
-  const m1TickAges = buildTickAges(module1.yearlyData)
-  const m2TickAges = buildTickAges(module2.yearlyData)
+  const m1TickAges = buildAgeTicks(module1.yearlyData)
+  const m2TickAges = buildAgeTicks(module2.yearlyData)
   const retirementAge = (module1.yearlyData.at(-1)?.age ?? 64) + 1
 
   return (
@@ -269,15 +292,9 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
                         >
                           <XAxis
                             dataKey="age"
-                            tick={({ x, y, payload }) =>
-                              m1TickAges.has(payload.value) ? (
-                                <text x={x} y={y + 12} textAnchor="middle" fill="#64748b" fontSize={11}>
-                                  {payload.value}
-                                </text>
-                              ) : (
-                                <g />
-                              )
-                            }
+                            ticks={m1TickAges}
+                            interval={0}
+                            tick={{ fill: "#64748b", fontSize: 11 }}
                             axisLine={false}
                             tickLine={false}
                           />
@@ -315,7 +332,7 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
 
             {/* Metric rail */}
             <div className="module-metric-rail">
-              <Module1Boxes m1={module1} />
+              <Module1Boxes m1={module1} projectionEndAge={retirementAge} />
             </div>
           </div>
         </AnimatedSection>
@@ -357,15 +374,9 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
                         >
                           <XAxis
                             dataKey="age"
-                            tick={({ x, y, payload }) =>
-                              m2TickAges.has(payload.value) ? (
-                                <text x={x} y={y + 12} textAnchor="middle" fill="#64748b" fontSize={11}>
-                                  {payload.value}
-                                </text>
-                              ) : (
-                                <g />
-                              )
-                            }
+                            ticks={m2TickAges}
+                            interval={0}
+                            tick={{ fill: "#64748b", fontSize: 11 }}
                             axisLine={false}
                             tickLine={false}
                           />
@@ -409,7 +420,7 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
 
             {/* Metric rail */}
             <div className="module-metric-rail">
-              <Module2Boxes m2={module2} />
+              <Module2Boxes m2={module2} projectionEndAge={retirementAge} />
             </div>
           </div>
         </AnimatedSection>

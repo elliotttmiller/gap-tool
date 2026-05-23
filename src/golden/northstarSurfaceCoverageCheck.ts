@@ -80,6 +80,13 @@ function checkOutputTabCoverage() {
   assertContains(lifeOutput, 'setActiveTab("max")', "Life output max tab");
   assertContains(lifeOutput, "Module1Boxes", "Life output module 1 rendering");
   assertContains(lifeOutput, "Module2Boxes", "Life output module 2 rendering");
+  // update-PR.md visualization contract checks
+  assertContains(lifeOutput, 'Bar dataKey="safeWD"', "Life safe chart withdrawal bars");
+  assertContains(lifeOutput, 'Bar dataKey="incomeGap"', "Life safe chart income-gap overlay");
+  assertContains(lifeOutput, 'Bar dataKey="projectedIncome"', "Life max chart projected-income bars");
+  assertContains(lifeOutput, 'fill={entry.isCoveredMax ? "#10b981" : "#ef4444"}', "Life max chart covered/gap color policy");
+  assertContains(lifeOutput, "Safe Withdrawal Rate — Annual Income to Age", "Life safe chart title");
+  assertContains(lifeOutput, "Max Withdrawal Rate — Years of Full Income Coverage", "Life max chart title");
 
   const disabilityOutput = readProjectFile("src/features/risk-modules/disability/components/DisabilityOutputView.tsx");
   assertContains(disabilityOutput, 'value: "incomeGap"', "Disability visualization tab: income gap");

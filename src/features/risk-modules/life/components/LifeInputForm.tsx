@@ -38,13 +38,11 @@ function AffixedInput({
 }
 
 export function LifeInputForm({ inputs, onChange, showMaxWithdrawalRateInput = false }: LifeInputFormProps) {
+  const isMaxModule = showMaxWithdrawalRateInput
+
   const handleNumberChange = (field: keyof LifeInputs, value: string) => {
     const numericValue = value === "" ? 0 : Number(value)
     onChange({ ...inputs, [field]: numericValue })
-  }
-
-  const handleTextChange = (field: keyof LifeInputs, value: string) => {
-    onChange({ ...inputs, [field]: value })
   }
 
   const handlePolicyTypeChange = (value: LifePolicyType) => {
@@ -52,20 +50,14 @@ export function LifeInputForm({ inputs, onChange, showMaxWithdrawalRateInput = f
   }
 
   const policyType = inputs.privateLifePolicyType ?? "term"
+  const coverageDetailsGridCols =
+    policyType === "term"
+      ? "sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.35fr)]"
+      : "sm:grid-cols-2"
 
   return (
     <div className="space-y-4">
       <CollapsibleInputSection title="Income Earner Information" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
-          <div className="flex flex-col gap-2 sm:col-span-2">
-            <Label htmlFor="earnerName">Full Name</Label>
-            <Input
-              id="earnerName"
-              value={inputs.earnerName ?? ""}
-              className="w-full"
-              onChange={(e) => handleTextChange("earnerName", e.target.value)}
-              placeholder="Primary Earner"
-            />
-          </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="currentAge">Current Age</Label>
             <Input id="currentAge" type="number" min={18} max={64} value={inputs.currentAge || ""} className="w-full" onChange={(e) => handleNumberChange("currentAge", e.target.value)} />
@@ -84,36 +76,64 @@ export function LifeInputForm({ inputs, onChange, showMaxWithdrawalRateInput = f
           </div>
       </CollapsibleInputSection>
 
-      <CollapsibleInputSection title="Existing Coverage" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="groupLifeCoverage">Group Life (GLI) Death Benefit</Label>
-            <AffixedInput id="groupLifeCoverage" type="number" prefix="$" value={inputs.groupLifeCoverage || ""} className="w-full" onChange={(e) => handleNumberChange("groupLifeCoverage", e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="privateLifeCoverage">Private Life Insurance Death Benefit</Label>
-            <AffixedInput id="privateLifeCoverage" type="number" prefix="$" value={inputs.privateLifeCoverage || ""} className="w-full" onChange={(e) => handleNumberChange("privateLifeCoverage", e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="privateLifePolicyType">Policy Type</Label>
-            <select
-              id="privateLifePolicyType"
-              value={policyType}
-              onChange={(e) => handlePolicyTypeChange(e.target.value as LifePolicyType)}
-              className={selectClass}
-            >
-              <option value="term">Term</option>
-              <option value="permanent">Permanent</option>
-            </select>
-          </div>
-          {policyType === "term" ? (
+      <CollapsibleInputSection title="Existing Coverage" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="privateLifeTermYears">Term Length</Label>
-              <AffixedInput id="privateLifeTermYears" type="number" suffix="yr" value={inputs.privateLifeTermYears || ""} className="w-full" onChange={(e) => handleNumberChange("privateLifeTermYears", e.target.value)} />
+              <Label htmlFor="groupLifeCoverage" className="whitespace-nowrap">Group Life Death Benefit</Label>
+              <AffixedInput id="groupLifeCoverage" type="number" prefix="$" value={inputs.groupLifeCoverage || ""} className="w-full" onChange={(e) => handleNumberChange("groupLifeCoverage", e.target.value)} />
             </div>
-          ) : null}
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="nonQualifiedAssets">Non-Qualified Assets</Label>
-            <AffixedInput id="nonQualifiedAssets" type="number" prefix="$" value={inputs.nonQualifiedAssets || ""} className="w-full" onChange={(e) => handleNumberChange("nonQualifiedAssets", e.target.value)} />
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="privateLifeCoverage" className="whitespace-nowrap">Private Life Death Benefit</Label>
+              <AffixedInput id="privateLifeCoverage" type="number" prefix="$" value={inputs.privateLifeCoverage || ""} className="w-full" onChange={(e) => handleNumberChange("privateLifeCoverage", e.target.value)} />
+            </div>
+          </div>
+          <div className={`grid grid-cols-1 gap-3 ${coverageDetailsGridCols}`}>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="privateLifePolicyType">Policy Type</Label>
+              <select
+                id="privateLifePolicyType"
+                value={policyType}
+                onChange={(e) => handlePolicyTypeChange(e.target.value as LifePolicyType)}
+                className={selectClass}
+              >
+                <option value="term">Term</option>
+                <option value="permanent">Permanent</option>
+              </select>
+            </div>
+            {policyType === "term" ? (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="privateLifeTermYears">Term Length</Label>
+                <AffixedInput id="privateLifeTermYears" type="number" suffix="yr" value={inputs.privateLifeTermYears || ""} className="w-full" onChange={(e) => handleNumberChange("privateLifeTermYears", e.target.value)} />
+              </div>
+            ) : null}
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="nonQualifiedAssets" className="whitespace-nowrap">Non-Qualified Assets</Label>
+              <AffixedInput id="nonQualifiedAssets" type="number" prefix="$" value={inputs.nonQualifiedAssets || ""} className="w-full" onChange={(e) => handleNumberChange("nonQualifiedAssets", e.target.value)} />
+            </div>
+          </div>
+      </CollapsibleInputSection>
+
+      <CollapsibleInputSection title="Income Gap Analysis" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4">
+          <div className="flex flex-col gap-2 sm:col-span-2">
+            <Label htmlFor="assetBase">Asset Base (Available for Income Replacement)</Label>
+            <AffixedInput id="assetBase" type="number" prefix="$" value={inputs.assetBase ?? ""} className="w-full" onChange={(e) => handleNumberChange("assetBase", e.target.value)} placeholder="Total assets at death (investments, policy value, etc.)" />
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {!isMaxModule ? (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="safeWithdrawalRate">Safe W/D Rate</Label>
+                <AffixedInput id="safeWithdrawalRate" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.safeWithdrawalRate ?? 0.04) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, safeWithdrawalRate: fromPercent(e.target.value) })} placeholder="4" />
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="maxWithdrawalRate">Max W/D Rate</Label>
+                <AffixedInput id="maxWithdrawalRate" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.maxWithdrawalRate ?? 0.06) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, maxWithdrawalRate: fromPercent(e.target.value) })} placeholder="6" />
+              </div>
+            )}
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="incomeGapRoi">ROI</Label>
+              <AffixedInput id="incomeGapRoi" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.incomeGapRoi ?? 0.05) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, incomeGapRoi: fromPercent(e.target.value) })} placeholder="5" />
+            </div>
           </div>
       </CollapsibleInputSection>
 
@@ -133,27 +153,6 @@ export function LifeInputForm({ inputs, onChange, showMaxWithdrawalRateInput = f
           <div className="flex flex-col gap-2">
             <Label htmlFor="spouseAnnualIncome">Spouse / Partner Annual Income</Label>
             <AffixedInput id="spouseAnnualIncome" type="number" prefix="$" value={inputs.spouseAnnualIncome || ""} className="w-full" onChange={(e) => handleNumberChange("spouseAnnualIncome", e.target.value)} />
-          </div>
-      </CollapsibleInputSection>
-
-      <CollapsibleInputSection title="Income Gap Analysis" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
-          <div className="flex flex-col gap-2 sm:col-span-2">
-            <Label htmlFor="assetBase">Asset Base (Available for Income Replacement)</Label>
-            <AffixedInput id="assetBase" type="number" prefix="$" value={inputs.assetBase ?? ""} className="w-full" onChange={(e) => handleNumberChange("assetBase", e.target.value)} placeholder="Total assets at death (investments, policy value, etc.)" />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="safeWithdrawalRate">Safe Withdrawal Rate</Label>
-            <AffixedInput id="safeWithdrawalRate" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.safeWithdrawalRate ?? 0.04) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, safeWithdrawalRate: fromPercent(e.target.value) })} placeholder="4" />
-          </div>
-          {showMaxWithdrawalRateInput ? (
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="maxWithdrawalRate">Max Return / Draw Rate</Label>
-              <AffixedInput id="maxWithdrawalRate" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.maxWithdrawalRate ?? 0.06) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, maxWithdrawalRate: fromPercent(e.target.value) })} placeholder="6" />
-            </div>
-          ) : null}
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="incomeGapRoi">ROI for Death Benefit Calc</Label>
-            <AffixedInput id="incomeGapRoi" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.incomeGapRoi ?? 0.05) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, incomeGapRoi: fromPercent(e.target.value) })} placeholder="5" />
           </div>
       </CollapsibleInputSection>
     </div>

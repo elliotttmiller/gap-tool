@@ -102,21 +102,21 @@ These are still required for a complete end-to-end module workflow and are there
 | Box | Expected |
 |---|---:|
 | Projected Net Income to Age 65 | $3,645,926 |
-| Safe W/D Rate to Age 65 | $20,000 / yr |
-| Total Income Replaced | $500,000 |
-| Survivor Gap | $3,145,926 |
-| Death Benefit Needed | $1,773,541 |
+| Safe W/D Rate to Age 65 | $51,210 / yr |
+| Total Income Replaced | $1,280,239 |
+| Survivor Gap | $2,365,687 |
+| Death Benefit Needed | $1,333,675 |
 
 ## Life Insurance — Income Gap Max W/D Rate
 
 | Box | Expected |
 |---|---:|
 | Projected Net Income to Age 65 | $3,645,926 |
-| Years of Max Withdrawal Rate | 5 Years |
-| Coverage Range | Ages 40–44 |
-| Total Income Replaced | $530,914 |
-| Survivor Gap | $3,115,012 |
-| Death Benefit Needed | $1,756,113 |
+| Years of Max Withdrawal Rate | 9 Years |
+| Coverage Range | Ages 40–48 |
+| Total Income Replaced | $1,015,911 |
+| Survivor Gap | $2,630,016 |
+| Death Benefit Needed | $1,482,692 |
 
 ## Disability — Core Answer Key
 

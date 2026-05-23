@@ -18,12 +18,13 @@
  *   runs out.  Covered years → tall green bars.  Gap years → empty red bars.
  *   Chart: first N bars full height (green), then truncation (red / empty).
  *
- * Box 5 formula (Death Benefit Needed) — discounted annual gap cash flows:
- *   The death benefit (DB) is the present value of the future income-gap stream
- *   at the configured ROI, discounted year-by-year:
- *     DB = Σ gap_t / (1 + roi)^t
- *   where t starts at 1 (end-of-year cash-flow timing).
- *   When roi = 0: DB = simple sum of annual gaps.
+ * Box 5 formula (Death Benefit Needed) — level-gap present value:
+ *   Convert the survivor gap to an equivalent level annual gap, then discount
+ *   as an ordinary annuity (end-of-year timing):
+ *     annualGap = survivorGap / yearsToRetirement
+ *     DB = annualGap × (1 − (1+roi)^−N) / roi
+ *   When roi = 0: DB = survivorGap.
+ *   This is equivalent to Excel PV(rate, nper, payment, 0, 0) by sign convention.
  *
  * Net income assumption: all income figures use NET income as configured in the
  * LifeInputs (annualIncome × incomeReplacementRatio − spouseAnnualIncome offset).
@@ -57,13 +58,13 @@ function requireNonNegativeNumber(value: unknown, fieldName: string): number {
   return numeric;
 }
 
-function presentValueCashFlows(cashFlows: number[], rate: number): number {
-  if (cashFlows.length === 0) return 0;
-  if (rate === 0) return cashFlows.reduce((sum, cf) => sum + cf, 0);
-  return cashFlows.reduce(
-    (sum, cf, i) => sum + cf / Math.pow(1 + rate, i + 1),
-    0
-  );
+function presentValueLevelGap(totalGap: number, rate: number, years: number): number {
+  const gap = Math.max(0, totalGap);
+  const n = Math.max(0, Math.floor(years));
+  if (!gap || !n) return 0;
+  const annualGap = gap / n;
+  if (rate === 0) return annualGap * n;
+  return (annualGap * (1 - Math.pow(1 + rate, -n))) / rate;
 }
 
 /**
@@ -124,8 +125,6 @@ export function calculateIncomeGapScenarios(
   let projectedNetIncomeTotal = 0;
   let module2Balance = assetBase;
   let m2TotalReplaced = 0;
-  const m1GapCashFlows: number[] = [];
-  const m2GapCashFlows: number[] = [];
 
   for (let i = 0; i < yearsToRetirement; i++) {
     const age = currentAge + i;
@@ -143,9 +142,6 @@ export function calculateIncomeGapScenarios(
     }
 
     projectedNetIncomeTotal += projectedIncome;
-    m1GapCashFlows.push(Math.max(0, projectedIncome - annualSafeWD));
-    m2GapCashFlows.push(isCoveredMax ? 0 : projectedIncome);
-
     yearlyData.push({
       age,
       projectedIncome: roundCurrency(projectedIncome),
@@ -159,12 +155,20 @@ export function calculateIncomeGapScenarios(
   // ── Module 1 metrics ────────────────────────────────────────────────────────
   const m1TotalReplaced = annualSafeWD * yearsToRetirement;
   const m1SurvivorGap = Math.max(0, projectedNetIncomeTotal - m1TotalReplaced);
-  const m1DeathBenefitNeeded = presentValueCashFlows(m1GapCashFlows, roi);
+  const m1DeathBenefitNeeded = presentValueLevelGap(
+    m1SurvivorGap,
+    roi,
+    yearsToRetirement
+  );
 
   // ── Module 2 metrics ────────────────────────────────────────────────────────
   const coveredPoints = yearlyData.filter((p) => p.isCoveredMax);
   const m2SurvivorGap = Math.max(0, projectedNetIncomeTotal - m2TotalReplaced);
-  const m2DeathBenefitNeeded = presentValueCashFlows(m2GapCashFlows, roi);
+  const m2DeathBenefitNeeded = presentValueLevelGap(
+    m2SurvivorGap,
+    roi,
+    yearsToRetirement
+  );
   const yearsOfMaxWD = coveredPoints.length;
   const startCoverageAge = coveredPoints[0]?.age ?? currentAge;
   const endCoverageAge =
