@@ -231,37 +231,44 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
   const [jobB, setJobB] = useState<JobBState>(initial.jobB)
 
   // ── Job A ──────────────────────────────────────────────────────────────────
-  const groupLTD_A = calcGroupLTDAnnual(jobA.salary, jobA.groupPct, parseWholeNumberInput(jobA.groupCap))
-  const annualIDI_A = jobA.hasIdi ? jobA.idiBenefit * 12 : 0
-  const annualPremium_A = jobA.hasIdi ? jobA.monthlyPremium * 12 : 0
-  const totalBar_A = Math.max(jobA.salary - annualPremium_A, 0)
-  const groupCovered_A = Math.min(groupLTD_A, totalBar_A)
-  const idiCovered_A = Math.min(annualIDI_A, Math.max(totalBar_A - groupCovered_A, 0))
-  const incomeGap_A = Math.max(jobA.salary - groupCovered_A - idiCovered_A, 0)
+  const incomeBase_A = Math.max(jobA.salary, 0)
+  const groupLTD_A = calcGroupLTDAnnual(incomeBase_A, jobA.groupPct, parseWholeNumberInput(jobA.groupCap))
+  const annualIDI_A = jobA.hasIdi ? Math.max(jobA.idiBenefit, 0) * 12 : 0
+  const totalBar_A = Math.round(incomeBase_A)
+  const groupCovered_A_raw = Math.min(groupLTD_A, totalBar_A)
+  const idiCovered_A_raw = Math.min(annualIDI_A, Math.max(totalBar_A - groupCovered_A_raw, 0))
+  const incomeGap_A_raw = Math.max(totalBar_A - groupCovered_A_raw - idiCovered_A_raw, 0)
+  const groupCovered_A = Math.round(groupCovered_A_raw)
+  const idiCovered_A = Math.round(idiCovered_A_raw)
+  const incomeGap_A = Math.round(incomeGap_A_raw)
 
   // ── Job B ──────────────────────────────────────────────────────────────────
-  const annualPremium = jobB.hasIdi ? jobB.monthlyPremium * 12 : 0
-  const annualIDI = jobB.hasIdi ? jobB.idiBenefit * 12 : 0
-  const groupLTD_B = calcGroupLTDAnnual(jobB.salary, jobB.groupPct, parseWholeNumberInput(jobB.groupCap))
-  const totalBar_B = Math.max(jobB.salary - annualPremium, 0)
-  const groupCovered_B = Math.min(groupLTD_B, totalBar_B)
-  const idiCovered_B = Math.min(annualIDI, Math.max(totalBar_B - groupCovered_B, 0))
-  const incomeGap_B = Math.max(jobB.salary - groupCovered_B - idiCovered_B, 0)
+  const incomeBase_B = Math.max(jobB.salary, 0)
+  const annualPremium_B = jobB.hasIdi ? Math.max(jobB.monthlyPremium, 0) * 12 : 0
+  const annualIDI = jobB.hasIdi ? Math.max(jobB.idiBenefit, 0) * 12 : 0
+  const groupLTD_B = calcGroupLTDAnnual(incomeBase_B, jobB.groupPct, parseWholeNumberInput(jobB.groupCap))
+  const totalBar_B = Math.max(totalBar_A - annualPremium_B, 0)
+  const groupCovered_B_raw = Math.min(groupLTD_B, totalBar_B)
+  const idiCovered_B_raw = Math.min(annualIDI, Math.max(totalBar_B - groupCovered_B_raw, 0))
+  const incomeGap_B_raw = Math.max(totalBar_B - groupCovered_B_raw - idiCovered_B_raw, 0)
+  const groupCovered_B = Math.round(groupCovered_B_raw)
+  const idiCovered_B = Math.round(idiCovered_B_raw)
+  const incomeGap_B = Math.round(incomeGap_B_raw)
 
   const chartData = [
     {
       name: "Job A",
-      "Group LTD": Math.round(groupCovered_A),
-      "IDI Benefit": Math.round(idiCovered_A),
-      "Income Gap": Math.round(incomeGap_A),
-      totalBar: Math.round(totalBar_A),
+      "Group LTD": groupCovered_A,
+      "IDI Benefit": idiCovered_A,
+      "Income Gap": incomeGap_A,
+      totalBar: totalBar_A,
     },
     {
       name: "Job B",
-      "Group LTD": Math.round(groupCovered_B),
-      "IDI Benefit": Math.round(idiCovered_B),
-      "Income Gap": Math.round(incomeGap_B),
-      totalBar: Math.round(totalBar_B),
+      "Group LTD": groupCovered_B,
+      "IDI Benefit": idiCovered_B,
+      "Income Gap": incomeGap_B,
+      totalBar: totalBar_B,
     },
   ]
   return (
@@ -466,7 +473,7 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
             <MetricCard
               label="Income difference"
               value={`${formatCurrency(Math.abs(totalBar_A - totalBar_B))}/yr`}
-              sub="Job A income − Job B income"
+              sub="Job A total bar − Job B total bar"
               accent={totalBar_A >= totalBar_B ? "default" : "green"}
             />
             <MetricCard

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { LifeOutputView } from "@/features/risk-modules/life/components/LifeOutputView"
 import { calculateLifeInsuranceGap } from "@/features/risk-modules/life/calculations/calculateLifeInsuranceGap"
 import { calculateIncomeGapScenarios } from "@/features/risk-modules/life/calculations/calculateIncomeGapScenarios"
+import { sanitizeLifeInputs } from "@/features/risk-modules/life/utils/sanitizeLifeInputs"
 import { DisabilityOutputView } from "@/features/risk-modules/disability/components/DisabilityOutputView"
 import { calculateDisabilityGap } from "@/features/risk-modules/disability/calculations/calculateDisabilityGap"
 import { UnemploymentOutputView } from "@/features/risk-modules/unemployment/components/UnemploymentOutputView"
@@ -150,11 +151,11 @@ export function Presentation() {
   )
 
   const lifeOutputs = useMemo(
-    () => records?.life ? (records.life.output ?? calculateLifeInsuranceGap(records.life.inputs, records.life.assumptions)) : null,
+    () => records?.life ? (records.life.output ?? calculateLifeInsuranceGap(sanitizeLifeInputs(records.life.inputs), records.life.assumptions)) : null,
     [records?.life],
   )
   const lifeIncomeGapOutputs = useMemo(
-    () => records?.life ? calculateIncomeGapScenarios(records.life.inputs, records.life.assumptions) : null,
+    () => records?.life ? calculateIncomeGapScenarios(sanitizeLifeInputs(records.life.inputs), records.life.assumptions) : null,
     [records?.life],
   )
   const disabilityOutputs = useMemo(

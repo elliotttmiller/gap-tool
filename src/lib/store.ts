@@ -5,6 +5,7 @@ import type { DisabilityInputs, DisabilityAssumptions, DisabilityOutputs } from 
 import type { UnemploymentInputs, UnemploymentOutputs } from "@/features/risk-modules/unemployment/types"
 import type { LiabilityInputs, LiabilityOutputs } from "@/features/risk-modules/liability/types"
 import { getTotalDeathBenefit } from "@/features/risk-modules/life/utils/getTotalDeathBenefit"
+import { sanitizeLifeInputs } from "@/features/risk-modules/life/utils/sanitizeLifeInputs"
 import type {
   ClientFinancialProfile,
   ClientRecord,
@@ -532,16 +533,17 @@ export const useAppStore = create<AppState>()(
           const record = scenarioRecords?.life
           if (!scenarioRecords || !record) return state
           const timestamp = nowIso()
+          const sanitizedInputs = sanitizeLifeInputs(inputs)
           const withLifeInputs: ScenarioModuleRecords = {
             ...scenarioRecords,
-            life: { ...record, inputs, updatedAt: timestamp },
+            life: { ...record, inputs: sanitizedInputs, updatedAt: timestamp },
           }
           const synced = syncSharedProjectionInputs(
             withLifeInputs,
             {
-              annualIncome: inputs.annualIncome,
-              currentAge: inputs.currentAge,
-              retirementAge: inputs.retirementAge,
+              annualIncome: sanitizedInputs.annualIncome,
+              currentAge: sanitizedInputs.currentAge,
+              retirementAge: sanitizedInputs.retirementAge,
             },
             timestamp,
           )

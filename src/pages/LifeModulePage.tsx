@@ -3,6 +3,7 @@ import { LifeInputForm } from "@/features/risk-modules/life/components/LifeInput
 import { LifeOutputView } from "@/features/risk-modules/life/components/LifeOutputView"
 import { calculateLifeInsuranceGap } from "@/features/risk-modules/life/calculations/calculateLifeInsuranceGap"
 import { calculateIncomeGapScenarios } from "@/features/risk-modules/life/calculations/calculateIncomeGapScenarios"
+import { sanitizeLifeInputs } from "@/features/risk-modules/life/utils/sanitizeLifeInputs"
 import { useAppStore } from "@/lib/store"
 import { useParams } from "react-router-dom"
 import { RiskModulePage, ModuleNotIncluded } from "./RiskModulePage"
@@ -17,12 +18,12 @@ export function LifeModulePage() {
   const saveCalculation = useAppStore((state) => state.saveLifeCalculation)
 
   const outputs = useMemo(
-    () => moduleState ? calculateLifeInsuranceGap(moduleState.inputs, moduleState.assumptions) : null,
+    () => moduleState ? calculateLifeInsuranceGap(sanitizeLifeInputs(moduleState.inputs), moduleState.assumptions) : null,
     [moduleState?.inputs, moduleState?.assumptions],
   )
 
   const incomeGapOutputs = useMemo(
-    () => moduleState ? calculateIncomeGapScenarios(moduleState.inputs, moduleState.assumptions) : null,
+    () => moduleState ? calculateIncomeGapScenarios(sanitizeLifeInputs(moduleState.inputs), moduleState.assumptions) : null,
     [moduleState?.inputs, moduleState?.assumptions],
   )
 

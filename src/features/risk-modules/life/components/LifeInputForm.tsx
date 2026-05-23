@@ -12,7 +12,15 @@ function toPercent(rate: number): number {
 
 /** Convert a percentage input string ("4") back to a decimal rate (0.04). */
 function fromPercent(value: string): number {
-  return value === "" ? 0 : Number(value) / 100
+  if (value === "") return 0
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed / 100 : 0
+}
+
+function parseFiniteOrZero(value: string): number {
+  if (value === "") return 0
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : 0
 }
 
 interface LifeInputFormProps {
@@ -41,7 +49,7 @@ export function LifeInputForm({ inputs, onChange, showMaxWithdrawalRateInput = f
   const isMaxModule = showMaxWithdrawalRateInput
 
   const handleNumberChange = (field: keyof LifeInputs, value: string) => {
-    const numericValue = value === "" ? 0 : Number(value)
+    const numericValue = parseFiniteOrZero(value)
     onChange({ ...inputs, [field]: numericValue })
   }
 
@@ -72,7 +80,7 @@ export function LifeInputForm({ inputs, onChange, showMaxWithdrawalRateInput = f
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="incomeReplacementRatio">Income Replacement</Label>
-            <AffixedInput id="incomeReplacementRatio" type="number" min={0} max={125} step={5} suffix="%" value={Math.round((inputs.incomeReplacementRatio ?? 1) * 100) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, incomeReplacementRatio: (e.target.value === "" ? 0 : Number(e.target.value)) / 100 })} />
+            <AffixedInput id="incomeReplacementRatio" type="number" min={0} max={125} step={5} suffix="%" value={Math.round((inputs.incomeReplacementRatio ?? 1) * 100) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, incomeReplacementRatio: fromPercent(e.target.value) })} />
           </div>
       </CollapsibleInputSection>
 
