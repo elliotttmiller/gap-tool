@@ -62,25 +62,25 @@ export function UnemploymentInputForm({ inputs, onChange }: UnemploymentInputFor
           </div>
       </CollapsibleInputSection>
 
-      <CollapsibleInputSection title="Transition Offsets" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="severanceMonthly" className="whitespace-nowrap">Severance Amount</Label>
+      <CollapsibleInputSection title="Transition Offsets" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-[minmax(13rem,1.45fr)_minmax(9rem,1fr)]">
+          <div className="flex min-w-0 flex-col gap-2">
+            <Label htmlFor="severanceMonthly">Severance Amount</Label>
             <Input id="severanceMonthly" type="number" min={0} prefix="$" suffix="/mo" value={inputs.severanceMonthly || ""} className="w-full" onChange={(e) => handleCurrency("severanceMonthly", e.target.value)} />
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex min-w-0 flex-col gap-2">
             <Label htmlFor="severanceDurationMonths">Severance Duration</Label>
             <Input id="severanceDurationMonths" type="number" min={0} max={60} step={1} suffix="mo" value={inputs.severanceDurationMonths || ""} className="w-full" onChange={(e) => handleMonths("severanceDurationMonths", e.target.value)} />
           </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="unemploymentBenefitMonthly" className="whitespace-nowrap">Expected Unemployment Benefit</Label>
+          <div className="flex min-w-0 flex-col gap-2">
+            <Label htmlFor="unemploymentBenefitMonthly" className="whitespace-nowrap">Unemployment Benefit</Label>
             <Input id="unemploymentBenefitMonthly" type="number" min={0} prefix="$" suffix="/mo" value={inputs.unemploymentBenefitMonthly || ""} className="w-full" onChange={(e) => handleCurrency("unemploymentBenefitMonthly", e.target.value)} />
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex min-w-0 flex-col gap-2">
             <Label htmlFor="unemploymentBenefitDurationMonths">Benefit Duration</Label>
             <Input id="unemploymentBenefitDurationMonths" type="number" min={0} max={60} step={1} suffix="mo" value={inputs.unemploymentBenefitDurationMonths || ""} className="w-full" onChange={(e) => handleMonths("unemploymentBenefitDurationMonths", e.target.value)} />
           </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="estimatedJobSearchMonths">Estimated Search Duration</Label>
+          <div className="flex min-w-0 flex-col gap-2">
+            <Label htmlFor="estimatedJobSearchMonths">Search Duration</Label>
             <Input id="estimatedJobSearchMonths" type="number" min={0} max={60} step={1} suffix="mo" value={inputs.estimatedJobSearchMonths || ""} className="w-full" onChange={(e) => handleMonths("estimatedJobSearchMonths", e.target.value)} />
           </div>
       </CollapsibleInputSection>
