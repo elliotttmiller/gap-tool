@@ -148,7 +148,16 @@ export function DisabilityOutputView({
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null
-    const assumedIncomeAnnual = payload[0]?.payload?.[assumedIncomeKey] ?? 0
+    const point = payload[0]?.payload
+    const assumedIncomeAnnual = point?.[assumedIncomeKey] ?? 0
+    const grossIncome = point?.["Assumed Income (Gross)"] ?? 0
+    const netIncome = point?.["Assumed Income (Net)"] ?? 0
+    const ltdGross = point?.["Group LTD (Gross)"] ?? 0
+    const ltdNet = point?.["Group LTD (Net)"] ?? 0
+    const idiAnnual = point?.["Individual DI"] ?? 0
+    const displayGap = chartView === "gross"
+      ? grossIncome - (ltdGross + idiAnnual)
+      : netIncome - (ltdNet + idiAnnual)
     return (
       <div className="min-w-52 rounded-lg border border-gray-700 bg-gray-900 p-3 text-sm shadow-lg">
         <p className="mb-2 font-semibold text-gray-100">Age {label}</p>
@@ -162,7 +171,9 @@ export function DisabilityOutputView({
           <div key={entry.name} className="mb-1 flex justify-between gap-4">
             <span style={{ color: entry.color }} className="text-xs">{entry.name}:</span>
             <span className="text-xs font-semibold text-gray-100">
-              {formatCurrency(entry.value)}/yr · {formatCurrency(entry.value / 12)}/mo
+              {entry.name === "Income Gap"
+                ? `${formatCurrency(displayGap / 12)}/mo · ${formatCurrency(displayGap)}/yr`
+                : `${formatCurrency(entry.value)}/yr · ${formatCurrency(entry.value / 12)}/mo`}
             </span>
           </div>
         ))}

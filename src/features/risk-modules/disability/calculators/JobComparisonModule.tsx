@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   Bar,
   BarChart,
@@ -133,20 +133,29 @@ function GroupCapField({
 function GapTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null
   const stackedTotal = payload.reduce((sum: number, p: any) => sum + (p.value ?? 0), 0)
-  const netTotalBar = payload[0]?.payload?.totalBar ?? stackedTotal
+  const annualIncome = payload[0]?.payload?.totalBar ?? stackedTotal
+  const groupLTD = payload.find((entry: any) => entry.name === "Group LTD")?.value ?? 0
+  const idiAnnual = payload.find((entry: any) => entry.name === "IDI Benefit")?.value ?? 0
+  const gapAnnual = payload.find((entry: any) => entry.name === "Income Gap")?.value ?? 0
   return (
     <div className="min-w-52 rounded-xl border border-gray-700 bg-gray-950/95 p-3 text-xs shadow-2xl backdrop-blur">
       <p className="mb-2 font-semibold text-gray-100">{label}</p>
       <div className="space-y-1.5">
-        {payload.map((entry: any) => (
-          <div key={entry.name} className="flex justify-between gap-4">
-            <span style={{ color: entry.color }}>{entry.name}</span>
-            <span className="font-mono text-gray-100">{formatCurrency(entry.value)}/yr</span>
-          </div>
-        ))}
-        <div className="flex justify-between gap-4 border-t border-gray-800 pt-1.5">
-          <span className="text-gray-400">Total bar</span>
-          <span className="font-mono text-gray-100">{formatCurrency(netTotalBar)}/yr</span>
+        <div className="flex justify-between gap-4 border-b border-gray-800 pb-1.5">
+          <span className="text-gray-400">Annual Income</span>
+          <span className="font-mono text-gray-100">{formatCurrency(annualIncome)}/yr</span>
+        </div>
+        <div className="flex justify-between gap-4">
+          <span style={{ color: "#3b82f6" }}>Group LTD</span>
+          <span className="font-mono text-gray-100">{formatCurrency(groupLTD)}/yr</span>
+        </div>
+        <div className="flex justify-between gap-4">
+          <span style={{ color: "#06b6d4" }}>IDI Benefit</span>
+          <span className="font-mono text-gray-100">{formatCurrency(idiAnnual)}/yr</span>
+        </div>
+        <div className="flex justify-between gap-4">
+          <span style={{ color: "#ef4444" }}>Income Gap</span>
+          <span className="font-mono text-gray-100">{formatCurrency(gapAnnual)}/yr</span>
         </div>
       </div>
     </div>
@@ -229,6 +238,11 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
   const initial = useMemo(() => getInitialJobs(inputs), [inputs])
   const [jobA, setJobA] = useState<JobAState>(initial.jobA)
   const [jobB, setJobB] = useState<JobBState>(initial.jobB)
+  useEffect(() => {
+    const next = getInitialJobs(inputs)
+    setJobA(next.jobA)
+    setJobB(next.jobB)
+  }, [inputs])
 
   // ── Job A ──────────────────────────────────────────────────────────────────
   const incomeBase_A = Math.max(jobA.salary, 0)
@@ -272,6 +286,11 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
       totalBar: totalBar_B,
     },
   ]
+  const jobAIncomeIfDisabled = groupCovered_A
+  const jobBIncomeIfDisabled = groupCovered_B + idiCovered_B
+  const incomeReplacementGapIfDisabled = jobBIncomeIfDisabled - jobAIncomeIfDisabled
+  const annualIncomeDifference = totalBar_A - totalBar_B
+
   return (
     <div className="module-output-container">
       <div className="space-y-4">
@@ -466,22 +485,28 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
           {/* ── Side metric cards ─────────────────────────────────────────── */}
           <div className="flex flex-col gap-3 xl:justify-center">
             <MetricCard
-              label="IDI benefit"
-              value={`${formatCurrency(annualIDI)}/yr`}
-              sub="IDI monthly benefit × 12 months"
+              label="Job A income if disabled"
+              value={`${formatCurrency(jobAIncomeIfDisabled)}/yr`}
+              sub="Job A GLTD benefit / yr"
+              accent="default"
+            />
+            <MetricCard
+              label="Job B income if disabled"
+              value={`${formatCurrency(jobBIncomeIfDisabled)}/yr`}
+              sub="Job B GLTD + IDI / yr"
               accent="cyan"
             />
             <MetricCard
-              label="Income difference"
-              value={`${formatCurrency(Math.abs(totalBar_A - totalBar_B))}/yr`}
-              sub="Job A total bar − Job B total bar"
-              accent={totalBar_A >= totalBar_B ? "default" : "green"}
+              label="Income replacement gap if disabled"
+              value={`${formatCurrency(incomeReplacementGapIfDisabled)}/yr`}
+              sub="Card 2 − Card 1"
+              accent={incomeReplacementGapIfDisabled >= 0 ? "green" : "red"}
             />
             <MetricCard
-              label="Gap difference"
-              value={`${formatCurrency(Math.abs(incomeGap_A - incomeGap_B))}/yr`}
-              sub="Job A income gap − Job B income gap"
-              accent={incomeGap_A > incomeGap_B ? "red" : "green"}
+              label="Annual income difference"
+              value={`${formatCurrency(annualIncomeDifference)}/yr`}
+              sub="Job A income − Job B income"
+              accent={annualIncomeDifference >= 0 ? "default" : "red"}
             />
           </div>
         </div>
