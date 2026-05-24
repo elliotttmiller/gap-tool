@@ -27,7 +27,7 @@ function getRunwayStatus(months: number): { label: string; badgeClass: string; t
 
 function PositionGauge({ outputs }: { outputs: UnemploymentOutputs }) {
   const burn = Math.max(outputs.monthlyBurnRate, 1)
-  const runway = outputs.reserveMonthsCurrent
+  const runway = outputs.effectiveRunwayMonths
   const status = getRunwayStatus(runway)
   const gaugeW = 200
   const gaugeH = 360
@@ -44,7 +44,9 @@ function PositionGauge({ outputs }: { outputs: UnemploymentOutputs }) {
   const min3YPx = yAtMonths(3)
   const ideal6YPx = yAtMonths(6)
   const danger15YPx = yAtMonths(1.5)
-  const coveragePct = outputs.optimalReserveTarget > 0 ? Math.min(100, (outputs.currentReserveLevel / outputs.optimalReserveTarget) * 100) : 0
+  const coveragePct = outputs.optimalReserveTarget > 0
+    ? Math.min(100, (outputs.availableAtOnset / outputs.optimalReserveTarget) * 100)
+    : 0
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-2">
@@ -94,7 +96,7 @@ function PositionGauge({ outputs }: { outputs: UnemploymentOutputs }) {
           className="absolute text-[10px] text-sky-300 transition-all duration-500 ease-[cubic-bezier(.4,0,.2,1)]"
           style={{ left: `${tankX + tankW + 14}px`, top: `${needleYPx - 6}px` }}
         >
-          {formatCurrency(outputs.currentReserveLevel)}
+          {formatCurrency(outputs.availableAtOnset)}
         </div>
 
         <div className="absolute border-t border-dashed border-slate-200/70" style={{ left: `${tankX - 8}px`, width: `${tankW + 16}px`, top: `${min3YPx}px` }} />
