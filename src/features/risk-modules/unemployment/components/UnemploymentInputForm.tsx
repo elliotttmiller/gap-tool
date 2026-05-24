@@ -62,7 +62,7 @@ export function UnemploymentInputForm({ inputs, onChange }: UnemploymentInputFor
           </div>
       </CollapsibleInputSection>
 
-      <CollapsibleInputSection title="Transition Offsets" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-[minmax(13rem,1.45fr)_minmax(9rem,1fr)]">
+      <CollapsibleInputSection title="Transition Offsets" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
           <div className="flex min-w-0 flex-col gap-2">
             <Label htmlFor="severanceMonthly">Severance Amount</Label>
             <Input id="severanceMonthly" type="number" min={0} prefix="$" suffix="/mo" value={inputs.severanceMonthly || ""} className="w-full" onChange={(e) => handleCurrency("severanceMonthly", e.target.value)} />
