@@ -41,8 +41,8 @@ const M1Tooltip = ({ active, payload, label }: any) => {
         <span className="font-semibold text-xs text-gray-100">{formatCurrency(totalNeed)}</span>
       </div>
       <div className="flex justify-between gap-4 mb-1">
-        <span className="text-xs text-blue-400">Safe Withdrawal:</span>
-        <span className="font-semibold text-xs text-blue-300">{formatCurrency(safeWD)}</span>
+        <span className="text-xs text-emerald-400">Safe Withdrawal:</span>
+        <span className="font-semibold text-xs text-emerald-300">{formatCurrency(safeWD)}</span>
       </div>
       {incomeGap > 0 && (
         <div className="flex justify-between gap-4">
@@ -313,7 +313,7 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
                           />
                           <Tooltip content={M1Tooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
                           {/* Stacked bars: safe withdrawal (blue, bottom) + income gap (red, top) */}
-                          <Bar dataKey="safeWD" name="Safe Withdrawal" stackId="income" fill="#3b82f6" radius={[0, 0, 0, 0]} isAnimationActive={false} />
+                          <Bar dataKey="safeWD" name="Safe Withdrawal" stackId="income" fill="#10b981" radius={[0, 0, 0, 0]} isAnimationActive={false} />
                           <Bar dataKey="incomeGap" name="Income Gap" stackId="income" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={false} />
                         </BarChart>
                       </ResponsiveContainer>
@@ -323,7 +323,7 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
                     </div>
                     <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
                       <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400">
-                        <span className="inline-block h-2.5 w-4 rounded-sm bg-[#3b82f6]" />
+                        <span className="inline-block h-2.5 w-4 rounded-sm bg-[#10b981]" />
                         Safe Withdrawal (Modeled at {Math.round(module1.safeWithdrawalRate * 100)}% / yr)
                       </span>
                       <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400">
