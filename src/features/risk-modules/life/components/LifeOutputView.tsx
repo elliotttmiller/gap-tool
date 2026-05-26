@@ -46,7 +46,7 @@ const M1Tooltip = ({ active, payload, label }: any) => {
     <div className={TOOLTIP_CLASS}>
       <p className="font-semibold text-gray-100 mb-2">Age {label}</p>
       <div className="flex justify-between gap-4 mb-1">
-        <span className="text-xs text-gray-400">Income Need:</span>
+        <span className="text-xs text-gray-400">Net Income Need:</span>
         <span className="font-semibold text-xs text-gray-100">{formatCurrency(totalNeed)}</span>
       </div>
       <div className="flex justify-between gap-4 mb-1">
@@ -78,12 +78,12 @@ const M2Tooltip = ({ active, payload, label }: any) => {
         </span>
       </div>
       <div className="flex justify-between gap-4 mb-1">
-        <span className="text-xs text-gray-400">Income Need:</span>
+        <span className="text-xs text-gray-400">Net Income Need:</span>
         <span className="font-semibold text-xs text-gray-100">{formatCurrency(income)}</span>
       </div>
       {isCovered && (
         <div className="flex justify-between gap-4">
-          <span className="text-xs text-emerald-400">Covered:</span>
+          <span className="text-xs text-emerald-400">Net Income Covered:</span>
           <span className="font-semibold text-xs text-emerald-300">{formatCurrency(income)}</span>
         </div>
       )}
@@ -198,7 +198,7 @@ function Module2Boxes({ m2, projectionEndAge }: { m2: IncomeGapModule2; projecti
           description={
             hasCoverage
               ? `Ages ${m2.startCoverageAge}–${m2.endCoverageAge} fully covered`
-              : "No full coverage years — increase asset base"
+              : "No full coverage years — increase existing coverage resources"
           }
           accent={hasCoverage ? "green" : "red"}
         />
@@ -280,7 +280,7 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
               <CardHeader className="shrink-0 px-6 pb-0 pt-5">
                 <div className="text-center">
                   <CardTitle className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">
-                    Safe Withdrawal Rate — Annual Income to Age {retirementAge}
+                    Safe Withdrawal Rate — Annual Net Income to Age {retirementAge}
                   </CardTitle>
                   <p className="mt-1 text-sm leading-snug text-slate-400">
                     Level annual withdrawal modeled to last through retirement age
@@ -294,7 +294,7 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
                       style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
                       className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider text-slate-500"
                     >
-                      Annual Income ($)
+                      Annual Net Income ($)
                     </span>
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col">
@@ -362,10 +362,10 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
               <CardHeader className="shrink-0 px-6 pb-0 pt-5">
                 <div className="text-center">
                   <CardTitle className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">
-                    Max Withdrawal Rate — Years of Full Income Coverage
+                    Max Withdrawal Rate — Years of Full Net Income Coverage
                   </CardTitle>
                   <p className="mt-1 text-sm leading-snug text-slate-400">
-                    Years asset base can sustain full income before depleting
+                    Years existing coverage resources can sustain full net income before depleting
                   </p>
                 </div>
               </CardHeader>
@@ -376,7 +376,7 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
                       style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
                       className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider text-slate-500"
                     >
-                      Annual Income ($)
+                      Annual Net Income ($)
                     </span>
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col">
@@ -404,7 +404,7 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
                           />
                           <Tooltip content={M2Tooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
                           {/* Full bar at projectedIncome height — green = covered, red = gap */}
-                          <Bar dataKey="projectedIncome" name="Annual Income" radius={[2, 2, 0, 0]} isAnimationActive={false}>
+                          <Bar dataKey="projectedIncome" name="Annual Net Income" radius={[2, 2, 0, 0]} isAnimationActive={false}>
                             {module2.yearlyData.map((entry, index) => (
                               <Cell
                                 key={`cell-${index}`}

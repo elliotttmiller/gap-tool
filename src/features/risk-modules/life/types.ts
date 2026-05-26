@@ -92,7 +92,7 @@ export interface LifeOutputs {
 /** Per-year data point shared by both income-gap modules. */
 export interface IncomeGapYearlyPoint {
   age: number;
-  /** Projected annual income need for this year (grows at incomeGrowthRate). */
+  /** Projected annual NET income need for this year (grows at incomeGrowthRate). */
   projectedIncome: number;
   /** Module 1: flat annual payout-annuity withdrawal (same every year). */
   safeWD: number;
@@ -126,7 +126,7 @@ export interface IncomeGapModule2 {
   yearlyData: IncomeGapYearlyPoint[];
   /** Box 1 — Same total projected net income as Module 1. */
   projectedNetIncomeTotal: number;
-  /** Box 2 — Number of years the asset base fully covers income at the aggressive draw rate. */
+  /** Box 2 — Number of years the existing-coverage resource pool fully covers net income at the aggressive draw rate. */
   yearsOfMaxWD: number;
   /** First age with full coverage (used for sub-label). */
   startCoverageAge: number;

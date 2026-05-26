@@ -117,7 +117,7 @@ export function calculateIncomeGapScenarios(
 
   // Net annual income need (consistent with the existing coverage calculator).
   // Uses NET income only — life insurance death benefits are already tax-free.
-  const annualBaseNeed = Math.max(
+  const annualNetIncomeNeed = Math.max(
     0,
     nonNegative(requireNonNegativeNumber(inputs.annualIncome, "inputs.annualIncome")) *
       nonNegative(requireNonNegativeNumber(inputs.incomeReplacementRatio, "inputs.incomeReplacementRatio")) -
@@ -139,25 +139,25 @@ export function calculateIncomeGapScenarios(
 
   for (let i = 0; i < yearsToRetirement; i++) {
     const age = currentAge + i;
-    // Project annual income forward at the income growth rate (net)
-    const projectedIncome = annualBaseNeed * Math.pow(1 + incomeGrowthRate, i);
+    // Project annual NET income need forward at the income growth rate.
+    const projectedNetIncome = annualNetIncomeNeed * Math.pow(1 + incomeGrowthRate, i);
 
     // Module 2: apply investment return first (aggressive compounding), then
-    // attempt to fund full income for this year.
+    // attempt to fund full NET income need for this year.
     module2Balance *= 1 + maxWithdrawalRate;
-    const maxCovered = Math.min(module2Balance, projectedIncome);
-    const isCoveredMax = maxCovered >= projectedIncome && projectedIncome > 0;
+    const maxCovered = Math.min(module2Balance, projectedNetIncome);
+    const isCoveredMax = maxCovered >= projectedNetIncome && projectedNetIncome > 0;
     module2Balance = Math.max(0, module2Balance - maxCovered);
     if (isCoveredMax) {
-      m2TotalReplaced += projectedIncome;
+      m2TotalReplaced += projectedNetIncome;
     }
 
-    projectedNetIncomeTotal += projectedIncome;
+    projectedNetIncomeTotal += projectedNetIncome;
     yearlyData.push({
       age,
-      projectedIncome,
+      projectedIncome: projectedNetIncome,
       safeWD: annualSafeWD,
-      incomeGap: Math.max(0, projectedIncome - annualSafeWD),
+      incomeGap: Math.max(0, projectedNetIncome - annualSafeWD),
       maxCovered,
       isCoveredMax,
     });
