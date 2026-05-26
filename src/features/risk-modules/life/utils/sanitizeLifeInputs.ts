@@ -20,7 +20,7 @@ export function sanitizeLifeInputs(inputs: LifeInputs): LifeInputs {
     annualIncome: nonNegativeFinite(inputs.annualIncome, 0),
     spouseAnnualIncome: nonNegativeFinite(inputs.spouseAnnualIncome, 0),
     incomeReplacementYears: nonNegativeFinite(inputs.incomeReplacementYears, 0),
-    incomeReplacementRatio: nonNegativeFinite(inputs.incomeReplacementRatio, 1),
+    incomeReplacementRatio: nonNegativeFinite(inputs.incomeReplacementRatio, 0.7),
     groupLifeCoverage: nonNegativeFinite(inputs.groupLifeCoverage, 0),
     privateLifeCoverage: nonNegativeFinite(inputs.privateLifeCoverage, 0),
     privateLifeTermYears: nonNegativeFinite(inputs.privateLifeTermYears ?? 0, 0),
