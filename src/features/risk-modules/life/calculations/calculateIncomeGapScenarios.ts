@@ -39,7 +39,7 @@ import {
   IncomeGapOutputs,
   IncomeGapYearlyPoint,
 } from "../types";
-import { nonNegative, roundCurrency } from "@/lib/math";
+import { nonNegative } from "@/lib/math";
 
 /**
  * Present value of an ordinary annuity.
@@ -155,10 +155,10 @@ export function calculateIncomeGapScenarios(
     projectedNetIncomeTotal += projectedIncome;
     yearlyData.push({
       age,
-      projectedIncome: roundCurrency(projectedIncome),
-      safeWD: roundCurrency(annualSafeWD),
-      incomeGap: roundCurrency(Math.max(0, projectedIncome - annualSafeWD)),
-      maxCovered: roundCurrency(maxCovered),
+      projectedIncome,
+      safeWD: annualSafeWD,
+      incomeGap: Math.max(0, projectedIncome - annualSafeWD),
+      maxCovered,
       isCoveredMax,
     });
   }
@@ -188,23 +188,23 @@ export function calculateIncomeGapScenarios(
   return {
     module1: {
       yearlyData,
-      projectedNetIncomeTotal: roundCurrency(projectedNetIncomeTotal),
-      annualSafeWD: roundCurrency(annualSafeWD),
-      totalIncomeReplaced: roundCurrency(m1TotalReplaced),
-      survivorGap: roundCurrency(m1SurvivorGap),
-      deathBenefitNeeded: roundCurrency(m1DeathBenefitNeeded),
+      projectedNetIncomeTotal,
+      annualSafeWD,
+      totalIncomeReplaced: m1TotalReplaced,
+      survivorGap: m1SurvivorGap,
+      deathBenefitNeeded: m1DeathBenefitNeeded,
       safeWithdrawalRate,
       roi,
     },
     module2: {
       yearlyData,
-      projectedNetIncomeTotal: roundCurrency(projectedNetIncomeTotal),
+      projectedNetIncomeTotal,
       yearsOfMaxWD,
       startCoverageAge,
       endCoverageAge,
-      totalIncomeReplaced: roundCurrency(m2TotalReplaced),
-      survivorGap: roundCurrency(m2SurvivorGap),
-      deathBenefitNeeded: roundCurrency(m2DeathBenefitNeeded),
+      totalIncomeReplaced: m2TotalReplaced,
+      survivorGap: m2SurvivorGap,
+      deathBenefitNeeded: m2DeathBenefitNeeded,
       maxWithdrawalRate,
       roi,
     },

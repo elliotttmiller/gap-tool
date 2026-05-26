@@ -23,6 +23,15 @@ interface LifeOutputViewProps {
   onActiveTabChange?: (tab: "safe" | "max") => void
 }
 
+function formatRatePctOneDecimal(rate: number): string {
+  const rounded = Math.round(rate * 1000) / 10
+  return `${rounded.toFixed(1)}%`
+}
+
+function roundYears(years: number): number {
+  return Math.floor(years)
+}
+
 // ── Shared tooltip ────────────────────────────────────────────────────────────
 
 const TOOLTIP_CLASS = "bg-gray-900 p-3 border border-gray-700 rounded-lg shadow-lg text-sm min-w-48"
@@ -123,7 +132,7 @@ function DeathBenefitBox({ amount, roi }: { amount: number; roi: number }) {
         {amount > 0 ? formatCurrency(amount) : <span className="text-emerald-300">Fully Covered</span>}
       </div>
       <p className="mt-1.5 text-[11px] leading-snug text-blue-400/70">
-        Based on {Math.round(roi * 100)}% ROI · Capital Needs Analysis
+        Based on {formatRatePctOneDecimal(roi)} ROI · Capital Needs Analysis
       </p>
     </div>
   )
@@ -145,7 +154,7 @@ function Module1Boxes({ m1, projectionEndAge }: { m1: IncomeGapModule1; projecti
         <ModuleMetricCard
           label={`Safe Withdrawal Rate to Age ${projectionEndAge}`}
           value={<>{formatCurrency(m1.annualSafeWD)}<span className="text-sm font-normal text-gray-400"> / yr</span></>}
-          description={`${Math.round(m1.safeWithdrawalRate * 100)}% annual return assumption with level payout to retirement`}
+          description={`${formatRatePctOneDecimal(m1.safeWithdrawalRate)} annual return assumption with level payout to retirement`}
           accent="blue"
         />
         <ModuleMetricCard
@@ -185,7 +194,7 @@ function Module2Boxes({ m2, projectionEndAge }: { m2: IncomeGapModule2; projecti
         />
         <ModuleMetricCard
           label="Years of Max Withdrawal Rate"
-          value={<>{m2.yearsOfMaxWD}<span className="text-sm font-normal text-gray-400"> Years</span></>}
+          value={<>{roundYears(m2.yearsOfMaxWD)}<span className="text-sm font-normal text-gray-400"> Years</span></>}
           description={
             hasCoverage
               ? `Ages ${m2.startCoverageAge}–${m2.endCoverageAge} fully covered`
@@ -230,7 +239,7 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
   const retirementAge = (module1.yearlyData.at(-1)?.age ?? 64) + 1
   const activeModule = activeTab === "safe" ? module1 : module2
   const replacedPct = activeModule.projectedNetIncomeTotal > 0
-    ? Math.round((activeModule.totalIncomeReplaced / activeModule.projectedNetIncomeTotal) * 100)
+    ? Math.round((activeModule.totalIncomeReplaced / activeModule.projectedNetIncomeTotal) * 1000) / 10
     : 0
   const activeNarrative = activeModule.survivorGap <= 0
     ? "Based on the assumptions entered, projected income needs appear fully covered through the selected projection horizon."
@@ -324,7 +333,7 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
                     <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
                       <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400">
                         <span className="inline-block h-2.5 w-4 rounded-sm bg-[#10b981]" />
-                        Safe Withdrawal (Modeled at {Math.round(module1.safeWithdrawalRate * 100)}% / yr)
+                        Safe Withdrawal (Modeled at {formatRatePctOneDecimal(module1.safeWithdrawalRate)} / yr)
                       </span>
                       <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400">
                         <span className="inline-block h-2.5 w-4 rounded-sm bg-[#ef4444]" />

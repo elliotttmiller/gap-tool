@@ -7,6 +7,13 @@
  */
 
 export const northstarGoldenAnswerKey = {
+  lifeIncomeGapBaselineLocked: {
+    box1ProjectedNetIncome: 4_757_542,
+    box2AnnualSafeWD: 75_179,
+    box3TotalIncomeReplaced: 2_255_374,
+    box4SurvivorGap: 2_502_168,
+    box5DeathBenefitNeeded: 1_282_148,
+  },
   clientSetupPayload: {
     clientType: "couple",
     firstName: "Jordan",
