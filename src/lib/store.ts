@@ -534,16 +534,24 @@ export const useAppStore = create<AppState>()(
           if (!scenarioRecords || !record) return state
           const timestamp = nowIso()
           const sanitizedInputs = sanitizeLifeInputs(inputs)
+          const derivedCoverageFundingBase = getTotalDeathBenefit(
+            sanitizedInputs.groupLifeCoverage,
+            sanitizedInputs.privateLifeCoverage,
+          )
+          const syncedLifeInputs = {
+            ...sanitizedInputs,
+            assetBase: derivedCoverageFundingBase,
+          }
           const withLifeInputs: ScenarioModuleRecords = {
             ...scenarioRecords,
-            life: { ...record, inputs: sanitizedInputs, updatedAt: timestamp },
+            life: { ...record, inputs: syncedLifeInputs, updatedAt: timestamp },
           }
           const synced = syncSharedProjectionInputs(
             withLifeInputs,
             {
-              annualIncome: sanitizedInputs.annualIncome,
-              currentAge: sanitizedInputs.currentAge,
-              retirementAge: sanitizedInputs.retirementAge,
+              annualIncome: syncedLifeInputs.annualIncome,
+              currentAge: syncedLifeInputs.currentAge,
+              retirementAge: syncedLifeInputs.retirementAge,
             },
             timestamp,
           )

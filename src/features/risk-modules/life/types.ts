@@ -29,14 +29,15 @@ export interface LifeInputs {
   liquidAssetsAllocated?: number;
 
   // ── Income Gap Analysis inputs ────────────────────────────────────────────
-  /** Total assets available for income replacement (death benefit + investments).
-   *  Pre-fills from nonQualifiedAssets. Used as the asset base for both withdrawal modules. */
+  /** @deprecated Legacy compatibility field.
+   *  Safe/Max WD modules now derive funding from existing coverage inputs
+   *  (`groupLifeCoverage + privateLifeCoverage`). */
   assetBase?: number;
   /** Annual return assumption used to compute a level payout-annuity withdrawal
-   *  that depletes `assetBase` by retirement in Module 1. e.g. 0.04 = 4%. */
+   *  that depletes the existing-coverage funding base by retirement in Module 1. e.g. 0.04 = 4%. */
   safeWithdrawalRate?: number;
   /** Aggressive asset return / max withdrawal rate for Module 2.
-   *  Represents the annual investment return on the asset base while drawing full income. Default: 0.06 */
+   *  Represents the annual investment return on existing coverage proceeds while drawing full income. Default: 0.06 */
   maxWithdrawalRate?: number;
   /** ROI used for the Death Benefit Needed (Box 5) capital-needs calculation.
    *  Falls back to assumptions.deathBenefitIncomeYieldAnnual if not set. Default: 0.05 */

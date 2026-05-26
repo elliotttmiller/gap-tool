@@ -5,15 +5,17 @@
  * Insurance page.
  *
  * Module 1 — Safe Withdrawal Rate
- *   The survivor draws a FLAT annual income from the asset base to retirement.
+ *   The survivor draws a FLAT annual income from existing life coverage
+ *   (group + private death benefit) to retirement.
  *   This uses a payout-annuity model (ordinary annuity / end-of-year payment):
- *     annualWithdrawal = assetBase × r / (1 − (1+r)^−N)
+ *     annualWithdrawal = coverageFundingBase × r / (1 − (1+r)^−N)
  *   where r = safeWithdrawalRate and N = yearsToRetirement.
  *   This is a finite-horizon drawdown model (principal is consumed by retirement).
  *   Chart: flat bars, same height every year.
  *
  * Module 2 — Max Withdrawal Rate (Filling More Bars)
- *   The asset base is invested aggressively (at maxWithdrawalRate as annual ROI)
+ *   Existing life coverage proceeds (group + private) are invested aggressively
+ *   (at maxWithdrawalRate as annual ROI)
  *   and the survivor draws the FULL projected income each year until the balance
  *   runs out.  Covered years → tall green bars.  Gap years → empty red bars.
  *   Chart: first N bars full height (green), then truncation (red / empty).
@@ -98,9 +100,15 @@ export function calculateIncomeGapScenarios(
     )
   );
   const roi = nonNegative(requireNonNegativeNumber(inputs.incomeGapRoi, "inputs.incomeGapRoi"));
-  const assetBase = nonNegative(requireNonNegativeNumber(inputs.assetBase, "inputs.assetBase"));
+  const groupLifeCoverage = nonNegative(
+    requireNonNegativeNumber(inputs.groupLifeCoverage, "inputs.groupLifeCoverage")
+  );
+  const privateLifeCoverage = nonNegative(
+    requireNonNegativeNumber(inputs.privateLifeCoverage, "inputs.privateLifeCoverage")
+  );
+  const coverageFundingBase = groupLifeCoverage + privateLifeCoverage;
   const safeWithdrawalRate = nonNegative(requireNonNegativeNumber(inputs.safeWithdrawalRate, "inputs.safeWithdrawalRate"));
-  // maxWithdrawalRate doubles as the annual investment return on the asset base
+  // maxWithdrawalRate doubles as the annual investment return on the coverage funding base
   // in Module 2's aggressive draw-down scenario.
   const maxWithdrawalRate = nonNegative(requireNonNegativeNumber(inputs.maxWithdrawalRate, "inputs.maxWithdrawalRate"));
 
@@ -115,7 +123,7 @@ export function calculateIncomeGapScenarios(
 
   // Module 1: flat annual withdrawal sized to last exactly to retirement.
   const annualSafeWD = payoutAnnuityWithdrawal(
-    assetBase,
+    coverageFundingBase,
     safeWithdrawalRate,
     yearsToRetirement
   );
@@ -123,7 +131,7 @@ export function calculateIncomeGapScenarios(
   // Build yearly data — a single pass builds both modules simultaneously
   const yearlyData: IncomeGapYearlyPoint[] = [];
   let projectedNetIncomeTotal = 0;
-  let module2Balance = assetBase;
+  let module2Balance = coverageFundingBase;
   let m2TotalReplaced = 0;
 
   for (let i = 0; i < yearsToRetirement; i++) {
