@@ -80,7 +80,7 @@ export function LifeInputForm({ inputs, onChange, showMaxWithdrawalRateInput = f
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="incomeReplacementRatio">Income Replacement</Label>
-            <AffixedInput id="incomeReplacementRatio" type="number" min={0} max={125} step={5} suffix="%" value={Math.round((inputs.incomeReplacementRatio ?? 1) * 100) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, incomeReplacementRatio: fromPercent(e.target.value) })} />
+            <AffixedInput id="incomeReplacementRatio" type="number" min={0} max={125} step={5} suffix="%" value={Math.round((inputs.incomeReplacementRatio ?? 0.7) * 100) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, incomeReplacementRatio: fromPercent(e.target.value) })} />
           </div>
       </CollapsibleInputSection>
 

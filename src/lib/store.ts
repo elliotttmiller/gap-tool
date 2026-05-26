@@ -210,7 +210,7 @@ function prefillLifeInputs(profile: ClientFinancialProfile, clientId: string, sc
     annualIncome: profile.annualEarnedIncome ?? 0,
     spouseAnnualIncome: 0,
     incomeReplacementYears: yearsToRetirement,
-    incomeReplacementRatio: 1.0,
+    incomeReplacementRatio: 0.70,
     groupLifeCoverage: profile.groupLifeCoverage ?? 0,
     privateLifeCoverage: profile.privateLifeCoverage ?? 0,
     privateLifePolicyType: profile.privateLifePolicyType ?? "term",

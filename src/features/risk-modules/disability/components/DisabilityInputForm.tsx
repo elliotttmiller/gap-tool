@@ -76,7 +76,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
       </CollapsibleInputSection>
 
       {/* ── Group Long Term Disability ────────────────────────────────────── */}
-      <CollapsibleInputSection title="Group Long Term Disability (LTD)" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+      <CollapsibleInputSection title="Group Long Term Disability (LTD)" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-3">
           <div className="flex flex-col gap-2">
             <Label htmlFor="ltdCoveragePercent" className="whitespace-nowrap">Coverage %</Label>
             <Input
@@ -89,6 +89,18 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
               value={inputs.ltdCoveragePercent ? Math.round(inputs.ltdCoveragePercent * 100) : ""}
               className="w-full"
               onChange={(e) => handlePercent("ltdCoveragePercent", e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="ltdMonthlyCap" className="whitespace-nowrap">Monthly Cap</Label>
+            <Input
+              id="ltdMonthlyCap"
+              type="number"
+              min={0}
+              prefix="$"
+              value={inputs.ltdMonthlyCap || ""}
+              className="w-full"
+              onChange={(e) => handleNumber("ltdMonthlyCap", e.target.value)}
             />
           </div>
           <div className="flex flex-col gap-2">
