@@ -4,7 +4,6 @@ import type { LifeInputs, LifeAssumptions, LifeOutputs } from "@/features/risk-m
 import type { DisabilityInputs, DisabilityAssumptions, DisabilityOutputs } from "@/features/risk-modules/disability/types"
 import type { UnemploymentInputs, UnemploymentOutputs } from "@/features/risk-modules/unemployment/types"
 import type { LiabilityInputs, LiabilityOutputs } from "@/features/risk-modules/liability/types"
-import { getTotalDeathBenefit } from "@/features/risk-modules/life/utils/getTotalDeathBenefit"
 import { sanitizeLifeInputs } from "@/features/risk-modules/life/utils/sanitizeLifeInputs"
 import type {
   ClientFinancialProfile,
@@ -221,9 +220,6 @@ function prefillLifeInputs(profile: ClientFinancialProfile, clientId: string, sc
     educationGoal: profile.educationFundingGoal ?? 0,
     finalExpenses: profile.finalExpenses ?? 25000,
     liquidAssetsAllocated: profile.savingsAssets ?? 0,
-    // Income Gap Analysis defaults — prefill `assetBase` with existing death-benefit
-    // proceeds (group + private), not with investable financial assets.
-    assetBase: getTotalDeathBenefit(profile.groupLifeCoverage, profile.privateLifeCoverage),
     safeWithdrawalRate: 0.04,
     maxWithdrawalRate: 0.06,
     incomeGapRoi: 0.05,
@@ -533,15 +529,7 @@ export const useAppStore = create<AppState>()(
           const record = scenarioRecords?.life
           if (!scenarioRecords || !record) return state
           const timestamp = nowIso()
-          const sanitizedInputs = sanitizeLifeInputs(inputs)
-          const derivedCoverageFundingBase = getTotalDeathBenefit(
-            sanitizedInputs.groupLifeCoverage,
-            sanitizedInputs.privateLifeCoverage,
-          )
-          const syncedLifeInputs = {
-            ...sanitizedInputs,
-            assetBase: derivedCoverageFundingBase,
-          }
+          const syncedLifeInputs = sanitizeLifeInputs(inputs)
           const withLifeInputs: ScenarioModuleRecords = {
             ...scenarioRecords,
             life: { ...record, inputs: syncedLifeInputs, updatedAt: timestamp },

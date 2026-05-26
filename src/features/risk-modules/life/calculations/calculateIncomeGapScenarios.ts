@@ -6,7 +6,7 @@
  *
  * Module 1 — Safe Withdrawal Rate
  *   The survivor draws a FLAT annual income from existing life coverage
- *   (group + private death benefit) to retirement.
+ *   (group + private death benefit + non-qualified assets) to retirement.
  *   This uses a payout-annuity model (ordinary annuity / end-of-year payment):
  *     annualWithdrawal = coverageFundingBase × r / (1 − (1+r)^−N)
  *   where r = safeWithdrawalRate and N = yearsToRetirement.
@@ -14,7 +14,7 @@
  *   Chart: flat bars, same height every year.
  *
  * Module 2 — Max Withdrawal Rate (Filling More Bars)
- *   Existing life coverage proceeds (group + private) are invested aggressively
+ *   Existing coverage resources (group + private + non-qualified assets) are invested aggressively
  *   (at maxWithdrawalRate as annual ROI)
  *   and the survivor draws the FULL projected income each year until the balance
  *   runs out.  Covered years → tall green bars.  Gap years → empty red bars.
@@ -106,7 +106,10 @@ export function calculateIncomeGapScenarios(
   const privateLifeCoverage = nonNegative(
     requireNonNegativeNumber(inputs.privateLifeCoverage, "inputs.privateLifeCoverage")
   );
-  const coverageFundingBase = groupLifeCoverage + privateLifeCoverage;
+  const nonQualifiedAssets = nonNegative(
+    requireNonNegativeNumber(inputs.nonQualifiedAssets ?? 0, "inputs.nonQualifiedAssets")
+  );
+  const coverageFundingBase = groupLifeCoverage + privateLifeCoverage + nonQualifiedAssets;
   const safeWithdrawalRate = nonNegative(requireNonNegativeNumber(inputs.safeWithdrawalRate, "inputs.safeWithdrawalRate"));
   // maxWithdrawalRate doubles as the annual investment return on the coverage funding base
   // in Module 2's aggressive draw-down scenario.

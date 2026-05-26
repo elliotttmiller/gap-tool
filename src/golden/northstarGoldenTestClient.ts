@@ -128,7 +128,6 @@ export const northstarGoldenLifeInputs = {
   educationGoal: 80000,
   finalExpenses: 25000,
   liquidAssetsAllocated: 30000,
-  assetBase: 800000,
   safeWithdrawalRate: 0.04,
   maxWithdrawalRate: 0.06,
   incomeGapRoi: 0.05,

@@ -122,10 +122,6 @@ export function LifeInputForm({ inputs, onChange, showMaxWithdrawalRateInput = f
       </CollapsibleInputSection>
 
       <CollapsibleInputSection title="Income Gap Analysis" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4">
-          <div className="flex flex-col gap-2 sm:col-span-2">
-            <Label htmlFor="assetBase">Asset Base (Available for Income Replacement)</Label>
-            <AffixedInput id="assetBase" type="number" prefix="$" value={inputs.assetBase ?? ""} className="w-full" onChange={(e) => handleNumberChange("assetBase", e.target.value)} placeholder="Total assets at death (investments, policy value, etc.)" />
-          </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {!isMaxModule ? (
               <div className="flex flex-col gap-2">

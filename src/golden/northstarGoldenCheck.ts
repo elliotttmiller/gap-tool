@@ -117,7 +117,8 @@ function assertLifeIncomeGapOracle(
   const yearsToRetirement = Math.max(0, retirementAge - currentAge);
   const incomeGrowthRate = Math.max(0, assumptions.incomeGrowthRateAnnual);
   const roi = Math.max(0, inputs.incomeGapRoi);
-  const assetBase = Math.max(0, inputs.assetBase);
+  const coveragePool = Math.max(0, inputs.groupLifeCoverage) + Math.max(0, inputs.privateLifeCoverage);
+  const totalPool = coveragePool + Math.max(0, inputs.nonQualifiedAssets ?? 0);
   const safeWithdrawalRate = Math.max(0, inputs.safeWithdrawalRate);
   const maxWithdrawalRate = Math.max(0, inputs.maxWithdrawalRate);
   const annualBaseNeed = Math.max(
@@ -126,9 +127,9 @@ function assertLifeIncomeGapOracle(
       Math.max(0, inputs.spouseAnnualIncome)
   );
 
-  const annualSafeWD = oraclePayoutAnnuityWithdrawal(assetBase, safeWithdrawalRate, yearsToRetirement);
+  const annualSafeWD = oraclePayoutAnnuityWithdrawal(totalPool, safeWithdrawalRate, yearsToRetirement);
   let projectedNetIncomeTotal = 0;
-  let module2Balance = assetBase;
+  let module2Balance = totalPool;
   let m2TotalReplacedGreenOnly = 0;
 
   for (let i = 0; i < yearsToRetirement; i++) {
@@ -400,10 +401,10 @@ function runGoldenCheck() {
   expectThrows(
     () =>
       calculateIncomeGapScenarios(
-        { ...northstarGoldenLifeInputs, assetBase: -1 },
+        { ...northstarGoldenLifeInputs, nonQualifiedAssets: -1 },
         northstarGoldenLifeAssumptions
       ),
-    "lifeIncomeGap.strictRequired.assetBase should throw when negative"
+    "lifeIncomeGap.strictRequired.nonQualifiedAssets should throw when negative"
   );
   expectThrows(
     () =>
