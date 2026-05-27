@@ -118,6 +118,7 @@ export function DisabilityOutputView({
   const ltdDisplayMonthly = chartView === "gross" ? monthly.ltdGrossMonthly : monthly.ltdNetMonthly
   const totalDisplayMonthly = chartView === "gross" ? monthly.totalGrossMonthly : monthly.totalNetMonthly
   const incomeLossDisplayMonthly = chartView === "gross" ? monthly.incomeLossGross : monthly.incomeLossNet
+  const assumedIncomeDisplayMonthly = chartView === "gross" ? monthly.incomeGrossMonthly : monthly.incomeNetMonthly
   const assumedIncomeKey = chartView === "gross" ? "Assumed Income (Gross)" : "Assumed Income (Net)"
   const assumedIncomeLabel = chartView === "gross" ? "Assumed Income (Gross)" : "Assumed Income (Net)"
   const ltdLabel = chartView === "gross" ? "Group LTD (Gross)" : "Group LTD (Net)"
@@ -172,7 +173,7 @@ export function DisabilityOutputView({
             <span style={{ color: entry.color }} className="text-xs">{entry.name}:</span>
             <span className="text-xs font-semibold text-gray-100">
               {entry.name === "Income Gap"
-                ? `${formatCurrency(displayGap / 12)}/mo · ${formatCurrency(displayGap)}/yr`
+                ? `${formatCurrency(displayGap)}/yr · ${formatCurrency(displayGap / 12)}/mo`
                 : `${formatCurrency(entry.value)}/yr · ${formatCurrency(entry.value / 12)}/mo`}
             </span>
           </div>
@@ -328,6 +329,12 @@ export function DisabilityOutputView({
 
           <div className="module-metric-rail">
             <MetricGroup title="Monthly Benefits">
+              <ModuleMetricCard
+                label={assumedIncomeLabel}
+                value={<>{formatCurrency(assumedIncomeDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>}
+                description="Monthly income basis used for the selected view"
+                accent="slate"
+              />
               <ModuleMetricCard label={ltdLabel} value={<>{formatCurrency(ltdDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description={chartView === "gross" ? "Gross monthly LTD benefit" : "Net after-tax LTD monthly benefit"} accent="blue" />
               <ModuleMetricCard label="Individual DI" value={<>{formatCurrency(monthly.individualDIMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description="Private disability insurance benefit" accent="cyan" />
               <ModuleMetricCard label={totalBenefitLabel} value={<>{formatCurrency(totalDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description="Combined LTD + individual DI monthly benefit" accent="slate" />
