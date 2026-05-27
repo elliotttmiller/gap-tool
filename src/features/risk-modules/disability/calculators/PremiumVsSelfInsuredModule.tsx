@@ -23,6 +23,7 @@ interface PremiumVsSelfInsuredModuleProps {
   monthlyBenefit: number
   annualRateOfReturn: number
   monthsWithoutIncome: number
+  mode?: "builder" | "presentation"
   inputs?: DisabilityInputs
 }
 
@@ -146,6 +147,8 @@ function PremiumTooltip({ active, payload, label }: any) {
 }
 
 export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProps) {
+  const mode = props.mode ?? "builder"
+  const isPresentationMode = mode === "presentation"
   const [values, setValues] = useState<PremiumVsSelfInsuredState>(() => getInitialState(props))
   const [highlightMetric, setHighlightMetric] = useState<HighlightMetric>("none")
 
@@ -232,6 +235,13 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
   const breakEvenPulseClass = highlightMetric === "breakeven"
     ? "animate-pulse ring-amber-500/70 shadow-[0_0_0_1px_rgba(245,158,11,0.35)]"
     : ""
+  const disabilityBandFillOpacity = isPresentationMode ? 0.5 : 0.35
+  const riskZoneFillOpacity = isPresentationMode ? 0.3 : 0.2
+  const surplusZoneFillOpacity = isPresentationMode ? 0.22 : 0.15
+  const eventLabelColor = isPresentationMode ? "#bfdbfe" : "#93c5fd"
+  const eventLabelFontSize = isPresentationMode ? 11 : 10
+  const eventStartLabel = isPresentationMode ? "Event starts" : "Disability starts"
+  const eventEndLabel = isPresentationMode ? "Event ends" : "Disability ends"
 
   return (
     <div className="module-output-container">
@@ -291,8 +301,8 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                 <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-gray-400">
                   <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-emerald-400" />Self-insurance fund</span>
                   <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-rose-500" />Benefit needed</span>
-                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-rose-500/30" />Risk zone</span>
-                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-cyan-400/25" />Surplus zone</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-rose-500/40" />{isPresentationMode ? "Gap window" : "Risk zone"}</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-cyan-400/40" />{isPresentationMode ? "Surplus window" : "Surplus zone"}</span>
                 </div>
                 <div className="chart-reveal h-56 sm:h-64">
                   <ResponsiveContainer width="100%" height="100%" debounce={100}>
@@ -321,7 +331,7 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                           x1={0}
                           x2={durationEndMonth}
                           fill="#0f172a"
-                          fillOpacity={0.35}
+                          fillOpacity={disabilityBandFillOpacity}
                           ifOverflow="extendDomain"
                         />
                       ) : null}
@@ -341,7 +351,7 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                         stackId="risk-zone"
                         stroke="none"
                         fill="#f43f5e"
-                        fillOpacity={0.2}
+                        fillOpacity={riskZoneFillOpacity}
                         isAnimationActive
                         animationDuration={650}
                         animationEasing="ease-out"
@@ -352,7 +362,7 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                         stackId="risk-zone"
                         stroke="none"
                         fill="#22d3ee"
-                        fillOpacity={0.15}
+                        fillOpacity={surplusZoneFillOpacity}
                         isAnimationActive
                         animationDuration={650}
                         animationEasing="ease-out"
@@ -363,13 +373,13 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                             x={0}
                             stroke="#60a5fa"
                             strokeDasharray="3 3"
-                            label={{ value: "Disability starts", fill: "#93c5fd", fontSize: 10, position: "insideTopLeft" }}
+                            label={{ value: eventStartLabel, fill: eventLabelColor, fontSize: eventLabelFontSize, position: "insideTopLeft" }}
                           />
                           <ReferenceLine
                             x={durationEndMonth}
                             stroke="#60a5fa"
                             strokeDasharray="3 3"
-                            label={{ value: "Disability ends", fill: "#93c5fd", fontSize: 10, position: "insideTopRight" }}
+                            label={{ value: eventEndLabel, fill: eventLabelColor, fontSize: eventLabelFontSize, position: "insideTopRight" }}
                           />
                         </>
                       ) : null}

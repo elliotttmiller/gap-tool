@@ -190,6 +190,7 @@ export function DisabilityOutputView({
           monthlyBenefit={inputs?.privateDiBenefitMonthly ?? 0}
           annualRateOfReturn={inputs?.breakEvenRateOfReturn ?? 0.06}
           monthsWithoutIncome={inputs?.breakEvenMonthsWithoutIncome ?? 12}
+          mode={mode}
           inputs={inputs}
         />
       )
