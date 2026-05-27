@@ -34,8 +34,11 @@ export function calculateUnemploymentGap(inputs: UnemploymentInputs): Unemployme
   const totalOffsetPool = severanceTotal + unemploymentBenefitTotal;
 
   const totalExpensesDuringSearch = monthlyBurnRate * estimatedJobSearchMonths;
-  const overlapMonths = Math.min(unemploymentBenefitDurationMonths, estimatedJobSearchMonths);
-  const totalOffsetDuringSearch = monthlyOffset * overlapMonths;
+  const severanceMonthsInSearch = Math.min(severanceDurationMonths, estimatedJobSearchMonths);
+  const unemploymentMonthsInSearch = Math.min(unemploymentBenefitDurationMonths, estimatedJobSearchMonths);
+  const totalOffsetDuringSearch =
+    severanceMonthly * severanceMonthsInSearch +
+    unemploymentBenefitMonthly * unemploymentMonthsInSearch;
   const netCashNeeded = Math.max(0, totalExpensesDuringSearch - totalOffsetDuringSearch);
   const coveredBySavings = Math.min(emergencySavings, netCashNeeded);
   const remainingShortfall = Math.max(0, netCashNeeded - emergencySavings);
