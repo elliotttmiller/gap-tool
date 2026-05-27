@@ -16,6 +16,7 @@ interface ModuleMetricCardProps {
   value: ReactNode
   description?: string
   accent?: MetricCardAccent
+  className?: string
 }
 
 export function ModuleMetricCard({
@@ -23,11 +24,12 @@ export function ModuleMetricCard({
   value,
   description,
   accent = "slate",
+  className,
 }: ModuleMetricCardProps) {
   const tone = TONES[accent]
 
   return (
-    <div className={`rounded-lg border ${tone.border} bg-slate-950/60 px-3.5 py-3`}>
+    <div className={`rounded-lg border ${tone.border} bg-slate-950/60 px-3.5 py-3 ${className ?? ""}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-bold uppercase leading-snug tracking-[0.15em] text-slate-500">{label}</p>
