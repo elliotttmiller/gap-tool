@@ -487,25 +487,21 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
             <MetricCard
               label="Job A income if disabled"
               value={`${formatCurrency(jobAIncomeIfDisabled)}/yr`}
-              sub="Job A GLTD benefit / yr"
               accent="default"
             />
             <MetricCard
               label="Job B income if disabled"
               value={`${formatCurrency(jobBIncomeIfDisabled)}/yr`}
-              sub="Job B GLTD + IDI / yr"
               accent="cyan"
             />
             <MetricCard
               label="Income replacement gap if disabled"
               value={`${formatCurrency(incomeReplacementGapIfDisabled)}/yr`}
-              sub="Card 2 − Card 1"
               accent={incomeReplacementGapIfDisabled >= 0 ? "green" : "red"}
             />
             <MetricCard
               label="Annual income difference"
               value={`${formatCurrency(annualIncomeDifference)}/yr`}
-              sub="Job A income − Job B income"
               accent={annualIncomeDifference >= 0 ? "default" : "red"}
             />
           </div>
