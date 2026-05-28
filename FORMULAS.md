@@ -451,14 +451,15 @@ annualIncomeNetAtAge[year] = annualIncomeAtAge[year] × 0.70
 #### LTD Annual Benefit at Age (Projected)
 
 ```
-ltdGrossAtAge  = min(annualIncomeAtAge × coveragePercent ÷ 12, monthlyCap) × 12
-ltdNetAtAge    = ltdGrossAtAge × 0.70    (if taxable)
-ltdNetAtAge    = ltdGrossAtAge           (if not taxable)
-ltdAnnualBenefit = ltdNetAtAge × 12
+ltdGrossAtAge        = min(annualIncomeAtAge × coveragePercent ÷ 12, monthlyCap)  [monthly]
+ltdNetAtAge          = ltdGrossAtAge × 0.70    (if taxable)
+ltdNetAtAge          = ltdGrossAtAge           (if not taxable)
+ltdAnnualBenefitGross = ltdGrossAtAge × 12
+ltdAnnualBenefit      = ltdNetAtAge × 12
 ```
 
 - **Metric / Visualization:** Income Projection Chart (group LTD coverage band)
-- **Description:** Re-applies the LTD formula each year against the grown income, reflecting that group LTD tracks the client's current salary. The annual benefit is the monthly figure annualised.
+- **Description:** Re-applies the LTD formula each year against the grown income, reflecting that group LTD tracks the client's current salary. `ltdGrossAtAge` is a **monthly** figure (income ÷ 12, then capped). It is annualised in the final step by multiplying by 12.
 - **Module:** Disability Insurance
 
 ---
