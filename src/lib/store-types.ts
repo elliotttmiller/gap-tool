@@ -180,4 +180,70 @@ export interface PersistedAppData {
   moduleRecordsByScenarioId: Record<string, ScenarioModuleRecords>
   globalLifeAssumptions?: import("@/features/risk-modules/life/types").LifeAssumptions
   globalDisabilityAssumptions?: import("@/features/risk-modules/disability/types").DisabilityAssumptions
+  offensiveInputsByClientId?: Record<string, OffensiveClientInputs>
+}
+
+// ── Offensive Tool Types ──────────────────────────────────────────────────────
+
+/** Module 1 — Retirement Readiness Gap inputs */
+export interface WealthAccumulationInputs {
+  // Group A — Client Profile
+  currentAge: number
+  retirementAge: number
+  currentAnnualIncome: number
+  incomeReplacementRatio: number
+  targetRetirementIncome: number
+  useTargetRetirementIncomeOverride: boolean
+
+  // Group B — Current Financial Position
+  currentPortfolioValue: number
+  monthlyContribution: number
+  socialSecurityMonthly: number
+  pensionMonthly: number
+  otherGuaranteedMonthly: number
+
+  // Group C — Growth Assumptions
+  expectedAnnualReturn: number
+  inflationRate: number
+  useInflationAdjustment: boolean
+  retirementDurationYears: number
+
+  // Group D — Retirement Income Model
+  safeWithdrawalRate: number
+  useCustomWealthTarget: boolean
+  customWealthTarget: number
+}
+
+/** Module 2 — Investment Cost Impact inputs */
+export interface FeeDragInputs {
+  // Group A — Portfolio Basis (shared with Module 1 or standalone)
+  currentPortfolioValue: number
+  monthlyContribution: number
+  yearsToRetirement: number
+  grossMarketReturn: number
+
+  // Group B — Current Cost Structure
+  currentExpenseRatio: number
+  currentPortfolioLabel: string
+  includeTradingCosts: boolean
+  currentTurnoverRate: number
+  currentAdvisorFee: number
+
+  // Group C — Proposed Cost Structure
+  proposedExpenseRatio: number
+  proposedPortfolioLabel: string
+  proposedTurnoverRate: number
+  proposedAdvisorFee: number
+  switchingCostEstimate: number
+  safeWithdrawalRate: number
+
+  // Integration toggle
+  applyFeeOptimizationToWealthGap: boolean
+}
+
+/** All offensive inputs for a single client */
+export interface OffensiveClientInputs {
+  wealthAccumulation: WealthAccumulationInputs
+  feeDrag: FeeDragInputs
+  updatedAt: string
 }

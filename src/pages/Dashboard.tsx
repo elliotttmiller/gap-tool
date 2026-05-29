@@ -338,7 +338,13 @@ export function Dashboard() {
                 <li key={client.id} className="flex items-center gap-4 px-6 py-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="font-medium text-gray-100">{client.displayName}</p>
+                    <Link
+                      to={`/clients/${client.id}/offensive`}
+                      className="font-medium text-gray-100 transition-colors hover:text-cyan-300 hover:underline"
+                      title="Open offensive advisor"
+                    >
+                      {client.displayName}
+                    </Link>
                       <Link to={`/clients/${client.id}/overview`} title="View and edit client overview" className="rounded-md p-1 text-cyan-400 transition-colors hover:bg-cyan-950/30 hover:text-cyan-300">
                         <RiEyeLine className="size-3.5" aria-hidden="true" />
                       </Link>
