@@ -22,34 +22,30 @@ import {
 import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
 import { formatCurrency, formatPercent } from "@/lib/utils"
 import { cx } from "@/lib/utils"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { CollapsibleInputSection } from "@/components/ui/collapsible-input-section"
 
 // ── Input helpers ─────────────────────────────────────────────────────────────
 
-interface FieldProps {
-  label: string
-  children: React.ReactNode
-}
-function Field({ label, children }: FieldProps) {
+function FieldGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">{label}</label>
+    <div className="flex flex-col gap-2">
+      <Label className="whitespace-nowrap">{label}</Label>
       {children}
     </div>
   )
 }
 
-const inputClass =
-  "h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50 placeholder-gray-600 focus:border-cyan-500 focus:outline-none"
-
 // ── Currency/percent input ────────────────────────────────────────────────────
 
 function CurrencyInput({ value, onChange, placeholder }: { value: number; onChange: (v: number) => void; placeholder?: string }) {
   return (
-    <input
+    <Input
       type="number"
       min={0}
       step={1}
-      className={inputClass}
+      prefix="$"
       placeholder={placeholder ?? "0"}
       value={value === 0 ? "" : value}
       onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
@@ -59,12 +55,12 @@ function CurrencyInput({ value, onChange, placeholder }: { value: number; onChan
 
 function PercentInput({ value, onChange, min = 0, max = 100, step = 0.1 }: { value: number; onChange: (v: number) => void; min?: number; max?: number; step?: number }) {
   return (
-    <input
+    <Input
       type="number"
       min={min}
       max={max}
       step={step}
-      className={inputClass}
+      suffix="%"
       value={+(value * 100).toFixed(2) || ""}
       onChange={(e) => onChange((parseFloat(e.target.value) || 0) / 100)}
     />
@@ -73,12 +69,11 @@ function PercentInput({ value, onChange, min = 0, max = 100, step = 0.1 }: { val
 
 function IntInput({ value, onChange, min, max }: { value: number; onChange: (v: number) => void; min?: number; max?: number }) {
   return (
-    <input
+    <Input
       type="number"
       min={min}
       max={max}
       step={1}
-      className={inputClass}
       value={value || ""}
       onChange={(e) => onChange(parseInt(e.target.value, 10) || 0)}
     />
@@ -92,111 +87,107 @@ interface WealthInputFormProps {
   onChange: (inputs: WealthAccumulationInputs) => void
 }
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="pt-2 text-[10px] font-bold uppercase tracking-widest text-slate-600">{children}</p>
-  )
-}
-
 function WealthInputForm({ inputs, onChange }: WealthInputFormProps) {
   function set<K extends keyof WealthAccumulationInputs>(k: K, v: WealthAccumulationInputs[K]) {
     onChange({ ...inputs, [k]: v })
   }
 
   return (
-    <div className="space-y-4 rounded-xl border border-slate-800 bg-slate-950/60 p-4">
-      <SectionTitle>Client Profile</SectionTitle>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Current Age">
+    <div className="space-y-2">
+      <CollapsibleInputSection title="Client Profile" contentClassName="grid grid-cols-2 gap-3 px-5 pt-3 pb-4">
+        <FieldGroup label="Current Age">
           <IntInput value={inputs.currentAge} onChange={(v) => set("currentAge", v)} min={18} max={79} />
-        </Field>
-        <Field label="Retirement Age">
+        </FieldGroup>
+        <FieldGroup label="Retirement Age">
           <IntInput value={inputs.retirementAge} onChange={(v) => set("retirementAge", v)} min={inputs.currentAge + 1} max={85} />
-        </Field>
-        <Field label="Annual Income ($)">
+        </FieldGroup>
+        <FieldGroup label="Annual Income">
           <CurrencyInput value={inputs.currentAnnualIncome} onChange={(v) => set("currentAnnualIncome", v)} />
-        </Field>
-        <Field label="Income Replacement (%)">
+        </FieldGroup>
+        <FieldGroup label="Income Replacement">
           <PercentInput value={inputs.incomeReplacementRatio} onChange={(v) => set("incomeReplacementRatio", v)} min={50} max={100} />
-        </Field>
-      </div>
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="wag-override-toggle"
-          checked={inputs.useTargetRetirementIncomeOverride}
-          onChange={(e) => set("useTargetRetirementIncomeOverride", e.target.checked)}
-          className="size-4 rounded border-gray-700 bg-gray-900 accent-cyan-500"
-        />
-        <label htmlFor="wag-override-toggle" className="text-xs text-slate-400">Override: enter target income directly</label>
-      </div>
-      {inputs.useTargetRetirementIncomeOverride && (
-        <Field label="Target Annual Retirement Income ($)">
-          <CurrencyInput value={inputs.targetRetirementIncome} onChange={(v) => set("targetRetirementIncome", v)} />
-        </Field>
-      )}
+        </FieldGroup>
+        <div className="col-span-2 flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="wag-override-toggle"
+            checked={inputs.useTargetRetirementIncomeOverride}
+            onChange={(e) => set("useTargetRetirementIncomeOverride", e.target.checked)}
+            className="size-4 rounded border-gray-700 bg-gray-900 accent-cyan-500"
+          />
+          <label htmlFor="wag-override-toggle" className="text-xs text-slate-400">Override: enter target income directly</label>
+        </div>
+        {inputs.useTargetRetirementIncomeOverride && (
+          <div className="col-span-2">
+            <FieldGroup label="Target Annual Income">
+              <CurrencyInput value={inputs.targetRetirementIncome} onChange={(v) => set("targetRetirementIncome", v)} />
+            </FieldGroup>
+          </div>
+        )}
+      </CollapsibleInputSection>
 
-      <SectionTitle>Current Financial Position</SectionTitle>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Portfolio Value ($)">
+      <CollapsibleInputSection title="Financial Position" contentClassName="grid grid-cols-2 gap-3 px-5 pt-3 pb-4">
+        <FieldGroup label="Portfolio Value">
           <CurrencyInput value={inputs.currentPortfolioValue} onChange={(v) => set("currentPortfolioValue", v)} />
-        </Field>
-        <Field label="Monthly Contribution ($)">
+        </FieldGroup>
+        <FieldGroup label="Monthly Contribution">
           <CurrencyInput value={inputs.monthlyContribution} onChange={(v) => set("monthlyContribution", v)} />
-        </Field>
-        <Field label="Social Security Monthly ($)">
+        </FieldGroup>
+        <FieldGroup label="SS Monthly">
           <CurrencyInput value={inputs.socialSecurityMonthly} onChange={(v) => set("socialSecurityMonthly", v)} />
-        </Field>
-        <Field label="Pension Monthly ($)">
+        </FieldGroup>
+        <FieldGroup label="Pension Monthly">
           <CurrencyInput value={inputs.pensionMonthly} onChange={(v) => set("pensionMonthly", v)} />
-        </Field>
-        <Field label="Other Guaranteed Monthly ($)">
-          <CurrencyInput value={inputs.otherGuaranteedMonthly} onChange={(v) => set("otherGuaranteedMonthly", v)} />
-        </Field>
-      </div>
+        </FieldGroup>
+        <div className="col-span-2">
+          <FieldGroup label="Other Guaranteed">
+            <CurrencyInput value={inputs.otherGuaranteedMonthly} onChange={(v) => set("otherGuaranteedMonthly", v)} />
+          </FieldGroup>
+        </div>
+      </CollapsibleInputSection>
 
-      <SectionTitle>Growth Assumptions</SectionTitle>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Expected Return (%)">
+      <CollapsibleInputSection title="Growth Assumptions" contentClassName="grid grid-cols-2 gap-3 px-5 pt-3 pb-4">
+        <FieldGroup label="Expected Return">
           <PercentInput value={inputs.expectedAnnualReturn} onChange={(v) => set("expectedAnnualReturn", v)} min={0} max={15} />
-        </Field>
-        <Field label="Inflation Rate (%)">
+        </FieldGroup>
+        <FieldGroup label="Inflation Rate">
           <PercentInput value={inputs.inflationRate} onChange={(v) => set("inflationRate", v)} min={0} max={10} />
-        </Field>
-        <Field label="Retirement Duration (yrs)">
+        </FieldGroup>
+        <FieldGroup label="Retirement Duration">
           <IntInput value={inputs.retirementDurationYears} onChange={(v) => set("retirementDurationYears", v)} min={10} max={50} />
-        </Field>
-        <Field label="Safe Withdrawal Rate (%)">
+        </FieldGroup>
+        <FieldGroup label="Safe Withdrawal">
           <PercentInput value={inputs.safeWithdrawalRate} onChange={(v) => set("safeWithdrawalRate", Math.max(0.01, v))} min={1} max={8} />
-        </Field>
-      </div>
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="wag-inflation-toggle"
-          checked={inputs.useInflationAdjustment}
-          onChange={(e) => set("useInflationAdjustment", e.target.checked)}
-          className="size-4 rounded border-gray-700 bg-gray-900 accent-cyan-500"
-        />
-        <label htmlFor="wag-inflation-toggle" className="text-xs text-slate-400">Apply inflation adjustment to target income</label>
-      </div>
+        </FieldGroup>
+        <div className="col-span-2 flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="wag-inflation-toggle"
+            checked={inputs.useInflationAdjustment}
+            onChange={(e) => set("useInflationAdjustment", e.target.checked)}
+            className="size-4 rounded border-gray-700 bg-gray-900 accent-cyan-500"
+          />
+          <label htmlFor="wag-inflation-toggle" className="text-xs text-slate-400">Inflation adjustment on target income</label>
+        </div>
+      </CollapsibleInputSection>
 
-      <SectionTitle>Custom Wealth Target</SectionTitle>
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="wag-custom-target"
-          checked={inputs.useCustomWealthTarget}
-          onChange={(e) => set("useCustomWealthTarget", e.target.checked)}
-          className="size-4 rounded border-gray-700 bg-gray-900 accent-cyan-500"
-        />
-        <label htmlFor="wag-custom-target" className="text-xs text-slate-400">Override: enter custom wealth target</label>
-      </div>
-      {inputs.useCustomWealthTarget && (
-        <Field label="Custom Wealth Target ($)">
-          <CurrencyInput value={inputs.customWealthTarget} onChange={(v) => set("customWealthTarget", v)} />
-        </Field>
-      )}
+      <CollapsibleInputSection title="Custom Wealth Target" defaultOpen={false} contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4">
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="wag-custom-target"
+            checked={inputs.useCustomWealthTarget}
+            onChange={(e) => set("useCustomWealthTarget", e.target.checked)}
+            className="size-4 rounded border-gray-700 bg-gray-900 accent-cyan-500"
+          />
+          <label htmlFor="wag-custom-target" className="text-xs text-slate-400">Override: enter custom wealth target</label>
+        </div>
+        {inputs.useCustomWealthTarget && (
+          <FieldGroup label="Custom Wealth Target">
+            <CurrencyInput value={inputs.customWealthTarget} onChange={(v) => set("customWealthTarget", v)} />
+          </FieldGroup>
+        )}
+      </CollapsibleInputSection>
     </div>
   )
 }
@@ -593,7 +584,7 @@ export function WealthAccumulationModule({ inputs, onChange }: WealthAccumulatio
   return (
     <div
       className={cx(
-        "grid w-full min-w-0 items-start gap-5",
+        "grid w-full min-w-0 items-start gap-5 overflow-visible transition-[grid-template-columns,gap] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:gap-6",
         inputsOpen
           ? "xl:grid-cols-[minmax(20rem,22rem)_minmax(0,1fr)]"
           : "xl:grid-cols-[0rem_minmax(0,1fr)] xl:gap-x-0",
@@ -602,21 +593,28 @@ export function WealthAccumulationModule({ inputs, onChange }: WealthAccumulatio
       {/* Left: Input panel */}
       <div
         className={cx(
-          "transition-[opacity] duration-300",
-          inputsOpen ? "opacity-100" : "pointer-events-none opacity-0 xl:hidden",
+          "relative min-w-0 overflow-visible transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
         )}
       >
-        <div className="flex items-center justify-between pb-2">
-          <span className="text-xs font-semibold text-slate-500">Inputs</span>
-          <button
-            type="button"
-            onClick={() => setInputsOpen(false)}
-            className="text-[11px] text-slate-600 hover:text-slate-400"
-          >
-            Hide
-          </button>
+        <div
+          className={cx(
+            "w-full overflow-hidden transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+            inputsOpen ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-3 opacity-0",
+          )}
+          aria-hidden={!inputsOpen}
+        >
+          <div className="flex items-center justify-between pb-2">
+            <span className="text-xs font-semibold text-slate-500">Inputs</span>
+            <button
+              type="button"
+              onClick={() => setInputsOpen(false)}
+              className="text-[11px] text-slate-600 hover:text-slate-400"
+            >
+              Hide
+            </button>
+          </div>
+          <WealthInputForm inputs={inputs} onChange={onChange} />
         </div>
-        <WealthInputForm inputs={inputs} onChange={onChange} />
       </div>
 
       {/* Right: Output area */}
