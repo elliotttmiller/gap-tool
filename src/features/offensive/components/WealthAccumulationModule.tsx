@@ -133,7 +133,7 @@ function WealthInputForm({ inputs, onChange }: WealthInputFormProps) {
         <FieldGroup label="Monthly Contribution">
           <CurrencyInput value={inputs.monthlyContribution} onChange={(v) => set("monthlyContribution", v)} />
         </FieldGroup>
-        <FieldGroup label="SS Monthly">
+        <FieldGroup label="Social Security Monthly">
           <CurrencyInput value={inputs.socialSecurityMonthly} onChange={(v) => set("socialSecurityMonthly", v)} />
         </FieldGroup>
         <FieldGroup label="Pension Monthly">
@@ -167,7 +167,7 @@ function WealthInputForm({ inputs, onChange }: WealthInputFormProps) {
             onChange={(e) => set("useInflationAdjustment", e.target.checked)}
             className="size-4 rounded border-gray-700 bg-gray-900 accent-cyan-500"
           />
-          <label htmlFor="wag-inflation-toggle" className="text-xs text-slate-400">Inflation adjustment on target income</label>
+          <label htmlFor="wag-inflation-toggle" className="text-xs text-slate-400">Apply inflation adjustment</label>
         </div>
       </CollapsibleInputSection>
 

@@ -175,7 +175,7 @@ function FeeDragInputForm({ inputs, onChange }: FeeDragInputFormProps) {
             onChange={(e) => set("applyFeeOptimizationToWealthGap", e.target.checked)}
             className="size-4 rounded border-gray-700 bg-gray-900 accent-cyan-500"
           />
-          <label htmlFor="fda-apply-toggle" className="text-xs text-slate-400">Apply fee optimization to Wealth Gap module</label>
+          <label htmlFor="fda-apply-toggle" className="text-xs text-slate-400">Apply fee optimization to Wealth Gap module (Module 1)</label>
         </div>
       </CollapsibleInputSection>
     </div>
