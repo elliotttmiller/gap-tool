@@ -19,7 +19,7 @@ import {
   calculateWealthAccumulation,
   type WealthAccumulationOutputs,
 } from "../calculations/wealthAccumulationCalc"
-import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
+import { ModuleMetricCard, CompactMetric } from "@/features/risk-modules/core/ModuleMetricCard"
 import { formatCurrency, formatPercent } from "@/lib/utils"
 import { cx } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
@@ -421,6 +421,7 @@ function ActionItems({ outputs }: { outputs: WealthAccumulationOutputs }) {
 function MetricCards({ outputs }: { outputs: WealthAccumulationOutputs }) {
   const fr = outputs.fundingRatio
   const clampedFundingRatio = Math.min(fr, 2)
+  const hasGap = outputs.wealthAccumulationGap > 0
 
   return (
     <div className="space-y-3">
@@ -436,21 +437,21 @@ function MetricCards({ outputs }: { outputs: WealthAccumulationOutputs }) {
         </div>
       )}
 
-      {/* Primary headline row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {/* Hero row */}
+      <div className="grid grid-cols-3 gap-3">
         <ModuleMetricCard
-          label="Projected Wealth at Retirement"
-          value={formatCurrency(outputs.projectedWealthAtRetirement)}
-          description={`At age ${outputs.timelineData.at(-1)?.age ?? "—"}`}
+          label="Retirement Readiness"
+          value={clampedFundingRatio >= 2 ? "200%+" : formatPercent(fr)}
+          description={fr >= 1 ? "On Track" : fr >= 0.8 ? "Close — Adjust" : fr >= 0.6 ? "Behind — Act" : "Significantly Under"}
           accent={fundingColor(fr) as "green" | "amber" | "blue" | "red"}
         />
         <ModuleMetricCard
-          label="Wealth Needed at Retirement"
-          value={formatCurrency(outputs.wealthNeeded)}
-          description="Benchmark"
-          accent="slate"
+          label="Projected Wealth at Retirement"
+          value={formatCurrency(outputs.projectedWealthAtRetirement)}
+          description={`Target: ${formatCurrency(outputs.wealthNeeded)}`}
+          accent={fundingColor(fr) as "green" | "amber" | "blue" | "red"}
         />
-        {outputs.wealthAccumulationGap > 0 ? (
+        {hasGap ? (
           <ModuleMetricCard
             label="Retirement Readiness Gap"
             value={formatCurrency(outputs.wealthAccumulationGap)}
@@ -467,103 +468,44 @@ function MetricCards({ outputs }: { outputs: WealthAccumulationOutputs }) {
         )}
       </div>
 
-      {/* Readiness row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <ModuleMetricCard
-          label="Retirement Readiness"
-          value={clampedFundingRatio >= 2 ? "200%+" : formatPercent(fr)}
-          description={fr >= 1 ? "On Track" : fr >= 0.8 ? "Close — Adjust" : fr >= 0.6 ? "Behind — Act" : "Significantly Under"}
-          accent={fundingColor(fr) as "green" | "amber" | "blue" | "red"}
-        />
-        <ModuleMetricCard
-          label="Target Retirement Income"
-          value={`${formatCurrency(outputs.baseTargetIncome)}/yr`}
-          description="Today's dollars"
-          accent="slate"
-        />
-        <ModuleMetricCard
-          label="Inflation-Adjusted Target"
-          value={`${formatCurrency(outputs.inflationAdjustedTarget)}/yr`}
-          description={`At retirement (nominal)`}
-          accent="slate"
-        />
-        <ModuleMetricCard
-          label="Guaranteed Annual Income"
-          value={`${formatCurrency(outputs.derived.annualGuaranteedIncome)}/yr`}
-          description="SS + Pension + Other"
-          accent={outputs.derived.annualGuaranteedIncome > 0 ? "green" : "slate"}
-        />
-      </div>
-
-      {/* Income row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <ModuleMetricCard
-          label="Net Portfolio Income Need"
-          value={`${formatCurrency(outputs.netIncomeNeed)}/yr`}
-          description="After guaranteed income"
-          accent={outputs.netIncomeNeed > 0 ? "amber" : "green"}
-        />
-        <ModuleMetricCard
-          label="Sustainable Annual Income"
-          value={`${formatCurrency(outputs.sustainableAnnualIncome)}/yr`}
-          description="On current trajectory"
-          accent={outputs.sustainableAnnualIncome >= outputs.inflationAdjustedTarget ? "green" : outputs.sustainableAnnualIncome >= outputs.inflationAdjustedTarget * 0.8 ? "amber" : "red"}
-        />
-        {outputs.retirementIncomeGap > 0 && (
-          <ModuleMetricCard
-            label="Annual Income Shortfall"
-            value={`${formatCurrency(outputs.retirementIncomeGap)}/yr`}
-            description="Annual gap in retirement"
-            accent="red"
+      {/* Compact details panel */}
+      <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+        <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-600">Details</p>
+        <div className="grid grid-cols-2 gap-x-8 sm:grid-cols-3">
+          <CompactMetric label="Target Income" value={`${formatCurrency(outputs.baseTargetIncome)}/yr`} />
+          <CompactMetric label="Inflation-Adj Target" value={`${formatCurrency(outputs.inflationAdjustedTarget)}/yr`} />
+          <CompactMetric
+            label="Guaranteed Income"
+            value={`${formatCurrency(outputs.derived.annualGuaranteedIncome)}/yr`}
+            accent={outputs.derived.annualGuaranteedIncome > 0 ? "green" : "slate"}
           />
-        )}
-      </div>
-
-      {/* Action row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <ModuleMetricCard
-          label="Additional Monthly Savings"
-          value={`${formatCurrency(outputs.additionalMonthlyNeeded)}/mo`}
-          description="To close the gap"
-          accent={outputs.additionalMonthlyNeeded > 0 ? "red" : "green"}
-        />
-        <ModuleMetricCard
-          label="Total Monthly Savings Needed"
-          value={`${formatCurrency(outputs.totalMonthlyRequired)}/mo`}
-          accent="slate"
-        />
-        <ModuleMetricCard
-          label="Cost of 1-Year Delay"
-          value={`+${formatCurrency(outputs.costOfDelay)}/mo`}
-          description="If action delayed 1 year"
-          accent="red"
-        />
-      </div>
-
-      {/* Savings rate row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <ModuleMetricCard
-          label="Current Savings Rate"
-          value={formatPercent(outputs.currentSavingsRate)}
-          accent={savingsRateColor(outputs.currentSavingsRate) as "green" | "amber" | "red"}
-        />
-        <ModuleMetricCard
-          label="Required Savings Rate"
-          value={formatPercent(outputs.requiredSavingsRate)}
-          accent={outputs.requiredSavingsRate > outputs.currentSavingsRate ? "red" : "green"}
-        />
-        <ModuleMetricCard
-          label="Future Value — Current Portfolio"
-          value={formatCurrency(outputs.portfolioFV)}
-          description="Existing assets compounded"
-          accent="slate"
-        />
-        <ModuleMetricCard
-          label="Future Value — Contributions"
-          value={formatCurrency(outputs.contributionsFV)}
-          description="Ongoing contributions only"
-          accent="slate"
-        />
+          <CompactMetric label="Net Portfolio Need" value={`${formatCurrency(outputs.netIncomeNeed)}/yr`} />
+          <CompactMetric
+            label="Sustainable Income"
+            value={`${formatCurrency(outputs.sustainableAnnualIncome)}/yr`}
+            accent={outputs.sustainableAnnualIncome >= outputs.inflationAdjustedTarget ? "green" : outputs.sustainableAnnualIncome >= outputs.inflationAdjustedTarget * 0.8 ? "amber" : "red"}
+          />
+          {outputs.retirementIncomeGap > 0 && (
+            <CompactMetric label="Annual Shortfall" value={`${formatCurrency(outputs.retirementIncomeGap)}/yr`} accent="red" />
+          )}
+          <CompactMetric
+            label="Additional Monthly"
+            value={`${formatCurrency(outputs.additionalMonthlyNeeded)}/mo`}
+            accent={outputs.additionalMonthlyNeeded > 0 ? "red" : "green"}
+          />
+          <CompactMetric label="Total Monthly Needed" value={`${formatCurrency(outputs.totalMonthlyRequired)}/mo`} />
+          <CompactMetric label="Cost of 1-Yr Delay" value={`+${formatCurrency(outputs.costOfDelay)}/mo`} accent="red" />
+          <CompactMetric
+            label="Current Savings Rate"
+            value={formatPercent(outputs.currentSavingsRate)}
+            accent={savingsRateColor(outputs.currentSavingsRate) as "green" | "amber" | "red"}
+          />
+          <CompactMetric
+            label="Required Savings Rate"
+            value={formatPercent(outputs.requiredSavingsRate)}
+            accent={outputs.requiredSavingsRate > outputs.currentSavingsRate ? "red" : "green"}
+          />
+        </div>
       </div>
     </div>
   )

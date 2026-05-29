@@ -14,7 +14,7 @@ import {
 } from "recharts"
 import type { FeeDragInputs } from "@/lib/store-types"
 import { calculateFeeDrag, type FeeDragOutputs } from "../calculations/feeDragCalc"
-import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
+import { ModuleMetricCard, CompactMetric } from "@/features/risk-modules/core/ModuleMetricCard"
 import { formatCurrency, formatPercent } from "@/lib/utils"
 import { cx } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
@@ -459,12 +459,12 @@ function MetricCards({ outputs, inputs }: { outputs: FeeDragOutputs; inputs: Fee
         </div>
       )}
 
-      {/* Headline row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {/* Hero row */}
+      <div className="grid grid-cols-3 gap-3">
         <ModuleMetricCard
           label="Total Investment Cost Impact"
           value={formatCurrency(outputs.feeDragCost)}
-          description={`Lifetime wealth destroyed by current costs`}
+          description="Lifetime wealth destroyed by current costs"
           accent="red"
         />
         <ModuleMetricCard
@@ -481,93 +481,28 @@ function MetricCards({ outputs, inputs }: { outputs: FeeDragOutputs; inputs: Fee
         />
       </div>
 
-      {/* Secondary metrics */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <ModuleMetricCard
-          label="Investment Cost as % of Wealth"
-          value={formatPercent(outputs.feeDragPercentage)}
-          description="Of max achievable wealth"
-          accent="red"
-        />
-        <ModuleMetricCard
-          label="Annual Income Lost to Fees"
-          value={`${formatCurrency(outputs.retirementIncomeLost)}/yr`}
-          description="Retirement income equivalent"
-          accent={outputs.retirementIncomeLost > 0 ? "red" : "slate"}
-        />
-        <ModuleMetricCard
-          label="Net Return Improvement"
-          value={`+${formatPercent(outputs.returnDelta)}/yr`}
-          description="From optimization"
-          accent="green"
-        />
-        {outputs.breakEvenYear !== null && inputs.switchingCostEstimate > 0 && (
-          <ModuleMetricCard
-            label="Break-Even Year"
-            value={`Year ${outputs.breakEvenYear} (Age ${outputs.breakEvenAge})`}
-            description="Fee savings exceed transition cost"
-            accent={outputs.breakEvenYear <= 3 ? "green" : "amber"}
-          />
-        )}
-      </div>
-
-      {/* Cost rate row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <ModuleMetricCard
-          label="Current All-In Cost"
-          value={formatPercent(outputs.currentEffectiveCost)}
-          description="Expense + fee + trading"
-          accent={costRateColor(outputs.currentEffectiveCost)}
-        />
-        <ModuleMetricCard
-          label="Proposed All-In Cost"
-          value={formatPercent(outputs.proposedEffectiveCost)}
-          description="Including advisor fee"
-          accent={outputs.proposedEffectiveCost < 0.0075 ? "green" : "amber"}
-        />
-        <ModuleMetricCard
-          label="Current Net Return"
-          value={formatPercent(outputs.currentNetReturn)}
-          accent="slate"
-        />
-        <ModuleMetricCard
-          label="Proposed Net Return"
-          value={formatPercent(outputs.proposedNetReturn)}
-          accent="slate"
-        />
-      </div>
-
-      {/* Year 1 savings row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <ModuleMetricCard
-          label="Year 1 Annual Savings"
-          value={`${formatCurrency(outputs.annualFeeSavings)}/yr`}
-          accent={outputs.annualFeeSavings > 0 ? "green" : "slate"}
-        />
-        <ModuleMetricCard
-          label="Current Annual Cost (Year 1)"
-          value={`${formatCurrency(outputs.currentAnnualFeeCost)}/yr`}
-          accent="red"
-        />
-        <ModuleMetricCard
-          label="Proposed Annual Cost (Year 1)"
-          value={`${formatCurrency(outputs.proposedAnnualFeeCost)}/yr`}
-          accent="green"
-        />
-      </div>
-
-      {/* Expense ratios row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-2">
-        <ModuleMetricCard
-          label="Current Expense Ratio"
-          value={formatPercent(inputs.currentExpenseRatio)}
-          accent={costRateColor(inputs.currentExpenseRatio)}
-        />
-        <ModuleMetricCard
-          label="Proposed Expense Ratio"
-          value={formatPercent(inputs.proposedExpenseRatio)}
-          accent="green"
-        />
+      {/* Compact details panel */}
+      <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+        <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-600">Details</p>
+        <div className="grid grid-cols-2 gap-x-8 sm:grid-cols-3">
+          <CompactMetric label="Current All-In Cost" value={formatPercent(outputs.currentEffectiveCost)} accent={costRateColor(outputs.currentEffectiveCost)} />
+          <CompactMetric label="Proposed All-In Cost" value={formatPercent(outputs.proposedEffectiveCost)} accent={outputs.proposedEffectiveCost < 0.0075 ? "green" : "amber"} />
+          <CompactMetric label="Net Return Improvement" value={`+${formatPercent(outputs.returnDelta)}/yr`} accent="green" />
+          <CompactMetric label="Current Net Return" value={formatPercent(outputs.currentNetReturn)} />
+          <CompactMetric label="Proposed Net Return" value={formatPercent(outputs.proposedNetReturn)} />
+          <CompactMetric label="Cost as % of Wealth" value={formatPercent(outputs.feeDragPercentage)} accent="red" />
+          <CompactMetric label="Annual Income Lost" value={`${formatCurrency(outputs.retirementIncomeLost)}/yr`} accent={outputs.retirementIncomeLost > 0 ? "red" : "slate"} />
+          <CompactMetric label="Year 1 Savings" value={`${formatCurrency(outputs.annualFeeSavings)}/yr`} accent={outputs.annualFeeSavings > 0 ? "green" : "slate"} />
+          {outputs.breakEvenYear !== null && inputs.switchingCostEstimate > 0 && (
+            <CompactMetric
+              label="Break-Even"
+              value={`Yr ${outputs.breakEvenYear} (Age ${outputs.breakEvenAge})`}
+              accent={outputs.breakEvenYear <= 3 ? "green" : "amber"}
+            />
+          )}
+          <CompactMetric label="Current Expense Ratio" value={formatPercent(inputs.currentExpenseRatio)} accent={costRateColor(inputs.currentExpenseRatio)} />
+          <CompactMetric label="Proposed Expense Ratio" value={formatPercent(inputs.proposedExpenseRatio)} accent="green" />
+        </div>
       </div>
     </div>
   )

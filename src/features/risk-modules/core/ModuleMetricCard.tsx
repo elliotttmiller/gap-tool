@@ -60,3 +60,28 @@ export function MetricGroup({ children }: MetricGroupProps) {
 export function MetricGroupDivider() {
   return <div className="my-1 border-t border-slate-800/50" />
 }
+
+// ── Compact inline metric row ─────────────────────────────────────────────────
+
+interface CompactMetricProps {
+  label: string
+  value: string
+  accent?: MetricCardAccent
+}
+
+export function CompactMetric({ label, value, accent = "slate" }: CompactMetricProps) {
+  const valueColor: Record<MetricCardAccent, string> = {
+    slate: "text-slate-200",
+    green: "text-emerald-300",
+    red:   "text-rose-300",
+    cyan:  "text-cyan-300",
+    amber: "text-amber-300",
+    blue:  "text-blue-300",
+  }
+  return (
+    <div className="flex items-baseline justify-between gap-2 border-b border-slate-800/40 py-1.5 last:border-0">
+      <span className="text-[11px] text-slate-500">{label}</span>
+      <span className={`text-xs font-semibold tabular-nums ${valueColor[accent]}`}>{value}</span>
+    </div>
+  )
+}
