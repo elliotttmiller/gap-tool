@@ -14,35 +14,31 @@ import {
 } from "recharts"
 import type { FeeDragInputs } from "@/lib/store-types"
 import { calculateFeeDrag, type FeeDragOutputs } from "../calculations/feeDragCalc"
-import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
+import { ModuleMetricCard, CompactMetric } from "@/features/risk-modules/core/ModuleMetricCard"
 import { formatCurrency, formatPercent } from "@/lib/utils"
 import { cx } from "@/lib/utils"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { CollapsibleInputSection } from "@/components/ui/collapsible-input-section"
 
 // ── Input helpers ─────────────────────────────────────────────────────────────
 
-interface FieldProps {
-  label: string
-  children: React.ReactNode
-}
-function Field({ label, children }: FieldProps) {
+function FieldGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">{label}</label>
+    <div className="flex flex-col gap-2">
+      <Label className="whitespace-nowrap">{label}</Label>
       {children}
     </div>
   )
 }
 
-const inputClass =
-  "h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50 placeholder-gray-600 focus:border-cyan-500 focus:outline-none"
-
 function CurrencyInput({ value, onChange, placeholder }: { value: number; onChange: (v: number) => void; placeholder?: string }) {
   return (
-    <input
+    <Input
       type="number"
       min={0}
       step={1}
-      className={inputClass}
+      prefix="$"
       placeholder={placeholder ?? "0"}
       value={value === 0 ? "" : value}
       onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
@@ -52,12 +48,12 @@ function CurrencyInput({ value, onChange, placeholder }: { value: number; onChan
 
 function PercentInput({ value, onChange, min = 0, max = 300, step = 0.01 }: { value: number; onChange: (v: number) => void; min?: number; max?: number; step?: number }) {
   return (
-    <input
+    <Input
       type="number"
       min={min}
       max={max}
       step={step}
-      className={inputClass}
+      suffix="%"
       value={+(value * 100).toFixed(4) || ""}
       onChange={(e) => onChange((parseFloat(e.target.value) || 0) / 100)}
     />
@@ -66,12 +62,11 @@ function PercentInput({ value, onChange, min = 0, max = 300, step = 0.01 }: { va
 
 function IntInput({ value, onChange, min, max }: { value: number; onChange: (v: number) => void; min?: number; max?: number }) {
   return (
-    <input
+    <Input
       type="number"
       min={min}
       max={max}
       step={1}
-      className={inputClass}
       value={value || ""}
       onChange={(e) => onChange(parseInt(e.target.value, 10) || 0)}
     />
@@ -80,18 +75,11 @@ function IntInput({ value, onChange, min, max }: { value: number; onChange: (v: 
 
 function TextInputField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <input
+    <Input
       type="text"
-      className={inputClass}
       value={value}
       onChange={(e) => onChange(e.target.value)}
     />
-  )
-}
-
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="pt-2 text-[10px] font-bold uppercase tracking-widest text-slate-600">{children}</p>
   )
 }
 
@@ -108,82 +96,88 @@ function FeeDragInputForm({ inputs, onChange }: FeeDragInputFormProps) {
   }
 
   return (
-    <div className="space-y-4 rounded-xl border border-slate-800 bg-slate-950/60 p-4">
-      <SectionTitle>Portfolio Basis</SectionTitle>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Portfolio Value ($)">
+    <div className="space-y-2">
+      <CollapsibleInputSection title="Portfolio Basis" contentClassName="grid grid-cols-2 gap-3 px-5 pt-3 pb-4">
+        <FieldGroup label="Portfolio Value">
           <CurrencyInput value={inputs.currentPortfolioValue} onChange={(v) => set("currentPortfolioValue", v)} />
-        </Field>
-        <Field label="Monthly Contribution ($)">
+        </FieldGroup>
+        <FieldGroup label="Monthly Contribution">
           <CurrencyInput value={inputs.monthlyContribution} onChange={(v) => set("monthlyContribution", v)} />
-        </Field>
-        <Field label="Years to Retirement">
+        </FieldGroup>
+        <FieldGroup label="Years to Retirement">
           <IntInput value={inputs.yearsToRetirement} onChange={(v) => set("yearsToRetirement", Math.max(1, v))} min={1} max={60} />
-        </Field>
-        <Field label="Gross Market Return (%)">
+        </FieldGroup>
+        <FieldGroup label="Market Return">
           <PercentInput value={inputs.grossMarketReturn} onChange={(v) => set("grossMarketReturn", v)} min={0} max={15} />
-        </Field>
-      </div>
+        </FieldGroup>
+      </CollapsibleInputSection>
 
-      <SectionTitle>Current Cost Structure</SectionTitle>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Portfolio Label">
-          <TextInputField value={inputs.currentPortfolioLabel} onChange={(v) => set("currentPortfolioLabel", v)} />
-        </Field>
-        <Field label="Expense Ratio (%)">
+      <CollapsibleInputSection title="Current Cost Structure" contentClassName="grid grid-cols-2 gap-3 px-5 pt-3 pb-4">
+        <div className="col-span-2">
+          <FieldGroup label="Portfolio Label">
+            <TextInputField value={inputs.currentPortfolioLabel} onChange={(v) => set("currentPortfolioLabel", v)} />
+          </FieldGroup>
+        </div>
+        <FieldGroup label="Expense Ratio">
           <PercentInput value={inputs.currentExpenseRatio} onChange={(v) => set("currentExpenseRatio", v)} min={0} max={3} />
-        </Field>
-        <Field label="Advisor Fee (%)">
+        </FieldGroup>
+        <FieldGroup label="Advisor Fee">
           <PercentInput value={inputs.currentAdvisorFee} onChange={(v) => set("currentAdvisorFee", v)} min={0} max={3} />
-        </Field>
-        <Field label="Annual Turnover Rate (%)">
-          <PercentInput value={inputs.currentTurnoverRate} onChange={(v) => set("currentTurnoverRate", v)} min={0} max={200} />
-        </Field>
-      </div>
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="fda-trading-toggle"
-          checked={inputs.includeTradingCosts}
-          onChange={(e) => set("includeTradingCosts", e.target.checked)}
-          className="size-4 rounded border-gray-700 bg-gray-900 accent-cyan-500"
-        />
-        <label htmlFor="fda-trading-toggle" className="text-xs text-slate-400">Include trading cost drag estimate</label>
-      </div>
+        </FieldGroup>
+        <div className="col-span-2">
+          <FieldGroup label="Annual Turnover">
+            <PercentInput value={inputs.currentTurnoverRate} onChange={(v) => set("currentTurnoverRate", v)} min={0} max={200} />
+          </FieldGroup>
+        </div>
+        <div className="col-span-2 flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="fda-trading-toggle"
+            checked={inputs.includeTradingCosts}
+            onChange={(e) => set("includeTradingCosts", e.target.checked)}
+            className="size-4 rounded border-gray-700 bg-gray-900 accent-cyan-500"
+          />
+          <label htmlFor="fda-trading-toggle" className="text-xs text-slate-400">Include trading cost drag estimate</label>
+        </div>
+      </CollapsibleInputSection>
 
-      <SectionTitle>Proposed Cost Structure</SectionTitle>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Portfolio Label">
-          <TextInputField value={inputs.proposedPortfolioLabel} onChange={(v) => set("proposedPortfolioLabel", v)} />
-        </Field>
-        <Field label="Expense Ratio (%)">
+      <CollapsibleInputSection title="Proposed Cost Structure" contentClassName="grid grid-cols-2 gap-3 px-5 pt-3 pb-4">
+        <div className="col-span-2">
+          <FieldGroup label="Portfolio Label">
+            <TextInputField value={inputs.proposedPortfolioLabel} onChange={(v) => set("proposedPortfolioLabel", v)} />
+          </FieldGroup>
+        </div>
+        <FieldGroup label="Expense Ratio">
           <PercentInput value={inputs.proposedExpenseRatio} onChange={(v) => set("proposedExpenseRatio", v)} min={0} max={3} />
-        </Field>
-        <Field label="Advisor Fee (%)">
+        </FieldGroup>
+        <FieldGroup label="Advisor Fee">
           <PercentInput value={inputs.proposedAdvisorFee} onChange={(v) => set("proposedAdvisorFee", v)} min={0} max={3} />
-        </Field>
-        <Field label="Annual Turnover Rate (%)">
+        </FieldGroup>
+        <FieldGroup label="Annual Turnover">
           <PercentInput value={inputs.proposedTurnoverRate} onChange={(v) => set("proposedTurnoverRate", v)} min={0} max={200} />
-        </Field>
-        <Field label="Switching Cost / Tax ($)">
-          <CurrencyInput value={inputs.switchingCostEstimate} onChange={(v) => set("switchingCostEstimate", v)} />
-        </Field>
-        <Field label="Safe Withdrawal Rate (%)">
+        </FieldGroup>
+        <FieldGroup label="Safe Withdrawal">
           <PercentInput value={inputs.safeWithdrawalRate} onChange={(v) => set("safeWithdrawalRate", Math.max(0.01, v))} min={1} max={8} />
-        </Field>
-      </div>
+        </FieldGroup>
+        <div className="col-span-2">
+          <FieldGroup label="Switching Cost">
+            <CurrencyInput value={inputs.switchingCostEstimate} onChange={(v) => set("switchingCostEstimate", v)} />
+          </FieldGroup>
+        </div>
+      </CollapsibleInputSection>
 
-      <SectionTitle>Integration</SectionTitle>
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="fda-apply-toggle"
-          checked={inputs.applyFeeOptimizationToWealthGap}
-          onChange={(e) => set("applyFeeOptimizationToWealthGap", e.target.checked)}
-          className="size-4 rounded border-gray-700 bg-gray-900 accent-cyan-500"
-        />
-        <label htmlFor="fda-apply-toggle" className="text-xs text-slate-400">Apply fee optimization to Wealth Gap module (Module 1)</label>
-      </div>
+      <CollapsibleInputSection title="Integration" defaultOpen={false} contentClassName="px-5 pt-3 pb-4">
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="fda-apply-toggle"
+            checked={inputs.applyFeeOptimizationToWealthGap}
+            onChange={(e) => set("applyFeeOptimizationToWealthGap", e.target.checked)}
+            className="size-4 rounded border-gray-700 bg-gray-900 accent-cyan-500"
+          />
+          <label htmlFor="fda-apply-toggle" className="text-xs text-slate-400">Apply fee optimization to Wealth Gap module (Module 1)</label>
+        </div>
+      </CollapsibleInputSection>
     </div>
   )
 }
@@ -465,12 +459,12 @@ function MetricCards({ outputs, inputs }: { outputs: FeeDragOutputs; inputs: Fee
         </div>
       )}
 
-      {/* Headline row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {/* Hero row */}
+      <div className="grid grid-cols-3 gap-3">
         <ModuleMetricCard
           label="Total Investment Cost Impact"
           value={formatCurrency(outputs.feeDragCost)}
-          description={`Lifetime wealth destroyed by current costs`}
+          description="Lifetime wealth destroyed by current costs"
           accent="red"
         />
         <ModuleMetricCard
@@ -487,93 +481,28 @@ function MetricCards({ outputs, inputs }: { outputs: FeeDragOutputs; inputs: Fee
         />
       </div>
 
-      {/* Secondary metrics */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <ModuleMetricCard
-          label="Investment Cost as % of Wealth"
-          value={formatPercent(outputs.feeDragPercentage)}
-          description="Of max achievable wealth"
-          accent="red"
-        />
-        <ModuleMetricCard
-          label="Annual Income Lost to Fees"
-          value={`${formatCurrency(outputs.retirementIncomeLost)}/yr`}
-          description="Retirement income equivalent"
-          accent={outputs.retirementIncomeLost > 0 ? "red" : "slate"}
-        />
-        <ModuleMetricCard
-          label="Net Return Improvement"
-          value={`+${formatPercent(outputs.returnDelta)}/yr`}
-          description="From optimization"
-          accent="green"
-        />
-        {outputs.breakEvenYear !== null && inputs.switchingCostEstimate > 0 && (
-          <ModuleMetricCard
-            label="Break-Even Year"
-            value={`Year ${outputs.breakEvenYear} (Age ${outputs.breakEvenAge})`}
-            description="Fee savings exceed transition cost"
-            accent={outputs.breakEvenYear <= 3 ? "green" : "amber"}
-          />
-        )}
-      </div>
-
-      {/* Cost rate row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <ModuleMetricCard
-          label="Current All-In Cost"
-          value={formatPercent(outputs.currentEffectiveCost)}
-          description="Expense + fee + trading"
-          accent={costRateColor(outputs.currentEffectiveCost)}
-        />
-        <ModuleMetricCard
-          label="Proposed All-In Cost"
-          value={formatPercent(outputs.proposedEffectiveCost)}
-          description="Including advisor fee"
-          accent={outputs.proposedEffectiveCost < 0.0075 ? "green" : "amber"}
-        />
-        <ModuleMetricCard
-          label="Current Net Return"
-          value={formatPercent(outputs.currentNetReturn)}
-          accent="slate"
-        />
-        <ModuleMetricCard
-          label="Proposed Net Return"
-          value={formatPercent(outputs.proposedNetReturn)}
-          accent="slate"
-        />
-      </div>
-
-      {/* Year 1 savings row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <ModuleMetricCard
-          label="Year 1 Annual Savings"
-          value={`${formatCurrency(outputs.annualFeeSavings)}/yr`}
-          accent={outputs.annualFeeSavings > 0 ? "green" : "slate"}
-        />
-        <ModuleMetricCard
-          label="Current Annual Cost (Year 1)"
-          value={`${formatCurrency(outputs.currentAnnualFeeCost)}/yr`}
-          accent="red"
-        />
-        <ModuleMetricCard
-          label="Proposed Annual Cost (Year 1)"
-          value={`${formatCurrency(outputs.proposedAnnualFeeCost)}/yr`}
-          accent="green"
-        />
-      </div>
-
-      {/* Expense ratios row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-2">
-        <ModuleMetricCard
-          label="Current Expense Ratio"
-          value={formatPercent(inputs.currentExpenseRatio)}
-          accent={costRateColor(inputs.currentExpenseRatio)}
-        />
-        <ModuleMetricCard
-          label="Proposed Expense Ratio"
-          value={formatPercent(inputs.proposedExpenseRatio)}
-          accent="green"
-        />
+      {/* Compact details panel */}
+      <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+        <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-600">Details</p>
+        <div className="grid grid-cols-2 gap-x-8 sm:grid-cols-3">
+          <CompactMetric label="Current All-In Cost" value={formatPercent(outputs.currentEffectiveCost)} accent={costRateColor(outputs.currentEffectiveCost)} />
+          <CompactMetric label="Proposed All-In Cost" value={formatPercent(outputs.proposedEffectiveCost)} accent={outputs.proposedEffectiveCost < 0.0075 ? "green" : "amber"} />
+          <CompactMetric label="Net Return Improvement" value={`+${formatPercent(outputs.returnDelta)}/yr`} accent="green" />
+          <CompactMetric label="Current Net Return" value={formatPercent(outputs.currentNetReturn)} />
+          <CompactMetric label="Proposed Net Return" value={formatPercent(outputs.proposedNetReturn)} />
+          <CompactMetric label="Cost as % of Wealth" value={formatPercent(outputs.feeDragPercentage)} accent="red" />
+          <CompactMetric label="Annual Income Lost" value={`${formatCurrency(outputs.retirementIncomeLost)}/yr`} accent={outputs.retirementIncomeLost > 0 ? "red" : "slate"} />
+          <CompactMetric label="Year 1 Savings" value={`${formatCurrency(outputs.annualFeeSavings)}/yr`} accent={outputs.annualFeeSavings > 0 ? "green" : "slate"} />
+          {outputs.breakEvenYear !== null && inputs.switchingCostEstimate > 0 && (
+            <CompactMetric
+              label="Break-Even"
+              value={`Yr ${outputs.breakEvenYear} (Age ${outputs.breakEvenAge})`}
+              accent={outputs.breakEvenYear <= 3 ? "green" : "amber"}
+            />
+          )}
+          <CompactMetric label="Current Expense Ratio" value={formatPercent(inputs.currentExpenseRatio)} accent={costRateColor(inputs.currentExpenseRatio)} />
+          <CompactMetric label="Proposed Expense Ratio" value={formatPercent(inputs.proposedExpenseRatio)} accent="green" />
+        </div>
       </div>
     </div>
   )
@@ -595,7 +524,7 @@ export function FeeDragModule({ inputs, onChange, wealthAccumulationGap }: FeeDr
   return (
     <div
       className={cx(
-        "grid w-full min-w-0 items-start gap-5",
+        "grid w-full min-w-0 items-start gap-5 overflow-visible transition-[grid-template-columns,gap] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:gap-6",
         inputsOpen
           ? "xl:grid-cols-[minmax(20rem,22rem)_minmax(0,1fr)]"
           : "xl:grid-cols-[0rem_minmax(0,1fr)] xl:gap-x-0",
@@ -604,21 +533,28 @@ export function FeeDragModule({ inputs, onChange, wealthAccumulationGap }: FeeDr
       {/* Left: Input panel */}
       <div
         className={cx(
-          "transition-[opacity] duration-300",
-          inputsOpen ? "opacity-100" : "pointer-events-none opacity-0 xl:hidden",
+          "relative min-w-0 overflow-visible transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
         )}
       >
-        <div className="flex items-center justify-between pb-2">
-          <span className="text-xs font-semibold text-slate-500">Inputs</span>
-          <button
-            type="button"
-            onClick={() => setInputsOpen(false)}
-            className="text-[11px] text-slate-600 hover:text-slate-400"
-          >
-            Hide
-          </button>
+        <div
+          className={cx(
+            "w-full overflow-hidden transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+            inputsOpen ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-3 opacity-0",
+          )}
+          aria-hidden={!inputsOpen}
+        >
+          <div className="flex items-center justify-between pb-2">
+            <span className="text-xs font-semibold text-slate-500">Inputs</span>
+            <button
+              type="button"
+              onClick={() => setInputsOpen(false)}
+              className="text-[11px] text-slate-600 hover:text-slate-400"
+            >
+              Hide
+            </button>
+          </div>
+          <FeeDragInputForm inputs={inputs} onChange={onChange} />
         </div>
-        <FeeDragInputForm inputs={inputs} onChange={onChange} />
       </div>
 
       {/* Right: Output area */}

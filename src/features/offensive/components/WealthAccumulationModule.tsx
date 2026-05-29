@@ -19,37 +19,33 @@ import {
   calculateWealthAccumulation,
   type WealthAccumulationOutputs,
 } from "../calculations/wealthAccumulationCalc"
-import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
+import { ModuleMetricCard, CompactMetric } from "@/features/risk-modules/core/ModuleMetricCard"
 import { formatCurrency, formatPercent } from "@/lib/utils"
 import { cx } from "@/lib/utils"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { CollapsibleInputSection } from "@/components/ui/collapsible-input-section"
 
 // ── Input helpers ─────────────────────────────────────────────────────────────
 
-interface FieldProps {
-  label: string
-  children: React.ReactNode
-}
-function Field({ label, children }: FieldProps) {
+function FieldGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">{label}</label>
+    <div className="flex flex-col gap-2">
+      <Label className="whitespace-nowrap">{label}</Label>
       {children}
     </div>
   )
 }
 
-const inputClass =
-  "h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50 placeholder-gray-600 focus:border-cyan-500 focus:outline-none"
-
 // ── Currency/percent input ────────────────────────────────────────────────────
 
 function CurrencyInput({ value, onChange, placeholder }: { value: number; onChange: (v: number) => void; placeholder?: string }) {
   return (
-    <input
+    <Input
       type="number"
       min={0}
       step={1}
-      className={inputClass}
+      prefix="$"
       placeholder={placeholder ?? "0"}
       value={value === 0 ? "" : value}
       onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
@@ -59,12 +55,12 @@ function CurrencyInput({ value, onChange, placeholder }: { value: number; onChan
 
 function PercentInput({ value, onChange, min = 0, max = 100, step = 0.1 }: { value: number; onChange: (v: number) => void; min?: number; max?: number; step?: number }) {
   return (
-    <input
+    <Input
       type="number"
       min={min}
       max={max}
       step={step}
-      className={inputClass}
+      suffix="%"
       value={+(value * 100).toFixed(2) || ""}
       onChange={(e) => onChange((parseFloat(e.target.value) || 0) / 100)}
     />
@@ -73,12 +69,11 @@ function PercentInput({ value, onChange, min = 0, max = 100, step = 0.1 }: { val
 
 function IntInput({ value, onChange, min, max }: { value: number; onChange: (v: number) => void; min?: number; max?: number }) {
   return (
-    <input
+    <Input
       type="number"
       min={min}
       max={max}
       step={1}
-      className={inputClass}
       value={value || ""}
       onChange={(e) => onChange(parseInt(e.target.value, 10) || 0)}
     />
@@ -92,111 +87,107 @@ interface WealthInputFormProps {
   onChange: (inputs: WealthAccumulationInputs) => void
 }
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="pt-2 text-[10px] font-bold uppercase tracking-widest text-slate-600">{children}</p>
-  )
-}
-
 function WealthInputForm({ inputs, onChange }: WealthInputFormProps) {
   function set<K extends keyof WealthAccumulationInputs>(k: K, v: WealthAccumulationInputs[K]) {
     onChange({ ...inputs, [k]: v })
   }
 
   return (
-    <div className="space-y-4 rounded-xl border border-slate-800 bg-slate-950/60 p-4">
-      <SectionTitle>Client Profile</SectionTitle>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Current Age">
+    <div className="space-y-2">
+      <CollapsibleInputSection title="Client Profile" contentClassName="grid grid-cols-2 gap-3 px-5 pt-3 pb-4">
+        <FieldGroup label="Current Age">
           <IntInput value={inputs.currentAge} onChange={(v) => set("currentAge", v)} min={18} max={79} />
-        </Field>
-        <Field label="Retirement Age">
+        </FieldGroup>
+        <FieldGroup label="Retirement Age">
           <IntInput value={inputs.retirementAge} onChange={(v) => set("retirementAge", v)} min={inputs.currentAge + 1} max={85} />
-        </Field>
-        <Field label="Annual Income ($)">
+        </FieldGroup>
+        <FieldGroup label="Annual Income">
           <CurrencyInput value={inputs.currentAnnualIncome} onChange={(v) => set("currentAnnualIncome", v)} />
-        </Field>
-        <Field label="Income Replacement (%)">
+        </FieldGroup>
+        <FieldGroup label="Income Replacement">
           <PercentInput value={inputs.incomeReplacementRatio} onChange={(v) => set("incomeReplacementRatio", v)} min={50} max={100} />
-        </Field>
-      </div>
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="wag-override-toggle"
-          checked={inputs.useTargetRetirementIncomeOverride}
-          onChange={(e) => set("useTargetRetirementIncomeOverride", e.target.checked)}
-          className="size-4 rounded border-gray-700 bg-gray-900 accent-cyan-500"
-        />
-        <label htmlFor="wag-override-toggle" className="text-xs text-slate-400">Override: enter target income directly</label>
-      </div>
-      {inputs.useTargetRetirementIncomeOverride && (
-        <Field label="Target Annual Retirement Income ($)">
-          <CurrencyInput value={inputs.targetRetirementIncome} onChange={(v) => set("targetRetirementIncome", v)} />
-        </Field>
-      )}
+        </FieldGroup>
+        <div className="col-span-2 flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="wag-override-toggle"
+            checked={inputs.useTargetRetirementIncomeOverride}
+            onChange={(e) => set("useTargetRetirementIncomeOverride", e.target.checked)}
+            className="size-4 rounded border-gray-700 bg-gray-900 accent-cyan-500"
+          />
+          <label htmlFor="wag-override-toggle" className="text-xs text-slate-400">Override: enter target income directly</label>
+        </div>
+        {inputs.useTargetRetirementIncomeOverride && (
+          <div className="col-span-2">
+            <FieldGroup label="Target Annual Income">
+              <CurrencyInput value={inputs.targetRetirementIncome} onChange={(v) => set("targetRetirementIncome", v)} />
+            </FieldGroup>
+          </div>
+        )}
+      </CollapsibleInputSection>
 
-      <SectionTitle>Current Financial Position</SectionTitle>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Portfolio Value ($)">
+      <CollapsibleInputSection title="Financial Position" contentClassName="grid grid-cols-2 gap-3 px-5 pt-3 pb-4">
+        <FieldGroup label="Portfolio Value">
           <CurrencyInput value={inputs.currentPortfolioValue} onChange={(v) => set("currentPortfolioValue", v)} />
-        </Field>
-        <Field label="Monthly Contribution ($)">
+        </FieldGroup>
+        <FieldGroup label="Monthly Contribution">
           <CurrencyInput value={inputs.monthlyContribution} onChange={(v) => set("monthlyContribution", v)} />
-        </Field>
-        <Field label="Social Security Monthly ($)">
+        </FieldGroup>
+        <FieldGroup label="Social Security Monthly">
           <CurrencyInput value={inputs.socialSecurityMonthly} onChange={(v) => set("socialSecurityMonthly", v)} />
-        </Field>
-        <Field label="Pension Monthly ($)">
+        </FieldGroup>
+        <FieldGroup label="Pension Monthly">
           <CurrencyInput value={inputs.pensionMonthly} onChange={(v) => set("pensionMonthly", v)} />
-        </Field>
-        <Field label="Other Guaranteed Monthly ($)">
-          <CurrencyInput value={inputs.otherGuaranteedMonthly} onChange={(v) => set("otherGuaranteedMonthly", v)} />
-        </Field>
-      </div>
+        </FieldGroup>
+        <div className="col-span-2">
+          <FieldGroup label="Other Guaranteed">
+            <CurrencyInput value={inputs.otherGuaranteedMonthly} onChange={(v) => set("otherGuaranteedMonthly", v)} />
+          </FieldGroup>
+        </div>
+      </CollapsibleInputSection>
 
-      <SectionTitle>Growth Assumptions</SectionTitle>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Expected Return (%)">
+      <CollapsibleInputSection title="Growth Assumptions" contentClassName="grid grid-cols-2 gap-3 px-5 pt-3 pb-4">
+        <FieldGroup label="Expected Return">
           <PercentInput value={inputs.expectedAnnualReturn} onChange={(v) => set("expectedAnnualReturn", v)} min={0} max={15} />
-        </Field>
-        <Field label="Inflation Rate (%)">
+        </FieldGroup>
+        <FieldGroup label="Inflation Rate">
           <PercentInput value={inputs.inflationRate} onChange={(v) => set("inflationRate", v)} min={0} max={10} />
-        </Field>
-        <Field label="Retirement Duration (yrs)">
+        </FieldGroup>
+        <FieldGroup label="Retirement Duration">
           <IntInput value={inputs.retirementDurationYears} onChange={(v) => set("retirementDurationYears", v)} min={10} max={50} />
-        </Field>
-        <Field label="Safe Withdrawal Rate (%)">
+        </FieldGroup>
+        <FieldGroup label="Safe Withdrawal">
           <PercentInput value={inputs.safeWithdrawalRate} onChange={(v) => set("safeWithdrawalRate", Math.max(0.01, v))} min={1} max={8} />
-        </Field>
-      </div>
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="wag-inflation-toggle"
-          checked={inputs.useInflationAdjustment}
-          onChange={(e) => set("useInflationAdjustment", e.target.checked)}
-          className="size-4 rounded border-gray-700 bg-gray-900 accent-cyan-500"
-        />
-        <label htmlFor="wag-inflation-toggle" className="text-xs text-slate-400">Apply inflation adjustment to target income</label>
-      </div>
+        </FieldGroup>
+        <div className="col-span-2 flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="wag-inflation-toggle"
+            checked={inputs.useInflationAdjustment}
+            onChange={(e) => set("useInflationAdjustment", e.target.checked)}
+            className="size-4 rounded border-gray-700 bg-gray-900 accent-cyan-500"
+          />
+          <label htmlFor="wag-inflation-toggle" className="text-xs text-slate-400">Apply inflation adjustment</label>
+        </div>
+      </CollapsibleInputSection>
 
-      <SectionTitle>Custom Wealth Target</SectionTitle>
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="wag-custom-target"
-          checked={inputs.useCustomWealthTarget}
-          onChange={(e) => set("useCustomWealthTarget", e.target.checked)}
-          className="size-4 rounded border-gray-700 bg-gray-900 accent-cyan-500"
-        />
-        <label htmlFor="wag-custom-target" className="text-xs text-slate-400">Override: enter custom wealth target</label>
-      </div>
-      {inputs.useCustomWealthTarget && (
-        <Field label="Custom Wealth Target ($)">
-          <CurrencyInput value={inputs.customWealthTarget} onChange={(v) => set("customWealthTarget", v)} />
-        </Field>
-      )}
+      <CollapsibleInputSection title="Custom Wealth Target" defaultOpen={false} contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4">
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="wag-custom-target"
+            checked={inputs.useCustomWealthTarget}
+            onChange={(e) => set("useCustomWealthTarget", e.target.checked)}
+            className="size-4 rounded border-gray-700 bg-gray-900 accent-cyan-500"
+          />
+          <label htmlFor="wag-custom-target" className="text-xs text-slate-400">Override: enter custom wealth target</label>
+        </div>
+        {inputs.useCustomWealthTarget && (
+          <FieldGroup label="Custom Wealth Target">
+            <CurrencyInput value={inputs.customWealthTarget} onChange={(v) => set("customWealthTarget", v)} />
+          </FieldGroup>
+        )}
+      </CollapsibleInputSection>
     </div>
   )
 }
@@ -430,6 +421,7 @@ function ActionItems({ outputs }: { outputs: WealthAccumulationOutputs }) {
 function MetricCards({ outputs }: { outputs: WealthAccumulationOutputs }) {
   const fr = outputs.fundingRatio
   const clampedFundingRatio = Math.min(fr, 2)
+  const hasGap = outputs.wealthAccumulationGap > 0
 
   return (
     <div className="space-y-3">
@@ -445,21 +437,21 @@ function MetricCards({ outputs }: { outputs: WealthAccumulationOutputs }) {
         </div>
       )}
 
-      {/* Primary headline row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {/* Hero row */}
+      <div className="grid grid-cols-3 gap-3">
         <ModuleMetricCard
-          label="Projected Wealth at Retirement"
-          value={formatCurrency(outputs.projectedWealthAtRetirement)}
-          description={`At age ${outputs.timelineData.at(-1)?.age ?? "—"}`}
+          label="Retirement Readiness"
+          value={clampedFundingRatio >= 2 ? "200%+" : formatPercent(fr)}
+          description={fr >= 1 ? "On Track" : fr >= 0.8 ? "Close — Adjust" : fr >= 0.6 ? "Behind — Act" : "Significantly Under"}
           accent={fundingColor(fr) as "green" | "amber" | "blue" | "red"}
         />
         <ModuleMetricCard
-          label="Wealth Needed at Retirement"
-          value={formatCurrency(outputs.wealthNeeded)}
-          description="Benchmark"
-          accent="slate"
+          label="Projected Wealth at Retirement"
+          value={formatCurrency(outputs.projectedWealthAtRetirement)}
+          description={`Target: ${formatCurrency(outputs.wealthNeeded)}`}
+          accent={fundingColor(fr) as "green" | "amber" | "blue" | "red"}
         />
-        {outputs.wealthAccumulationGap > 0 ? (
+        {hasGap ? (
           <ModuleMetricCard
             label="Retirement Readiness Gap"
             value={formatCurrency(outputs.wealthAccumulationGap)}
@@ -476,103 +468,44 @@ function MetricCards({ outputs }: { outputs: WealthAccumulationOutputs }) {
         )}
       </div>
 
-      {/* Readiness row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <ModuleMetricCard
-          label="Retirement Readiness"
-          value={clampedFundingRatio >= 2 ? "200%+" : formatPercent(fr)}
-          description={fr >= 1 ? "On Track" : fr >= 0.8 ? "Close — Adjust" : fr >= 0.6 ? "Behind — Act" : "Significantly Under"}
-          accent={fundingColor(fr) as "green" | "amber" | "blue" | "red"}
-        />
-        <ModuleMetricCard
-          label="Target Retirement Income"
-          value={`${formatCurrency(outputs.baseTargetIncome)}/yr`}
-          description="Today's dollars"
-          accent="slate"
-        />
-        <ModuleMetricCard
-          label="Inflation-Adjusted Target"
-          value={`${formatCurrency(outputs.inflationAdjustedTarget)}/yr`}
-          description={`At retirement (nominal)`}
-          accent="slate"
-        />
-        <ModuleMetricCard
-          label="Guaranteed Annual Income"
-          value={`${formatCurrency(outputs.derived.annualGuaranteedIncome)}/yr`}
-          description="SS + Pension + Other"
-          accent={outputs.derived.annualGuaranteedIncome > 0 ? "green" : "slate"}
-        />
-      </div>
-
-      {/* Income row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <ModuleMetricCard
-          label="Net Portfolio Income Need"
-          value={`${formatCurrency(outputs.netIncomeNeed)}/yr`}
-          description="After guaranteed income"
-          accent={outputs.netIncomeNeed > 0 ? "amber" : "green"}
-        />
-        <ModuleMetricCard
-          label="Sustainable Annual Income"
-          value={`${formatCurrency(outputs.sustainableAnnualIncome)}/yr`}
-          description="On current trajectory"
-          accent={outputs.sustainableAnnualIncome >= outputs.inflationAdjustedTarget ? "green" : outputs.sustainableAnnualIncome >= outputs.inflationAdjustedTarget * 0.8 ? "amber" : "red"}
-        />
-        {outputs.retirementIncomeGap > 0 && (
-          <ModuleMetricCard
-            label="Annual Income Shortfall"
-            value={`${formatCurrency(outputs.retirementIncomeGap)}/yr`}
-            description="Annual gap in retirement"
-            accent="red"
+      {/* Compact details panel */}
+      <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+        <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-600">Details</p>
+        <div className="grid grid-cols-2 gap-x-8 sm:grid-cols-3">
+          <CompactMetric label="Target Income" value={`${formatCurrency(outputs.baseTargetIncome)}/yr`} />
+          <CompactMetric label="Inflation-Adj Target" value={`${formatCurrency(outputs.inflationAdjustedTarget)}/yr`} />
+          <CompactMetric
+            label="Guaranteed Income"
+            value={`${formatCurrency(outputs.derived.annualGuaranteedIncome)}/yr`}
+            accent={outputs.derived.annualGuaranteedIncome > 0 ? "green" : "slate"}
           />
-        )}
-      </div>
-
-      {/* Action row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <ModuleMetricCard
-          label="Additional Monthly Savings"
-          value={`${formatCurrency(outputs.additionalMonthlyNeeded)}/mo`}
-          description="To close the gap"
-          accent={outputs.additionalMonthlyNeeded > 0 ? "red" : "green"}
-        />
-        <ModuleMetricCard
-          label="Total Monthly Savings Needed"
-          value={`${formatCurrency(outputs.totalMonthlyRequired)}/mo`}
-          accent="slate"
-        />
-        <ModuleMetricCard
-          label="Cost of 1-Year Delay"
-          value={`+${formatCurrency(outputs.costOfDelay)}/mo`}
-          description="If action delayed 1 year"
-          accent="red"
-        />
-      </div>
-
-      {/* Savings rate row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <ModuleMetricCard
-          label="Current Savings Rate"
-          value={formatPercent(outputs.currentSavingsRate)}
-          accent={savingsRateColor(outputs.currentSavingsRate) as "green" | "amber" | "red"}
-        />
-        <ModuleMetricCard
-          label="Required Savings Rate"
-          value={formatPercent(outputs.requiredSavingsRate)}
-          accent={outputs.requiredSavingsRate > outputs.currentSavingsRate ? "red" : "green"}
-        />
-        <ModuleMetricCard
-          label="Future Value — Current Portfolio"
-          value={formatCurrency(outputs.portfolioFV)}
-          description="Existing assets compounded"
-          accent="slate"
-        />
-        <ModuleMetricCard
-          label="Future Value — Contributions"
-          value={formatCurrency(outputs.contributionsFV)}
-          description="Ongoing contributions only"
-          accent="slate"
-        />
+          <CompactMetric label="Net Portfolio Need" value={`${formatCurrency(outputs.netIncomeNeed)}/yr`} />
+          <CompactMetric
+            label="Sustainable Income"
+            value={`${formatCurrency(outputs.sustainableAnnualIncome)}/yr`}
+            accent={outputs.sustainableAnnualIncome >= outputs.inflationAdjustedTarget ? "green" : outputs.sustainableAnnualIncome >= outputs.inflationAdjustedTarget * 0.8 ? "amber" : "red"}
+          />
+          {outputs.retirementIncomeGap > 0 && (
+            <CompactMetric label="Annual Shortfall" value={`${formatCurrency(outputs.retirementIncomeGap)}/yr`} accent="red" />
+          )}
+          <CompactMetric
+            label="Additional Monthly"
+            value={`${formatCurrency(outputs.additionalMonthlyNeeded)}/mo`}
+            accent={outputs.additionalMonthlyNeeded > 0 ? "red" : "green"}
+          />
+          <CompactMetric label="Total Monthly Needed" value={`${formatCurrency(outputs.totalMonthlyRequired)}/mo`} />
+          <CompactMetric label="Cost of 1-Yr Delay" value={`+${formatCurrency(outputs.costOfDelay)}/mo`} accent="red" />
+          <CompactMetric
+            label="Current Savings Rate"
+            value={formatPercent(outputs.currentSavingsRate)}
+            accent={savingsRateColor(outputs.currentSavingsRate) as "green" | "amber" | "red"}
+          />
+          <CompactMetric
+            label="Required Savings Rate"
+            value={formatPercent(outputs.requiredSavingsRate)}
+            accent={outputs.requiredSavingsRate > outputs.currentSavingsRate ? "red" : "green"}
+          />
+        </div>
       </div>
     </div>
   )
@@ -593,7 +526,7 @@ export function WealthAccumulationModule({ inputs, onChange }: WealthAccumulatio
   return (
     <div
       className={cx(
-        "grid w-full min-w-0 items-start gap-5",
+        "grid w-full min-w-0 items-start gap-5 overflow-visible transition-[grid-template-columns,gap] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:gap-6",
         inputsOpen
           ? "xl:grid-cols-[minmax(20rem,22rem)_minmax(0,1fr)]"
           : "xl:grid-cols-[0rem_minmax(0,1fr)] xl:gap-x-0",
@@ -602,21 +535,28 @@ export function WealthAccumulationModule({ inputs, onChange }: WealthAccumulatio
       {/* Left: Input panel */}
       <div
         className={cx(
-          "transition-[opacity] duration-300",
-          inputsOpen ? "opacity-100" : "pointer-events-none opacity-0 xl:hidden",
+          "relative min-w-0 overflow-visible transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
         )}
       >
-        <div className="flex items-center justify-between pb-2">
-          <span className="text-xs font-semibold text-slate-500">Inputs</span>
-          <button
-            type="button"
-            onClick={() => setInputsOpen(false)}
-            className="text-[11px] text-slate-600 hover:text-slate-400"
-          >
-            Hide
-          </button>
+        <div
+          className={cx(
+            "w-full overflow-hidden transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+            inputsOpen ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-3 opacity-0",
+          )}
+          aria-hidden={!inputsOpen}
+        >
+          <div className="flex items-center justify-between pb-2">
+            <span className="text-xs font-semibold text-slate-500">Inputs</span>
+            <button
+              type="button"
+              onClick={() => setInputsOpen(false)}
+              className="text-[11px] text-slate-600 hover:text-slate-400"
+            >
+              Hide
+            </button>
+          </div>
+          <WealthInputForm inputs={inputs} onChange={onChange} />
         </div>
-        <WealthInputForm inputs={inputs} onChange={onChange} />
       </div>
 
       {/* Right: Output area */}
