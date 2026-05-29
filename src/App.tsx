@@ -11,6 +11,7 @@ const UnemploymentModulePage = lazy(() => import('./pages/UnemploymentModulePage
 const LiabilityModulePage = lazy(() => import('./pages/LiabilityModulePage').then(m => ({ default: m.LiabilityModulePage })));
 const Presentation = lazy(() => import('./pages/Presentation').then(m => ({ default: m.Presentation })));
 const SettingsLayout = lazy(() => import('./pages/Settings').then(m => ({ default: m.SettingsLayout })));
+const OffensiveDashboardPage = lazy(() => import('./pages/OffensiveDashboardPage').then(m => ({ default: m.OffensiveDashboardPage })));
 
 const PageFallback = () => (
   <div className="flex items-center justify-center py-24">
@@ -27,6 +28,7 @@ export default function App() {
           {/* Dashboard */}
           <Route index element={<Dashboard />} />
           <Route path="clients/:clientId/overview" element={<ClientOverview />} />
+          <Route path="clients/:clientId/offensive" element={<OffensiveDashboardPage />} />
 
           {/* Redirect legacy routes */}
           <Route path="clients" element={<Navigate to="/" replace />} />

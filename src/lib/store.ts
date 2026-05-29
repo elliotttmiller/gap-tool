@@ -13,8 +13,10 @@ import type {
   CreateClientPayload,
   CreateScenarioPayload,
   DisabilityModuleRecord,
+  FeeDragInputs,
   LiabilityModuleRecord,
   LifeModuleRecord,
+  OffensiveClientInputs,
   PersistedAppData,
   ProfileCompletionStatus,
   RiskModuleType,
@@ -22,6 +24,7 @@ import type {
   ScenarioRecord,
   ScenarioStatus,
   UnemploymentModuleRecord,
+  WealthAccumulationInputs,
 } from "./store-types"
 
 // Re-export all domain types so existing imports from "@/lib/store" remain unchanged.
@@ -42,6 +45,9 @@ export type {
   CreateClientPayload,
   CreateScenarioPayload,
   PersistedAppData,
+  WealthAccumulationInputs,
+  FeeDragInputs,
+  OffensiveClientInputs,
 } from "./store-types"
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -64,6 +70,64 @@ const defaultLifeAssumptions: LifeAssumptions = {
 
 const defaultDisabilityAssumptions: DisabilityAssumptions = {
   incomeGrowthRateAnnual: 0.03,
+}
+
+// ── Offensive defaults ────────────────────────────────────────────────────────
+
+function defaultWealthAccumulationInputs(profile: ClientFinancialProfile): WealthAccumulationInputs {
+  const currentAge = profile.currentAge ?? 40
+  const retirementAge = profile.expectedRetirementAge ?? DEFAULT_RETIREMENT_AGE
+  return {
+    currentAge,
+    retirementAge,
+    currentAnnualIncome: profile.annualEarnedIncome ?? 0,
+    incomeReplacementRatio: 0.80,
+    targetRetirementIncome: 0,
+    useTargetRetirementIncomeOverride: false,
+    currentPortfolioValue: 0,
+    monthlyContribution: 0,
+    socialSecurityMonthly: 0,
+    pensionMonthly: 0,
+    otherGuaranteedMonthly: 0,
+    expectedAnnualReturn: 0.07,
+    inflationRate: 0.03,
+    useInflationAdjustment: true,
+    retirementDurationYears: 30,
+    safeWithdrawalRate: 0.04,
+    useCustomWealthTarget: false,
+    customWealthTarget: 0,
+  }
+}
+
+function defaultFeeDragInputs(profile: ClientFinancialProfile): FeeDragInputs {
+  const currentAge = profile.currentAge ?? 40
+  const retirementAge = profile.expectedRetirementAge ?? DEFAULT_RETIREMENT_AGE
+  return {
+    currentPortfolioValue: 0,
+    monthlyContribution: 0,
+    yearsToRetirement: Math.max(1, retirementAge - currentAge),
+    grossMarketReturn: 0.07,
+    currentExpenseRatio: 0.0085,
+    currentPortfolioLabel: "Current Portfolio",
+    includeTradingCosts: true,
+    currentTurnoverRate: 0.80,
+    currentAdvisorFee: 0,
+    proposedExpenseRatio: 0.001,
+    proposedPortfolioLabel: "Optimized Portfolio",
+    proposedTurnoverRate: 0.05,
+    proposedAdvisorFee: 0.01,
+    switchingCostEstimate: 0,
+    safeWithdrawalRate: 0.04,
+    applyFeeOptimizationToWealthGap: false,
+  }
+}
+
+function buildDefaultOffensiveInputs(profile: ClientFinancialProfile): OffensiveClientInputs {
+  return {
+    wealthAccumulation: defaultWealthAccumulationInputs(profile),
+    feeDrag: defaultFeeDragInputs(profile),
+    updatedAt: nowIso(),
+  }
 }
 
 // ── Helper utilities ──────────────────────────────────────────────────────────
@@ -330,6 +394,7 @@ interface AppState {
   moduleRecordsByScenarioId: Record<string, ScenarioModuleRecords>
   globalLifeAssumptions: LifeAssumptions
   globalDisabilityAssumptions: DisabilityAssumptions
+  offensiveInputsByClientId: Record<string, OffensiveClientInputs>
   updateGlobalLifeAssumptions: (updates: Partial<LifeAssumptions>) => void
   updateGlobalDisabilityAssumptions: (updates: Partial<DisabilityAssumptions>) => void
   createClient: (payload: CreateClientPayload) => string
@@ -345,6 +410,9 @@ interface AppState {
   saveDisabilityCalculation: (scenarioId: string, output: DisabilityOutputs) => void
   saveUnemploymentCalculation: (scenarioId: string, output: UnemploymentOutputs) => void
   saveLiabilityCalculation: (scenarioId: string, output: LiabilityOutputs) => void
+  updateOffensiveWealthAccumulationInputs: (clientId: string, inputs: WealthAccumulationInputs) => void
+  updateOffensiveFeeDragInputs: (clientId: string, inputs: FeeDragInputs) => void
+  getOrCreateOffensiveInputs: (clientId: string) => OffensiveClientInputs
   /** Replace the full persisted data slice (used for data import). */
   importAppData: (data: PersistedAppData) => void
 }
@@ -359,6 +427,7 @@ export const useAppStore = create<AppState>()(
       moduleRecordsByScenarioId: {},
       globalLifeAssumptions: { ...defaultLifeAssumptions },
       globalDisabilityAssumptions: { ...defaultDisabilityAssumptions },
+      offensiveInputsByClientId: {},
 
       updateGlobalLifeAssumptions: (updates) =>
         set((state) => ({ globalLifeAssumptions: { ...state.globalLifeAssumptions, ...updates } })),
@@ -637,6 +706,38 @@ export const useAppStore = create<AppState>()(
           moduleRecordsByScenarioId: data.moduleRecordsByScenarioId ?? {},
           globalLifeAssumptions: data.globalLifeAssumptions ?? { ...defaultLifeAssumptions },
           globalDisabilityAssumptions: data.globalDisabilityAssumptions ?? { ...defaultDisabilityAssumptions },
+          offensiveInputsByClientId: data.offensiveInputsByClientId ?? {},
+        }),
+
+      getOrCreateOffensiveInputs: (clientId) => {
+        const state = get()
+        const existing = state.offensiveInputsByClientId[clientId]
+        if (existing) return existing
+        const client = state.clients.find((c) => c.id === clientId)
+        const profile = client?.profile ?? { clientId }
+        const fresh = buildDefaultOffensiveInputs(profile)
+        set((s) => ({ offensiveInputsByClientId: { ...s.offensiveInputsByClientId, [clientId]: fresh } }))
+        return fresh
+      },
+
+      updateOffensiveWealthAccumulationInputs: (clientId, inputs) =>
+        set((state) => {
+          const existing = state.offensiveInputsByClientId[clientId]
+          const client = state.clients.find((c) => c.id === clientId)
+          const profile = client?.profile ?? { clientId }
+          const base = existing ?? buildDefaultOffensiveInputs(profile)
+          const updated: OffensiveClientInputs = { ...base, wealthAccumulation: inputs, updatedAt: nowIso() }
+          return { offensiveInputsByClientId: { ...state.offensiveInputsByClientId, [clientId]: updated } }
+        }),
+
+      updateOffensiveFeeDragInputs: (clientId, inputs) =>
+        set((state) => {
+          const existing = state.offensiveInputsByClientId[clientId]
+          const client = state.clients.find((c) => c.id === clientId)
+          const profile = client?.profile ?? { clientId }
+          const base = existing ?? buildDefaultOffensiveInputs(profile)
+          const updated: OffensiveClientInputs = { ...base, feeDrag: inputs, updatedAt: nowIso() }
+          return { offensiveInputsByClientId: { ...state.offensiveInputsByClientId, [clientId]: updated } }
         }),
     }),
     {
