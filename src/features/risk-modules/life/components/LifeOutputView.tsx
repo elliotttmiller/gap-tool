@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { LifeOutputs, LifeInputs, LifeAssumptions, IncomeGapOutputs, IncomeGapModule1, IncomeGapModule2 } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
@@ -127,7 +127,7 @@ function Module2Boxes({ m2, projectionEndAge }: { m2: IncomeGapModule2; projecti
   )
 }
 
-function ChartPanel({ title, subtitle, data, ticks, children }: { title: string; subtitle: string; data: any[]; ticks: number[]; children: React.ReactNode }) {
+function ChartPanel({ title, subtitle, data, ticks, children }: { title: string; subtitle: string; data: any[]; ticks: number[]; children: ReactNode }) {
   return (
     <Card className="module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
       <CardHeader className="shrink-0 px-6 pb-0 pt-5">
