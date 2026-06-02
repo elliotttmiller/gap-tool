@@ -2,6 +2,7 @@ import type { LifeInputs, LifeAssumptions, LifeOutputs, LifePolicyType } from "@
 import type { DisabilityInputs, DisabilityAssumptions, DisabilityOutputs, DiBenefitPeriod } from "@/features/risk-modules/disability/types"
 import type { UnemploymentInputs, UnemploymentOutputs } from "@/features/risk-modules/unemployment/types"
 import type { LiabilityInputs, LiabilityOutputs } from "@/features/risk-modules/liability/types"
+import type { WealthAccumulationInputs, FeeDragInputs, OffensiveClientInputs } from "@/features/offensive/types"
 
 export type RiskModuleType = "life" | "disability" | "unemployment" | "liability"
 export type ClientStatus = "draft" | "active" | "archived"
@@ -53,8 +54,11 @@ export interface ClientFinancialProfile {
   disabilityBreakEvenRateOfReturn?: number
   disabilityBreakEvenMonthsWithoutIncome?: number
   stateBenefitEstimateMonthly?: number
+  /** Legacy fields retained for older persisted data only. New setup uses direct homeEquity. */
   homeValue?: number
   mortgageBalance?: number
+  /** Advisor-aligned direct home equity input for Liability/Lawsuit. */
+  homeEquity?: number
   savingsAssets?: number
   /** Mirrors nonQualifiedAssets for backward compatibility with the liability calculator's optional field schema. */
   investmentAssets?: number
@@ -139,8 +143,10 @@ export interface CreateClientPayload {
   phone?: string
   clientType?: ClientType
   age?: number
+  expectedRetirementAge?: number
   annualIncome?: number
   monthlyExpenses?: number
+  emergencySavings?: number
   groupLifeCoverage?: number
   privateLifeCoverage?: number
   privateLifePolicyType?: LifePolicyType
@@ -162,7 +168,9 @@ export interface CreateClientPayload {
   spousePrivateLifePolicyType?: LifePolicyType
   spousePrivateLifeTermYears?: number
   spouseNonQualifiedAssets?: number
+  homeEquity?: number
   autoLiabilityLimit?: number
+  umbrellaCoverage?: number
 }
 
 export interface CreateScenarioPayload {
@@ -178,72 +186,9 @@ export interface PersistedAppData {
   clients: ClientRecord[]
   scenarios: ScenarioRecord[]
   moduleRecordsByScenarioId: Record<string, ScenarioModuleRecords>
-  globalLifeAssumptions?: import("@/features/risk-modules/life/types").LifeAssumptions
-  globalDisabilityAssumptions?: import("@/features/risk-modules/disability/types").DisabilityAssumptions
+  globalLifeAssumptions?: LifeAssumptions
+  globalDisabilityAssumptions?: DisabilityAssumptions
   offensiveInputsByClientId?: Record<string, OffensiveClientInputs>
 }
 
-// ── Offensive Tool Types ──────────────────────────────────────────────────────
-
-/** Module 1 — Retirement Readiness Gap inputs */
-export interface WealthAccumulationInputs {
-  // Group A — Client Profile
-  currentAge: number
-  retirementAge: number
-  currentAnnualIncome: number
-  incomeReplacementRatio: number
-  targetRetirementIncome: number
-  useTargetRetirementIncomeOverride: boolean
-
-  // Group B — Current Financial Position
-  currentPortfolioValue: number
-  monthlyContribution: number
-  socialSecurityMonthly: number
-  pensionMonthly: number
-  otherGuaranteedMonthly: number
-
-  // Group C — Growth Assumptions
-  expectedAnnualReturn: number
-  inflationRate: number
-  useInflationAdjustment: boolean
-  retirementDurationYears: number
-
-  // Group D — Retirement Income Model
-  safeWithdrawalRate: number
-  useCustomWealthTarget: boolean
-  customWealthTarget: number
-}
-
-/** Module 2 — Investment Cost Impact inputs */
-export interface FeeDragInputs {
-  // Group A — Portfolio Basis (shared with Module 1 or standalone)
-  currentPortfolioValue: number
-  monthlyContribution: number
-  yearsToRetirement: number
-  grossMarketReturn: number
-
-  // Group B — Current Cost Structure
-  currentExpenseRatio: number
-  currentPortfolioLabel: string
-  includeTradingCosts: boolean
-  currentTurnoverRate: number
-  currentAdvisorFee: number
-
-  // Group C — Proposed Cost Structure
-  proposedExpenseRatio: number
-  proposedPortfolioLabel: string
-  proposedTurnoverRate: number
-  proposedAdvisorFee: number
-  switchingCostEstimate: number
-  safeWithdrawalRate: number
-
-  // Integration toggle
-  applyFeeOptimizationToWealthGap: boolean
-}
-
-/** All offensive inputs for a single client */
-export interface OffensiveClientInputs {
-  wealthAccumulation: WealthAccumulationInputs
-  feeDrag: FeeDragInputs
-  updatedAt: string
-}
+export type { WealthAccumulationInputs, FeeDragInputs, OffensiveClientInputs }
