@@ -5,11 +5,8 @@ import type { LiabilityExposurePoint } from "@/domain/gap-analysis/gapSchedule";
 const DEFAULT_RETIREMENT_AGE = 65;
 
 /**
- * Projects the wage garnishment exposure from current age to retirement.
- *
- * Garnishment is applied to DISPOSABLE income (a proxy for take-home pay),
- * not to gross income. Disposable income = grossIncome × disposableIncomeRatio.
- * Income grows at incomeGrowthRate each year.
+ * Projects wage exposure from current age to retirement.
+ * Applied to estimated disposable income, not gross income.
  */
 function buildHouseholdExposureSchedule(
   primaryGrossIncome: number,
@@ -79,12 +76,13 @@ export function calculateLiabilityGap(inputs: LiabilityInputs): LiabilityOutputs
   const householdTotalCoverage = householdAutoLiabilityCoverage + householdUmbrellaCoverage;
   const householdLiabilityGap = Math.max(totalHouseholdLiabilityRisk - householdTotalCoverage, 0);
 
-  // Home equity: use direct homeEquity input when provided; otherwise default to 0.
   const homeEquity = Math.max(inputs.homeEquity ?? 0, 0);
-
-  const totalAtRiskAssets = Math.max(homeEquity + (inputs.investmentAssets ?? 0) + (inputs.savingsAssets ?? 0) + businessOwnershipValue, nonQualifiedAssetsAtRisk);
-  const primaryCoverage = Math.max(inputs.autoLiabilityLimit ?? 0, 0);
-  const totalCoverage = primaryCoverage + (inputs.umbrellaCoverage ?? 0);
+  const totalAtRiskAssets = Math.max(
+    homeEquity + (inputs.investmentAssets ?? 0) + (inputs.savingsAssets ?? 0) + businessOwnershipValue,
+    nonQualifiedAssetsAtRisk,
+  );
+  const primaryCoverage = householdAutoLiabilityCoverage;
+  const totalCoverage = primaryCoverage + householdUmbrellaCoverage;
   const totalExposure = totalHouseholdLiabilityRisk;
   const coverageGap = Math.max(totalExposure - totalCoverage, 0);
   const erodedAssets = Math.min(coverageGap, totalAtRiskAssets);
@@ -92,8 +90,13 @@ export function calculateLiabilityGap(inputs: LiabilityInputs): LiabilityOutputs
 
   const netWorthAtRisk = Math.max(nonQualifiedAssetsAtRisk + homeEquity, 0);
   const incomeMultipleTarget = Math.max((inputs.annualIncome ?? 0) * 5, 0);
-  // Raw illustrative umbrella need, then rounded UP to the nearest $1M block.
-  const rawIllustrativeNeed = Math.max(netWorthAtRisk, incomeMultipleTarget, umbrellaBlockSize);
+  const modeledExposureAfterAuto = Math.max(totalHouseholdLiabilityRisk - householdAutoLiabilityCoverage, 0);
+  const rawIllustrativeNeed = Math.max(
+    modeledExposureAfterAuto,
+    netWorthAtRisk,
+    incomeMultipleTarget,
+    umbrellaBlockSize,
+  );
   const illustrativeUmbrellaCoverageLevel =
     Math.ceil(rawIllustrativeNeed / umbrellaBlockSize) * umbrellaBlockSize;
   const umbrellaCoverageShortfall = Math.max(illustrativeUmbrellaCoverageLevel - householdUmbrellaCoverage, 0);
