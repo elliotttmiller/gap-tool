@@ -88,58 +88,6 @@
     display: none;
   }
 
-  .liability-output-container {
-    container-type: inline-size;
-    padding-block: 0.25rem;
-  }
-
-  .liability-dashboard {
-    display: grid;
-    gap: 0.75rem;
-  }
-
-  .liability-metric-rail {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.5rem;
-    order: 2;
-  }
-
-  .liability-chart-panel {
-    order: 1;
-    min-width: 0;
-  }
-
-  .liability-chart-card {
-    height: auto;
-  }
-
-  .liability-output-container .module-visual-panel {
-    min-height: clamp(26rem, 60vh, 35rem);
-  }
-
-  @container (min-width: 760px) {
-    .liability-dashboard {
-      grid-template-columns: minmax(0, 1fr) minmax(12rem, 14.5rem);
-      align-items: start;
-    }
-
-    .liability-chart-panel {
-      order: 1;
-    }
-
-    .liability-metric-rail {
-      order: 2;
-      grid-template-columns: minmax(0, 1fr);
-      align-content: start;
-      gap: 0.5rem;
-    }
-  }
-
-  .liability-metric-rail > * {
-    min-height: 0;
-  }
-
   .module-output-container {
     container-type: inline-size;
     padding-block: 0.5rem;
@@ -162,7 +110,6 @@
   .disability-coverage-grid {
     display: grid;
     gap: 1rem;
-    /* narrow: chart on top, summary cards below */
     grid-template-areas:
       "chart  metric"
       "summary summary";
@@ -221,59 +168,70 @@
     }
   }
 
-  .life-output-container {
+  .life-output-container,
+  .liability-output-container {
     container-type: inline-size;
     padding-block: 0.25rem;
   }
 
-  .life-visual-dashboard {
+  .life-visual-dashboard,
+  .liability-visual-dashboard {
     display: grid;
     gap: 0.5rem;
   }
 
-  .life-chart-panel {
+  .life-chart-panel,
+  .liability-chart-panel-compact {
     min-width: 0;
     max-height: 22rem;
     overflow: hidden;
   }
 
-  .life-chart-area {
+  .life-chart-area,
+  .liability-chart-area {
     height: clamp(14rem, 34vh, 17.5rem);
     min-height: 14rem;
   }
 
-  .life-metric-grid {
+  .life-metric-grid,
+  .liability-metric-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.5rem;
   }
 
-  .life-kpi-card {
+  .life-kpi-card,
+  .liability-kpi-card {
     padding: 0.625rem 0.75rem !important;
   }
 
-  .life-kpi-card p:first-child {
+  .life-kpi-card p:first-child,
+  .liability-kpi-card p:first-child {
     font-size: 0.56rem;
     letter-spacing: 0.12em;
   }
 
-  .life-kpi-card div[class*="text-xl"] {
+  .life-kpi-card div[class*="text-xl"],
+  .liability-kpi-card div[class*="text-xl"] {
     font-size: 1rem;
     line-height: 1.05;
   }
 
-  .life-kpi-card p:not(:first-child) {
+  .life-kpi-card p:not(:first-child),
+  .liability-kpi-card p:not(:first-child) {
     font-size: 0.625rem;
     line-height: 1.15;
     margin-top: 0.25rem;
   }
 
-  .life-kpi-card > div > div:last-child {
+  .life-kpi-card > div > div:last-child,
+  .liability-kpi-card > div > div:last-child {
     height: 1.5rem;
   }
 
   @container (min-width: 760px) {
-    .life-visual-dashboard {
+    .life-visual-dashboard,
+    .liability-visual-dashboard {
       grid-template-columns: minmax(0, 1fr);
     }
 
@@ -284,14 +242,12 @@
     .life-metric-grid--runway {
       grid-template-columns: repeat(5, minmax(0, 1fr));
     }
+
+    .liability-metric-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 
-  /* Disability 3-col wide layout only kicks in when the output panel is truly
-     full-width (form collapsed). 1100px ensures the summary cards stay below
-     the chart whenever the input form panel is open (output ~968px at 1440px
-     viewport). With form collapsed the output fills ~1400px+, well above this. */
-  /* When the input form panel is open, always keep summary cards below the chart
-     regardless of container width. Overrides the @container 1100px 3-col rule. */
   .disability-coverage-grid--form-open {
     grid-template-areas:
       "chart  metric"
