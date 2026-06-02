@@ -6,7 +6,7 @@ export type GlobalPlanningAssumptions = {
 
 export type LifeMethodologyAssumptions = GlobalPlanningAssumptions & {
   incomeReplacementRatio: number
-  safeIncomeCoveragePct: number
+  targetIncomeSupportPct: number
   coverageRoi: number
   deathBenefitDiscountRate: number
 }
