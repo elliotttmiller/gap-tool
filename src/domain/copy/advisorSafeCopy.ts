@@ -2,34 +2,30 @@
  * advisorSafeCopy.ts
  * ─────────────────────────────────────────────────────────────────────────────
  * Single source of advisor-reviewed, compliance-sensitive UI copy used across
- * all risk modules. Components must reference strings from this file instead of
- * writing ad-hoc language.
+ * all risk modules. Components should reference strings from this file instead
+ * of writing ad-hoc language.
  *
- * This tool is an illustrative gap-analysis system, NOT a recommendation engine.
- * Every user-facing string in this file must reflect that framing.
+ * This tool is an illustrative gap-analysis system, not a recommendation engine.
  */
 
 export const advisorSafeCopy = {
-  // ── Tool-level ──────────────────────────────────────────────────────────────
   illustrativeOnly:
     "This is an illustrative gap analysis and is not a formal financial recommendation. Results are based on assumptions entered and should be reviewed with a qualified financial professional.",
 
-  // ── Life Insurance ──────────────────────────────────────────────────────────
   life: {
     safeIncomeCoverage:
-      "Safe Income Coverage estimates the percentage of projected income need supported by the entered death benefit and non-qualified assets. The coverage percentage is derived from available resources compared with the present value of projected income need.",
+      "Safe Income Coverage models a target percentage of projected net income need, then calculates how much of that target is supported by entered death benefit/resources.",
     deathBenefitNeeded:
-      "Death Benefit Needed is estimated from the present value of modeled annual income gaps discounted at the selected ROI. This is an illustrative capital-needs figure, not a formal recommendation.",
+      "Additional Death Benefit Needed is the modeled target death benefit need minus entered resources. Present-value figures may be shown as reference items, but they do not drive the main fully-covered status.",
     netIncomeNote:
-      "Income figures reflect net income need after applying the income replacement ratio and any spouse income offset. Life insurance death benefits are tax-free by law; no gross-to-net conversion is applied to benefit amounts.",
+      "Income figures reflect modeled net income need after applying the income replacement ratio and any spouse income offset. Life insurance death benefits are generally income-tax-free; no gross-to-net conversion is applied to benefit amounts.",
     fullyCoveredNote:
-      "Existing coverage resources appear sufficient to fund the modeled income coverage target. Review whenever income, coverage, or family circumstances change.",
+      "Entered coverage resources appear sufficient to fund the modeled target income support stream. Review whenever income, coverage, or family circumstances change.",
   },
 
-  // ── Liability / Lawsuit ─────────────────────────────────────────────────────
   liability: {
     wageGarnishmentDisclosure:
-      "Wage Garnishment Risk uses a simplified disposable-earnings proxy: garnishment is applied to an estimated 65% of gross income (approximating take-home pay after FICA and taxes). Actual garnishable earnings and garnishment limits vary by jurisdiction and case type. This figure is illustrative only.",
+      "Wage Garnishment Risk uses a simplified disposable-earnings proxy: garnishment is applied to an estimated 65% of gross income. Actual garnishable earnings and garnishment limits vary by jurisdiction and case type. This figure is illustrative only.",
     umbrellaBlocks:
       "Umbrella coverage is commonly issued in $1M increments. This illustrative level rounds the modeled exposure gap to the next whole $1M block.",
     illustrativeUmbrellaLabel:
@@ -39,10 +35,9 @@ export const advisorSafeCopy = {
     umbrellaNeededDescription:
       "Illustrative Umbrella Coverage Level minus existing umbrella coverage. Umbrella policies are typically available in $1M blocks.",
     notRecommendation:
-      "Umbrella coverage levels shown are illustrative. Consult a licensed insurance professional for actual coverage recommendations.",
+      "Umbrella coverage levels shown are illustrative. Consult a licensed insurance professional for actual coverage guidance.",
   },
 
-  // ── Unemployment ─────────────────────────────────────────────────────────────
   unemployment: {
     dynamicTarget:
       "The ideal reserve target is 3–6 months of household expenses. The specific target depends on how much remaining household income would continue if the highest earner lost their job.",
@@ -53,7 +48,7 @@ export const advisorSafeCopy = {
     aboveTarget:
       "Reserves exceed the ideal target for this household's income concentration. Amounts above the ideal target may be candidates for higher-yielding accounts.",
     netIncomeProxy:
-      "Remaining income is estimated using a 65% net income proxy (approximate take-home pay after taxes and FICA). Actual net income varies by jurisdiction and tax situation.",
+      "Remaining income is estimated using a 65% net income proxy. Actual net income varies by jurisdiction and tax situation.",
     minimumNote:
       "A minimum of 3 months of household expenses is the baseline reserve threshold regardless of household income structure.",
     reserveDisclosure:
