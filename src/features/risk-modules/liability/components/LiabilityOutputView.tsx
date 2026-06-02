@@ -41,9 +41,7 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
   const chartData = transformLiabilityChartData(outputs)
   const totalRisk = outputs.totalHouseholdLiabilityRisk || outputs.householdTotalCoverage + outputs.householdLiabilityGap
   const coveragePct = totalRisk > 0 ? Math.min(100, (outputs.householdTotalCoverage / totalRisk) * 100) : 0
-  const disposablePct = Math.round((outputs.assumptionDisposableIncomeRatio ?? 0.65) * 100)
   const garnishPct = Math.round((outputs.assumptionGarnishmentRate ?? 0.25) * 100)
-  const incomeGrowthPct = Math.round((outputs.assumptionIncomeGrowthRate ?? 0.03) * 100)
 
   return (
     <div className="liability-output-container">
@@ -102,7 +100,6 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
             value={formatLiabilityMetric(outputs.householdWageGarnishmentRisk)}
             description={`${garnishPct}% of disposable income`}
             accent="red"
-            disclosure={`Uses ${disposablePct}% disposable-income proxy and ${incomeGrowthPct}% annual income growth. ${advisorSafeCopy.liability.wageGarnishmentDisclosure}`}
           />
           <ModuleMetricCard
             className={compactCardClass}
@@ -131,7 +128,6 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
             value={formatLiabilityMetric(outputs.illustrativeUmbrellaCoverageLevel)}
             description="Rounded to $1M blocks"
             accent="amber"
-            disclosure="Illustrative umbrella coverage target only. Umbrella coverage is commonly issued in $1M increments."
           />
           <ModuleMetricCard
             className={compactCardClass}
@@ -139,13 +135,12 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
             value={formatLiabilityMetric(outputs.umbrellaCoverageShortfall)}
             description="Target minus current umbrella"
             accent={outputs.umbrellaCoverageShortfall > 0 ? "red" : "green"}
-            disclosure={advisorSafeCopy.liability.notRecommendation}
           />
         </div>
       </div>
 
       <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
-        {advisorSafeCopy.liability.notRecommendation}
+        {advisorSafeCopy.liability.notRecommendation} Wage garnishment uses a simplified disposable-income proxy; actual garnishment rules vary by jurisdiction and case type.
       </p>
     </div>
   )
