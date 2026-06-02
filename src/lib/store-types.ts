@@ -2,7 +2,19 @@ import type { LifeInputs, LifeAssumptions, LifeOutputs, LifePolicyType } from "@
 import type { DisabilityInputs, DisabilityAssumptions, DisabilityOutputs, DiBenefitPeriod } from "@/features/risk-modules/disability/types"
 import type { UnemploymentInputs, UnemploymentOutputs } from "@/features/risk-modules/unemployment/types"
 import type { LiabilityInputs, LiabilityOutputs } from "@/features/risk-modules/liability/types"
-import type { WealthAccumulationInputs, FeeDragInputs, OffensiveClientInputs } from "@/features/offensive/types"
+
+/**
+ * Offensive workflows are temporarily disabled. These lightweight placeholder
+ * types keep persisted store shape stable without importing the inactive
+ * offensive feature directory.
+ */
+export type WealthAccumulationInputs = Record<string, number | string | boolean>
+export type FeeDragInputs = Record<string, number | string | boolean>
+export interface OffensiveClientInputs {
+  wealthAccumulation: WealthAccumulationInputs
+  feeDrag: FeeDragInputs
+  updatedAt: string
+}
 
 export type RiskModuleType = "life" | "disability" | "unemployment" | "liability"
 export type ClientStatus = "draft" | "active" | "archived"
@@ -190,5 +202,3 @@ export interface PersistedAppData {
   globalDisabilityAssumptions?: DisabilityAssumptions
   offensiveInputsByClientId?: Record<string, OffensiveClientInputs>
 }
-
-export type { WealthAccumulationInputs, FeeDragInputs, OffensiveClientInputs }
