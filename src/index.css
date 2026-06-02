@@ -221,6 +221,71 @@
     }
   }
 
+  .life-output-container {
+    container-type: inline-size;
+    padding-block: 0.25rem;
+  }
+
+  .life-visual-dashboard {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .life-chart-panel {
+    min-width: 0;
+    max-height: 22rem;
+    overflow: hidden;
+  }
+
+  .life-chart-area {
+    height: clamp(14rem, 34vh, 17.5rem);
+    min-height: 14rem;
+  }
+
+  .life-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .life-kpi-card {
+    padding: 0.625rem 0.75rem !important;
+  }
+
+  .life-kpi-card p:first-child {
+    font-size: 0.56rem;
+    letter-spacing: 0.12em;
+  }
+
+  .life-kpi-card div[class*="text-xl"] {
+    font-size: 1rem;
+    line-height: 1.05;
+  }
+
+  .life-kpi-card p:not(:first-child) {
+    font-size: 0.625rem;
+    line-height: 1.15;
+    margin-top: 0.25rem;
+  }
+
+  .life-kpi-card > div > div:last-child {
+    height: 1.5rem;
+  }
+
+  @container (min-width: 760px) {
+    .life-visual-dashboard {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .life-metric-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .life-metric-grid--runway {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+
   /* Disability 3-col wide layout only kicks in when the output panel is truly
      full-width (form collapsed). 1100px ensures the summary cards stay below
      the chart whenever the input form panel is open (output ~968px at 1440px
@@ -239,4 +304,3 @@
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 }
-
