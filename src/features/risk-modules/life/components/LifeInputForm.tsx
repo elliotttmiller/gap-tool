@@ -125,10 +125,20 @@ export function LifeInputForm({ inputs, onChange, showMaxCoverageRoiInput = fals
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {!isMaxModule ? (
               <div className="flex flex-col gap-2">
-                <Label htmlFor="incomeGapRoi">Coverage Support Rate</Label>
-                <div className="flex min-h-9 items-center rounded-md border border-gray-800 bg-gray-950 px-3 text-sm text-gray-400">
-                  Calculated from entered death benefit and assets
-                </div>
+                <Label htmlFor="targetIncomeSupportPct">Target Income Support</Label>
+                <AffixedInput
+                  id="targetIncomeSupportPct"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step={5}
+                  suffix="%"
+                  value={toPercent(inputs.targetIncomeSupportPct ?? inputs.safeIncomeCoveragePct ?? 0.85) || ""}
+                  className="w-full"
+                  onChange={(e) => onChange({ ...inputs, targetIncomeSupportPct: fromPercent(e.target.value), safeIncomeCoveragePct: fromPercent(e.target.value) })}
+                  placeholder="85"
+                />
+                <p className="text-[10px] leading-snug text-gray-500">Modeled percentage of projected income need. Coverage support is then calculated from entered death benefit/resources.</p>
               </div>
             ) : (
               <div className="flex flex-col gap-2">
@@ -137,8 +147,9 @@ export function LifeInputForm({ inputs, onChange, showMaxCoverageRoiInput = fals
               </div>
             )}
             <div className="flex flex-col gap-2">
-              <Label htmlFor="incomeGapRoi">Discount Rate (ROI)</Label>
+              <Label htmlFor="incomeGapRoi">PV Reference Rate</Label>
               <AffixedInput id="incomeGapRoi" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.incomeGapRoi ?? 0.05) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, incomeGapRoi: fromPercent(e.target.value) })} placeholder="5" />
+              <p className="text-[10px] leading-snug text-gray-500">Used for present-value reference figures, not the main fully-covered threshold.</p>
             </div>
           </div>
       </CollapsibleInputSection>
