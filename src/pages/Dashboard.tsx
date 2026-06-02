@@ -32,8 +32,6 @@ const moduleLabel: Record<RiskModuleType, string> = {
 }
 
 const advisorReferenceModules: RiskModuleType[] = ["life", "liability", "unemployment", "disability"]
-const allModuleTypes: RiskModuleType[] = ["life", "liability", "unemployment", "disability"]
-
 const selectClass = "h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50"
 
 const BENEFIT_PERIOD_OPTIONS: { value: DiBenefitPeriod | ""; label: string }[] = [
@@ -46,8 +44,13 @@ const BENEFIT_PERIOD_OPTIONS: { value: DiBenefitPeriod | ""; label: string }[] =
   { value: "A70", label: "To Age 70" },
 ]
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <p className="pt-2 text-xs font-semibold uppercase tracking-widest text-gray-500">{children}</p>
+function SectionTitle({ children, description }: { children: React.ReactNode; description?: string }) {
+  return (
+    <div className="space-y-1 pt-2">
+      <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">{children}</p>
+      {description ? <p className="text-xs leading-5 text-gray-500">{description}</p> : null}
+    </div>
+  )
 }
 
 function AddClientDrawer() {
@@ -71,7 +74,7 @@ function AddClientDrawer() {
           Add Client
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="sm:max-w-3xl">
+      <DrawerContent className="sm:max-w-4xl">
         <DrawerHeader>
           <DrawerTitle>Client Setup</DrawerTitle>
         </DrawerHeader>
@@ -93,48 +96,51 @@ function AddClientDrawer() {
             ))}
           </div>
 
-          <SectionTitle>Primary Earner</SectionTitle>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <SectionTitle description="Core fields used across Life, Liability, Unemployment, Disability, and Offensive planning modules.">Primary Earner</SectionTitle>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <Input placeholder="First name *" value={form.firstName} onChange={(event) => setField("firstName", event.target.value)} />
             <Input placeholder="Last name *" value={form.lastName} onChange={(event) => setField("lastName", event.target.value)} />
             <Input placeholder="Household / display name" value={form.displayName} onChange={(event) => setField("displayName", event.target.value)} />
-            <Input type="number" min={18} max={64} placeholder="Current age *" value={form.age} onChange={(event) => setField("age", event.target.value)} />
+            <Input type="number" min={18} max={100} placeholder="Current age *" value={form.age} onChange={(event) => setField("age", event.target.value)} />
+            <Input type="number" min={18} max={100} placeholder="Projection end age *" value={form.expectedRetirementAge} onChange={(event) => setField("expectedRetirementAge", event.target.value)} />
             <Input type="number" min={0} placeholder="Annual income ($) *" value={form.annualIncome} onChange={(event) => setField("annualIncome", event.target.value)} />
-            <Input type="number" min={0} placeholder="Monthly expenses ($)" value={form.monthlyExpenses} onChange={(event) => setField("monthlyExpenses", event.target.value)} />
+            <Input type="number" min={0} placeholder="Monthly household expenses ($)" value={form.monthlyExpenses} onChange={(event) => setField("monthlyExpenses", event.target.value)} />
           </div>
 
-          <SectionTitle>Existing Coverage — Primary Earner</SectionTitle>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <SectionTitle description="These values feed Life Insurance, Unemployment, Liability, and Offensive planning assumptions.">Household Cash / Assets</SectionTitle>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Input type="number" min={0} placeholder="Emergency savings ($)" value={form.emergencySavings} onChange={(event) => setField("emergencySavings", event.target.value)} />
+            <Input type="number" min={0} placeholder="Non-qualified assets ($)" value={form.nonQualifiedAssets} onChange={(event) => setField("nonQualifiedAssets", event.target.value)} />
+            <Input type="number" min={0} placeholder="Home equity ($)" value={form.homeEquity} onChange={(event) => setField("homeEquity", event.target.value)} />
+          </div>
+
+          <SectionTitle>Existing Life Coverage — Primary Earner</SectionTitle>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <Input type="number" min={0} placeholder="Group Life death benefit ($)" value={form.groupLifeCoverage} onChange={(event) => setField("groupLifeCoverage", event.target.value)} />
             <Input type="number" min={0} placeholder="Private Life death benefit ($)" value={form.privateLifeCoverage} onChange={(event) => setField("privateLifeCoverage", event.target.value)} />
-            <div className="col-span-2 grid grid-cols-2 gap-3">
-              <select value={form.privateLifePolicyType} onChange={(event) => setField("privateLifePolicyType", event.target.value as "term" | "permanent")} className={selectClass}>
-                <option value="term">Term</option>
-                <option value="permanent">Permanent</option>
-              </select>
-              {form.privateLifePolicyType === "term" ? <Input type="number" min={0} placeholder="Term length (years)" value={form.privateLifeTermYears} onChange={(event) => setField("privateLifeTermYears", event.target.value)} /> : <div />}
-            </div>
-            <Input type="number" min={0} placeholder="Non-qualified assets ($)" value={form.nonQualifiedAssets} onChange={(event) => setField("nonQualifiedAssets", event.target.value)} />
+            <select value={form.privateLifePolicyType} onChange={(event) => setField("privateLifePolicyType", event.target.value as "term" | "permanent")} className={selectClass}>
+              <option value="term">Term</option>
+              <option value="permanent">Permanent</option>
+            </select>
+            {form.privateLifePolicyType === "term" ? <Input type="number" min={0} placeholder="Term length (years)" value={form.privateLifeTermYears} onChange={(event) => setField("privateLifeTermYears", event.target.value)} /> : null}
           </div>
 
           <SectionTitle>Group Long Term Disability (LTD)</SectionTitle>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <Input type="number" min={0} max={100} step={1} placeholder="Coverage of Income (%)" value={form.ltdCoveragePercent} onChange={(event) => setField("ltdCoveragePercent", event.target.value)} />
             <Input type="number" min={0} placeholder="Monthly Cap ($)" value={form.ltdMonthlyCap} onChange={(event) => setField("ltdMonthlyCap", event.target.value)} />
-            <select value={form.ltdTaxable ? "true" : "false"} onChange={(event) => setField("ltdTaxable", event.target.value === "true")} className="col-span-2 h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50">
+            <select value={form.ltdTaxable ? "true" : "false"} onChange={(event) => setField("ltdTaxable", event.target.value === "true")} className={selectClass}>
               <option value="true">Taxable? Yes — 70% of gross</option>
               <option value="false">Taxable? No — full benefit</option>
             </select>
           </div>
 
           <SectionTitle>Individual Disability Insurance</SectionTitle>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <Input type="number" min={0} placeholder="Monthly Benefit ($)" value={form.privateDisabilityBenefitMonthly} onChange={(event) => setField("privateDisabilityBenefitMonthly", event.target.value)} />
             <Input type="number" min={0} placeholder="Monthly Premium ($)" value={form.privateDisabilityMonthlyPremium} onChange={(event) => setField("privateDisabilityMonthlyPremium", event.target.value)} />
-            <select value={form.privateDisabilityBenefitPeriod} onChange={(event) => setField("privateDisabilityBenefitPeriod", event.target.value as DiBenefitPeriod | "")} className="col-span-2 h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50">
-              {BENEFIT_PERIOD_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
+            <select value={form.privateDisabilityBenefitPeriod} onChange={(event) => setField("privateDisabilityBenefitPeriod", event.target.value as DiBenefitPeriod | "")} className={selectClass}>
+              {BENEFIT_PERIOD_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
             <Input type="number" min={0} max={30} step={0.1} placeholder="Break-Even Rate of Return (%)" value={form.disabilityBreakEvenRateOfReturn} onChange={(event) => setField("disabilityBreakEvenRateOfReturn", event.target.value)} />
             <Input type="number" min={1} step={1} placeholder="Months Without Income" value={form.disabilityBreakEvenMonthsWithoutIncome} onChange={(event) => setField("disabilityBreakEvenMonthsWithoutIncome", event.target.value)} />
@@ -142,27 +148,28 @@ function AddClientDrawer() {
 
           {isCouple ? (
             <>
-              <SectionTitle>Secondary Earner</SectionTitle>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <SectionTitle description="Secondary income is required for the advisor's unemployment reserve logic and household liability exposure modeling.">Secondary Earner</SectionTitle>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <Input placeholder="Secondary earner full name" value={form.spouseName} onChange={(event) => setField("spouseName", event.target.value)} />
-                <Input type="number" min={18} max={64} placeholder="Secondary current age" value={form.spouseAge} onChange={(event) => setField("spouseAge", event.target.value)} />
+                <Input type="number" min={18} max={100} placeholder="Secondary current age" value={form.spouseAge} onChange={(event) => setField("spouseAge", event.target.value)} />
                 <Input type="number" min={0} placeholder="Secondary annual income ($)" value={form.spouseAnnualIncome} onChange={(event) => setField("spouseAnnualIncome", event.target.value)} />
                 <Input type="number" min={0} placeholder="Secondary Group Life ($)" value={form.spouseGroupLifeCoverage} onChange={(event) => setField("spouseGroupLifeCoverage", event.target.value)} />
                 <Input type="number" min={0} placeholder="Secondary Private Life ($)" value={form.spousePrivateLifeCoverage} onChange={(event) => setField("spousePrivateLifeCoverage", event.target.value)} />
                 <Input type="number" min={0} placeholder="Secondary non-qualified assets ($)" value={form.spouseNonQualifiedAssets} onChange={(event) => setField("spouseNonQualifiedAssets", event.target.value)} />
-                <div className="col-span-2 grid grid-cols-2 gap-3">
-                  <select value={form.spousePrivateLifePolicyType} onChange={(event) => setField("spousePrivateLifePolicyType", event.target.value as "term" | "permanent")} className={selectClass}>
-                    <option value="term">Term</option>
-                    <option value="permanent">Permanent</option>
-                  </select>
-                  {form.spousePrivateLifePolicyType === "term" ? <Input type="number" min={0} placeholder="Secondary term length (years)" value={form.spousePrivateLifeTermYears} onChange={(event) => setField("spousePrivateLifeTermYears", event.target.value)} /> : <div />}
-                </div>
+                <select value={form.spousePrivateLifePolicyType} onChange={(event) => setField("spousePrivateLifePolicyType", event.target.value as "term" | "permanent")} className={selectClass}>
+                  <option value="term">Secondary Term</option>
+                  <option value="permanent">Secondary Permanent</option>
+                </select>
+                {form.spousePrivateLifePolicyType === "term" ? <Input type="number" min={0} placeholder="Secondary term length (years)" value={form.spousePrivateLifeTermYears} onChange={(event) => setField("spousePrivateLifeTermYears", event.target.value)} /> : null}
               </div>
             </>
           ) : null}
 
-          <SectionTitle>Household Liability Coverage</SectionTitle>
-          <Input type="number" min={0} placeholder="Underlying Auto Liability Limit ($)" value={form.autoLiabilityLimit} onChange={(event) => setField("autoLiabilityLimit", event.target.value)} />
+          <SectionTitle description="Umbrella fields are illustrative and should be shown in $1M blocks inside the Liability module.">Household Liability Coverage</SectionTitle>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Input type="number" min={0} placeholder="Underlying Auto Liability Limit ($)" value={form.autoLiabilityLimit} onChange={(event) => setField("autoLiabilityLimit", event.target.value)} />
+            <Input type="number" min={0} step={1_000_000} placeholder="Existing Umbrella Coverage ($)" value={form.umbrellaCoverage} onChange={(event) => setField("umbrellaCoverage", event.target.value)} />
+          </div>
         </DrawerBody>
         <DrawerFooter>
           {submitAttempted && validationErrors.length > 0 ? (
@@ -176,16 +183,14 @@ function AddClientDrawer() {
             </ul>
           ) : null}
           <Button variant="secondary" onClick={() => { setOpen(false); setSubmitAttempted(false) }}>Cancel</Button>
-          <Button
-            onClick={() => {
-              setSubmitAttempted(true)
-              if (!canSubmit) return
-              createClient(formToPayload(form))
-              setOpen(false)
-              setSubmitAttempted(false)
-              setForm(emptyClientForm)
-            }}
-          >
+          <Button onClick={() => {
+            setSubmitAttempted(true)
+            if (!canSubmit) return
+            createClient(formToPayload(form))
+            setOpen(false)
+            setSubmitAttempted(false)
+            setForm(emptyClientForm)
+          }}>
             Save Client
           </Button>
         </DrawerFooter>
@@ -207,12 +212,7 @@ function RiskReviewDrawer({ client, mode = "generate" }: { client: ClientRecord;
   }
 
   return isRegenerate ? (
-    <button
-      aria-label={`Regenerate risk review for ${client.displayName}`}
-      title="Regenerate risk review"
-      className="rounded-md p-1.5 text-blue-400 transition-colors hover:bg-blue-950/30 hover:text-blue-300"
-      onClick={handleClick}
-    >
+    <button aria-label={`Regenerate risk review for ${client.displayName}`} title="Regenerate risk review" className="rounded-md p-1.5 text-blue-400 transition-colors hover:bg-blue-950/30 hover:text-blue-300" onClick={handleClick}>
       <RiRefreshLine className="size-4" aria-hidden="true" />
     </button>
   ) : (
@@ -227,55 +227,30 @@ function RemoveClientDrawer({ client, scenarioCount }: { client: ClientRecord; s
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <button
-          aria-label={`Remove ${client.displayName}`}
-          className="rounded-md p-1.5 text-red-500/60 transition-colors hover:bg-red-950/30 hover:text-red-400"
-        >
+        <button aria-label={`Remove ${client.displayName}`} className="rounded-md p-1.5 text-red-500/60 transition-colors hover:bg-red-950/30 hover:text-red-400">
           <RiDeleteBinLine className="size-4" aria-hidden="true" />
         </button>
       </DrawerTrigger>
-      <DrawerContent className="max-w-115">
-        <DrawerHeader>
-          <DrawerTitle>Remove Client</DrawerTitle>
-        </DrawerHeader>
+      <DrawerContent className="sm:max-w-xl">
+        <DrawerHeader><DrawerTitle>Remove Client</DrawerTitle></DrawerHeader>
         <DrawerBody className="space-y-5">
           <div className="rounded-2xl border border-red-900/60 bg-red-950/20 p-4">
             <div className="flex items-start gap-3">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-red-950 text-red-300 ring-1 ring-red-800/80">
-                <RiAlertLine className="size-5" aria-hidden="true" />
-              </div>
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-red-950 text-red-300 ring-1 ring-red-800/80"><RiAlertLine className="size-5" aria-hidden="true" /></div>
               <div>
                 <p className="font-semibold text-red-100">Remove {client.displayName} from the dashboard?</p>
-                <p className="mt-1 text-sm leading-6 text-red-200/70">
-                  This will archive the client profile and hide it from active client setup and review workflows.
-                </p>
+                <p className="mt-1 text-sm leading-6 text-red-200/70">This will archive the client profile and hide it from active client setup and review workflows.</p>
               </div>
             </div>
           </div>
-
           <div className="rounded-xl border border-gray-800 bg-gray-950/70 p-4">
             <p className="text-sm font-medium text-gray-100">{client.displayName}</p>
-            <p className="mt-1 text-xs text-gray-500">
-              {client.profile.clientType === "couple" ? "Couple" : "Individual"} · {scenarioCount} risk review{scenarioCount === 1 ? "" : "s"}
-            </p>
+            <p className="mt-1 text-xs text-gray-500">{client.profile.clientType === "couple" ? "Couple" : "Individual"} · {scenarioCount} risk review{scenarioCount === 1 ? "" : "s"}</p>
           </div>
-
-          <p className="text-xs leading-5 text-gray-500">
-            This is a soft remove for MVP/local usage. Existing persisted data is marked archived rather than permanently deleted.
-          </p>
         </DrawerBody>
         <DrawerFooter>
           <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button
-            variant="destructive"
-            onClick={() => {
-              archiveClient(client.id)
-              setOpen(false)
-            }}
-          >
-            <RiDeleteBinLine className="size-4" aria-hidden="true" />
-            Remove Client
-          </Button>
+          <Button variant="destructive" onClick={() => { archiveClient(client.id); setOpen(false) }}><RiDeleteBinLine className="size-4" />Remove Client</Button>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
@@ -307,7 +282,7 @@ export function Dashboard() {
       <div className="flex items-center justify-between gap-6">
         <div>
           <h1 className="text-2xl font-semibold text-gray-50">Client Setup</h1>
-          <p className="mt-1 text-sm text-gray-400">Enter client information to generate a personalized income gap analysis across all risk modules.</p>
+          <p className="mt-1 text-sm text-gray-400">Enter client information to generate a personalized gap analysis across all advisor modules.</p>
         </div>
         <AddClientDrawer />
       </div>
@@ -331,40 +306,19 @@ export function Dashboard() {
             {filteredClients.map((client) => {
               const scenarioCount = scenariosByClientId[client.id] ?? 0
               const firstScenario = firstScenarioByClientId[client.id]
-              const firstScenarioId = firstScenario?.id
               const hasGeneratedReview = scenarioCount > 0
-
               return (
                 <li key={client.id} className="flex items-center gap-4 px-6 py-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                    <Link
-                      to={`/clients/${client.id}/offensive`}
-                      className="font-medium text-gray-100 transition-colors hover:text-cyan-300 hover:underline"
-                      title="Open offensive advisor"
-                    >
-                      {client.displayName}
-                    </Link>
-                      <Link to={`/clients/${client.id}/overview`} title="View and edit client overview" className="rounded-md p-1 text-cyan-400 transition-colors hover:bg-cyan-950/30 hover:text-cyan-300">
-                        <RiEyeLine className="size-3.5" aria-hidden="true" />
-                      </Link>
+                      <Link to={`/clients/${client.id}/offensive`} className="font-medium text-gray-100 transition-colors hover:text-cyan-300 hover:underline" title="Open offensive advisor">{client.displayName}</Link>
+                      <Link to={`/clients/${client.id}/overview`} title="View and edit client overview" className="rounded-md p-1 text-cyan-400 transition-colors hover:bg-cyan-950/30 hover:text-cyan-300"><RiEyeLine className="size-3.5" aria-hidden="true" /></Link>
                     </div>
                     <p className="text-xs text-gray-500">Updated {formatDate(client.updatedAt)}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    {firstScenario && firstScenarioId ? (
-                      <Link
-                        to={`/scenarios/${firstScenarioId}/${firstScenario.activeModule}`}
-                        className="text-sm text-blue-400 hover:text-blue-300"
-                      >
-                        Open Review
-                      </Link>
-                    ) : null}
-                    {hasGeneratedReview ? (
-                      <RiskReviewDrawer client={client} mode="regenerate" />
-                    ) : (
-                      <RiskReviewDrawer client={client} mode="generate" />
-                    )}
+                    {firstScenario ? <Link to={`/scenarios/${firstScenario.id}/${firstScenario.activeModule}`} className="text-sm text-blue-400 hover:text-blue-300">Open Review</Link> : null}
+                    {hasGeneratedReview ? <RiskReviewDrawer client={client} mode="regenerate" /> : <RiskReviewDrawer client={client} mode="generate" />}
                     <RemoveClientDrawer client={client} scenarioCount={scenarioCount} />
                   </div>
                   <RiArrowRightSLine className="size-4 text-gray-700" />
