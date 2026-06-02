@@ -7,6 +7,8 @@ interface UnemploymentOutputViewProps {
   outputs: UnemploymentOutputs
 }
 
+const compactCardClass = "unemployment-kpi-card"
+
 function formatCurrency(value: number): string {
   const abs = Math.abs(value)
   if (abs >= 1_000_000) return `${value < 0 ? "-" : ""}$${(abs / 1_000_000).toFixed(2).replace(/\.00$/, "")}M`
@@ -18,97 +20,79 @@ function formatMonths(months: number): string {
   return `${months.toFixed(1)} mo`
 }
 
-function getRunwayStatus(months: number, idealMonths: number): { label: string; badgeClass: string } {
-  if (months > idealMonths) return { label: "Above Target", badgeClass: "bg-cyan-950/50 text-cyan-300 ring-1 ring-cyan-800/60" }
-  if (months < 1.5) return { label: "Danger Zone", badgeClass: "bg-rose-950/50 text-rose-300 ring-1 ring-rose-800/60" }
-  if (months < 3) return { label: "Below Minimum", badgeClass: "bg-amber-950/50 text-amber-300 ring-1 ring-amber-800/60" }
-  if (months < idealMonths * 0.75) return { label: "Minimum Met", badgeClass: "bg-amber-950/50 text-amber-300 ring-1 ring-amber-800/60" }
-  if (months < idealMonths) return { label: "Ideal Range", badgeClass: "bg-emerald-950/50 text-emerald-300 ring-1 ring-emerald-800/60" }
-  return { label: "Target Met", badgeClass: "bg-emerald-950/50 text-emerald-300 ring-1 ring-emerald-800/60" }
+function getReserveStatus(months: number, idealMonths: number): { label: string; tone: string } {
+  if (months > idealMonths) return { label: "Above Target", tone: "text-cyan-300 border-cyan-800/60 bg-cyan-950/40" }
+  if (months < 1.5) return { label: "Danger", tone: "text-rose-300 border-rose-800/60 bg-rose-950/40" }
+  if (months < 3) return { label: "Below Minimum", tone: "text-amber-300 border-amber-800/60 bg-amber-950/40" }
+  if (months < idealMonths) return { label: "Within Range", tone: "text-emerald-300 border-emerald-800/60 bg-emerald-950/40" }
+  return { label: "Target Met", tone: "text-emerald-300 border-emerald-800/60 bg-emerald-950/40" }
 }
 
-function idealReserveRationale(idealMonths: number, coveragePct: number): string {
-  const pctLabel = `${Math.round(coveragePct * 100)}%`
-  if (idealMonths === 6) return `Remaining income covers ~${pctLabel} of expenses — highest concentration risk.`
-  if (idealMonths === 5) return `Remaining income covers ~${pctLabel} of expenses — elevated concentration risk.`
-  if (idealMonths === 4) return `Remaining income covers ~${pctLabel} of expenses — moderate concentration risk.`
-  return `Remaining income covers ~${pctLabel} of expenses — lower concentration risk.`
-}
-
-function PositionGauge({ outputs }: { outputs: UnemploymentOutputs }) {
-  const burn = Math.max(outputs.monthlyBurnRate, 1)
-  // Advisor note is about emergency savings held versus a 3–6 month target.
-  // Keep this gauge tied to current reserves, not severance/unemployment pools.
-  const runway = outputs.reserveMonthsCurrent
+function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
+  const reserveMonths = outputs.reserveMonthsCurrent
   const idealMonths = outputs.idealReserveMonths
-  const status = getRunwayStatus(runway, idealMonths)
-  const tankX = 30
-  const tankY = 20
-  const tankW = 100
-  const tankH = 300
-  const gaugeMaxMo = Math.max(9, idealMonths + 3)
-  const clampMo = Math.min(Math.max(runway, 0), gaugeMaxMo)
-  const fillHeightPx = (clampMo / gaugeMaxMo) * tankH
-  const fillTopPx = tankY + tankH - fillHeightPx
-  const needleYPx = fillTopPx
-  const yAtMonths = (m: number) => tankY + tankH - (m / gaugeMaxMo) * tankH
-  const min3YPx = yAtMonths(3)
-  const idealYPx = yAtMonths(idealMonths)
-  const danger15YPx = yAtMonths(1.5)
-  const coveragePct = outputs.idealReserveTarget > 0
-    ? Math.min(100, (outputs.currentReserveLevel / outputs.idealReserveTarget) * 100)
-    : 0
+  const gaugeMaxMonths = Math.max(9, idealMonths + 3)
+  const markerPct = Math.min(100, Math.max(0, (reserveMonths / gaugeMaxMonths) * 100))
+  const dangerPct = Math.min(100, (1.5 / gaugeMaxMonths) * 100)
+  const minimumPct = Math.min(100, (3 / gaugeMaxMonths) * 100)
+  const idealPct = Math.min(100, (idealMonths / gaugeMaxMonths) * 100)
+  const status = getReserveStatus(reserveMonths, idealMonths)
+  const targetCoveragePct = outputs.idealReserveTarget > 0 ? Math.min(100, (outputs.currentReserveLevel / outputs.idealReserveTarget) * 100) : 0
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-2">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Reserve Position Gauge</p>
-      <div className="relative h-[340px] w-[200px]">
-        <div className="absolute left-0 top-[20px] h-[300px] w-[28px]">
-          {[0, 3, idealMonths, 9].filter((v, i, a) => a.indexOf(v) === i).map((m) => {
-            const y = yAtMonths(m)
-            return (
-              <div key={m} className="absolute inset-x-0" style={{ top: `${y - tankY}px`, transform: "translateY(-50%)" }}>
-                <div className="flex items-center justify-end pr-1">
-                  <span className="text-[10px] text-slate-400">{m}mo</span>
-                </div>
-              </div>
-            )
-          })}
+    <Card className="unemployment-chart-panel border-slate-800/80 bg-slate-950/60">
+      <CardHeader className="px-5 pb-0 pt-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <CardTitle className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+              Emergency Reserve Position
+            </CardTitle>
+            <p className="mt-1 text-xs leading-snug text-slate-400">
+              Current emergency savings compared with the dynamic 3–6 month target
+            </p>
+          </div>
+          <div className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold ${status.tone}`}>{status.label}</div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="px-5 pb-4 pt-4">
+        <div className="grid gap-3 md:grid-cols-4">
+          <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 px-3 py-2">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Current Reserve</p>
+            <p className="mt-1 text-lg font-bold leading-none text-cyan-300">{formatCurrency(outputs.currentReserveLevel)}</p>
+          </div>
+          <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 px-3 py-2">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Current Runway</p>
+            <p className="mt-1 text-lg font-bold leading-none text-cyan-300">{formatMonths(reserveMonths)}</p>
+          </div>
+          <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 px-3 py-2">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Ideal Target</p>
+            <p className="mt-1 text-lg font-bold leading-none text-slate-100">{formatCurrency(outputs.idealReserveTarget)}</p>
+          </div>
+          <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 px-3 py-2">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Target Covered</p>
+            <p className="mt-1 text-lg font-bold leading-none text-emerald-300">{Math.round(targetCoveragePct)}%</p>
+          </div>
         </div>
 
-        <div
-          className="absolute overflow-hidden rounded-[14px] border border-slate-600/70 bg-slate-950/70"
-          style={{ left: `${tankX}px`, top: `${tankY}px`, width: `${tankW}px`, height: `${tankH}px` }}
-        >
-          <div className="absolute inset-x-0 bottom-0 bg-rose-500/35" style={{ top: `${danger15YPx - tankY}px` }} />
-          <div className="absolute inset-x-0 bg-amber-500/35" style={{ top: `${min3YPx - tankY}px`, height: `${danger15YPx - min3YPx}px` }} />
-          <div className="absolute inset-x-0 bg-emerald-500/35" style={{ top: `${idealYPx - tankY}px`, height: `${min3YPx - idealYPx}px` }} />
-          <div className="absolute inset-x-0 top-0 bg-cyan-400/30" style={{ height: `${idealYPx - tankY}px` }} />
-          <div className="absolute inset-x-0 bottom-0 bg-[#378ADD]/90 transition-all duration-500 ease-[cubic-bezier(.4,0,.2,1)]" style={{ height: `${fillHeightPx}px` }} />
-          <div className="absolute inset-x-0 top-[22%] text-center text-[11px] font-bold tracking-[0.08em] text-slate-100">IDEAL</div>
-          <div className="absolute inset-x-0 top-[57%] text-center text-[10px] text-slate-200/85">MINIMUM</div>
-          <div className="absolute inset-x-0 top-[89%] text-center text-[10px] text-slate-200/85">DANGER</div>
+        <div className="mt-4 rounded-xl border border-slate-800/70 bg-slate-950/70 px-4 py-4">
+          <div className="relative h-5 overflow-hidden rounded-full bg-slate-900">
+            <div className="absolute inset-y-0 left-0 bg-rose-500/65" style={{ width: `${dangerPct}%` }} />
+            <div className="absolute inset-y-0 bg-amber-500/65" style={{ left: `${dangerPct}%`, width: `${Math.max(0, minimumPct - dangerPct)}%` }} />
+            <div className="absolute inset-y-0 bg-emerald-500/65" style={{ left: `${minimumPct}%`, width: `${Math.max(0, idealPct - minimumPct)}%` }} />
+            <div className="absolute inset-y-0 bg-cyan-500/40" style={{ left: `${idealPct}%`, width: `${Math.max(0, 100 - idealPct)}%` }} />
+            <div className="absolute inset-y-0 left-0 bg-sky-300/55" style={{ width: `${markerPct}%` }} />
+            <div className="absolute top-1/2 h-7 w-0.5 -translate-y-1/2 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.7)]" style={{ left: `${markerPct}%` }} />
+          </div>
+          <div className="relative mt-2 h-4 text-[10px] font-medium text-slate-500">
+            <span className="absolute left-0">0 mo</span>
+            <span className="absolute -translate-x-1/2" style={{ left: `${minimumPct}%` }}>3 mo min</span>
+            <span className="absolute -translate-x-1/2" style={{ left: `${idealPct}%` }}>{idealMonths} mo ideal</span>
+            <span className="absolute right-0">{gaugeMaxMonths} mo</span>
+          </div>
         </div>
-
-        <div className="absolute border-t-2 border-dashed border-sky-300/90 transition-all duration-500 ease-[cubic-bezier(.4,0,.2,1)]" style={{ left: `${tankX - 6}px`, width: `${tankW + 14}px`, top: `${needleYPx}px` }} />
-        <div className="absolute h-2.5 w-2.5 rounded-full border border-white bg-sky-300 transition-all duration-500 ease-[cubic-bezier(.4,0,.2,1)]" style={{ left: `${tankX + tankW - 4}px`, top: `${needleYPx - 5}px` }} />
-        <div className="absolute text-[10px] text-sky-300 transition-all duration-500 ease-[cubic-bezier(.4,0,.2,1)]" style={{ left: `${tankX + tankW + 14}px`, top: `${needleYPx - 6}px` }}>
-          {formatCurrency(outputs.currentReserveLevel)}
-        </div>
-        <div className="absolute border-t border-dashed border-slate-200/70" style={{ left: `${tankX - 8}px`, width: `${tankW + 16}px`, top: `${min3YPx}px` }} />
-        <div className="absolute border-t border-dashed border-emerald-400/80" style={{ left: `${tankX - 8}px`, width: `${tankW + 16}px`, top: `${idealYPx}px` }} />
-      </div>
-
-      <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${status.badgeClass}`}>{status.label}</span>
-      <p className="text-xs text-slate-400">{formatMonths(runway)} reserve • {Math.round(coveragePct)}% of target</p>
-      <p className="text-[11px] text-slate-500">
-        Targets: {formatCurrency(outputs.minimumReserveTarget)} (3 mo min) / {formatCurrency(outputs.idealReserveTarget)} ({idealMonths} mo ideal)
-      </p>
-      <p className="text-[11px] text-slate-500">Based on monthly expenses: {formatCurrency(burn)}</p>
-      <p className="mt-1 max-w-[190px] text-center text-[10px] italic leading-snug text-slate-600">
-        {idealReserveRationale(idealMonths, outputs.remainingIncomeCoveragePct)}
-      </p>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -121,38 +105,28 @@ export function UnemploymentOutputView({ outputs }: UnemploymentOutputViewProps)
   const gapValue = outputs.excessReserve > 0
     ? `+${formatCurrency(outputs.excessReserve)}`
     : outputs.reserveGap > 0 ? `-${formatCurrency(outputs.reserveGap)}` : "$0"
-  const gapLabel = outputs.excessReserve > 0 ? "Excess vs. Ideal Target" : "Reserve Gap vs. Ideal Target"
-  const gapDesc = outputs.excessReserve > 0
-    ? `${formatMonths(outputs.reserveMonthsCurrent)} held — above the ${outputs.idealReserveMonths}-month ideal target`
-    : `${formatCurrency(outputs.reserveGap)} needed to reach the ${outputs.idealReserveMonths}-month ideal target`
+  const gapLabel = outputs.excessReserve > 0 ? "Excess Reserves" : "Reserve Gap"
 
   return (
-    <div className="module-output-container">
-      <div className="module-visual-dashboard">
-        <Card className="module-visual-panel border-slate-800/80 bg-slate-950/60">
-          <CardHeader className="px-6 pb-0 pt-5">
-            <CardTitle className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">
-              Emergency Reserve Position Gauge
-            </CardTitle>
-            <p className="mt-1 text-sm leading-snug text-slate-400">
-              Current emergency savings measured against dynamic 3–6 month reserve thresholds
-            </p>
-          </CardHeader>
-          <CardContent className="px-6 pb-6 pt-4">
-            <PositionGauge outputs={outputs} />
-          </CardContent>
-        </Card>
+    <div className="unemployment-output-container">
+      <div className="unemployment-visual-dashboard">
+        <ReservePositionPanel outputs={outputs} />
 
-        <div className="module-metric-rail">
-          <ModuleMetricCard label="Monthly Cash Flow" value={formatCurrency(outputs.monthlyCashFlow)} description="Estimated household net income minus monthly expenses" accent={cfAccent} />
-          <ModuleMetricCard label="Remaining Income Coverage" value={`${Math.round(outputs.remainingIncomeCoveragePct * 100)}%`} description={`${formatCurrency(outputs.remainingIncome)} remaining net monthly income if the highest earner loses income`} accent={outputs.remainingIncomeCoveragePct >= 0.67 ? "green" : outputs.remainingIncomeCoveragePct >= 0.33 ? "cyan" : "red"} disclosure={advisorSafeCopy.unemployment.netIncomeProxy} />
-          <ModuleMetricCard label="Current Reserve Runway" value={formatMonths(outputs.reserveMonthsCurrent)} description="Liquid emergency savings divided by monthly expenses" accent={runwayAccent} />
-          <ModuleMetricCard label={gapLabel} value={gapValue} description={gapDesc} accent={gapAccent} disclosure={outputs.excessReserve > 0 ? advisorSafeCopy.unemployment.aboveTarget : undefined} />
-          <ModuleMetricCard label="Ideal Reserve Target" value={formatCurrency(outputs.idealReserveTarget)} description={`${outputs.idealReserveMonths} months × monthly expenses`} accent="slate" />
-          <ModuleMetricCard label="Search-Period Runway" value={formatMonths(outputs.effectiveRunwayMonths)} description="Modeled months funded after remaining income, severance, unemployment benefits, and savings" accent={effectiveAccent} />
-          <ModuleMetricCard label="Search-Period Shortfall" value={outputs.remainingShortfall > 0 ? formatCurrency(outputs.remainingShortfall) : "$0"} description="Search-period funding gap after savings" accent={shortfallAccent} disclosure={advisorSafeCopy.unemployment.reserveDisclosure} />
+        <div className="unemployment-metric-grid">
+          <ModuleMetricCard className={compactCardClass} label="Monthly Cash Flow" value={formatCurrency(outputs.monthlyCashFlow)} description="Net income minus expenses" accent={cfAccent} />
+          <ModuleMetricCard className={compactCardClass} label="Income Coverage" value={`${Math.round(outputs.remainingIncomeCoveragePct * 100)}%`} description="Remaining income ÷ expenses" accent={outputs.remainingIncomeCoveragePct >= 0.67 ? "green" : outputs.remainingIncomeCoveragePct >= 0.33 ? "cyan" : "red"} />
+          <ModuleMetricCard className={compactCardClass} label="Remaining Income" value={`${formatCurrency(outputs.remainingIncome)}/mo`} description="If highest earner is lost" accent={outputs.remainingIncome > 0 ? "cyan" : "red"} />
+          <ModuleMetricCard className={compactCardClass} label="Reserve Runway" value={formatMonths(outputs.reserveMonthsCurrent)} description="Savings ÷ expenses" accent={runwayAccent} />
+          <ModuleMetricCard className={compactCardClass} label={gapLabel} value={gapValue} description="Versus ideal target" accent={gapAccent} />
+          <ModuleMetricCard className={compactCardClass} label="Ideal Target" value={formatCurrency(outputs.idealReserveTarget)} description={`${outputs.idealReserveMonths} months target`} accent="slate" />
+          <ModuleMetricCard className={compactCardClass} label="Search Runway" value={formatMonths(outputs.effectiveRunwayMonths)} description="Modeled search period" accent={effectiveAccent} />
+          <ModuleMetricCard className={compactCardClass} label="Search Shortfall" value={outputs.remainingShortfall > 0 ? formatCurrency(outputs.remainingShortfall) : "$0"} description="After offsets + savings" accent={shortfallAccent} />
         </div>
       </div>
+
+      <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
+        {advisorSafeCopy.unemployment.dynamicTarget} {advisorSafeCopy.unemployment.netIncomeProxy} {advisorSafeCopy.unemployment.reserveDisclosure}
+      </p>
     </div>
   )
 }
