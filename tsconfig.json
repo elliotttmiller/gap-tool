@@ -25,5 +25,12 @@
     "noEmit": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "template-dashboard-main", "original", "dist"]
+  "exclude": [
+    "node_modules",
+    "template-dashboard-main",
+    "original",
+    "dist",
+    "src/features/offensive/**",
+    "src/pages/OffensiveDashboardPage.tsx"
+  ]
 }
