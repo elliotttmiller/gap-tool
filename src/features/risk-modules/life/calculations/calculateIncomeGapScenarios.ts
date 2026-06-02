@@ -37,6 +37,8 @@ import {
   IncomeGapYearlyPoint,
 } from "../types";
 import { nonNegative } from "@/lib/math";
+import { presentValueOfAnnualStream } from "@/domain/financial/presentValue";
+import { summarizeAnnualGapSchedule } from "@/domain/gap-analysis/gapSchedule";
 
 function requireFiniteNumber(value: unknown, fieldName: string): number {
   if (typeof value !== "number" || !Number.isFinite(value)) {
@@ -51,16 +53,6 @@ function requireNonNegativeNumber(value: unknown, fieldName: string): number {
     throw new Error(`calculateIncomeGapScenarios: ${fieldName} must be >= 0.`);
   }
   return numeric;
-}
-
-/**
- * Present value of a stream of annual cash flows discounted at `rate`
- * using end-of-year timing. Each element in `cashFlows` is year i+1.
- */
-function presentValueStream(cashFlows: number[], rate: number): number {
-  return cashFlows.reduce((pv, cf, i) => {
-    return pv + cf / Math.pow(1 + rate, i + 1);
-  }, 0);
 }
 
 export function calculateIncomeGapScenarios(
@@ -118,10 +110,12 @@ export function calculateIncomeGapScenarios(
   const yearlyData: IncomeGapYearlyPoint[] = [];
   let projectedNetIncomeTotal = 0;
   let m1TotalReplaced = 0;
+  let m1CumulativeGap = 0;
   let module2Balance = existingPool;
   let m2TotalReplaced = 0;
+  let m2CumulativeGap = 0;
 
-  const m1CoverageStream: number[] = [];
+  const m1GapStream: number[] = [];
   const m2GapStream: number[] = [];
 
   for (let i = 0; i < yearsToRetirement; i++) {
@@ -139,8 +133,9 @@ export function calculateIncomeGapScenarios(
     );
     const incomeGap = Math.max(0, projectedNetIncome - safeIncomeCoverage);
 
-    m1CoverageStream.push(safeIncomeCoverage);
+    m1GapStream.push(incomeGap);
     m1TotalReplaced += safeIncomeCoverage;
+    m1CumulativeGap += incomeGap;
 
     // ── Module 2: Full Coverage Scenario ───────────────────────────────────
     // Apply annual return to balance first, then draw full income need.
@@ -148,34 +143,44 @@ export function calculateIncomeGapScenarios(
     const maxCovered = Math.min(module2Balance, projectedNetIncome);
     const isCoveredMax = maxCovered >= projectedNetIncome && projectedNetIncome > 0;
     module2Balance = Math.max(0, module2Balance - maxCovered);
-    if (isCoveredMax) {
-      m2TotalReplaced += projectedNetIncome;
-    }
+    m2TotalReplaced += maxCovered;
     const m2AnnualGap = Math.max(0, projectedNetIncome - maxCovered);
     m2GapStream.push(m2AnnualGap);
+    m2CumulativeGap += m2AnnualGap;
 
     projectedNetIncomeTotal += projectedNetIncome;
     yearlyData.push({
+      yearIndex: i,
       age,
       projectedIncome: projectedNetIncome,
       safeIncomeCoverage,
       incomeGap,
+      cumulativeIncomeGap: m1CumulativeGap,
       maxCovered,
+      maxCoverageGap: m2AnnualGap,
+      cumulativeMaxCoverageGap: m2CumulativeGap,
       isCoveredMax,
     });
   }
 
   // ── Module 1 metrics ──────────────────────────────────────────────────────
-  // PV of the entire coverage stream that needs to be funded.
-  const pvCoverageStream = presentValueStream(m1CoverageStream, roi);
-  // Additional death benefit needed = max(0, PV of coverage stream − existing pool).
-  const m1DeathBenefitNeeded = Math.max(0, pvCoverageStream - existingPool);
-  const m1SurvivorGap = Math.max(0, projectedNetIncomeTotal - m1TotalReplaced);
+  const m1ScheduleSummary = summarizeAnnualGapSchedule(
+    yearlyData.map((point) => ({
+      yearIndex: point.yearIndex,
+      age: point.age,
+      projectedNeed: point.projectedIncome,
+      availableCoverage: point.safeIncomeCoverage,
+      annualGap: point.incomeGap,
+      cumulativeGap: point.cumulativeIncomeGap,
+    }))
+  );
+  const m1DeathBenefitNeeded = presentValueOfAnnualStream(m1GapStream, roi);
+  const m1SurvivorGap = m1ScheduleSummary.survivorGap;
 
   // ── Module 2 metrics ──────────────────────────────────────────────────────
   // Death Benefit Needed = PV of actual annual gap stream (not a level-gap approximation).
-  const m2DeathBenefitNeeded = presentValueStream(m2GapStream, roi);
-  const m2SurvivorGap = Math.max(0, projectedNetIncomeTotal - m2TotalReplaced);
+  const m2DeathBenefitNeeded = presentValueOfAnnualStream(m2GapStream, roi);
+  const m2SurvivorGap = m2CumulativeGap;
 
   const coveredPoints = yearlyData.filter((p) => p.isCoveredMax);
   const yearsOfMaxWD = coveredPoints.length;
@@ -187,9 +192,9 @@ export function calculateIncomeGapScenarios(
       yearlyData,
       projectedNetIncomeTotal,
       safeIncomeCoveragePct,
-      annualCoverageYear1: m1CoverageStream[0] ?? 0,
+      annualCoverageYear1: yearlyData[0]?.safeIncomeCoverage ?? 0,
       totalIncomeReplaced: m1TotalReplaced,
-      pvOfCoverageStream: pvCoverageStream,
+      pvOfCoverageStream: presentValueOfAnnualStream(yearlyData.map((point) => point.safeIncomeCoverage), roi),
       deathBenefitNeeded: m1DeathBenefitNeeded,
       roi,
     },
@@ -207,7 +212,7 @@ export function calculateIncomeGapScenarios(
     },
     yearsToRetirement,
     // Convenience summary — charts and metrics should use isFullyCovered from here.
-    isM1FullyCovered: m1DeathBenefitNeeded <= 0,
+    isM1FullyCovered: m1ScheduleSummary.isFullyCovered,
     m1SurvivorGap,
   };
 }

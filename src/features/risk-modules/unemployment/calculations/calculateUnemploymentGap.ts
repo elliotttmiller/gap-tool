@@ -1,7 +1,5 @@
 import { UnemploymentInputs, UnemploymentOutputs } from "../types";
-
-const DEFAULT_NET_INCOME_RATIO = 0.65;
-const MINIMUM_RESERVE_MONTHS = 3;
+import { defaultUnemploymentMethodologyAssumptions } from "@/domain/assumptions/defaultAssumptions";
 
 /**
  * Maps remaining income coverage percentage to an ideal reserve target in months.
@@ -15,10 +13,11 @@ const MINIMUM_RESERVE_MONTHS = 3;
  *   ≥ 67% remaining coverage → 3 months
  */
 function mapCoverageToIdealMonths(remainingCoveragePct: number): number {
-  if (remainingCoveragePct < 0.33) return 6;
-  if (remainingCoveragePct < 0.50) return 5;
-  if (remainingCoveragePct < 0.67) return 4;
-  return 3;
+  const bands = defaultUnemploymentMethodologyAssumptions.reserveCoverageBands;
+  if (remainingCoveragePct < 0.33) return bands.under33;
+  if (remainingCoveragePct < 0.50) return bands.under50;
+  if (remainingCoveragePct < 0.67) return bands.under67;
+  return bands.over67;
 }
 
 export function calculateUnemploymentGap(inputs: UnemploymentInputs): UnemploymentOutputs {
@@ -31,22 +30,27 @@ export function calculateUnemploymentGap(inputs: UnemploymentInputs): Unemployme
   const unemploymentBenefitMonthly = Math.max(inputs.unemploymentBenefitMonthly ?? 0, 0);
   const unemploymentBenefitDurationMonths = Math.max(Math.floor(inputs.unemploymentBenefitDurationMonths ?? 0), 0);
   const estimatedJobSearchMonths = Math.max(Math.floor(inputs.estimatedJobSearchMonths ?? 0), 0);
-  const netIncomeRatio = Math.max(0, Math.min(1, inputs.netIncomeRatio ?? DEFAULT_NET_INCOME_RATIO));
+  const netIncomeRatio = Math.max(0, Math.min(1, inputs.netIncomeRatio ?? defaultUnemploymentMethodologyAssumptions.netIncomeRatio));
 
   const monthlyIncome = annualIncome / 12;
   const spouseMonthlyIncomeReference = spouseIncome / 12;
-  const monthlyCashFlowRaw = monthlyIncome - monthlyBurnRate;
+  const primaryNetMonthlyIncome = monthlyIncome * netIncomeRatio;
+  const secondaryNetMonthlyIncome = spouseMonthlyIncomeReference * netIncomeRatio;
+  const householdNetMonthlyIncome = primaryNetMonthlyIncome + secondaryNetMonthlyIncome;
+  const monthlyCashFlowRaw = householdNetMonthlyIncome - monthlyBurnRate;
   const cashFlowStatus: UnemploymentOutputs["cashFlowStatus"] =
     monthlyCashFlowRaw > 0 ? "positive" : monthlyCashFlowRaw < 0 ? "negative" : "breakeven";
 
   // ── Dynamic reserve targets ──────────────────────────────────────────────
-  // Assume the highest earner loses income; secondary earner's net income remains.
-  // "Remaining income" is modeled as the secondary earner's estimated net take-home.
-  const secondaryNetMonthly = spouseMonthlyIncomeReference * netIncomeRatio;
-  const remainingIncomeCoveragePct = monthlyBurnRate > 0 ? secondaryNetMonthly / monthlyBurnRate : 1;
+  // Assume the highest earner loses income; the lower earner's net income remains.
+  const incomeAtRisk = Math.max(annualIncome, spouseIncome);
+  const remainingGrossAnnualIncome = annualIncome >= spouseIncome ? spouseIncome : annualIncome;
+  const remainingIncome = (remainingGrossAnnualIncome / 12) * netIncomeRatio;
+  const remainingIncomeCoveragePct = monthlyBurnRate > 0 ? remainingIncome / monthlyBurnRate : 1;
 
   const idealReserveMonths = mapCoverageToIdealMonths(remainingIncomeCoveragePct);
-  const minimumReserveTarget = monthlyBurnRate * MINIMUM_RESERVE_MONTHS;
+  const minimumReserveMonths = defaultUnemploymentMethodologyAssumptions.minimumReserveMonths;
+  const minimumReserveTarget = monthlyBurnRate * minimumReserveMonths;
   const idealReserveTarget = monthlyBurnRate * idealReserveMonths;
   const reserveGap = Math.max(0, idealReserveTarget - emergencySavings);
   const excessReserve = Math.max(0, emergencySavings - idealReserveTarget);
@@ -59,7 +63,7 @@ export function calculateUnemploymentGap(inputs: UnemploymentInputs): Unemployme
   let reserveStatus: UnemploymentOutputs["reserveStatus"];
   if (emergencySavings > idealReserveTarget) {
     reserveStatus = "above-target";
-  } else if (monthsOfRunwayRaw < MINIMUM_RESERVE_MONTHS) {
+  } else if (monthsOfRunwayRaw < minimumReserveMonths) {
     reserveStatus = "danger";
   } else if (monthsOfRunwayRaw < idealReserveMonths * 0.75) {
     reserveStatus = "minimum";
@@ -69,39 +73,33 @@ export function calculateUnemploymentGap(inputs: UnemploymentInputs): Unemployme
     reserveStatus = "strong";
   }
 
-  const monthlyOffset = severanceMonthly + unemploymentBenefitMonthly;
-  const monthlyNetBurn = monthlyBurnRate - monthlyOffset;
+  const monthlyOffset = remainingIncome + severanceMonthly + unemploymentBenefitMonthly;
+  const monthlyNetBurn = Math.max(0, monthlyBurnRate - monthlyOffset);
 
   const severanceTotal = severanceMonthly * severanceDurationMonths;
   const unemploymentBenefitTotal = unemploymentBenefitMonthly * unemploymentBenefitDurationMonths;
   const totalOffsetPool = severanceTotal + unemploymentBenefitTotal;
 
-  const totalExpensesDuringSearch = monthlyBurnRate * estimatedJobSearchMonths;
-  const overlapMonths = Math.min(unemploymentBenefitDurationMonths, estimatedJobSearchMonths);
-  const totalOffsetDuringSearch = monthlyOffset * overlapMonths;
-  const netCashNeeded = Math.max(0, totalExpensesDuringSearch - totalOffsetDuringSearch);
-  const coveredBySavings = Math.min(emergencySavings, netCashNeeded);
-  const remainingShortfall = Math.max(0, netCashNeeded - emergencySavings);
-
-  const availableAtOnset = emergencySavings + totalOffsetPool;
-  const effectiveRunwayMonths = monthlyBurnRate > 0 ? availableAtOnset / monthlyBurnRate : 0;
-  const fullyFundedForSearch = effectiveRunwayMonths >= estimatedJobSearchMonths;
-  const breakEvenSearchDurationMonths = effectiveRunwayMonths;
-
   const timeline: UnemploymentOutputs["timeline"] = [];
   let reserveBalance = emergencySavings;
   let reserveDepletionMonth = -1;
   let totalUncoveredShortfall = 0;
+  let totalOffsetDuringSearch = 0;
+  let netCashNeeded = 0;
 
   for (let month = 1; month <= estimatedJobSearchMonths; month++) {
     const severanceActive = month <= severanceDurationMonths;
     const ubActive = month <= unemploymentBenefitDurationMonths;
-    const offsetIncome = (severanceActive ? severanceMonthly : 0) + (ubActive ? unemploymentBenefitMonthly : 0);
+    const severance = severanceActive ? severanceMonthly : 0;
+    const unemploymentBenefit = ubActive ? unemploymentBenefitMonthly : 0;
+    const offsetIncome = remainingIncome + severance + unemploymentBenefit;
     const requiredFromSavings = Math.max(0, monthlyBurnRate - offsetIncome);
     const coveredByReserve = Math.min(reserveBalance, requiredFromSavings);
     const shortfall = Math.max(0, requiredFromSavings - reserveBalance);
     reserveBalance = Math.max(0, reserveBalance - requiredFromSavings);
     totalUncoveredShortfall += shortfall;
+    totalOffsetDuringSearch += offsetIncome;
+    netCashNeeded += requiredFromSavings;
 
     if (shortfall > 0 && reserveDepletionMonth === -1) {
       reserveDepletionMonth = month;
@@ -113,6 +111,11 @@ export function calculateUnemploymentGap(inputs: UnemploymentInputs): Unemployme
 
     timeline.push({
       month,
+      remainingIncome,
+      severance,
+      unemploymentBenefit,
+      requiredSavingsDraw: requiredFromSavings,
+      endingReserveBalance: reserveBalance,
       offsetIncome,
       expenses: monthlyBurnRate,
       reserveBalance,
@@ -121,10 +124,25 @@ export function calculateUnemploymentGap(inputs: UnemploymentInputs): Unemployme
     });
   }
 
+  const totalExpensesDuringSearch = monthlyBurnRate * estimatedJobSearchMonths;
+  const coveredBySavings = Math.min(emergencySavings, netCashNeeded);
+  const remainingShortfall = Math.max(0, netCashNeeded - emergencySavings);
+
+  const availableAtOnset = emergencySavings + totalOffsetPool;
+  const effectiveRunwayMonths = monthlyBurnRate > 0
+    ? timeline.reduce((months, point) => months + (point.shortfall > 0 ? 0 : 1), 0)
+    : 0;
+  const fullyFundedForSearch = totalUncoveredShortfall <= 0;
+  const breakEvenSearchDurationMonths = effectiveRunwayMonths;
+
   return {
     monthlyBurnRate,
     monthlyIncome,
     spouseMonthlyIncomeReference,
+    primaryNetMonthlyIncome,
+    secondaryNetMonthlyIncome,
+    incomeAtRisk,
+    remainingIncome,
     monthlyCashFlow: monthlyCashFlowRaw,
     cashFlowStatus,
     dangerThreshold,
@@ -153,7 +171,7 @@ export function calculateUnemploymentGap(inputs: UnemploymentInputs): Unemployme
     remainingIncomeCoveragePct,
     reserveGap,
     excessReserve,
-    annualIncomeAtRisk: annualIncome,
+    annualIncomeAtRisk: incomeAtRisk,
     reserveMonthsCurrent: monthsOfRunwayRaw,
     monthlyGapAtDepletion: monthlyBurnRate,
     timeline,

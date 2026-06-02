@@ -41,7 +41,7 @@ export function LifeModulePage() {
     <RiskModulePage
       title="Life Insurance Risk Analysis"
       subtitle="If I die prematurely, what financial support disappears for my family?"
-      formSlot={<LifeInputForm inputs={moduleState.inputs} onChange={(next) => updateInputs(scenarioId, next)} showMaxWithdrawalRateInput={incomeGapTab === "max"} />}
+      formSlot={<LifeInputForm inputs={moduleState.inputs} onChange={(next) => updateInputs(scenarioId, next)} showMaxCoverageRoiInput={incomeGapTab === "max"} />}
       outputSlot={<LifeOutputView outputs={outputs} inputs={moduleState.inputs} assumptions={moduleState.assumptions} incomeGapOutputs={incomeGapOutputs} activeTab={incomeGapTab} onActiveTabChange={setIncomeGapTab} />}
     />
   )

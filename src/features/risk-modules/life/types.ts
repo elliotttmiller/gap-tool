@@ -99,6 +99,7 @@ export interface LifeOutputs {
 
 /** Per-year data point shared by both income-gap modules. */
 export interface IncomeGapYearlyPoint {
+  yearIndex: number;
   age: number;
   /** Projected annual NET income need for this year (grows at incomeGrowthRate). */
   projectedIncome: number;
@@ -109,8 +110,14 @@ export interface IncomeGapYearlyPoint {
   safeIncomeCoverage: number;
   /** Module 1: survivor income gap for this year = projectedIncome − safeIncomeCoverage. */
   incomeGap: number;
+  /** Running total of Module 1 income gaps. */
+  cumulativeIncomeGap: number;
   /** Module 2: income actually covered this year — projectedIncome if covered, partial if depleted. */
   maxCovered: number;
+  /** Module 2: annual income gap after the existing coverage pool is depleted. */
+  maxCoverageGap: number;
+  /** Running total of Module 2 income gaps. */
+  cumulativeMaxCoverageGap: number;
   /** Module 2: whether this year has full income coverage. */
   isCoveredMax: boolean;
 }
@@ -132,8 +139,8 @@ export interface IncomeGapModule1 {
   /** Box 4 — PV of the safe income coverage stream at the configured ROI. */
   pvOfCoverageStream: number;
   /**
-   * Box 5 — Additional death benefit needed = max(0, pvOfCoverageStream − existingPool).
-   * Zero means existing pool fully funds the coverage target ("Fully Covered").
+   * Box 5 — Death benefit needed = PV of the annual income-gap stream.
+   * Zero means every modeled annual gap is zero.
    */
   deathBenefitNeeded: number;
   roi: number;

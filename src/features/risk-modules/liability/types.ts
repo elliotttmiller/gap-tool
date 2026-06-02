@@ -31,6 +31,14 @@ export interface LiabilityInputs {
 }
 
 export interface LiabilityOutputs {
+  exposureSchedule: Array<{
+    yearIndex: number;
+    age: number;
+    grossIncome: number;
+    disposableIncome: number;
+    garnishableIncome: number;
+    cumulativeExposure: number;
+  }>;
   homeEquity: number;
   totalAtRiskAssets: number;
   primaryCoverage: number;

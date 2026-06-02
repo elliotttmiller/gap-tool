@@ -28,14 +28,14 @@ export type UnemploymentReserveGaugeData = {
  * calculation module as the only source of financial truth.
  */
 export function transformUnemploymentReserveGaugeData(outputs: UnemploymentOutputs): UnemploymentReserveGaugeData {
-  const fillRatio = Math.min(outputs.optimalReserveTarget > 0 ? outputs.currentReserveLevel / outputs.optimalReserveTarget : 0, 1)
+  const fillRatio = Math.min(outputs.idealReserveTarget > 0 ? outputs.currentReserveLevel / outputs.idealReserveTarget : 0, 1)
   const minimumPct = 50
   const fillFromTopPct = (1 - fillRatio) * 100
 
   const fillColor =
     outputs.currentReserveLevel < outputs.minimumReserveTarget
       ? "#ef4444"
-      : outputs.currentReserveLevel < outputs.optimalReserveTarget * 0.75
+      : outputs.currentReserveLevel < outputs.idealReserveTarget * 0.75
       ? "#22c55e"
       : "#16a34a"
 
@@ -74,7 +74,7 @@ export function transformUnemploymentReserveGaugeData(outputs: UnemploymentOutpu
     })),
     animationKey: [
       outputs.currentReserveLevel,
-      outputs.optimalReserveTarget,
+      outputs.idealReserveTarget,
       outputs.minimumReserveTarget,
       outputs.reserveDepletionMonth,
     ].join(":"),

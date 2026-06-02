@@ -162,8 +162,15 @@ export function UnemploymentOutputView({ outputs }: UnemploymentOutputViewProps)
           <ModuleMetricCard
             label="Monthly Cash Flow"
             value={formatCurrency(outputs.monthlyCashFlow)}
-            description="Income minus monthly burn rate"
+            description="Estimated household net income minus monthly expenses"
             accent={cfAccent}
+          />
+          <ModuleMetricCard
+            label="Remaining Income Coverage"
+            value={`${Math.round(outputs.remainingIncomeCoveragePct * 100)}%`}
+            description={`${formatCurrency(outputs.remainingIncome)} remaining net monthly income if the highest earner loses income`}
+            accent={outputs.remainingIncomeCoveragePct >= 0.67 ? "green" : outputs.remainingIncomeCoveragePct >= 0.33 ? "cyan" : "red"}
+            disclosure={advisorSafeCopy.unemployment.netIncomeProxy}
           />
           <ModuleMetricCard
             label="Current Runway"

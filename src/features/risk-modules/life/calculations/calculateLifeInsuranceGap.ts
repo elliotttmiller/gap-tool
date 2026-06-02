@@ -1,14 +1,6 @@
 import { LifeInputs, LifeAssumptions, LifeOutputs, LifeYearlyBreakdown } from "../types";
 import { clamp, nonNegative, safeDivide, roundCurrency, roundPercent } from "@/lib/math";
 
-function annuityPayment(presentValue: number, annualRate: number, years: number): number {
-  const pv = nonNegative(presentValue);
-  const n = Math.max(0, Math.floor(nonNegative(years)));
-  if (!pv || !n) return 0;
-  if (annualRate === 0) return pv / n;
-  return (pv * annualRate) / (1 - Math.pow(1 + annualRate, -n));
-}
-
 export function calculateLifeInsuranceGap(
   inputs: LifeInputs,
   assumptions: LifeAssumptions
@@ -58,20 +50,27 @@ export function calculateLifeInsuranceGap(
     ? yearsToRetirement
     : Math.min(nonNegative(inputs.privateLifeTermYears ?? yearsToRetirement), yearsToRetirement);
   const groupLifeCoverageYears = yearsToRetirement;
-  const groupLifeAnnualIncome = annuityPayment(gli, incomeYield, Math.max(1, groupLifeCoverageYears));
-  const privateLifeAnnualIncome = annuityPayment(privateLife, incomeYield, Math.max(1, privateLifeCoverageYears));
+  let groupLifeAnnualIncome = 0;
+  let privateLifeAnnualIncome = 0;
 
   let projectedIncomeToRetirement = 0;
   let cumulativeSurvivorGap = 0;
+  let coveragePool = availableResources;
 
   for (let yearIndex = 0; yearIndex < yearsToRetirement; yearIndex++) {
     const age = currentAge + yearIndex;
-    const projectedIncome = nonNegative(inputs.annualIncome) * Math.pow(1 + incomeGrowth, yearIndex);
-    const gliCovered = yearIndex < groupLifeCoverageYears ? Math.min(groupLifeAnnualIncome, projectedIncome) : 0;
-    const privateCovered = yearIndex < privateLifeCoverageYears
-      ? Math.min(privateLifeAnnualIncome, Math.max(0, projectedIncome - gliCovered))
-      : 0;
-    const survivorGap = Math.max(0, projectedIncome - gliCovered - privateCovered);
+    const projectedIncome = annualReplacementNeed * Math.pow(1 + incomeGrowth, yearIndex);
+    coveragePool *= 1 + incomeYield;
+    const availableThisYear = Math.min(coveragePool, projectedIncome);
+    coveragePool = Math.max(0, coveragePool - availableThisYear);
+    const groupShare = existingCoverageTotal > 0 ? gli / existingCoverageTotal : 0;
+    const gliCovered = Math.min(availableThisYear * groupShare, projectedIncome);
+    const privateCovered = Math.min(availableThisYear - gliCovered, Math.max(0, projectedIncome - gliCovered));
+    const survivorGap = Math.max(0, projectedIncome - availableThisYear);
+    if (yearIndex === 0) {
+      groupLifeAnnualIncome = gliCovered;
+      privateLifeAnnualIncome = privateCovered;
+    }
 
     projectedIncomeToRetirement += projectedIncome;
     cumulativeSurvivorGap += survivorGap;

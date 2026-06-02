@@ -8,7 +8,6 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  Cell,
   ResponsiveContainer,
 } from "recharts"
 import { AnimatedSection } from "@/components/ui/animated-section"
@@ -65,9 +64,10 @@ const M1Tooltip = ({ active, payload, label }: any) => {
 
 const M2Tooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
-  const point = payload[0]?.payload
-  const isCovered = point?.isCoveredMax
-  const income = point?.projectedIncome ?? 0
+  const covered = payload.find((p: any) => p.dataKey === "maxCovered")?.value ?? 0
+  const gap = payload.find((p: any) => p.dataKey === "maxCoverageGap")?.value ?? 0
+  const income = covered + gap
+  const isCovered = gap <= 0 && income > 0
   return (
     <div className={TOOLTIP_CLASS}>
       <p className="font-semibold text-gray-100 mb-2">Age {label}</p>
@@ -81,10 +81,14 @@ const M2Tooltip = ({ active, payload, label }: any) => {
         <span className="text-xs text-gray-400">Net Income Need:</span>
         <span className="font-semibold text-xs text-gray-100">{formatCurrency(income)}</span>
       </div>
-      {isCovered && (
+      <div className="flex justify-between gap-4 mb-1">
+        <span className="text-xs text-emerald-400">Net Income Covered:</span>
+        <span className="font-semibold text-xs text-emerald-300">{formatCurrency(covered)}</span>
+      </div>
+      {gap > 0 && (
         <div className="flex justify-between gap-4">
-          <span className="text-xs text-emerald-400">Net Income Covered:</span>
-          <span className="font-semibold text-xs text-emerald-300">{formatCurrency(income)}</span>
+          <span className="text-xs text-rose-400">Annual Gap:</span>
+          <span className="font-semibold text-xs text-rose-300">{formatCurrency(gap)}</span>
         </div>
       )}
     </div>
@@ -205,7 +209,7 @@ function Module2Boxes({ m2, projectionEndAge }: { m2: IncomeGapModule2; projecti
         <ModuleMetricCard
           label="Total Income Replaced"
           value={formatCurrency(m2.totalIncomeReplaced)}
-          description="Sum of income during fully covered (green) years only"
+          description="Sum of annual income covered by the existing coverage resource pool"
           accent="cyan"
         />
       </MetricGroup>
@@ -405,15 +409,8 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
                             width={48}
                           />
                           <Tooltip content={M2Tooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-                          {/* Full bar at projectedIncome height — green = covered, red = gap */}
-                          <Bar dataKey="projectedIncome" name="Annual Net Income" radius={[2, 2, 0, 0]} isAnimationActive={false}>
-                            {module2.yearlyData.map((entry, index) => (
-                              <Cell
-                                key={`cell-${index}`}
-                                fill={entry.isCoveredMax ? "#10b981" : "#ef4444"}
-                              />
-                            ))}
-                          </Bar>
+                          <Bar dataKey="maxCovered" name="Net Income Covered" stackId="income" fill="#10b981" radius={[0, 0, 0, 0]} isAnimationActive={false} />
+                          <Bar dataKey="maxCoverageGap" name="Income Gap" stackId="income" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={false} />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>

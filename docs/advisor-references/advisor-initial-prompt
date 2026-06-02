@@ -1,4 +1,809 @@
-INTITIAL PROMPT
+The optimal approach is to stop treating the app as a set of independent calculators and rebuild it as a **methodology-driven gap analysis engine**.
 
-I run a financial services firm with hundreds of financial advisors.  I am looking to build a tool that helps us present various income interruption events to show the gap that exists when an event occurs.  The events are Unemployment, Illness or Injury, Death, and Lawsuit.  I would like each of these events to be demonstrated on different modules.  There should be a Home Screen that allows me to enter the client’s personal data, including age of each income earner and their individual incomes, current Group Long-term Disability (GLTD), Private Disability (IDI), Group Life Insurance (GLI), Private Life Insurance (Life) that is either Term or Permanent, and Liability Limits for Home/Auto.  Each module then should have a bar chart of “income over time” showing their income increasing 3% per year until retirement age of 65.  The bar chart should show what total income is while factoring in lost income due to a presumed event.  The Injury or Illness module should factor in GLTD and IDI showing any gap that may exist. The Death Module should factor in the GLI to age 65 while Term insurance is for the length of the term, and assumes an investment rate of return of 5% when utilizing the death benefit as income replacement.  The Lawsuit module should factor in a maximum wage garnishment of 25% every year until age 65 and the total garnishment minus the current liability limits is the Liability Gap.  The Unemployment module should assume their current monthly income multiplied by 3 months and 6 months and show these two numbers as the High and Low ranges for their Emergency Reserve Savings bucket.  Our firm’s name is North Star Resource Group and our logos and branding are included.
+Right now, the tool is too component-led: inputs, formulas, chart logic, output cards, and narratives are spread across module files. That makes it easy for the UI to say one thing while the formula does another. The advisor notes are exposing that architectural problem.
 
+The rebuild should make one thing clear:
+
+> **The product is not a recommendation tool. It is an illustrative financial gap-analysis system that converts client profile data into modeled exposures, coverage, gaps, and advisor-readable visuals.**
+
+## Recommended target architecture
+
+The app should be rebuilt around this pipeline:
+
+```text
+Client Profile
+   ↓
+Normalized Household Financial Snapshot
+   ↓
+Module Assumptions
+   ↓
+Scenario Inputs
+   ↓
+Calculation Engine
+   ↓
+Annual / Monthly Gap Schedule
+   ↓
+View Model
+   ↓
+UI Cards, Charts, Narratives, Disclosures
+```
+
+The most important shift is this:
+
+**Every module should produce a gap schedule first, then derive all cards, charts, and narratives from that same schedule.**
+
+That avoids the current Life Insurance problem where the chart can show annual gaps while the summary logic says the client is fully covered.
+
+---
+
+# 1. Create a central methodology layer
+
+You need a dedicated layer for advisor-approved formulas and assumptions.
+
+Recommended structure:
+
+```text
+src/domain/
+  assumptions/
+    defaultAssumptions.ts
+    assumptionTypes.ts
+
+  financial/
+    income.ts
+    netIncome.ts
+    presentValue.ts
+    projection.ts
+    rounding.ts
+
+  gap-analysis/
+    gapSchedule.ts
+    gapSummary.ts
+    disclosureCopy.ts
+
+  modules/
+    life/
+      lifeInputs.ts
+      lifeAssumptions.ts
+      lifeEngine.ts
+      lifeViewModel.ts
+
+    liability/
+      liabilityInputs.ts
+      liabilityAssumptions.ts
+      liabilityEngine.ts
+      liabilityViewModel.ts
+
+    unemployment/
+      unemploymentInputs.ts
+      unemploymentAssumptions.ts
+      unemploymentEngine.ts
+      unemploymentViewModel.ts
+```
+
+The purpose is to separate:
+
+* **Domain math** from React components.
+* **Advisor methodology** from visual display logic.
+* **Raw calculation outputs** from user-facing wording.
+* **Reusable assumptions** from module-specific assumptions.
+
+Right now, the repo has calculation files, but the methodology is not centralized enough. For example, Life has `calculateLifeInsuranceGap.ts` and `calculateIncomeGapScenarios.ts`, and they can produce inconsistent interpretations of income need and gap. That should be corrected by making one canonical Life module engine, or by clearly separating “legacy base needs” from “income gap scenario engine” with shared assumptions.
+
+---
+
+# 2. Make “gap schedule” the core object
+
+The entire tool should revolve around schedules.
+
+For Life Insurance, the schedule is annual:
+
+```ts
+type AnnualGapPoint = {
+  yearIndex: number
+  age: number
+  projectedNeed: number
+  availableCoverage: number
+  annualGap: number
+  cumulativeGap: number
+}
+```
+
+For Disability, annual/monthly depending on module:
+
+```ts
+type DisabilityGapPoint = {
+  yearIndex: number
+  age: number
+  projectedNetIncome: number
+  groupLtdCoverage: number
+  individualDiCoverage: number
+  annualGap: number
+}
+```
+
+For Unemployment, monthly:
+
+```ts
+type MonthlyGapPoint = {
+  month: number
+  expenses: number
+  remainingIncome: number
+  severance: number
+  unemploymentBenefit: number
+  requiredSavingsDraw: number
+  endingReserveBalance: number
+  shortfall: number
+}
+```
+
+For Liability, exposure schedule:
+
+```ts
+type ExposurePoint = {
+  yearIndex: number
+  age: number
+  disposableIncome: number
+  garnishableIncome: number
+  cumulativeExposure: number
+}
+```
+
+Then cards and charts should never calculate independently. They should only summarize the schedule.
+
+That gives you consistency:
+
+```text
+Chart red gaps = Σ annualGap
+Metric survivor gap = Σ annualGap
+Narrative gap = Σ annualGap
+Death benefit needed = PV(annualGap schedule)
+Fully covered = every annualGap is 0
+```
+
+This is the key architectural fix.
+
+---
+
+# 3. Separate calculation outputs from view models
+
+Each module should produce two outputs:
+
+## A. Raw calculation result
+
+This is math-only.
+
+```ts
+type LifeCalculationResult = {
+  assumptionsUsed: LifeAssumptions
+  annualSchedule: LifeAnnualGapPoint[]
+  summary: {
+    projectedNeedTotal: number
+    totalCovered: number
+    survivorGap: number
+    deathBenefitNeeded: number
+    isFullyCovered: boolean
+  }
+}
+```
+
+## B. View model
+
+This is UI-ready.
+
+```ts
+type LifeViewModel = {
+  cards: MetricCardModel[]
+  chartData: LifeChartPoint[]
+  narrative: string
+  disclosures: string[]
+  status: "covered" | "gap" | "partial"
+}
+```
+
+React should consume the **view model**, not raw formulas.
+
+This prevents formula logic from leaking into components like `LifeOutputView.tsx`, `LiabilityOutputView.tsx`, and `UnemploymentOutputView.tsx`.
+
+---
+
+# 4. Centralize assumptions
+
+You need a single assumption system, not scattered defaults.
+
+Recommended shared assumptions:
+
+```ts
+type GlobalPlanningAssumptions = {
+  incomeGrowthRate: number // default 0.03
+  netIncomeRatio: number // default 0.65 where simplified net proxy is needed
+  presentValueTiming: "endOfYear"
+}
+```
+
+Module-specific assumptions:
+
+```ts
+type LifeAssumptions = {
+  incomeGrowthRate: number
+  incomeReplacementRatio: number
+  safeIncomeCoveragePct: number // default 0.85
+  deathBenefitRoi: number
+}
+```
+
+```ts
+type LiabilityAssumptions = {
+  disposableIncomeRatio: number // default 0.65
+  wageGarnishmentRate: number // default 0.25
+  incomeGrowthRate: number // default 0.03
+  umbrellaBlockSize: number // default 1_000_000
+}
+```
+
+```ts
+type UnemploymentAssumptions = {
+  netIncomeRatio: number // default 0.65
+  minimumReserveMonths: number // 3
+  reserveCoverageBands: {
+    under33: 6
+    under50: 5
+    under67: 4
+    over67: 3
+  }
+}
+```
+
+Do not bury these inside components or individual calculator files. They should be visible, reusable, and documented.
+
+---
+
+# 5. Rebuild Life Insurance around annual income gaps
+
+Life Insurance needs the most important conceptual rebuild.
+
+The current model has a “Safe W/D Rate” concept that behaves like a payout-annuity formula. That is not aligned with the advisor’s intended meaning.
+
+The better architecture:
+
+```text
+Life Inputs
+   ↓
+Projected Annual Net Income Need
+   ↓
+Existing Coverage / Safe Income Coverage / Max Coverage Scenario
+   ↓
+Annual Gap Schedule
+   ↓
+PV Death Benefit Needed
+   ↓
+Cards + Chart + Narrative
+```
+
+The Life module should have these sub-models:
+
+## A. Base income need model
+
+```ts
+projectedNetIncomeNeed =
+  max(0, annualIncome × replacementRatio × growthFactor - spouseIncomeOffset)
+```
+
+## B. Safe Income Coverage model
+
+This should be advisor-aligned:
+
+```ts
+safeIncomeCovered =
+  projectedNetIncomeNeed × safeIncomeCoveragePct
+```
+
+Default:
+
+```ts
+safeIncomeCoveragePct = 0.85
+```
+
+## C. Max Coverage / aggressive scenario
+
+Rename this away from “Max W/D Rate” if it is actually ROI-based.
+
+Better names:
+
+* **Max Coverage ROI**
+* **Aggressive Coverage ROI**
+* **Full Income Coverage Scenario**
+
+The model should be clear:
+
+```text
+Existing coverage pool grows at selected ROI.
+Each year attempts to fund that year’s projected income need.
+Coverage is capped at the year’s need.
+If balance runs out, annual gap appears.
+```
+
+## D. Death Benefit Needed
+
+This should be based on the actual annual gap stream:
+
+```ts
+deathBenefitNeeded =
+  annualGaps.reduce(
+    (pv, gap, index) => pv + gap / Math.pow(1 + roi, index + 1),
+    0
+  )
+```
+
+This avoids the misleading “average gap” problem.
+
+---
+
+# 6. Rebuild Liability as exposure stack, not recommendation engine
+
+Liability should not sound like it recommends coverage. It should show:
+
+```text
+Projected Exposure
+   ↓
+Existing Coverage
+   ↓
+Illustrative Gap
+   ↓
+Umbrella Block Translation
+```
+
+Recommended pipeline:
+
+```text
+Client income/assets
+   ↓
+Disposable income estimate
+   ↓
+Projected garnishment exposure
+   ↓
+At-risk assets
+   ↓
+Total illustrative exposure
+   ↓
+Existing auto/home/umbrella coverage
+   ↓
+Illustrative umbrella coverage level rounded to $1M blocks
+```
+
+Core rules:
+
+```ts
+disposableIncome = grossIncome × disposableIncomeRatio
+```
+
+```ts
+wageExposure =
+  Σ disposableIncome × growthFactor × garnishmentRate
+```
+
+```ts
+umbrellaBlockLevel =
+  ceil(rawIllustrativeNeed / 1_000_000) × 1_000_000
+```
+
+Language must stay illustrative:
+
+Bad:
+
+```text
+Recommended Umbrella
+You should purchase $X
+```
+
+Good:
+
+```text
+Illustrative Umbrella Coverage Level
+Rounded to common $1M umbrella policy blocks.
+```
+
+This should be enforced in a copy/disclosure layer, not manually repeated inside components.
+
+---
+
+# 7. Rebuild Unemployment around household income concentration
+
+Unemployment should not use the same 6-month ideal for every household.
+
+The proper engine:
+
+```text
+Primary income + spouse income + monthly expenses
+   ↓
+Convert income to estimated net monthly income
+   ↓
+Assume highest earner loses income
+   ↓
+Calculate remaining income coverage %
+   ↓
+Map coverage % to ideal reserve months
+   ↓
+Calculate minimum, ideal, gap, excess
+   ↓
+Render gauge + explanation
+```
+
+Core formula:
+
+```ts
+remainingIncomeCoveragePct =
+  remainingNetMonthlyIncome / monthlyExpenses
+```
+
+Reserve rule:
+
+```ts
+if coveragePct < 0.33 => 6 months
+if coveragePct < 0.50 => 5 months
+if coveragePct < 0.67 => 4 months
+else => 3 months
+```
+
+Outputs should include:
+
+```ts
+type UnemploymentReserveResult = {
+  primaryNetMonthlyIncome: number
+  secondaryNetMonthlyIncome: number
+  incomeAtRisk: number
+  remainingIncome: number
+  remainingIncomeCoveragePct: number
+  minimumReserveMonths: number
+  idealReserveMonths: number
+  minimumReserveTarget: number
+  idealReserveTarget: number
+  reserveGap: number
+  excessReserve: number
+}
+```
+
+The UI should explain why the target is 3, 4, 5, or 6 months. That is more advisor-friendly than a static gauge.
+
+---
+
+# 8. Use a formula registry
+
+Add a single source of formula metadata.
+
+Example:
+
+```ts
+type FormulaDefinition = {
+  id: string
+  module: "life" | "liability" | "unemployment" | "disability"
+  label: string
+  description: string
+  formulaText: string
+  assumptions: string[]
+  disclosure?: string
+}
+```
+
+This allows the app to use the same language in:
+
+* tooltips,
+* assumptions panels,
+* documentation,
+* advisor-facing explanations,
+* future PDF/report exports.
+
+This also reduces the risk of `docs/FORMULAS.md` drifting away from the code.
+
+Long-term, `docs/FORMULAS.md` should be generated from this registry or at least manually synchronized from it.
+
+---
+
+# 9. Add an advisor-compliance copy layer
+
+This matters because the advisor specifically called out wording like “Recommended Umbrella.”
+
+Create a file like:
+
+```text
+src/domain/copy/advisorSafeCopy.ts
+```
+
+With reusable language:
+
+```ts
+export const complianceCopy = {
+  illustrativeOnly:
+    "This is an illustrative gap analysis and not a formal recommendation.",
+
+  umbrellaBlocks:
+    "Umbrella coverage is commonly issued in $1M blocks. This value rounds the illustrative gap to the next $1M block.",
+
+  wageGarnishment:
+    "Uses a simplified disposable-earnings proxy for illustrative purposes. Actual garnishment limits vary by jurisdiction and case type.",
+
+  lifeDeathBenefit:
+    "Death benefit needed is estimated from the present value of modeled annual income gaps."
+}
+```
+
+Then components reference approved copy instead of writing new language ad hoc.
+
+---
+
+# 10. Normalize the data model
+
+The current app has some duplicated or legacy fields:
+
+* `homeValue`
+* `mortgageBalance`
+* `estimatedLawsuitExposure`
+* `safeWithdrawalRate`
+* `maxWithdrawalRate`
+* `incomeGapRoi`
+
+Some of these should be renamed or consolidated.
+
+Recommended field changes:
+
+## Life
+
+Replace:
+
+```ts
+safeWithdrawalRate
+maxWithdrawalRate
+incomeGapRoi
+```
+
+With clearer names:
+
+```ts
+safeIncomeCoveragePct
+maxCoverageRoi
+deathBenefitDiscountRate
+```
+
+Or, if you consolidate ROI:
+
+```ts
+coverageRoi
+```
+
+## Liability
+
+Replace:
+
+```ts
+homeValue
+mortgageBalance
+estimatedLawsuitExposure
+```
+
+With:
+
+```ts
+homeEquity
+```
+
+And assumptions:
+
+```ts
+disposableIncomeRatio
+umbrellaBlockSize
+```
+
+## Unemployment
+
+Add:
+
+```ts
+netIncomeRatio
+idealReserveMonths
+remainingIncomeCoveragePct
+reserveGap
+excessReserve
+```
+
+Do not let renamed fields break persisted local-storage silently. Add a lightweight migration function.
+
+Example:
+
+```ts
+function migratePersistedScenarioInputs(oldInputs: unknown): NewInputs {
+  // map safeWithdrawalRate → safeIncomeCoveragePct only if needed
+  // map homeValue/mortgageBalance → homeEquity
+}
+```
+
+---
+
+# 11. Build calculation engines as pure functions
+
+Every calculation engine should be pure:
+
+```ts
+function calculateLifeGap(
+  inputs: LifeInputs,
+  assumptions: LifeAssumptions
+): LifeCalculationResult
+```
+
+No React state. No formatting. No JSX. No side effects.
+
+Then separate:
+
+```ts
+function buildLifeViewModel(
+  result: LifeCalculationResult
+): LifeViewModel
+```
+
+This gives you cleaner testing, cleaner UI, and easier advisor review.
+
+---
+
+# 12. Make assumptions visible in the UI
+
+The tool will be more trustworthy if the advisor can see the assumptions driving the numbers.
+
+Each module should have an “Assumptions Used” area.
+
+Example for Liability:
+
+```text
+Disposable income proxy: 65% of gross income
+Garnishment rate: 25% of disposable earnings
+Income growth: 3% annually
+Umbrella block size: $1M
+```
+
+Example for Unemployment:
+
+```text
+Net income proxy: 65% of gross income
+Minimum reserve: 3 months
+Ideal reserve: 6 months
+Reason: remaining income covers only 27% of expenses
+```
+
+This is critical because the tool is illustrative. Assumption transparency reduces compliance and trust issues.
+
+---
+
+# 13. Report architecture should come later
+
+Do not prematurely build exports or advisor reports until the calculation layer is stable.
+
+But architect now so future reports can consume:
+
+```ts
+CalculationResult
+ViewModel
+FormulaRegistry
+DisclosureCopy
+```
+
+Then a PDF/report layer can simply render the same values the UI uses.
+
+---
+
+# 14. Recommended rebuild phases
+
+## Phase 1 — Methodology stabilization
+
+Goal: stop contradictions.
+
+Implement:
+
+* shared assumption layer,
+* annual/monthly gap schedules,
+* Life Safe Income Coverage refactor,
+* Liability disposable-income refactor,
+* Unemployment dynamic reserve refactor,
+* copy cleanup.
+
+This is the advisor-adherence phase.
+
+## Phase 2 — Domain architecture refactor
+
+Goal: remove calculation logic from UI.
+
+Implement:
+
+* pure module engines,
+* view model builders,
+* formula registry,
+* compliance copy layer,
+* persisted data migration helpers.
+
+## Phase 3 — UI simplification
+
+Goal: make advisor workflows cleaner.
+
+Implement:
+
+* assumptions panels,
+* clearer input grouping,
+* chart/metric alignment,
+* better “why this number” microcopy,
+* remove deprecated fields.
+
+## Phase 4 — Scenario/report readiness
+
+Goal: prepare for client-ready outputs.
+
+Implement:
+
+* scenario snapshots,
+* saved assumptions,
+* export-ready result objects,
+* advisor notes,
+* report templates.
+
+---
+
+# 15. Best long-term architecture
+
+The final tool should conceptually look like this:
+
+```text
+src/
+  app/
+    routes/
+    pages/
+
+  components/
+    ui/
+    charts/
+    metric-cards/
+
+  domain/
+    assumptions/
+    financial/
+    copy/
+    formulas/
+    gap-analysis/
+    modules/
+      life/
+      disability/
+      liability/
+      unemployment/
+      offensive/
+
+  features/
+    client-profile/
+    scenario-builder/
+    module-workspace/
+    reports/
+
+  lib/
+    store/
+    persistence/
+    migration/
+    formatting/
+```
+
+The key rule:
+
+> `features/` handles product workflow.
+> `domain/` handles truth, formulas, and methodology.
+> `components/` handles display only.
+> `lib/` handles infrastructure.
+
+---
+
+# Bottom-line recommendation
+
+You should not keep patching each module independently. The advisor comments show the app needs a **methodology-first architecture**.
+
+The optimal rebuild is:
+
+1. Make **gap schedules** the source of truth.
+2. Centralize **assumptions**.
+3. Move all formulas into **pure domain engines**.
+4. Generate all cards/charts/narratives from a single **view model**.
+5. Add a **formula registry** and **advisor-safe copy layer**.
+6. Keep the product framed as an **illustrative gap analysis tool**, not a recommendation engine.
+7. Add lightweight local-storage migration so old field names do not poison the new methodology.
+
+That architecture will make the tool easier to maintain, easier for advisors to trust, and much less likely to produce contradictions like “fully covered” while a chart still shows a gap.

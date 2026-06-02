@@ -19,6 +19,10 @@ export interface UnemploymentOutputs {
   monthlyBurnRate: number;
   monthlyIncome: number;
   spouseMonthlyIncomeReference: number;
+  primaryNetMonthlyIncome: number;
+  secondaryNetMonthlyIncome: number;
+  incomeAtRisk: number;
+  remainingIncome: number;
   monthlyCashFlow: number;
   cashFlowStatus: "positive" | "negative" | "breakeven";
   dangerThreshold: number;
@@ -70,6 +74,11 @@ export interface UnemploymentOutputs {
   monthlyGapAtDepletion: number;
   timeline: Array<{
     month: number;
+    remainingIncome: number;
+    severance: number;
+    unemploymentBenefit: number;
+    requiredSavingsDraw: number;
+    endingReserveBalance: number;
     offsetIncome: number;
     expenses: number;
     reserveBalance: number;
