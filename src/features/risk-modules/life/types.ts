@@ -29,12 +29,7 @@ export interface LifeInputs {
   liquidAssetsAllocated?: number;
 
   // ── Income Gap Analysis inputs ────────────────────────────────────────────
-  /**
-   * Safe Income Coverage percentage (Module 1).
-   * The fraction of projected annual net income need modeled as "safely covered."
-   * The Death Benefit Needed is the PV of the coverage stream minus existing resources.
-   * Default: 0.85 (85%).
-   */
+  /** @deprecated Safe Income Coverage is now derived from entered coverage resources. */
   safeIncomeCoveragePct?: number;
   /**
    * Annual asset return rate used in Module 2 (Full Coverage Scenario).
@@ -104,8 +99,8 @@ export interface IncomeGapYearlyPoint {
   /** Projected annual NET income need for this year (grows at incomeGrowthRate). */
   projectedIncome: number;
   /**
-   * Module 1: annual income covered by the Safe Income Coverage model.
-   * = projectedIncome × safeIncomeCoveragePct (e.g. 85% of income need).
+   * Module 1: annual income covered by the entered coverage resource pool.
+   * = projectedIncome × derived safeIncomeCoveragePct, capped at projectedIncome.
    */
   safeIncomeCoverage: number;
   /** Module 1: survivor income gap for this year = projectedIncome − safeIncomeCoverage. */
@@ -128,14 +123,18 @@ export interface IncomeGapModule1 {
   /** Box 1 — Sum of all projected annual net income from current age to retirement age (undiscounted). */
   projectedNetIncomeTotal: number;
   /**
-   * Box 2 — Safe Income Coverage percentage applied each year (e.g. 0.85 = 85%).
-   * Annual covered amount grows with income at the income growth rate.
+   * Box 2 — Derived Safe Income Coverage percentage supported by entered coverage resources.
+   * Existing coverage resources / PV of projected net income need, capped at 100%.
    */
   safeIncomeCoveragePct: number;
   /** Box 2b — Year-1 covered amount (for display reference; each subsequent year grows with income). */
   annualCoverageYear1: number;
   /** Box 3 — Total income covered = sum of safeIncomeCoverage across all years (undiscounted). */
   totalIncomeReplaced: number;
+  /** Entered coverage resources used for the Safe Income Coverage calculation. */
+  existingCoverageResources: number;
+  /** Present value of the full projected net income need stream. */
+  pvOfProjectedNeed: number;
   /** Box 4 — PV of the safe income coverage stream at the configured ROI. */
   pvOfCoverageStream: number;
   /**

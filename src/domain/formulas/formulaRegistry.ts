@@ -13,9 +13,9 @@ export const advisorFormulaRegistry: FormulaDefinition[] = [
     id: "life-annual-income-gap",
     module: "life",
     label: "Annual Income Gap Schedule",
-    description: "Projects annual net income need to the selected end age and calculates modeled annual gaps.",
-    formulaText: "annualGap = max(0, projectedNeed - availableCoverage)",
-    assumptions: ["incomeGrowthRate", "incomeReplacementRatio", "safeIncomeCoveragePct", "deathBenefitDiscountRate"],
+    description: "Projects annual net income need and calculates the percentage supported by entered coverage resources.",
+    formulaText: "coveragePct = min(1, availableResources / PV(projectedNeedStream)); annualGap = max(0, projectedNeed - projectedNeed * coveragePct)",
+    assumptions: ["incomeGrowthRate", "incomeReplacementRatio", "deathBenefitDiscountRate"],
     disclosure: "Death benefit needed is estimated from the present value of modeled annual income gaps.",
   },
   {

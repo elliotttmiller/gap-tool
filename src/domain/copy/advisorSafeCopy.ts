@@ -17,7 +17,7 @@ export const advisorSafeCopy = {
   // ── Life Insurance ──────────────────────────────────────────────────────────
   life: {
     safeIncomeCoverage:
-      "Safe Income Coverage models the present value of income needed at the selected coverage percentage, growing at the income growth rate. The Death Benefit Needed is the additional coverage required beyond existing resources.",
+      "Safe Income Coverage estimates the percentage of projected income need supported by the entered death benefit and non-qualified assets. The coverage percentage is derived from available resources compared with the present value of projected income need.",
     deathBenefitNeeded:
       "Death Benefit Needed is estimated from the present value of modeled annual income gaps discounted at the selected ROI. This is an illustrative capital-needs figure, not a formal recommendation.",
     netIncomeNote:

@@ -158,13 +158,19 @@ function Module1Boxes({ m1, isFullyCovered, projectionEndAge }: { m1: IncomeGapM
         <ModuleMetricCard
           label={`Safe Income Coverage — Year 1`}
           value={<>{formatCurrency(m1.annualCoverageYear1)}<span className="text-sm font-normal text-gray-400"> / yr</span></>}
-          description={`${formatRatePctOneDecimal(m1.safeIncomeCoveragePct)} of projected income modeled as covered each year, growing with income`}
+          description={`${formatRatePctOneDecimal(m1.safeIncomeCoveragePct)} of projected income supported by entered death benefit/resources`}
           accent="blue"
+        />
+        <ModuleMetricCard
+          label="Coverage Resources"
+          value={formatCurrency(m1.existingCoverageResources)}
+          description={`Compared against ${formatCurrency(m1.pvOfProjectedNeed)} PV of projected income need`}
+          accent="slate"
         />
         <ModuleMetricCard
           label="Total Income Covered"
           value={formatCurrency(m1.totalIncomeReplaced)}
-          description={`Sum of Safe Income Coverage across all projection years (${formatRatePctOneDecimal(m1.safeIncomeCoveragePct)} of total projected income need)`}
+          description={`Sum of derived Safe Income Coverage across all projection years`}
           accent="cyan"
         />
       </MetricGroup>
@@ -289,7 +295,7 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
                     Safe Income Coverage — Annual Net Income to Age {retirementAge}
                   </CardTitle>
                   <p className="mt-1 text-sm leading-snug text-slate-400">
-                    {formatRatePctOneDecimal(module1.safeIncomeCoveragePct)} of projected income modeled as covered each year, growing with income
+                    Entered death benefit/resources support {formatRatePctOneDecimal(module1.safeIncomeCoveragePct)} of the modeled income need
                   </p>
                 </div>
               </CardHeader>
@@ -339,7 +345,7 @@ export function LifeOutputView({ outputs, incomeGapOutputs, activeTab: activeTab
                     <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
                       <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400">
                         <span className="inline-block h-2.5 w-4 rounded-sm bg-[#10b981]" />
-                        Safe Income Coverage ({formatRatePctOneDecimal(module1.safeIncomeCoveragePct)} of need / yr, growing with income)
+                        Safe Income Coverage ({formatRatePctOneDecimal(module1.safeIncomeCoveragePct)} of need, derived from entered resources)
                       </span>
                       <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400">
                         <span className="inline-block h-2.5 w-4 rounded-sm bg-[#ef4444]" />

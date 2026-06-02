@@ -125,8 +125,10 @@ export function LifeInputForm({ inputs, onChange, showMaxCoverageRoiInput = fals
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {!isMaxModule ? (
               <div className="flex flex-col gap-2">
-                <Label htmlFor="safeIncomeCoveragePct">Safe Income Coverage</Label>
-                <AffixedInput id="safeIncomeCoveragePct" type="number" min={0} max={100} step={1} suffix="%" value={toPercent(inputs.safeIncomeCoveragePct ?? 0.85) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, safeIncomeCoveragePct: fromPercent(e.target.value) })} placeholder="85" />
+                <Label htmlFor="incomeGapRoi">Coverage Support Rate</Label>
+                <div className="flex min-h-9 items-center rounded-md border border-gray-800 bg-gray-950 px-3 text-sm text-gray-400">
+                  Calculated from entered death benefit and assets
+                </div>
               </div>
             ) : (
               <div className="flex flex-col gap-2">
