@@ -8,6 +8,11 @@ export interface UnemploymentInputs {
   unemploymentBenefitDurationMonths: number;
   estimatedJobSearchMonths: number;
   spouseIncome: number;
+  /**
+   * Net income proxy ratio. Applied to gross income to estimate take-home pay
+   * for the remaining-income coverage calculation. Default: 0.65.
+   */
+  netIncomeRatio?: number;
 }
 
 export interface UnemploymentOutputs {
@@ -31,13 +36,32 @@ export interface UnemploymentOutputs {
   effectiveRunwayMonths: number;
   fullyFundedForSearch: boolean;
   reserveCoveragePct: number;
-  reserveStatus: "danger" | "minimum" | "ideal" | "strong";
+  reserveStatus: "danger" | "minimum" | "ideal" | "strong" | "above-target";
   breakEvenSearchDurationMonths: number;
   reserveDepletionMonth: number;
   totalUncoveredShortfall: number;
   currentReserveLevel: number;
-  optimalReserveTarget: number;
+
+  // ── Dynamic reserve targets ────────────────────────────────────────────────
+  /** Minimum reserve target: always 3 months of household expenses. */
   minimumReserveTarget: number;
+  /**
+   * Ideal reserve target months (3–6), determined by remaining income coverage %.
+   * Higher household income concentration = more months needed.
+   */
+  idealReserveMonths: number;
+  /** Ideal reserve target: monthlyExpenses × idealReserveMonths. */
+  idealReserveTarget: number;
+  /**
+   * Fraction of monthly expenses covered by remaining (secondary) net income
+   * if the highest earner loses income. Drives ideal reserve band selection.
+   */
+  remainingIncomeCoveragePct: number;
+  /** Gap = max(0, idealReserveTarget − currentReserveLevel). */
+  reserveGap: number;
+  /** Excess = max(0, currentReserveLevel − idealReserveTarget). */
+  excessReserve: number;
+
   /** Advisor-reference metric: current annual income exposed by job loss. */
   annualIncomeAtRisk: number;
   /** Advisor-reference metric: reserve runway in months currently held. */

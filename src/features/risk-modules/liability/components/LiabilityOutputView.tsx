@@ -4,6 +4,7 @@ import { formatCurrency } from "@/lib/utils"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts"
 import { transformLiabilityChartData } from "../transformers/transformLiabilityChartData"
 import { ModuleMetricCard, MetricGroup, MetricGroupDivider } from "@/features/risk-modules/core/ModuleMetricCard"
+import { advisorSafeCopy } from "@/domain/copy/advisorSafeCopy"
 
 interface LiabilityOutputViewProps {
   outputs: LiabilityOutputs
@@ -38,6 +39,8 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
   const chartData = transformLiabilityChartData(outputs)
   const totalRisk = outputs.totalHouseholdLiabilityRisk || outputs.householdTotalCoverage + outputs.householdLiabilityGap
   const coveragePct = totalRisk > 0 ? Math.min(100, (outputs.householdTotalCoverage / totalRisk) * 100) : 0
+  const disposablePct = Math.round((outputs.assumptionDisposableIncomeRatio ?? 0.65) * 100)
+  const garnishPct = Math.round((outputs.assumptionGarnishmentRate ?? 0.25) * 100)
 
   return (
     <div className="module-output-container liability-output-container">
@@ -168,8 +171,9 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
             <ModuleMetricCard
               label="Wage Garnishment Risk"
               value={formatLiabilityMetric(outputs.householdWageGarnishmentRisk)}
-              description="25% of projected income to age 65 at 3%/yr"
+              description={`${garnishPct}% of disposable income (${disposablePct}% of gross) projected to retirement at ${Math.round((outputs.assumptionIncomeGrowthRate ?? 0.03) * 100)}%/yr`}
               accent="red"
+              disclosure={advisorSafeCopy.liability.wageGarnishmentDisclosure}
             />
             <ModuleMetricCard
               label="Non-Qualified Assets at Risk"
@@ -195,21 +199,27 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
               accent={outputs.householdLiabilityGap > 0 ? "red" : "green"}
             />
             <ModuleMetricCard
-              label="Recommended Umbrella"
-              value={formatLiabilityMetric(outputs.recommendedUmbrellaCoverage)}
-              description="Max(net worth at risk, income × 5, $1M floor)"
+              label={advisorSafeCopy.liability.illustrativeUmbrellaLabel}
+              value={formatLiabilityMetric(outputs.illustrativeUmbrellaCoverageLevel)}
+              description={advisorSafeCopy.liability.illustrativeUmbrellaDescription}
               accent="amber"
+              disclosure={advisorSafeCopy.liability.umbrellaBlocks}
             />
             <ModuleMetricCard
-              label="Umbrella Needed"
+              label="Umbrella Coverage Gap"
               value={formatLiabilityMetric(outputs.umbrellaCoverageShortfall)}
-              description="Recommended umbrella minus existing umbrella"
+              description={advisorSafeCopy.liability.umbrellaNeededDescription}
               accent={outputs.umbrellaCoverageShortfall > 0 ? "red" : "green"}
             />
           </MetricGroup>
         </div>
 
       </div>
+
+      {/* ── Illustrative disclaimer ──────────────────────────────────────── */}
+      <p className="mt-4 text-[11px] leading-relaxed text-slate-500">
+        {advisorSafeCopy.liability.notRecommendation}
+      </p>
     </div>
   )
 }

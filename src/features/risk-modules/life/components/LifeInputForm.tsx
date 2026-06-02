@@ -26,7 +26,7 @@ function parseFiniteOrZero(value: string): number {
 interface LifeInputFormProps {
   inputs: LifeInputs
   onChange: (inputs: LifeInputs) => void
-  showMaxWithdrawalRateInput?: boolean
+  showMaxCoverageRoiInput?: boolean
 }
 
 function AffixedInput({
@@ -45,8 +45,8 @@ function AffixedInput({
   )
 }
 
-export function LifeInputForm({ inputs, onChange, showMaxWithdrawalRateInput = false }: LifeInputFormProps) {
-  const isMaxModule = showMaxWithdrawalRateInput
+export function LifeInputForm({ inputs, onChange, showMaxCoverageRoiInput = false }: LifeInputFormProps) {
+  const isMaxModule = showMaxCoverageRoiInput
 
   const handleNumberChange = (field: keyof LifeInputs, value: string) => {
     const numericValue = parseFiniteOrZero(value)
@@ -125,17 +125,17 @@ export function LifeInputForm({ inputs, onChange, showMaxWithdrawalRateInput = f
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {!isMaxModule ? (
               <div className="flex flex-col gap-2">
-                <Label htmlFor="safeWithdrawalRate">Safe W/D Rate</Label>
-                <AffixedInput id="safeWithdrawalRate" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.safeWithdrawalRate ?? 0.04) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, safeWithdrawalRate: fromPercent(e.target.value) })} placeholder="4" />
+                <Label htmlFor="safeIncomeCoveragePct">Safe Income Coverage</Label>
+                <AffixedInput id="safeIncomeCoveragePct" type="number" min={0} max={100} step={1} suffix="%" value={toPercent(inputs.safeIncomeCoveragePct ?? 0.85) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, safeIncomeCoveragePct: fromPercent(e.target.value) })} placeholder="85" />
               </div>
             ) : (
               <div className="flex flex-col gap-2">
-                <Label htmlFor="maxWithdrawalRate">Max W/D Rate</Label>
-                <AffixedInput id="maxWithdrawalRate" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.maxWithdrawalRate ?? 0.06) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, maxWithdrawalRate: fromPercent(e.target.value) })} placeholder="6" />
+                <Label htmlFor="maxCoverageRoi">Asset Return Rate</Label>
+                <AffixedInput id="maxCoverageRoi" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.maxCoverageRoi ?? 0.06) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, maxCoverageRoi: fromPercent(e.target.value) })} placeholder="6" />
               </div>
             )}
             <div className="flex flex-col gap-2">
-              <Label htmlFor="incomeGapRoi">ROI</Label>
+              <Label htmlFor="incomeGapRoi">Discount Rate (ROI)</Label>
               <AffixedInput id="incomeGapRoi" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.incomeGapRoi ?? 0.05) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, incomeGapRoi: fromPercent(e.target.value) })} placeholder="5" />
             </div>
           </div>

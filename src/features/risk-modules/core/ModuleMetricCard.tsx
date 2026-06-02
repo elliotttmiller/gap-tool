@@ -17,6 +17,7 @@ interface ModuleMetricCardProps {
   description?: string
   accent?: MetricCardAccent
   className?: string
+  disclosure?: string
 }
 
 export function ModuleMetricCard({
@@ -25,6 +26,7 @@ export function ModuleMetricCard({
   description,
   accent = "slate",
   className,
+  disclosure,
 }: ModuleMetricCardProps) {
   const tone = TONES[accent]
 
@@ -36,6 +38,9 @@ export function ModuleMetricCard({
           <div className={`mt-1 text-xl font-bold leading-none tracking-tight ${tone.value}`}>{value}</div>
           {description && (
             <p className="mt-1.5 text-[11px] leading-snug text-slate-600">{description}</p>
+          )}
+          {disclosure && (
+            <p className="mt-2 text-[10px] leading-snug text-slate-700 italic border-t border-slate-800/50 pt-1.5">{disclosure}</p>
           )}
         </div>
         <div className={`mt-0.5 h-8 w-0.5 shrink-0 rounded-full ${tone.bar}`} />

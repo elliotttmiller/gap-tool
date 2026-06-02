@@ -29,15 +29,23 @@ export interface LifeInputs {
   liquidAssetsAllocated?: number;
 
   // ── Income Gap Analysis inputs ────────────────────────────────────────────
-  /** Annual return assumption used to compute a level payout-annuity withdrawal
-  *  that depletes the existing-coverage funding base by retirement in Module 1.
-  *  Funding base = group life + private life + non-qualified assets. e.g. 0.04 = 4%. */
-  safeWithdrawalRate?: number;
-  /** Aggressive asset return / max withdrawal rate for Module 2.
-  *  Represents the annual investment return on the same existing-coverage funding base while drawing full income. Default: 0.06 */
-  maxWithdrawalRate?: number;
-  /** ROI used for the Death Benefit Needed (Box 5) capital-needs calculation.
-   *  Falls back to assumptions.deathBenefitIncomeYieldAnnual if not set. Default: 0.05 */
+  /**
+   * Safe Income Coverage percentage (Module 1).
+   * The fraction of projected annual net income need modeled as "safely covered."
+   * The Death Benefit Needed is the PV of the coverage stream minus existing resources.
+   * Default: 0.85 (85%).
+   */
+  safeIncomeCoveragePct?: number;
+  /**
+   * Annual asset return rate used in Module 2 (Full Coverage Scenario).
+   * Models the existing coverage pool invested at this rate while drawing full
+   * projected income each year until the balance runs out. Default: 0.06 (6%).
+   */
+  maxCoverageRoi?: number;
+  /**
+   * ROI / discount rate used for the Death Benefit Needed capital-needs PV
+   * calculation in both modules. Default: 0.05 (5%).
+   */
   incomeGapRoi?: number;
 }
 
@@ -94,39 +102,49 @@ export interface IncomeGapYearlyPoint {
   age: number;
   /** Projected annual NET income need for this year (grows at incomeGrowthRate). */
   projectedIncome: number;
-  /** Module 1: flat annual payout-annuity withdrawal (same every year). */
-  safeWD: number;
-  /** Module 1: survivor income gap for this year = max(0, projectedIncome − safeWD). */
+  /**
+   * Module 1: annual income covered by the Safe Income Coverage model.
+   * = projectedIncome × safeIncomeCoveragePct (e.g. 85% of income need).
+   */
+  safeIncomeCoverage: number;
+  /** Module 1: survivor income gap for this year = projectedIncome − safeIncomeCoverage. */
   incomeGap: number;
-  /** Module 2: income actually covered this year — projectedIncome if covered, 0 if depleted. */
+  /** Module 2: income actually covered this year — projectedIncome if covered, partial if depleted. */
   maxCovered: number;
   /** Module 2: whether this year has full income coverage. */
   isCoveredMax: boolean;
 }
 
-/** Results for Module 1 — Safe Withdrawal Rate scenario. */
+/** Results for Module 1 — Safe Income Coverage scenario. */
 export interface IncomeGapModule1 {
   yearlyData: IncomeGapYearlyPoint[];
-  /** Box 1 — Sum of all projected annual net income from current age to retirement age. */
+  /** Box 1 — Sum of all projected annual net income from current age to retirement age (undiscounted). */
   projectedNetIncomeTotal: number;
-  /** Box 2 — Level annual withdrawal from a payout-annuity model over yearsToRetirement. */
-  annualSafeWD: number;
-  /** Box 3 — Total income replaced = annualSafeWD × yearsToRetirement. */
+  /**
+   * Box 2 — Safe Income Coverage percentage applied each year (e.g. 0.85 = 85%).
+   * Annual covered amount grows with income at the income growth rate.
+   */
+  safeIncomeCoveragePct: number;
+  /** Box 2b — Year-1 covered amount (for display reference; each subsequent year grows with income). */
+  annualCoverageYear1: number;
+  /** Box 3 — Total income covered = sum of safeIncomeCoverage across all years (undiscounted). */
   totalIncomeReplaced: number;
-  /** Box 4 — Survivor gap = Box 1 − Box 3. */
-  survivorGap: number;
-  /** Box 5 — Death benefit needed to fill the survivor gap via capital-needs / PV-annuity formula at the configured ROI. */
+  /** Box 4 — PV of the safe income coverage stream at the configured ROI. */
+  pvOfCoverageStream: number;
+  /**
+   * Box 5 — Additional death benefit needed = max(0, pvOfCoverageStream − existingPool).
+   * Zero means existing pool fully funds the coverage target ("Fully Covered").
+   */
   deathBenefitNeeded: number;
-  safeWithdrawalRate: number;
   roi: number;
 }
 
-/** Results for Module 2 — Max Withdrawal Rate scenario. */
+/** Results for Module 2 — Full Coverage Scenario (aggressive asset return draw). */
 export interface IncomeGapModule2 {
   yearlyData: IncomeGapYearlyPoint[];
   /** Box 1 — Same total projected net income as Module 1. */
   projectedNetIncomeTotal: number;
-  /** Box 2 — Number of years the existing-coverage resource pool fully covers net income at the aggressive draw rate. */
+  /** Box 2 — Number of years the existing-coverage resource pool fully covers net income at the selected ROI. */
   yearsOfMaxWD: number;
   /** First age with full coverage (used for sub-label). */
   startCoverageAge: number;
@@ -138,7 +156,7 @@ export interface IncomeGapModule2 {
   survivorGap: number;
   /** Box 5 — Death benefit needed using same PV-annuity formula as Module 1. */
   deathBenefitNeeded: number;
-  maxWithdrawalRate: number;
+  maxCoverageRoi: number;
   roi: number;
 }
 
@@ -147,4 +165,8 @@ export interface IncomeGapOutputs {
   module1: IncomeGapModule1;
   module2: IncomeGapModule2;
   yearsToRetirement: number;
+  /** True when existing pool fully funds the Module 1 coverage stream. */
+  isM1FullyCovered: boolean;
+  /** Module 1 undiscounted survivor gap (total need − total covered). */
+  m1SurvivorGap: number;
 }

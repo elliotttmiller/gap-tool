@@ -284,8 +284,8 @@ function prefillLifeInputs(profile: ClientFinancialProfile, clientId: string, sc
     educationGoal: profile.educationFundingGoal ?? 0,
     finalExpenses: profile.finalExpenses ?? 25000,
     liquidAssetsAllocated: profile.savingsAssets ?? 0,
-    safeWithdrawalRate: 0.04,
-    maxWithdrawalRate: 0.06,
+    safeIncomeCoveragePct: 0.85,
+    maxCoverageRoi: 0.06,
     incomeGapRoi: 0.05,
   }
 }
@@ -325,6 +325,7 @@ function prefillUnemploymentInputs(profile: ClientFinancialProfile): Unemploymen
 
 function prefillLiabilityInputs(profile: ClientFinancialProfile): LiabilityInputs {
   const nonQualifiedAssets = (profile.nonQualifiedAssets ?? 0) + (profile.spouseNonQualifiedAssets ?? 0)
+  const homeEquity = Math.max(0, (profile.homeValue ?? 0) - (profile.mortgageBalance ?? 0))
   return {
     annualIncome: profile.annualEarnedIncome ?? 0,
     spouseAnnualIncome: profile.clientType === "couple" ? profile.spouseAnnualIncome ?? 0 : 0,
@@ -335,15 +336,12 @@ function prefillLiabilityInputs(profile: ClientFinancialProfile): LiabilityInput
     incomeGrowthRate: 0.03,
     nonQualifiedAssets,
     businessOwnershipValue: 0,
-    homeValue: profile.homeValue ?? 0,
-    mortgageBalance: profile.mortgageBalance ?? 0,
+    homeEquity,
     // investmentAssets mirrors nonQualifiedAssets for backward compatibility with the liability calculator.
     investmentAssets: profile.investmentAssets ?? nonQualifiedAssets,
     savingsAssets: profile.savingsAssets ?? 0,
     autoLiabilityLimit: profile.autoLiabilityLimit ?? 0,
-    homeLiabilityLimit: profile.homeLiabilityLimit ?? 0,
     umbrellaCoverage: profile.umbrellaCoverage ?? 0,
-    estimatedLawsuitExposure: DEFAULT_LAWSUIT_EXPOSURE,
   }
 }
 
@@ -484,7 +482,6 @@ export const useAppStore = create<AppState>()(
           // investmentAssets mirrors nonQualifiedAssets for backward compatibility.
           investmentAssets: payload.nonQualifiedAssets ?? 0,
           autoLiabilityLimit: payload.autoLiabilityLimit ?? 0,
-          homeLiabilityLimit: 0,
           umbrellaCoverage: 0,
         }
         const record: ClientRecord = {
@@ -743,25 +740,69 @@ export const useAppStore = create<AppState>()(
     {
       name: "gap-tool-app-state-v1",
       storage: createJSONStorage(() => localStorage),
-      version: 3,
+      version: 4,
       /**
-       * Passthrough migration: all schema versions 0–3 share the same shape.
-       * We verify the critical array fields exist before returning the state;
-       * if they are missing or malformed, we fall back to the initial state
-       * by returning undefined (Zustand will then use initial values).
-       * Add per-version transformations here when the schema changes structurally.
+       * Schema migration:
+       * - v0–v3: passthrough (same shape, no structural changes)
+       * - v4: rename life insurance fields (safeWithdrawalRate→safeIncomeCoveragePct,
+       *       maxWithdrawalRate→maxCoverageRoi) and liability fields
+       *       (homeValue+mortgageBalance→homeEquity, remove estimatedLawsuitExposure,
+       *       homeLiabilityLimit).
        */
-      migrate: (persistedState: unknown, _version: number) => {
+      migrate: (persistedState: unknown, version: number) => {
         if (
-          persistedState !== null &&
-          typeof persistedState === "object" &&
-          Array.isArray((persistedState as Record<string, unknown>).clients) &&
-          Array.isArray((persistedState as Record<string, unknown>).scenarios)
+          persistedState === null ||
+          typeof persistedState !== "object" ||
+          !Array.isArray((persistedState as Record<string, unknown>).clients) ||
+          !Array.isArray((persistedState as Record<string, unknown>).scenarios)
         ) {
-          return persistedState as Record<string, unknown>
+          // Persisted state is malformed — discard it and use initial state.
+          return undefined
         }
-        // Persisted state is malformed — discard it and use initial state.
-        return undefined
+
+        const state = persistedState as Record<string, unknown>
+
+        if (version < 4) {
+          // Migrate scenario module records
+          const records = state.moduleRecordsByScenarioId as Record<string, unknown> | undefined
+          if (records && typeof records === "object") {
+            for (const scenarioId of Object.keys(records)) {
+              const rec = records[scenarioId] as Record<string, unknown> | undefined
+              if (!rec || typeof rec !== "object") continue
+
+              // Migrate life inputs
+              const lifeRaw = rec.life as Record<string, unknown> | undefined
+              if (lifeRaw?.inputs && typeof lifeRaw.inputs === "object") {
+                const lifeInputs = lifeRaw.inputs as Record<string, unknown>
+                if ("safeWithdrawalRate" in lifeInputs && !("safeIncomeCoveragePct" in lifeInputs)) {
+                  lifeInputs.safeIncomeCoveragePct = 0.85
+                  delete lifeInputs.safeWithdrawalRate
+                }
+                if ("maxWithdrawalRate" in lifeInputs && !("maxCoverageRoi" in lifeInputs)) {
+                  lifeInputs.maxCoverageRoi = lifeInputs.maxWithdrawalRate
+                  delete lifeInputs.maxWithdrawalRate
+                }
+              }
+
+              // Migrate liability inputs
+              const liabilityRaw = rec.liability as Record<string, unknown> | undefined
+              if (liabilityRaw?.inputs && typeof liabilityRaw.inputs === "object") {
+                const liabilityInputs = liabilityRaw.inputs as Record<string, unknown>
+                if (!("homeEquity" in liabilityInputs)) {
+                  const hv = typeof liabilityInputs.homeValue === "number" ? liabilityInputs.homeValue : 0
+                  const mb = typeof liabilityInputs.mortgageBalance === "number" ? liabilityInputs.mortgageBalance : 0
+                  liabilityInputs.homeEquity = Math.max(0, hv - mb)
+                }
+                delete liabilityInputs.homeValue
+                delete liabilityInputs.mortgageBalance
+                delete liabilityInputs.estimatedLawsuitExposure
+                delete liabilityInputs.homeLiabilityLimit
+              }
+            }
+          }
+        }
+
+        return state
       },
       partialize: (state) => ({
         clients: state.clients,

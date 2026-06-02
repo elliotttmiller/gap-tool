@@ -29,8 +29,8 @@ export function sanitizeLifeInputs(inputs: LifeInputs): LifeInputs {
     educationGoal: nonNegativeFinite(inputs.educationGoal, 0),
     finalExpenses: nonNegativeFinite(inputs.finalExpenses, 0),
     liquidAssetsAllocated: nonNegativeFinite(inputs.liquidAssetsAllocated ?? 0, 0),
-    safeWithdrawalRate: nonNegativeFinite(inputs.safeWithdrawalRate ?? 0.04, 0.04),
-    maxWithdrawalRate: nonNegativeFinite(inputs.maxWithdrawalRate ?? 0.06, 0.06),
+    safeIncomeCoveragePct: nonNegativeFinite(inputs.safeIncomeCoveragePct ?? 0.85, 0.85),
+    maxCoverageRoi: nonNegativeFinite(inputs.maxCoverageRoi ?? 0.06, 0.06),
     incomeGapRoi: nonNegativeFinite(inputs.incomeGapRoi ?? 0.05, 0.05),
   }
 }

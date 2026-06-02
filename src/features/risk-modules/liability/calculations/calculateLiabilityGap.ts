@@ -2,33 +2,47 @@ import { LiabilityInputs, LiabilityOutputs } from "../types";
 
 const DEFAULT_RETIREMENT_AGE = 65;
 const DEFAULT_INCOME_GROWTH = 0.03;
-const WAGE_GARNISHMENT_RISK_RATE = 0.25;
+const DEFAULT_GARNISHMENT_RATE = 0.25;
+const DEFAULT_DISPOSABLE_INCOME_RATIO = 0.65;
+const UMBRELLA_BLOCK_SIZE = 1_000_000;
 
+/**
+ * Projects the wage garnishment exposure from current age to retirement.
+ *
+ * Garnishment is applied to DISPOSABLE income (a proxy for take-home pay),
+ * not to gross income. Disposable income = grossIncome × disposableIncomeRatio.
+ * Income grows at incomeGrowthRate each year.
+ */
 function projectedIncomeRiskToRetirement(
-  income: number,
+  grossIncome: number,
   currentAge: number,
   retirementAge: number,
   incomeGrowthRate: number,
   garnishmentRate: number,
+  disposableIncomeRatio: number,
 ): number {
   const years = Math.max(0, retirementAge - currentAge);
+  const disposableIncome = Math.max(0, grossIncome) * disposableIncomeRatio;
   let risk = 0;
   for (let year = 0; year < years; year++) {
-    risk += Math.max(0, income) * Math.pow(1 + incomeGrowthRate, year) * garnishmentRate;
+    risk += disposableIncome * Math.pow(1 + incomeGrowthRate, year) * garnishmentRate;
   }
   return risk;
 }
 
 export function calculateLiabilityGap(inputs: LiabilityInputs): LiabilityOutputs {
   const retirementAge = inputs.retirementAge ?? DEFAULT_RETIREMENT_AGE;
-  const garnishmentRate = Math.max(0, Math.min(1, inputs.garnishmentRate ?? WAGE_GARNISHMENT_RISK_RATE));
+  const garnishmentRate = Math.max(0, Math.min(1, inputs.garnishmentRate ?? DEFAULT_GARNISHMENT_RATE));
   const incomeGrowthRate = Math.max(0, Math.min(1, inputs.incomeGrowthRate ?? DEFAULT_INCOME_GROWTH));
+  const disposableIncomeRatio = Math.max(0, Math.min(1, inputs.disposableIncomeRatio ?? DEFAULT_DISPOSABLE_INCOME_RATIO));
+
   const primaryIncomeRisk = projectedIncomeRiskToRetirement(
     inputs.annualIncome ?? 0,
     inputs.currentAge ?? 40,
     retirementAge,
     incomeGrowthRate,
     garnishmentRate,
+    disposableIncomeRatio,
   );
   const spouseIncomeRisk = projectedIncomeRiskToRetirement(
     inputs.spouseAnnualIncome ?? 0,
@@ -36,6 +50,7 @@ export function calculateLiabilityGap(inputs: LiabilityInputs): LiabilityOutputs
     retirementAge,
     incomeGrowthRate,
     garnishmentRate,
+    disposableIncomeRatio,
   );
   const householdWageGarnishmentRisk = primaryIncomeRisk + spouseIncomeRisk;
 
@@ -50,19 +65,24 @@ export function calculateLiabilityGap(inputs: LiabilityInputs): LiabilityOutputs
   const householdTotalCoverage = householdAutoLiabilityCoverage + householdUmbrellaCoverage;
   const householdLiabilityGap = Math.max(totalHouseholdLiabilityRisk - householdTotalCoverage, 0);
 
-  const homeEquity = Math.max((inputs.homeValue ?? 0) - (inputs.mortgageBalance ?? 0), 0);
+  // Home equity: use direct homeEquity input when provided; otherwise default to 0.
+  const homeEquity = Math.max(inputs.homeEquity ?? 0, 0);
+
   const totalAtRiskAssets = Math.max(homeEquity + (inputs.investmentAssets ?? 0) + (inputs.savingsAssets ?? 0) + businessOwnershipValue, nonQualifiedAssetsAtRisk);
-  const primaryCoverage = Math.max(inputs.autoLiabilityLimit ?? 0, inputs.homeLiabilityLimit ?? 0);
+  const primaryCoverage = Math.max(inputs.autoLiabilityLimit ?? 0, 0);
   const totalCoverage = primaryCoverage + (inputs.umbrellaCoverage ?? 0);
-  const totalExposure = Math.max(inputs.estimatedLawsuitExposure ?? 0, totalHouseholdLiabilityRisk);
+  const totalExposure = totalHouseholdLiabilityRisk;
   const coverageGap = Math.max(totalExposure - totalCoverage, 0);
   const erodedAssets = Math.min(coverageGap, totalAtRiskAssets);
   const wealthErosionPercentage = totalAtRiskAssets > 0 ? erodedAssets / totalAtRiskAssets : 0;
 
   const netWorthAtRisk = Math.max(nonQualifiedAssetsAtRisk + homeEquity, 0);
   const incomeMultipleTarget = Math.max((inputs.annualIncome ?? 0) * 5, 0);
-  const recommendedUmbrellaCoverage = Math.max(netWorthAtRisk, incomeMultipleTarget, 1_000_000);
-  const umbrellaCoverageShortfall = Math.max(recommendedUmbrellaCoverage - householdUmbrellaCoverage, 0);
+  // Raw illustrative umbrella need, then rounded UP to the nearest $1M block.
+  const rawIllustrativeNeed = Math.max(netWorthAtRisk, incomeMultipleTarget, UMBRELLA_BLOCK_SIZE);
+  const illustrativeUmbrellaCoverageLevel =
+    Math.ceil(rawIllustrativeNeed / UMBRELLA_BLOCK_SIZE) * UMBRELLA_BLOCK_SIZE;
+  const umbrellaCoverageShortfall = Math.max(illustrativeUmbrellaCoverageLevel - householdUmbrellaCoverage, 0);
 
   return {
     homeEquity,
@@ -79,9 +99,10 @@ export function calculateLiabilityGap(inputs: LiabilityInputs): LiabilityOutputs
     householdUmbrellaCoverage,
     householdTotalCoverage,
     householdLiabilityGap,
-    recommendedUmbrellaCoverage,
+    illustrativeUmbrellaCoverageLevel,
     umbrellaCoverageShortfall,
     assumptionGarnishmentRate: garnishmentRate,
     assumptionIncomeGrowthRate: incomeGrowthRate,
+    assumptionDisposableIncomeRatio: disposableIncomeRatio,
   };
 }
