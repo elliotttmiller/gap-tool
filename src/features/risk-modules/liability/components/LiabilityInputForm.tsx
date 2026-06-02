@@ -20,7 +20,7 @@ export function LiabilityInputForm({ inputs, onChange }: LiabilityInputFormProps
 
   return (
     <div className="space-y-4">
-      <CollapsibleInputSection title="Reference Lawsuit Inputs" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
+      <CollapsibleInputSection title="Household Liability Inputs" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor="annualIncome" className="whitespace-nowrap">Primary Annual Income</Label>
             <Input id="annualIncome" type="number" prefix="$" value={inputs.annualIncome || ""} className="w-full" onChange={(e) => handleChange("annualIncome", e.target.value)} />
@@ -79,12 +79,8 @@ export function LiabilityInputForm({ inputs, onChange }: LiabilityInputFormProps
 
       <CollapsibleInputSection title="Optional Extended Asset Inputs" defaultOpen={false} contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="homeValue" className="whitespace-nowrap">Primary Home Value</Label>
-            <Input id="homeValue" type="number" prefix="$" value={inputs.homeValue || ""} className="w-full" onChange={(e) => handleChange("homeValue", e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="mortgageBalance" className="whitespace-nowrap">Mortgage Balance</Label>
-            <Input id="mortgageBalance" type="number" prefix="$" value={inputs.mortgageBalance || ""} className="w-full" onChange={(e) => handleChange("mortgageBalance", e.target.value)} />
+            <Label htmlFor="homeEquity" className="whitespace-nowrap">Home Equity</Label>
+            <Input id="homeEquity" type="number" prefix="$" value={inputs.homeEquity || ""} className="w-full" onChange={(e) => handleChange("homeEquity", e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="investmentAssets" className="whitespace-nowrap">Investment / Taxable Accounts</Label>
@@ -97,14 +93,6 @@ export function LiabilityInputForm({ inputs, onChange }: LiabilityInputFormProps
           <div className="flex flex-col gap-2">
             <Label htmlFor="savingsAssets" className="whitespace-nowrap">Liquid Savings</Label>
             <Input id="savingsAssets" type="number" prefix="$" value={inputs.savingsAssets || ""} className="w-full" onChange={(e) => handleChange("savingsAssets", e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="homeLiabilityLimit" className="whitespace-nowrap">Home Liability Limit</Label>
-            <Input id="homeLiabilityLimit" type="number" prefix="$" value={inputs.homeLiabilityLimit || ""} className="w-full" onChange={(e) => handleChange("homeLiabilityLimit", e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="estimatedLawsuitExposure" className="whitespace-nowrap">Lawsuit Exposure</Label>
-            <Input id="estimatedLawsuitExposure" type="number" prefix="$" value={inputs.estimatedLawsuitExposure || ""} className="w-full" onChange={(e) => handleChange("estimatedLawsuitExposure", e.target.value)} />
           </div>
       </CollapsibleInputSection>
     </div>

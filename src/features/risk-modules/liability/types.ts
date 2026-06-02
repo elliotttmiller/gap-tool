@@ -7,19 +7,27 @@ export interface LiabilityInputs {
   retirementAge?: number;
   nonQualifiedAssets?: number;
   businessOwnershipValue?: number;
-  /** Wage garnishment rate as decimal (e.g., 0.25 = 25%). */
+  /** Wage garnishment rate as decimal (e.g., 0.25 = 25%). Applied to disposableIncome, not gross. */
   garnishmentRate?: number;
   /** Annual income growth rate as decimal (e.g., 0.03 = 3%). */
   incomeGrowthRate?: number;
+  /**
+   * Disposable income ratio used as a proxy for take-home pay (e.g., 0.65 = 65% of gross).
+   * Garnishment is applied to disposableIncome = grossIncome × disposableIncomeRatio.
+   * Default: 0.65.
+   */
+  disposableIncomeRatio?: number;
 
-  homeValue: number;
-  mortgageBalance: number;
+  /**
+   * Direct home equity input. When provided, used directly instead of computing
+   * from homeValue and mortgageBalance.
+   */
+  homeEquity?: number;
+
   investmentAssets: number;
   savingsAssets: number;
   autoLiabilityLimit: number;
-  homeLiabilityLimit: number;
   umbrellaCoverage: number;
-  estimatedLawsuitExposure: number;
 }
 
 export interface LiabilityOutputs {
@@ -32,7 +40,7 @@ export interface LiabilityOutputs {
   erodedAssets: number;
   wealthErosionPercentage: number;
 
-  /** Advisor-reference lawsuit outputs from the original HTML prototype. */
+  /** Advisor-reference lawsuit outputs. */
   householdWageGarnishmentRisk: number;
   nonQualifiedAssetsAtRisk: number;
   totalHouseholdLiabilityRisk: number;
@@ -41,9 +49,14 @@ export interface LiabilityOutputs {
   householdTotalCoverage: number;
   householdLiabilityGap: number;
 
-  recommendedUmbrellaCoverage: number;
+  /**
+   * Illustrative umbrella coverage level rounded UP to the nearest $1M block.
+   * This replaces the old "recommendedUmbrellaCoverage" label.
+   */
+  illustrativeUmbrellaCoverageLevel: number;
   umbrellaCoverageShortfall: number;
 
   assumptionGarnishmentRate: number;
   assumptionIncomeGrowthRate: number;
+  assumptionDisposableIncomeRatio: number;
 }

@@ -128,8 +128,8 @@ export const northstarGoldenLifeInputs = {
   educationGoal: 80000,
   finalExpenses: 25000,
   liquidAssetsAllocated: 30000,
-  safeWithdrawalRate: 0.04,
-  maxWithdrawalRate: 0.06,
+  safeIncomeCoveragePct: 0.85,
+  maxCoverageRoi: 0.06,
   incomeGapRoi: 0.05,
 } satisfies LifeInputs;
 
@@ -169,14 +169,11 @@ export const northstarGoldenLiabilityInputs = {
   spouseCurrentAge: 38,
   retirementAge: 65,
   nonQualifiedAssets: 500000,
-  homeValue: 650000,
-  mortgageBalance: 350000,
+  homeEquity: 300000,
   investmentAssets: 500000,
   savingsAssets: 30000,
   autoLiabilityLimit: 250000,
-  homeLiabilityLimit: 500000,
   umbrellaCoverage: 1000000,
-  estimatedLawsuitExposure: 1500000,
 } satisfies LiabilityInputs;
 
 export const northstarGoldenBreakEvenInputs = {
