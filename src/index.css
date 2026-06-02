@@ -169,19 +169,22 @@
   }
 
   .life-output-container,
-  .liability-output-container {
+  .liability-output-container,
+  .unemployment-output-container {
     container-type: inline-size;
     padding-block: 0.25rem;
   }
 
   .life-visual-dashboard,
-  .liability-visual-dashboard {
+  .liability-visual-dashboard,
+  .unemployment-visual-dashboard {
     display: grid;
     gap: 0.5rem;
   }
 
   .life-chart-panel,
-  .liability-chart-panel-compact {
+  .liability-chart-panel-compact,
+  .unemployment-chart-panel {
     min-width: 0;
     max-height: 22rem;
     overflow: hidden;
@@ -194,44 +197,51 @@
   }
 
   .life-metric-grid,
-  .liability-metric-grid {
+  .liability-metric-grid,
+  .unemployment-metric-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.5rem;
   }
 
   .life-kpi-card,
-  .liability-kpi-card {
+  .liability-kpi-card,
+  .unemployment-kpi-card {
     padding: 0.625rem 0.75rem !important;
   }
 
   .life-kpi-card p:first-child,
-  .liability-kpi-card p:first-child {
+  .liability-kpi-card p:first-child,
+  .unemployment-kpi-card p:first-child {
     font-size: 0.56rem;
     letter-spacing: 0.12em;
   }
 
   .life-kpi-card div[class*="text-xl"],
-  .liability-kpi-card div[class*="text-xl"] {
+  .liability-kpi-card div[class*="text-xl"],
+  .unemployment-kpi-card div[class*="text-xl"] {
     font-size: 1rem;
     line-height: 1.05;
   }
 
   .life-kpi-card p:not(:first-child),
-  .liability-kpi-card p:not(:first-child) {
+  .liability-kpi-card p:not(:first-child),
+  .unemployment-kpi-card p:not(:first-child) {
     font-size: 0.625rem;
     line-height: 1.15;
     margin-top: 0.25rem;
   }
 
   .life-kpi-card > div > div:last-child,
-  .liability-kpi-card > div > div:last-child {
+  .liability-kpi-card > div > div:last-child,
+  .unemployment-kpi-card > div > div:last-child {
     height: 1.5rem;
   }
 
   @container (min-width: 760px) {
     .life-visual-dashboard,
-    .liability-visual-dashboard {
+    .liability-visual-dashboard,
+    .unemployment-visual-dashboard {
       grid-template-columns: minmax(0, 1fr);
     }
 
@@ -245,6 +255,10 @@
 
     .liability-metric-grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .unemployment-metric-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
 
