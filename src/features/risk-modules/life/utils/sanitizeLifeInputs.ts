@@ -8,11 +8,12 @@ function nonNegativeFinite(value: unknown, fallback: number): number {
   return Math.max(0, finiteOrFallback(value, fallback))
 }
 
-/**
- * Guards Life inputs against persisted/typed NaN values that can crash strict
- * calculators (notably income-gap ROI and withdrawal rates).
- */
 export function sanitizeLifeInputs(inputs: LifeInputs): LifeInputs {
+  const targetIncomeSupportPct = nonNegativeFinite(
+    inputs.targetIncomeSupportPct ?? inputs.safeIncomeCoveragePct ?? 0.85,
+    0.85,
+  )
+
   return {
     ...inputs,
     currentAge: nonNegativeFinite(inputs.currentAge, 40),
@@ -29,7 +30,8 @@ export function sanitizeLifeInputs(inputs: LifeInputs): LifeInputs {
     educationGoal: nonNegativeFinite(inputs.educationGoal, 0),
     finalExpenses: nonNegativeFinite(inputs.finalExpenses, 0),
     liquidAssetsAllocated: nonNegativeFinite(inputs.liquidAssetsAllocated ?? 0, 0),
-    safeIncomeCoveragePct: nonNegativeFinite(inputs.safeIncomeCoveragePct ?? 0.85, 0.85),
+    targetIncomeSupportPct,
+    safeIncomeCoveragePct: targetIncomeSupportPct,
     maxCoverageRoi: nonNegativeFinite(inputs.maxCoverageRoi ?? 0.06, 0.06),
     incomeGapRoi: nonNegativeFinite(inputs.incomeGapRoi ?? 0.05, 0.05),
   }
