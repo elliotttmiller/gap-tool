@@ -1,6 +1,13 @@
 import { LifeInputs, LifeAssumptions, LifeOutputs, LifeYearlyBreakdown } from "../types";
 import { clamp, nonNegative, safeDivide, roundCurrency, roundPercent } from "@/lib/math";
 
+/**
+ * Core Life summary calculator.
+ *
+ * This now follows the same advisor-facing target support model used by the
+ * Income Gap Analysis view so saved scenario gap values do not contradict the
+ * visible Life Insurance page.
+ */
 export function calculateLifeInsuranceGap(
   inputs: LifeInputs,
   assumptions: LifeAssumptions
@@ -14,98 +21,88 @@ export function calculateLifeInsuranceGap(
   );
 
   const incomeReplacementRatio = clamp(inputs.incomeReplacementRatio, 0, 1.25);
+  const targetIncomeSupportPct = clamp(inputs.targetIncomeSupportPct ?? inputs.safeIncomeCoveragePct ?? 0.85, 0, 1);
   const annualClientNeed = nonNegative(inputs.annualIncome) * incomeReplacementRatio;
   const annualSpouseOffset = nonNegative(inputs.spouseAnnualIncome ?? 0);
   const annualReplacementNeed = Math.max(0, annualClientNeed - annualSpouseOffset);
-
-  let futureIncomeLost = 0;
-  if (assumptions.usePresentValue) {
-    for (let year = 1; year <= replacementYears; year++) {
-      const projectedNeed = annualReplacementNeed * Math.pow(1 + assumptions.incomeGrowthRateAnnual, year);
-      const discountedNeed = projectedNeed / Math.pow(1 + assumptions.discountRateAnnual, year);
-      futureIncomeLost += discountedNeed;
-    }
-  } else {
-    futureIncomeLost = annualReplacementNeed * replacementYears;
-  }
-
-  const baseProtectionNeed =
-    futureIncomeLost +
-    nonNegative(inputs.debtsTotal) +
-    nonNegative(inputs.educationGoal) +
-    nonNegative(inputs.finalExpenses);
-
-  const existingCoverageTotal = nonNegative(inputs.groupLifeCoverage) + nonNegative(inputs.privateLifeCoverage);
-  const liquidAssetOffset = assumptions.includeLiquidAssetsOffset ? nonNegative(inputs.liquidAssetsAllocated) : 0;
-  const availableResources = existingCoverageTotal + liquidAssetOffset;
-  const remainingGap = Math.max(baseProtectionNeed - availableResources, 0);
-  const coverageOffsetPercentage = safeDivide(availableResources, baseProtectionNeed);
+  const incomeGrowth = assumptions.incomeGrowthRateAnnual ?? 0.03;
 
   const yearlyBreakdown: LifeYearlyBreakdown[] = [];
-  const gli = nonNegative(inputs.groupLifeCoverage);
-  const privateLife = nonNegative(inputs.privateLifeCoverage);
-  const incomeGrowth = assumptions.incomeGrowthRateAnnual ?? 0.03;
-  const incomeYield = assumptions.deathBenefitIncomeYieldAnnual ?? 0.05;
-  const privateLifeCoverageYears = inputs.privateLifePolicyType === "permanent"
-    ? yearsToRetirement
-    : Math.min(nonNegative(inputs.privateLifeTermYears ?? yearsToRetirement), yearsToRetirement);
-  const groupLifeCoverageYears = yearsToRetirement;
-  let groupLifeAnnualIncome = 0;
-  let privateLifeAnnualIncome = 0;
-
   let projectedIncomeToRetirement = 0;
-  let cumulativeSurvivorGap = 0;
-  let coveragePool = availableResources;
+  let targetIncomeSupportTotal = 0;
 
   for (let yearIndex = 0; yearIndex < yearsToRetirement; yearIndex++) {
     const age = currentAge + yearIndex;
     const projectedIncome = annualReplacementNeed * Math.pow(1 + incomeGrowth, yearIndex);
-    coveragePool *= 1 + incomeYield;
-    const availableThisYear = Math.min(coveragePool, projectedIncome);
-    coveragePool = Math.max(0, coveragePool - availableThisYear);
-    const groupShare = existingCoverageTotal > 0 ? gli / existingCoverageTotal : 0;
-    const gliCovered = Math.min(availableThisYear * groupShare, projectedIncome);
-    const privateCovered = Math.min(availableThisYear - gliCovered, Math.max(0, projectedIncome - gliCovered));
-    const survivorGap = Math.max(0, projectedIncome - availableThisYear);
-    if (yearIndex === 0) {
-      groupLifeAnnualIncome = gliCovered;
-      privateLifeAnnualIncome = privateCovered;
-    }
-
+    const targetNeed = projectedIncome * targetIncomeSupportPct;
     projectedIncomeToRetirement += projectedIncome;
-    cumulativeSurvivorGap += survivorGap;
+    targetIncomeSupportTotal += targetNeed;
 
     yearlyBreakdown.push({
       age,
-      totalNeed: roundCurrency(projectedIncome),
+      totalNeed: roundCurrency(targetNeed),
+      gliCovered: 0,
+      privateCovered: 0,
+      survivorGap: 0,
+    });
+  }
+
+  const existingCoverageTotal = nonNegative(inputs.groupLifeCoverage) + nonNegative(inputs.privateLifeCoverage);
+  const nonQualifiedAssets = nonNegative(inputs.nonQualifiedAssets ?? 0);
+  const liquidAssetOffset = assumptions.includeLiquidAssetsOffset ? nonNegative(inputs.liquidAssetsAllocated) : 0;
+  const availableResources = existingCoverageTotal + nonQualifiedAssets + liquidAssetOffset;
+
+  const baseProtectionNeed =
+    targetIncomeSupportTotal +
+    nonNegative(inputs.debtsTotal) +
+    nonNegative(inputs.educationGoal) +
+    nonNegative(inputs.finalExpenses);
+
+  const remainingGap = Math.max(baseProtectionNeed - availableResources, 0);
+  const coverageOffsetPercentage = safeDivide(availableResources, baseProtectionNeed);
+
+  // Allocate modeled coverage across yearly rows for legacy/presentation views.
+  const coverageSupportRate = baseProtectionNeed > 0 ? Math.min(1, availableResources / baseProtectionNeed) : 1;
+  let cumulativeSurvivorGap = 0;
+  const allocatedBreakdown = yearlyBreakdown.map((point) => {
+    const totalNeed = point.totalNeed;
+    const covered = Math.min(totalNeed, totalNeed * coverageSupportRate);
+    const groupShare = existingCoverageTotal > 0 ? nonNegative(inputs.groupLifeCoverage) / existingCoverageTotal : 0;
+    const gliCovered = Math.min(covered * groupShare, totalNeed);
+    const privateCovered = Math.min(covered - gliCovered, Math.max(0, totalNeed - gliCovered));
+    const survivorGap = Math.max(0, totalNeed - covered);
+    cumulativeSurvivorGap += survivorGap;
+    return {
+      age: point.age,
+      totalNeed: roundCurrency(totalNeed),
       gliCovered: roundCurrency(gliCovered),
       privateCovered: roundCurrency(privateCovered),
       survivorGap: roundCurrency(survivorGap),
-    });
-  }
+    };
+  });
 
   return {
     replacementYears,
     annualReplacementNeed: roundCurrency(annualReplacementNeed),
-    futureIncomeLost: roundCurrency(futureIncomeLost),
+    futureIncomeLost: roundCurrency(targetIncomeSupportTotal),
     baseProtectionNeed: roundCurrency(baseProtectionNeed),
     existingCoverageTotal: roundCurrency(existingCoverageTotal),
-    liquidAssetOffset: roundCurrency(liquidAssetOffset),
+    liquidAssetOffset: roundCurrency(liquidAssetOffset + nonQualifiedAssets),
     availableResources: roundCurrency(availableResources),
-    remainingGap: roundCurrency(cumulativeSurvivorGap || remainingGap),
+    remainingGap: roundCurrency(remainingGap),
     coverageOffsetPercentage: roundPercent(coverageOffsetPercentage),
-    yearlyBreakdown,
+    yearlyBreakdown: allocatedBreakdown,
     projectedIncomeToRetirement: roundCurrency(projectedIncomeToRetirement),
-  groupLifeCoverageYears: Math.round(groupLifeCoverageYears),
-  groupLifeBenefit: roundCurrency(gli),
-    groupLifeAnnualIncome: roundCurrency(groupLifeAnnualIncome),
-    privateLifeAnnualIncome: roundCurrency(privateLifeAnnualIncome),
-  privateLifeBenefit: roundCurrency(privateLife),
+    groupLifeCoverageYears: Math.round(yearsToRetirement),
+    groupLifeBenefit: roundCurrency(nonNegative(inputs.groupLifeCoverage)),
+    groupLifeAnnualIncome: roundCurrency(allocatedBreakdown[0]?.gliCovered ?? 0),
+    privateLifeAnnualIncome: roundCurrency(allocatedBreakdown[0]?.privateCovered ?? 0),
+    privateLifeBenefit: roundCurrency(nonNegative(inputs.privateLifeCoverage)),
     privateLifePolicyType: inputs.privateLifePolicyType ?? "term",
-    privateLifeCoverageYears: Math.round(privateLifeCoverageYears),
+    privateLifeCoverageYears: Math.round(inputs.privateLifePolicyType === "permanent" ? yearsToRetirement : Math.min(nonNegative(inputs.privateLifeTermYears ?? yearsToRetirement), yearsToRetirement)),
     totalDeathBenefit: roundCurrency(existingCoverageTotal),
-    cumulativeSurvivorGap: roundCurrency(cumulativeSurvivorGap),
-    lifetimeIncomeUncoveredPercentage: roundPercent(safeDivide(cumulativeSurvivorGap, projectedIncomeToRetirement)),
-    deathBenefitIncomeYieldAnnual: incomeYield,
+    cumulativeSurvivorGap: roundCurrency(cumulativeSurvivorGap || remainingGap),
+    lifetimeIncomeUncoveredPercentage: roundPercent(safeDivide(cumulativeSurvivorGap || remainingGap, targetIncomeSupportTotal)),
+    deathBenefitIncomeYieldAnnual: assumptions.deathBenefitIncomeYieldAnnual ?? 0.05,
   };
 }
