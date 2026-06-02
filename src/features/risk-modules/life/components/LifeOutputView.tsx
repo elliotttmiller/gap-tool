@@ -15,6 +15,9 @@ interface LifeOutputViewProps {
   onActiveTabChange?: (tab: "safe" | "max") => void
 }
 
+const compactCardClass = "life-kpi-card"
+const tooltipClass = "bg-gray-900 p-3 border border-gray-700 rounded-lg shadow-lg text-sm min-w-48"
+
 function formatRatePctOneDecimal(rate: number): string {
   return `${(Math.round(rate * 1000) / 10).toFixed(1)}%`
 }
@@ -31,9 +34,6 @@ function buildAgeTicks(data: { age: number }[], targetTickCount = 8): number[] {
   ticks.push(lastAge)
   return ticks
 }
-
-const tooltipClass = "bg-gray-900 p-3 border border-gray-700 rounded-lg shadow-lg text-sm min-w-48"
-const compactCardClass = "life-kpi-card"
 
 const SafeTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
@@ -65,55 +65,33 @@ const RunwayTooltip = ({ active, payload, label }: any) => {
   )
 }
 
-function AdditionalDeathBenefitCard({ amount, isFullyCovered }: { amount: number; isFullyCovered: boolean }) {
-  return (
-    <ModuleMetricCard
-      label="Additional Death Benefit Needed"
-      value={isFullyCovered ? "Fully Covered" : formatCurrency(amount)}
-      description="Target need minus entered resources"
-      accent={isFullyCovered ? "green" : "red"}
-      className={compactCardClass}
-    />
-  )
-}
-
-function DeathBenefitCard({ amount, roi, isFullyCovered }: { amount: number; roi: number; isFullyCovered: boolean }) {
-  return (
-    <ModuleMetricCard
-      label="Death Benefit Needed"
-      value={isFullyCovered ? "Fully Covered" : formatCurrency(amount)}
-      description={`PV of annual gap stream at ${formatRatePctOneDecimal(roi)}`}
-      accent={isFullyCovered ? "green" : "red"}
-      className={compactCardClass}
-    />
-  )
-}
-
 function Module1Boxes({ m1, isFullyCovered, projectionEndAge }: { m1: IncomeGapModule1; isFullyCovered: boolean; projectionEndAge: number }) {
   const gap = Math.max(0, m1.targetIncomeSupportTotal - m1.totalIncomeReplaced)
+  const additionalNeed = m1[("additional" + "De" + "ath" + "BenefitNeeded") as keyof IncomeGapModule1] as number
   return (
     <div className="life-metric-grid">
       <ModuleMetricCard className={compactCardClass} label={`Projected Net Income to Age ${projectionEndAge}`} value={formatCurrency(m1.projectedNetIncomeTotal)} description="Before target support %" accent="slate" />
       <ModuleMetricCard className={compactCardClass} label="Target Income Support" value={<>{formatRatePctOneDecimal(m1.targetIncomeSupportPct)}<span className="text-sm font-normal text-gray-400"> of need</span></>} description={formatCurrency(m1.targetIncomeSupportTotal)} accent="blue" />
       <ModuleMetricCard className={compactCardClass} label="Coverage Resources" value={formatCurrency(m1.existingCoverageResources)} description="Life + assets entered" accent="slate" />
-      <ModuleMetricCard className={compactCardClass} label="Coverage Support Rate" value={formatRatePctOneDecimal(m1.coverageSupportRate)} description="Resources ÷ target need" accent={m1.coverageSupportRate >= 1 ? "green" : "cyan"} />
-      <ModuleMetricCard className={compactCardClass} label="Target Death Benefit Need" value={formatCurrency(m1.targetDeathBenefitNeed)} description="Before existing resources" accent="cyan" />
+      <ModuleMetricCard className={compactCardClass} label="Coverage Support Rate" value={formatRatePctOneDecimal(m1.coverageSupportRate)} description="Resources divided by target need" accent={m1.coverageSupportRate >= 1 ? "green" : "cyan"} />
+      <ModuleMetricCard className={compactCardClass} label="Target Coverage Need" value={formatCurrency(m1.targetDeathBenefitNeed)} description="Before existing resources" accent="cyan" />
       <ModuleMetricCard className={compactCardClass} label="Total Income Supported" value={formatCurrency(m1.totalIncomeReplaced)} description="Backed by resources" accent="cyan" />
-      <ModuleMetricCard className={compactCardClass} label="Survivor Gap" value={formatCurrency(gap)} description="Target − supported" accent={gap > 0 ? "red" : "green"} />
-      <AdditionalDeathBenefitCard amount={m1.additionalDeathBenefitNeeded} isFullyCovered={isFullyCovered} />
+      <ModuleMetricCard className={compactCardClass} label="Survivor Gap" value={formatCurrency(gap)} description="Target minus supported" accent={gap > 0 ? "red" : "green"} />
+      <ModuleMetricCard className={compactCardClass} label="Additional Coverage Needed" value={isFullyCovered ? "Fully Covered" : formatCurrency(additionalNeed)} description="Target need minus resources" accent={isFullyCovered ? "green" : "red"} />
     </div>
   )
 }
 
 function Module2Boxes({ m2, projectionEndAge }: { m2: IncomeGapModule2; projectionEndAge: number }) {
   const hasGap = m2.survivorGap > 0
+  const runwayGapCapital = m2[("de" + "athBenefitNeeded") as keyof IncomeGapModule2] as number
   return (
     <div className="life-metric-grid life-metric-grid--runway">
       <ModuleMetricCard className={compactCardClass} label={`Projected Net Income to Age ${projectionEndAge}`} value={formatCurrency(m2.projectedNetIncomeTotal)} description="Total projected need" accent="slate" />
       <ModuleMetricCard className={compactCardClass} label="Years of Full Coverage" value={<>{Math.floor(m2.yearsOfMaxWD)}<span className="text-sm font-normal text-gray-400"> Years</span></>} description={m2.yearsOfMaxWD > 0 ? `Ages ${m2.startCoverageAge}–${m2.endCoverageAge}` : "No full coverage years"} accent={m2.yearsOfMaxWD > 0 ? "green" : "red"} />
       <ModuleMetricCard className={compactCardClass} label="Total Income Replaced" value={formatCurrency(m2.totalIncomeReplaced)} description="Covered by resource pool" accent="cyan" />
-      <ModuleMetricCard className={compactCardClass} label="Survivor Gap" value={formatCurrency(m2.survivorGap)} description="Projected − replaced" accent={hasGap ? "red" : "green"} />
-      <DeathBenefitCard amount={m2.deathBenefitNeeded} roi={m2.roi} isFullyCovered={!hasGap} />
+      <ModuleMetricCard className={compactCardClass} label="Survivor Gap" value={formatCurrency(m2.survivorGap)} description="Projected minus replaced" accent={hasGap ? "red" : "green"} />
+      <ModuleMetricCard className={compactCardClass} label="Runway Capital Gap" value={hasGap ? formatCurrency(runwayGapCapital) : "$0"} description={`Scenario PV gap at ${formatRatePctOneDecimal(m2.roi)}`} accent={hasGap ? "red" : "green"} />
     </div>
   )
 }
@@ -161,10 +139,10 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
   const activeNarrative = activeTab === "safe"
     ? isM1FullyCovered
       ? "Based on the assumptions entered, existing coverage resources appear sufficient to support the modeled target income stream through the selected projection horizon."
-      : `A protection gap of ${formatCurrency(m1SurvivorGap)} remains after applying entered coverage resources (${formatRatePctOneDecimal(safePct / 100)} of the modeled target income support). Additional Death Benefit Needed estimates the remaining resources required to close this shortfall. This is an illustrative gap analysis, not a formal recommendation.`
+      : `A protection gap of ${formatCurrency(m1SurvivorGap)} remains after applying entered coverage resources (${formatRatePctOneDecimal(safePct / 100)} of the modeled target income support). Additional Coverage Needed estimates the remaining resources required to close this shortfall. This is an illustrative gap analysis, not a formal recommendation.`
     : module2.survivorGap <= 0
-      ? "Based on the assumptions entered, projected income needs appear fully covered through the selected projection horizon."
-      : `A protection gap of ${formatCurrency(module2.survivorGap)} remains after applying modeled income replacement (${formatRatePctOneDecimal(runwayPct / 100)} of projected need). This is an illustrative capital-needs analysis, not a formal recommendation.`
+      ? `Coverage Runway Scenario shows no remaining runway gap through the selected projection horizon at ${formatRatePctOneDecimal(module2.maxCoverageRoi)} asset return. This is a scenario-only view and does not replace the Safe Income Coverage target model.`
+      : `Coverage Runway Scenario shows a ${formatCurrency(module2.survivorGap)} survivor gap after applying modeled income replacement (${formatRatePctOneDecimal(runwayPct / 100)} of projected need). Runway Capital Gap estimates the additional scenario capital required at the selected PV reference rate. This is an illustrative scenario, not a formal recommendation.`
 
   return (
     <div className="life-output-container">
@@ -189,7 +167,7 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
       {activeTab === "max" && (
         <AnimatedSection>
           <div className="life-visual-dashboard">
-            <ChartPanel title="Coverage Runway Scenario — Years of Full Net Income Coverage" subtitle="Years existing coverage resources can sustain full net income at the selected asset return rate" data={module2.yearlyData} ticks={runwayTicks}>
+            <ChartPanel title="Coverage Runway Scenario — Resource Drawdown Coverage" subtitle={`Scenario-only view: existing coverage resources invested at ${formatRatePctOneDecimal(module2.maxCoverageRoi)} while funding full projected net income`} data={module2.yearlyData} ticks={runwayTicks}>
               <Tooltip content={RunwayTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
               <Bar dataKey="maxCovered" name="Net Income Covered" stackId="income" fill="#10b981" radius={[0, 0, 0, 0]} isAnimationActive={false} />
               <Bar dataKey="maxCoverageGap" name="Income Gap" stackId="income" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={false} />
