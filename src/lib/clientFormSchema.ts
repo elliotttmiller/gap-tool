@@ -12,8 +12,10 @@ export type ClientFormState = {
   lastName: string
   displayName: string
   age: string
+  expectedRetirementAge: string
   annualIncome: string
   monthlyExpenses: string
+  emergencySavings: string
   groupLifeCoverage: string
   privateLifeCoverage: string
   privateLifePolicyType: LifePolicyType
@@ -35,7 +37,9 @@ export type ClientFormState = {
   spousePrivateLifePolicyType: LifePolicyType
   spousePrivateLifeTermYears: string
   spouseNonQualifiedAssets: string
+  homeEquity: string
   autoLiabilityLimit: string
+  umbrellaCoverage: string
 }
 
 // ── Empty/default form state ──────────────────────────────────────────────────
@@ -46,8 +50,10 @@ export const emptyClientForm: ClientFormState = {
   lastName: "",
   displayName: "",
   age: "",
+  expectedRetirementAge: "65",
   annualIncome: "",
   monthlyExpenses: "",
+  emergencySavings: "",
   groupLifeCoverage: "",
   privateLifeCoverage: "",
   privateLifePolicyType: "term",
@@ -69,20 +75,25 @@ export const emptyClientForm: ClientFormState = {
   spousePrivateLifePolicyType: "term",
   spousePrivateLifeTermYears: "15",
   spouseNonQualifiedAssets: "",
+  homeEquity: "",
   autoLiabilityLimit: "",
+  umbrellaCoverage: "",
 }
 
 // ── Populate form from a stored ClientRecord ──────────────────────────────────
 
 export function formFromClient(client: ClientRecord): ClientFormState {
+  const legacyHomeEquity = Math.max(0, (client.profile.homeValue ?? 0) - (client.profile.mortgageBalance ?? 0))
   return {
     clientType: client.profile.clientType ?? "individual",
     firstName: client.firstName,
     lastName: client.lastName,
     displayName: client.displayName,
     age: numberToInput(client.profile.currentAge),
+    expectedRetirementAge: numberToInput(client.profile.expectedRetirementAge ?? 65),
     annualIncome: numberToInput(client.profile.annualEarnedIncome),
     monthlyExpenses: numberToInput(client.profile.monthlyHouseholdExpenses),
+    emergencySavings: numberToInput(client.profile.emergencySavings),
     groupLifeCoverage: numberToInput(client.profile.groupLifeCoverage),
     privateLifeCoverage: numberToInput(client.profile.privateLifeCoverage),
     privateLifePolicyType: client.profile.privateLifePolicyType ?? "term",
@@ -104,7 +115,9 @@ export function formFromClient(client: ClientRecord): ClientFormState {
     spousePrivateLifePolicyType: client.profile.spousePrivateLifePolicyType ?? "term",
     spousePrivateLifeTermYears: numberToInput(client.profile.spousePrivateLifeTermYears),
     spouseNonQualifiedAssets: numberToInput(client.profile.spouseNonQualifiedAssets),
+    homeEquity: numberToInput(client.profile.homeEquity ?? legacyHomeEquity),
     autoLiabilityLimit: numberToInput(client.profile.autoLiabilityLimit),
+    umbrellaCoverage: numberToInput(client.profile.umbrellaCoverage),
   }
 }
 
@@ -122,8 +135,10 @@ export function formToPayload(form: ClientFormState): CreateClientPayload {
     lastName: form.lastName,
     displayName: form.displayName || undefined,
     age: toNumber(form.age),
+    expectedRetirementAge: toNumber(form.expectedRetirementAge),
     annualIncome: toNumber(form.annualIncome),
     monthlyExpenses: toNumber(form.monthlyExpenses),
+    emergencySavings: toNumber(form.emergencySavings),
     groupLifeCoverage: toNumber(form.groupLifeCoverage),
     privateLifeCoverage: toNumber(form.privateLifeCoverage),
     privateLifePolicyType: form.privateLifePolicyType,
@@ -145,7 +160,9 @@ export function formToPayload(form: ClientFormState): CreateClientPayload {
     spousePrivateLifePolicyType: form.spousePrivateLifePolicyType,
     spousePrivateLifeTermYears: toNumber(form.spousePrivateLifeTermYears),
     spouseNonQualifiedAssets: toNumber(form.spouseNonQualifiedAssets),
+    homeEquity: toNumber(form.homeEquity),
     autoLiabilityLimit: toNumber(form.autoLiabilityLimit),
+    umbrellaCoverage: toNumber(form.umbrellaCoverage),
   }
 }
 
@@ -160,13 +177,22 @@ const _requiredFieldSchema = z.object({
       (v) => { const n = Number(v); return Number.isFinite(n) && n >= 18 && n <= 100 },
       "Age must be between 18 and 100",
     ),
+  expectedRetirementAge: z.string()
+    .min(1, "Projection end age is required")
+    .refine(
+      (v) => { const n = Number(v); return Number.isFinite(n) && n >= 18 && n <= 100 },
+      "Projection end age must be between 18 and 100",
+    ),
   annualIncome: z.string()
     .min(1, "Annual income is required")
     .refine(
       (v) => { const n = Number(v); return Number.isFinite(n) && n >= 0 },
       "Annual income must be 0 or greater",
     ),
-})
+}).refine(
+  (form) => Number(form.expectedRetirementAge) > Number(form.age),
+  { message: "Projection end age must be greater than current age", path: ["expectedRetirementAge"] },
+)
 
 /** Returns true when the form passes all required-field validations. */
 export function isClientFormValid(form: ClientFormState): boolean {
