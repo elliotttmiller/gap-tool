@@ -1,31 +1,41 @@
 /**
  * calculateIncomeGapScenarios
  * ─────────────────────────────────────────────────────────────────────────────
- * Shared calculation engine for the two Income Gap Analysis modules on the Life
+ * Shared calculation engine for the two Income Gap Analysis panels on the Life
  * Insurance page.
  *
  * Module 1 — Safe Income Coverage
- *   The entered death benefit/resource pool determines what percentage of the
- *   projected net income stream can be supported. The percentage is derived as:
+ *   Advisor-adherence interpretation of the review notes:
+ *   - The entered death benefit/resource pool should drive the displayed coverage
+ *     support rate.
+ *   - “Fully Covered” must use the SAME threshold as the displayed death-benefit
+ *     target. It should not be triggered only because resources exceed a lower
+ *     present-value equivalent.
+ *   - The Safe Income Coverage target defaults to 85% of modeled annual net
+ *     income need, grown annually with income.
  *
- *     existingPool / PV(projected annual net income need)
+ *   Target stream:
+ *     targetIncomeNeed[year] = projectedNetIncomeNeed[year] × targetIncomeSupportPct
  *
- *   The derived percentage is capped at 100% and applied consistently to each
- *   projected year, so the annual chart, coverage percentage, survivor gap, and
- *   Death Benefit Needed all use the same gap schedule.
+ *   Advisor-facing target death benefit need:
+ *     targetDeathBenefitNeed = Σ targetIncomeNeed[year]
  *
- * Module 2 — Full Coverage Scenario
+ *   Entered-resource support rate:
+ *     coverageSupportRate = enteredResources ÷ targetDeathBenefitNeed, capped at 100%
+ *
+ *   Annual gaps are derived from the same target stream, so the chart, cards,
+ *   narrative, and “Fully Covered” state cannot contradict each other.
+ *
+ * Module 2 — Coverage Runway Scenario
  *   Existing coverage resources (group + private + non-qualified assets) are
  *   invested at maxCoverageRoi each year. The survivor draws the FULL projected
  *   net income need each year until the balance runs out.
  *   Covered years → green bars. Gap years → red bars.
  *
- *   Death Benefit Needed = PV of actual annual gap stream (end-of-year).
- *   This avoids the "level-gap approximation" error.
- *
- * Net income assumption: all income figures use NET income as configured in the
- * LifeInputs (annualIncome × incomeReplacementRatio − spouseAnnualIncome offset).
- * Death benefits are tax-free by law; no gross-to-net conversion is applied.
+ * Net income assumption: income figures use modeled net income need
+ * (annualIncome × incomeReplacementRatio − spouseAnnualIncome offset).
+ * Death benefits are generally income-tax-free; no gross-to-net conversion is
+ * applied to benefit amounts.
  */
 
 import {
@@ -51,6 +61,10 @@ function requireNonNegativeNumber(value: unknown, fieldName: string): number {
     throw new Error(`calculateIncomeGapScenarios: ${fieldName} must be >= 0.`);
   }
   return numeric;
+}
+
+function clampRate(value: number, max = 1.25): number {
+  return Math.max(0, Math.min(max, value));
 }
 
 export function calculateIncomeGapScenarios(
@@ -79,7 +93,17 @@ export function calculateIncomeGapScenarios(
   );
   const existingPool = groupLifeCoverage + privateLifeCoverage + nonQualifiedAssets;
 
-  // maxCoverageRoi: annual return applied to existing pool in Module 2 aggressive scenario (default 0.06).
+  // Module 1 target: advisor-indicated safe income support defaults to 85%.
+  // `safeIncomeCoveragePct` is kept as a backward-compatible persisted-field alias.
+  const targetIncomeSupportPct = clampRate(
+    requireNonNegativeNumber(
+      inputs.targetIncomeSupportPct ?? inputs.safeIncomeCoveragePct ?? 0.85,
+      "inputs.targetIncomeSupportPct"
+    ),
+    1
+  );
+
+  // maxCoverageRoi: annual return applied to existing pool in Module 2 runway scenario.
   const maxCoverageRoi = nonNegative(
     requireNonNegativeNumber(
       inputs.maxCoverageRoi ?? 0.06,
@@ -87,8 +111,7 @@ export function calculateIncomeGapScenarios(
     )
   );
 
-  // Net annual income need (consistent with the existing coverage calculator).
-  // Uses NET income only — life insurance death benefits are already tax-free.
+  // Modeled annual net income need before the Safe Income target is applied.
   const annualNetIncomeNeed = Math.max(
     0,
     nonNegative(requireNonNegativeNumber(inputs.annualIncome, "inputs.annualIncome")) *
@@ -99,44 +122,49 @@ export function calculateIncomeGapScenarios(
   const projectedIncomeStream = Array.from({ length: yearsToRetirement }, (_, i) => {
     return annualNetIncomeNeed * Math.pow(1 + incomeGrowthRate, i);
   });
-  const pvOfProjectedNeed = presentValueOfAnnualStream(projectedIncomeStream, roi);
-  const safeIncomeCoveragePct = pvOfProjectedNeed > 0
-    ? Math.min(1, existingPool / pvOfProjectedNeed)
+  const targetIncomeStream = projectedIncomeStream.map((need) => need * targetIncomeSupportPct);
+  const projectedNetIncomeTotal = projectedIncomeStream.reduce((sum, amount) => sum + amount, 0);
+  const targetIncomeSupportTotal = targetIncomeStream.reduce((sum, amount) => sum + amount, 0);
+
+  // Advisor-facing death benefit target is intentionally nominal so “Fully Covered”
+  // aligns with the same dollar need shown to the advisor/client.
+  const targetDeathBenefitNeed = targetIncomeSupportTotal;
+  const coverageSupportRate = targetDeathBenefitNeed > 0
+    ? Math.min(1, existingPool / targetDeathBenefitNeed)
     : 1;
+  const additionalDeathBenefitNeeded = Math.max(0, targetDeathBenefitNeed - existingPool);
+  const pvOfTargetNeed = presentValueOfAnnualStream(targetIncomeStream, roi);
 
   // ── Build yearly data — a single schedule drives both modules ─────────────
   const yearlyData: IncomeGapYearlyPoint[] = [];
-  let projectedNetIncomeTotal = 0;
   let m1TotalReplaced = 0;
   let m1CumulativeGap = 0;
   let module2Balance = existingPool;
   let m2TotalReplaced = 0;
   let m2CumulativeGap = 0;
 
-  const m1GapStream: number[] = [];
   const m2GapStream: number[] = [];
 
   for (let i = 0; i < yearsToRetirement; i++) {
     const age = currentAge + i;
 
-    // Project annual NET income need forward at the income growth rate.
     const projectedNetIncome = projectedIncomeStream[i] ?? 0;
+    const targetIncomeNeed = targetIncomeStream[i] ?? 0;
 
-    // ── Module 1: Safe Income Coverage ─────────────────────────────────────
-    // Each year: covered amount = projectedNeed × derived coverage percentage.
-    // The percentage is driven by the entered death benefit/resource pool.
+    // ── Module 1: Safe Income Coverage target ───────────────────────────────
+    // Each year: support the advisor-modeled target income stream at the
+    // coverage percentage supported by entered resources.
     const safeIncomeCoverage = Math.min(
-      projectedNetIncome * safeIncomeCoveragePct,
-      projectedNetIncome
+      targetIncomeNeed * coverageSupportRate,
+      targetIncomeNeed
     );
-    const incomeGap = Math.max(0, projectedNetIncome - safeIncomeCoverage);
+    const incomeGap = Math.max(0, targetIncomeNeed - safeIncomeCoverage);
 
-    m1GapStream.push(incomeGap);
     m1TotalReplaced += safeIncomeCoverage;
     m1CumulativeGap += incomeGap;
 
-    // ── Module 2: Full Coverage Scenario ───────────────────────────────────
-    // Apply annual return to balance first, then draw full income need.
+    // ── Module 2: Coverage Runway Scenario ──────────────────────────────────
+    // Apply annual return to balance first, then draw full modeled income need.
     module2Balance *= 1 + maxCoverageRoi;
     const maxCovered = Math.min(module2Balance, projectedNetIncome);
     const isCoveredMax = maxCovered >= projectedNetIncome && projectedNetIncome > 0;
@@ -146,11 +174,11 @@ export function calculateIncomeGapScenarios(
     m2GapStream.push(m2AnnualGap);
     m2CumulativeGap += m2AnnualGap;
 
-    projectedNetIncomeTotal += projectedNetIncome;
     yearlyData.push({
       yearIndex: i,
       age,
       projectedIncome: projectedNetIncome,
+      targetIncomeNeed,
       safeIncomeCoverage,
       incomeGap,
       cumulativeIncomeGap: m1CumulativeGap,
@@ -166,17 +194,15 @@ export function calculateIncomeGapScenarios(
     yearlyData.map((point) => ({
       yearIndex: point.yearIndex,
       age: point.age,
-      projectedNeed: point.projectedIncome,
+      projectedNeed: point.targetIncomeNeed ?? point.projectedIncome,
       availableCoverage: point.safeIncomeCoverage,
       annualGap: point.incomeGap,
       cumulativeGap: point.cumulativeIncomeGap,
     }))
   );
-  const m1DeathBenefitNeeded = presentValueOfAnnualStream(m1GapStream, roi);
   const m1SurvivorGap = m1ScheduleSummary.survivorGap;
 
   // ── Module 2 metrics ──────────────────────────────────────────────────────
-  // Death Benefit Needed = PV of actual annual gap stream (not a level-gap approximation).
   const m2DeathBenefitNeeded = presentValueOfAnnualStream(m2GapStream, roi);
   const m2SurvivorGap = m2CumulativeGap;
 
@@ -189,13 +215,20 @@ export function calculateIncomeGapScenarios(
     module1: {
       yearlyData,
       projectedNetIncomeTotal,
-      safeIncomeCoveragePct,
+      targetIncomeSupportPct,
+      targetIncomeSupportTotal,
+      targetDeathBenefitNeed,
+      coverageSupportRate,
+      // Backward-compatible alias used by the current view layer.
+      safeIncomeCoveragePct: coverageSupportRate,
       annualCoverageYear1: yearlyData[0]?.safeIncomeCoverage ?? 0,
       totalIncomeReplaced: m1TotalReplaced,
       existingCoverageResources: existingPool,
-      pvOfProjectedNeed,
+      pvOfProjectedNeed: pvOfTargetNeed,
+      pvOfTargetNeed,
       pvOfCoverageStream: presentValueOfAnnualStream(yearlyData.map((point) => point.safeIncomeCoverage), roi),
-      deathBenefitNeeded: m1DeathBenefitNeeded,
+      deathBenefitNeeded: additionalDeathBenefitNeeded,
+      additionalDeathBenefitNeeded,
       roi,
     },
     module2: {
@@ -211,7 +244,6 @@ export function calculateIncomeGapScenarios(
       roi,
     },
     yearsToRetirement,
-    // Convenience summary — charts and metrics should use isFullyCovered from here.
     isM1FullyCovered: m1ScheduleSummary.isFullyCovered,
     m1SurvivorGap,
   };
