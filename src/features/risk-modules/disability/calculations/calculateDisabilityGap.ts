@@ -36,6 +36,7 @@ export function calculateDisabilityGap(
   const currentAge = inputs.currentAge || 40;
   const retirementAge = Math.max(currentAge + 1, inputs.retirementAge || 65);
   const growthRate = clamp(assumptions.incomeGrowthRateAnnual ?? 0.03, 0, 0.20);
+  const colaRate = clamp(assumptions.colaRate ?? 0, 0, 0.10);
 
   // ── Current-year monthly summary ──────────────────────────────────────────
   const ltdMonthlyGross = computeLtdMonthlyGross(annualIncome, inputs.ltdCoveragePercent, inputs.ltdMonthlyCap);
@@ -62,10 +63,11 @@ export function calculateDisabilityGap(
     const ltdAnnualBenefitGross = roundCurrency(ltdGrossAtAge * 12);
     const ltdAnnualBenefit = roundCurrency(ltdNetAtAge * 12);
 
-    // Individual DI is a fixed monthly dollar amount; active until end age.
-    // When no period is selected (null), treat as active through retirement.
+    // Individual DI: fixed base benefit, grown by COLA each projection year.
+    // Active until the benefit-period end age (or perpetual through retirement if none set).
     const diIsActive = diEndAge === null ? privateDiMonthly > 0 : age <= diEndAge;
-    const individualDIAnnualBenefit = diIsActive ? roundCurrency(privateDiMonthly * 12) : 0;
+    const diMonthlyAtAge = privateDiMonthly * Math.pow(1 + colaRate, year);
+    const individualDIAnnualBenefit = diIsActive ? roundCurrency(diMonthlyAtAge * 12) : 0;
 
     const totalAnnualBenefit = roundCurrency(ltdAnnualBenefit + individualDIAnnualBenefit);
     const annualGap = roundCurrency(Math.max(0, annualIncomeNetAtAge - totalAnnualBenefit));
@@ -95,9 +97,12 @@ export function calculateDisabilityGap(
   const startingAnnualIncome = projection[0]?.annualIncome ?? annualIncome;
   const incomeLossNet = roundCurrency((startingAnnualIncome * 0.70 / 12) - totalNetMonthly);
 
-  // Lifetime IDI Expense: premium × months from current age to retirement
+  // Lifetime IDI Expense: premium × months from current age to retirement.
+  // When a COLA rider is active, the premium carries a 20% load.
   const projectionMonths = yearsToRetirement * 12;
-  const monthlyPremium = nonNegative(inputs.privateDiMonthlyPremium ?? 0);
+  const monthlyPremiumBase = nonNegative(inputs.privateDiMonthlyPremium ?? 0);
+  const colaPremiumMultiplier = colaRate > 0 ? 1.2 : 1;
+  const monthlyPremium = roundCurrency(monthlyPremiumBase * colaPremiumMultiplier);
   const lifetimeIDIExpense = roundCurrency(monthlyPremium * projectionMonths);
 
   return {

@@ -125,6 +125,11 @@
     align-items: start;
   }
 
+  /* 4th card (COLA Comparison) appears when COLA rider is active */
+  .disability-summary-rail--cola {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
   .disability-chart-panel {
     grid-area: chart;
   }
@@ -272,5 +277,9 @@
 
   .disability-coverage-grid--form-open .disability-summary-rail {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .disability-coverage-grid--form-open .disability-summary-rail--cola {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   }
 }

@@ -32,6 +32,7 @@ interface PremiumVsSelfInsuredState {
   monthlyBenefit: number
   annualRateOfReturn: number
   monthsWithoutIncome: number
+  colaRate: number
 }
 
 interface PremiumChartPoint {
@@ -45,6 +46,25 @@ interface PremiumChartPoint {
 }
 
 type HighlightMetric = "benefits" | "breakeven" | "none"
+
+/**
+ * Produces clean year-boundary tick marks for the X-axis.
+ * Step adapts to the visible range so there are always ~8–12 ticks.
+ *
+ *   ≤ 12 years  → every 1 year
+ *   ≤ 25 years  → every 2 years
+ *   ≤ 50 years  → every 5 years
+ *   > 50 years  → every 10 years
+ */
+function buildChartYearTicks(endMonth: number): number[] {
+  const totalYears = endMonth / 12
+  const step = totalYears <= 12 ? 1 : totalYears <= 25 ? 2 : totalYears <= 50 ? 5 : 10
+  const ticks: number[] = []
+  for (let yr = 0; yr * 12 <= endMonth; yr += step) {
+    ticks.push(yr * 12)
+  }
+  return ticks
+}
 
 function roundToStep(value: number, step: number): number {
   if (!Number.isFinite(value)) return step
@@ -76,6 +96,7 @@ function getInitialState({
     monthlyBenefit: Math.max(1000, roundToStep(monthlyBenefit > 0 ? monthlyBenefit : 10000, 500)),
     annualRateOfReturn: Number.isFinite(annualRateOfReturn) && annualRateOfReturn >= 0 ? annualRateOfReturn : 0.06,
     monthsWithoutIncome: Math.min(60, Math.max(3, Math.round(monthsWithoutIncome > 0 ? monthsWithoutIncome : 12))),
+    colaRate: 0,
   }
 }
 
@@ -100,20 +121,21 @@ function SliderRow({
 }) {
   return (
     <div className="rounded-xl border border-gray-800 bg-gray-950/50 px-3 py-2.5">
-      <label className="flex items-center gap-3">
-        <span className="w-36 shrink-0 text-xs text-gray-400">{label}</span>
+      <div className="grid grid-cols-[minmax(7.75rem,8.75rem)_minmax(0,1fr)_max-content] items-center gap-x-3 gap-y-1.5">
+        <span className="truncate text-xs text-gray-400">{label}</span>
         <input
           type="range"
           min={min}
           max={max}
           step={step}
           value={value}
+          aria-label={label}
           onChange={(event) => onChange(Number(event.target.value))}
-          className="h-2 min-w-0 flex-1 cursor-pointer appearance-none rounded-full bg-gray-800 accent-brand-500 outline-none transition focus-visible:ring-2 focus-visible:ring-brand-500/50"
+          className="h-2 w-full min-w-0 cursor-pointer appearance-none rounded-full bg-gray-800 accent-brand-500 outline-none transition focus-visible:ring-2 focus-visible:ring-brand-500/50"
         />
-        <span className="w-24 text-right font-mono text-xs font-semibold text-gray-100">{displayValue}</span>
-      </label>
-      {helperText ? <p className="mt-1.5 pl-[9.2rem] text-[11px] leading-snug text-slate-500">{helperText}</p> : null}
+        <span className="w-27 text-right font-mono text-xs font-semibold tabular-nums text-gray-100">{displayValue}</span>
+        {helperText ? <p className="col-start-2 col-end-4 text-[11px] leading-snug text-slate-500">{helperText}</p> : null}
+      </div>
     </div>
   )
 }
@@ -162,7 +184,7 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
     return () => window.clearTimeout(timeoutId)
   }, [highlightMetric])
 
-  const result = useMemo(() => calculateBreakEven(values), [values])
+  const result = useMemo(() => calculateBreakEven({ ...values, colaRate: values.colaRate }), [values])
 
   // Derive retirement age from benefit period (A65/A67/A70) or fall back to retirementAge input.
   const currentAge = props.inputs?.currentAge ?? 0
@@ -202,7 +224,15 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
 
   const premiumMax = Math.max(2000, roundToStep(values.monthlyPremium * 2, 50))
   const benefitMax = Math.max(20000, roundToStep(values.monthlyBenefit * 2, 500))
-  const chartEndMonth = 240
+
+  // ── Dynamic chart range ──────────────────────────────────────────────────
+  // Show whichever horizon is largest: retirement window, a padded break-even,
+  // or a 10-year floor.  Cap at 100 years (1 200 months) to match the schedule.
+  const MIN_CHART_YEARS = 10
+  const breakEvenPaddedYears = Math.ceil((result.roundedBreakEvenMonths / 12) * 1.3)
+  const chartEndYears = Math.max(MIN_CHART_YEARS, yearsToRetirement, breakEvenPaddedYears)
+  const chartEndMonth = Math.min(chartEndYears * 12, 1200)
+
   const durationEndMonth = Math.min(values.monthsWithoutIncome, chartEndMonth)
   const chartData: PremiumChartPoint[] = result.schedule
     .filter((row) => row.month <= chartEndMonth)
@@ -216,7 +246,6 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
       remainingGap: Math.max(result.benefitsReceived - row.investmentBalance, 0),
     }))
   const yearOneFund = result.schedule[11]?.investmentBalance ?? 0
-  const netInsuranceCostAtBreakEven = result.totalPremiumsToBreakEven - result.benefitsReceived
   const insuranceWinsBeforeYear = result.breakEvenYears
 
   function handleSliderChange(
@@ -279,7 +308,6 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                 value={values.monthsWithoutIncome}
                 displayValue={`${values.monthsWithoutIncome} months`}
                 onChange={(monthsWithoutIncome) => handleSliderChange("monthsWithoutIncome", monthsWithoutIncome, "benefits")}
-                helperText="~30% of disabilities exceed 12 months."
               />
               <SliderRow
                 label="Investment return"
@@ -289,6 +317,15 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                 value={values.annualRateOfReturn}
                 displayValue={formatPlainPercent(values.annualRateOfReturn)}
                 onChange={(annualRateOfReturn) => handleSliderChange("annualRateOfReturn", annualRateOfReturn, "breakeven")}
+              />
+              <SliderRow
+                label="Benefit COLA"
+                min={0}
+                max={0.05}
+                step={0.001}
+                value={values.colaRate}
+                displayValue={formatPlainPercent(values.colaRate)}
+                onChange={(colaRate) => handleSliderChange("colaRate", colaRate, "benefits")}
               />
             </div>
           </CardContent>
@@ -315,7 +352,7 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                         tick={{ fill: "#64748b", fontSize: 10 }}
                         tickLine={{ stroke: "#1f2937" }}
                         axisLine={{ stroke: "#1f2937" }}
-                        ticks={Array.from({ length: Math.floor(chartEndMonth / 12) + 1 }, (_, i) => i * 12).filter((m) => m % 24 === 0)}
+                        ticks={buildChartYearTicks(chartEndMonth)}
                         tickFormatter={(value) => `Yr ${Number(value) / 12}`}
                       />
                       <YAxis
@@ -457,13 +494,6 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                 value={`Yr ${formatDecimal(insuranceWinsBeforeYear, 1)}`}
                 description={`≈ Month ${result.roundedBreakEvenMonths} break-even point`}
                 accent="amber"
-                className={`${metricPulseClass} ${breakEvenPulseClass}`}
-              />
-              <ModuleMetricCard
-                label="Net insurance cost @ break-even"
-                value={formatCurrency(netInsuranceCostAtBreakEven)}
-                description="Total premiums to break-even − benefits received"
-                accent={netInsuranceCostAtBreakEven > 0 ? "red" : "green"}
                 className={`${metricPulseClass} ${breakEvenPulseClass}`}
               />
               <ModuleMetricCard label="Break-even month" value={`Month ${result.roundedBreakEvenMonths}`} description="Break-even years × 12 months" accent="slate" />

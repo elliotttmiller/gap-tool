@@ -367,6 +367,7 @@ interface AppState {
   offensiveInputsByClientId: Record<string, OffensiveClientInputs>
   updateGlobalLifeAssumptions: (updates: Partial<LifeAssumptions>) => void
   updateGlobalDisabilityAssumptions: (updates: Partial<DisabilityAssumptions>) => void
+  updateDisabilityAssumptions: (scenarioId: string, updates: Partial<DisabilityAssumptions>) => void
   createClient: (payload: CreateClientPayload) => string
   updateClient: (clientId: string, updates: Partial<CreateClientPayload>) => void
   archiveClient: (clientId: string) => void
@@ -398,6 +399,19 @@ export const useAppStore = create<AppState>()(
 
       updateGlobalLifeAssumptions: (updates) => set((state) => ({ globalLifeAssumptions: { ...state.globalLifeAssumptions, ...updates } })),
       updateGlobalDisabilityAssumptions: (updates) => set((state) => ({ globalDisabilityAssumptions: { ...state.globalDisabilityAssumptions, ...updates } })),
+      updateDisabilityAssumptions: (scenarioId, updates) => set((state) => {
+        const record = state.moduleRecordsByScenarioId[scenarioId]?.disability
+        if (!record) return state
+        return {
+          moduleRecordsByScenarioId: {
+            ...state.moduleRecordsByScenarioId,
+            [scenarioId]: {
+              ...state.moduleRecordsByScenarioId[scenarioId],
+              disability: { ...record, assumptions: { ...record.assumptions, ...updates }, updatedAt: nowIso() },
+            },
+          },
+        }
+      }),
 
       createClient: (payload) => {
         const timestamp = nowIso()

@@ -17,6 +17,12 @@ export interface BreakEvenInputs {
   annualRateOfReturn: number
   /** Presentation!H42 */
   monthsWithoutIncome: number
+  /**
+   * Annual COLA applied to the DI benefit during a disability claim.
+   * Each 12-month anniversary the benefit steps up by this factor.
+   * e.g. 0.03 = 3%.  Defaults to 0 (flat benefit).
+   */
+  colaRate?: number
 }
 
 export interface BreakEvenMonthRow {
@@ -38,6 +44,8 @@ export interface BreakEvenOutputs {
   monthlyRateOfReturn: number
   monthlyReturnFactor: number
   monthsWithoutIncome: number
+  /** Annual COLA rate applied to benefits during the disability period. */
+  colaRate: number
   benefitsReceived: number
   breakEvenMonths: number
   breakEvenYears: number
@@ -58,9 +66,16 @@ function excelNper(rate: number, payment: number, presentValue: number, futureVa
   return Math.log((payment - futureValue * rate) / (payment + presentValue * rate)) / Math.log(1 + rate)
 }
 
-function lookupBenefitsReceived(monthlyBenefit: number, monthsWithoutIncome: number): number {
+function lookupBenefitsReceived(monthlyBenefit: number, monthsWithoutIncome: number, colaRate = 0): number {
   const lookupMonth = Math.min(monthsWithoutIncome, MAX_BENEFIT_LOOKUP_MONTH)
-  return monthlyBenefit * lookupMonth
+  if (colaRate <= 0) return monthlyBenefit * lookupMonth
+
+  // Annual COLA step-up: benefit for month m = base × (1 + cola)^floor((m-1)/12)
+  let total = 0
+  for (let m = 1; m <= lookupMonth; m++) {
+    total += monthlyBenefit * Math.pow(1 + colaRate, Math.floor((m - 1) / 12))
+  }
+  return Math.round(total * 100) / 100
 }
 
 function buildSchedule(inputs: {
@@ -125,7 +140,8 @@ export function calculateBreakEven(inputs: BreakEvenInputs): BreakEvenResult {
 
   const monthlyRateOfReturn = annualRateOfReturn / 12
   const monthlyReturnFactor = 1 + monthlyRateOfReturn
-  const benefitsReceived = lookupBenefitsReceived(monthlyBenefit, monthsWithoutIncome)
+  const colaRate = Math.max(0, Number(inputs.colaRate ?? 0))
+  const benefitsReceived = lookupBenefitsReceived(monthlyBenefit, monthsWithoutIncome, colaRate)
   const breakEvenMonths = excelNper(monthlyRateOfReturn, monthlyPremium, 0, -benefitsReceived)
 
   if (!Number.isFinite(breakEvenMonths) || breakEvenMonths <= 0) {
@@ -152,6 +168,7 @@ export function calculateBreakEven(inputs: BreakEvenInputs): BreakEvenResult {
     monthlyRateOfReturn,
     monthlyReturnFactor,
     monthsWithoutIncome,
+    colaRate,
     benefitsReceived,
     breakEvenMonths,
     breakEvenYears: breakEvenMonths / 12,

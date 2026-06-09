@@ -3,6 +3,7 @@ import { DisabilityInputForm } from "@/features/risk-modules/disability/componen
 import { DisabilityOutputView } from "@/features/risk-modules/disability/components/DisabilityOutputView"
 import { calculateDisabilityGap } from "@/features/risk-modules/disability/calculations/calculateDisabilityGap"
 import { useAppStore } from "@/lib/store"
+import type { DisabilityAssumptions } from "@/features/risk-modules/disability/types"
 import { useParams } from "react-router-dom"
 import { RiskModulePage, ModuleNotIncluded } from "./RiskModulePage"
 
@@ -12,6 +13,7 @@ export function DisabilityModulePage() {
     scenarioId ? state.moduleRecordsByScenarioId[scenarioId]?.disability : undefined,
   )
   const updateInputs = useAppStore((state) => state.updateDisabilityInputs)
+  const updateAssumptions = useAppStore((state) => state.updateDisabilityAssumptions)
   const saveCalculation = useAppStore((state) => state.saveDisabilityCalculation)
 
   const outputs = useMemo(
@@ -29,6 +31,10 @@ export function DisabilityModulePage() {
     return <ModuleNotIncluded moduleName="Disability" />
   }
 
+  function handleAssumptionsChange(updates: Partial<DisabilityAssumptions>) {
+    if (scenarioId) updateAssumptions(scenarioId, updates)
+  }
+
   return (
     <RiskModulePage
       title="Disability Insurance Risk Analysis"
@@ -38,6 +44,8 @@ export function DisabilityModulePage() {
         <DisabilityOutputView
           outputs={outputs}
           inputs={moduleState.inputs}
+          assumptions={moduleState.assumptions}
+          onAssumptionsChange={handleAssumptionsChange}
           formOpen={inputsOpen}
           onVisualizationChange={(v) => {
             if (v === "premiumVsSelfInsured" || v === "jobComparison") {

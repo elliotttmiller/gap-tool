@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { DisabilityOutputs } from "../types"
-import type { DisabilityInputs } from "../types"
+import type { DisabilityInputs, DisabilityAssumptions } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
@@ -15,9 +15,14 @@ import {
   MetricGroupDivider,
 } from "@/features/risk-modules/core/ModuleMetricCard"
 
+/** Default COLA rate applied when the rider is toggled on (mirrors SSA average). */
+const DEFAULT_COLA_RATE = 0.03
+
 interface DisabilityOutputViewProps {
   outputs: DisabilityOutputs
   inputs?: DisabilityInputs
+  assumptions?: DisabilityAssumptions
+  onAssumptionsChange?: (updates: Partial<DisabilityAssumptions>) => void
   formOpen?: boolean
   mode?: "builder" | "presentation"
   visualization?: DisabilityVisualization
@@ -94,6 +99,8 @@ function getMonthlyStatsAtAge(outputs: DisabilityOutputs, age: number) {
 export function DisabilityOutputView({
   outputs,
   inputs,
+  assumptions,
+  onAssumptionsChange,
   formOpen = false,
   mode = "builder",
   visualization: visualizationProp,
@@ -104,6 +111,13 @@ export function DisabilityOutputView({
   const [selectedAge, setSelectedAge] = useState<number | null>(null)
   const [chartView, setChartView] = useState<"net" | "gross">("net")
   const [visualizationInternal, setVisualizationInternal] = useState<DisabilityVisualization>("incomeGap")
+
+  // ── COLA toggle ─────────────────────────────────────────────────────────
+  const colaRate = assumptions?.colaRate ?? 0
+  const colaEnabled = colaRate > 0
+  function toggleCola() {
+    onAssumptionsChange?.({ colaRate: colaEnabled ? 0 : DEFAULT_COLA_RATE })
+  }
 
   const visualization = visualizationProp ?? visualizationInternal
   function setVisualization(v: DisabilityVisualization) {
@@ -147,6 +161,21 @@ export function DisabilityOutputView({
   const incomeGap2Display = projectedIncomeDisplay - totalIncomeReplacedDisplay
   const incomeGapDiffDisplay = incomeGap1Display - incomeGap2Display
 
+  // ── COLA Comparison card metrics ───────────────────────────────────────────
+  // Flat (no-COLA) IDI total = base monthly benefit × 12 × active projection years.
+  // Active years = number of projection points where individual DI was non-zero.
+  const baseDIMonthly = inputs?.privateDiMonthlyPremium ?? 0
+  const baseBenefitMonthly = inputs?.privateDiBenefitMonthly ?? 0
+  const colaDIActiveYears = outputs.incomeProjection.filter(p => p.individualDIAnnualBenefit > 0).length
+  const flatIDICoverage = baseBenefitMonthly * 12 * colaDIActiveYears
+  const colaBenefitDifference = outputs.totalIndividualDICoverage - flatIDICoverage
+  const colaMonthlyPremiumCost = Math.round(baseDIMonthly * 0.2 * 100) / 100   // 20% rider load
+  // IDI Expense Diff = lifetime premiums WITH COLA − lifetime premiums WITHOUT COLA
+  // outputs.lifetimeIDIExpense already uses the 1.2× multiplier when COLA is on.
+  const projectionMonths = outputs.incomeProjection.length * 12
+  const flatLifetimeIDIExpense = Math.round(baseDIMonthly * projectionMonths * 100) / 100
+  const colaIDIExpenseDiff = Math.round((outputs.lifetimeIDIExpense - flatLifetimeIDIExpense) * 100) / 100
+
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null
     const point = payload[0]?.payload
@@ -184,9 +213,13 @@ export function DisabilityOutputView({
 
   function renderVisualization() {
     if (visualization === "premiumVsSelfInsured") {
+      // When COLA rider is active the premium carries a 20% load — reflect that
+      // in the break-even module so the self-insurance comparison is accurate.
+      const basePremium = inputs?.privateDiMonthlyPremium ?? 0
+      const colaPremiumMultiplier = colaEnabled ? 1.2 : 1
       return (
         <PremiumVsSelfInsuredModule
-          monthlyPremium={inputs?.privateDiMonthlyPremium ?? 0}
+          monthlyPremium={basePremium * colaPremiumMultiplier}
           monthlyBenefit={inputs?.privateDiBenefitMonthly ?? 0}
           annualRateOfReturn={inputs?.breakEvenRateOfReturn ?? 0.06}
           monthsWithoutIncome={inputs?.breakEvenMonthsWithoutIncome ?? 12}
@@ -203,7 +236,7 @@ export function DisabilityOutputView({
     return (
       <div className="module-output-container">
         <div className={`disability-coverage-grid${formOpen ? " disability-coverage-grid--form-open" : ""}`}>
-          <div className="disability-summary-rail">
+          <div className={`disability-summary-rail${colaEnabled ? " disability-summary-rail--cola" : ""}`}>
             <Card className="module-kpi-card">
               <CardContent className="p-3.5">
                 <div className="mb-2 text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase">Lifetime Coverage</div>
@@ -258,26 +291,82 @@ export function DisabilityOutputView({
                       <span className="font-mono font-semibold text-amber-400">{formatCurrency(outputs.lifetimeIDIExpense)}</span>
                     </div>
                   ) : null}
+                  {colaEnabled && baseDIMonthly > 0 ? (
+                    <div className="flex items-center justify-between py-1.5">
+                      <span className="text-emerald-400">COLA Monthly Premium</span>
+                      <span className="font-mono font-semibold text-emerald-300">{formatCurrency(baseDIMonthly * 1.2)}/mo</span>
+                    </div>
+                  ) : null}
                 </div>
               </CardContent>
             </Card>
+
+            {/* ── COLA Comparison card — only visible when rider is active ── */}
+            {colaEnabled ? (
+              <Card className="module-kpi-card border-emerald-900/50">
+                <CardContent className="p-3.5">
+                  <div className="mb-2 text-[10px] font-bold tracking-[0.18em] text-emerald-500 uppercase">COLA Comparison</div>
+                  <div className="divide-y divide-slate-800/80 text-xs">
+                    <div className="flex items-center justify-between py-1.5">
+                      <span className="text-slate-400">Benefit Difference</span>
+                      <span className="font-mono font-semibold text-emerald-300">{formatCurrency(colaBenefitDifference)}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-1.5">
+                      <span className="text-slate-400">IDI Expense Diff.</span>
+                      <span className="font-mono font-semibold text-amber-300">{formatCurrency(colaIDIExpenseDiff)}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-1.5">
+                      <span className="text-slate-400">Monthly Premium Diff.</span>
+                      <span className="font-mono font-semibold text-amber-300">{formatCurrency(colaMonthlyPremiumCost)}/mo</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
           </div>
 
           <Card className="disability-chart-panel module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
             <CardHeader className="shrink-0 px-6 pt-5 pb-0">
               <div className="grid gap-3">
-                <div className="min-w-0 text-center">
-                  <CardTitle className="text-xs font-bold tracking-[0.15em] text-slate-500 uppercase">
-                    Income vs. Disability Coverage — Annual Projection
-                  </CardTitle>
-                  <p className="mt-1 text-sm leading-snug text-slate-400">LTD and individual DI benefits stacked against projected income need</p>
-                  {selectedAge !== null ? (
-                    <div className="mt-1.5 flex items-center justify-center gap-2">
-                      <span className="rounded-full border border-blue-700 bg-blue-900/40 px-3 py-1 text-xs font-semibold text-blue-300">Age {selectedAge}</span>
-                      <button onClick={() => setSelectedAge(null)} className="text-xs text-gray-400 transition-colors hover:text-gray-100" aria-label="Reset to current age">× Reset</button>
-                    </div>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <CardTitle className="text-xs font-bold tracking-[0.15em] text-slate-500 uppercase">
+                      Income vs. Disability Coverage — Annual Projection
+                    </CardTitle>
+                    <p className="mt-1 text-sm leading-snug text-slate-400">LTD and individual DI benefits stacked against projected income need</p>
+                    {selectedAge !== null ? (
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <span className="rounded-full border border-blue-700 bg-blue-900/40 px-3 py-1 text-xs font-semibold text-blue-300">Age {selectedAge}</span>
+                        <button onClick={() => setSelectedAge(null)} className="text-xs text-gray-400 transition-colors hover:text-gray-100" aria-label="Reset to current age">× Reset</button>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {/* ── COLA toggle pill ───────────────────────────────── */}
+                  {onAssumptionsChange ? (
+                    <button
+                      type="button"
+                      onClick={toggleCola}
+                      aria-pressed={colaEnabled}
+                      title={colaEnabled ? `COLA active at ${(colaRate * 100).toFixed(1)}%` : "Enable COLA benefit growth"}
+                      className={`flex shrink-0 items-center gap-2 rounded-lg border px-2.5 py-1.5 text-[11px] transition-all ${
+                        colaEnabled
+                          ? "border-emerald-700/60 bg-emerald-950/50 text-emerald-300 hover:border-emerald-600"
+                          : "border-gray-700 bg-gray-900/60 text-gray-500 hover:border-gray-600 hover:text-gray-300"
+                      }`}
+                    >
+                      <span className="font-bold uppercase tracking-widest">COLA</span>
+                      {/* pill switch */}
+                      <span className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors ${colaEnabled ? "bg-emerald-500" : "bg-gray-700"}`}>
+                        <span className={`inline-block h-3 w-3 rounded-full bg-white shadow transition-transform ${colaEnabled ? "translate-x-3.5" : "translate-x-0.5"}`} />
+                      </span>
+                      {colaEnabled && (
+                        <span className="font-mono font-semibold">{(colaRate * 100).toFixed(1)}%</span>
+                      )}
+                    </button>
                   ) : null}
                 </div>
+
                 <div className="flex justify-center sm:justify-end">
                   <div className="flex shrink-0 overflow-hidden rounded-md border border-gray-700 text-xs">
                     <button onClick={() => setChartView("net")} className={`px-3 py-1 transition-colors ${chartView === "net" ? "bg-brand-600 text-white" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}>Net</button>

@@ -38,6 +38,12 @@ export type DisabilityInputs = {
 export type DisabilityAssumptions = {
   /** Annual income growth rate applied to the projection (e.g. 0.03 = 3%). */
   incomeGrowthRateAnnual: number;
+  /**
+   * Annual Cost of Living Adjustment applied to the individual DI benefit.
+   * Formula: benefitAtYear Y = baseBenefit × (1 + colaRate)^Y
+   * e.g. 0.03 = 3%.  Defaults to 0 (no COLA).
+   */
+  colaRate?: number;
 };
 
 export type DisabilityIncomeProjectionPoint = {
