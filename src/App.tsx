@@ -27,8 +27,6 @@ export default function App() {
           {/* Dashboard */}
           <Route index element={<Dashboard />} />
           <Route path="clients/:clientId/overview" element={<ClientOverview />} />
-          {/* Offensive workflows temporarily disabled until the feature package is restored. */}
-          <Route path="clients/:clientId/offensive" element={<Navigate to="/" replace />} />
 
           {/* Redirect legacy routes */}
           <Route path="clients" element={<Navigate to="/" replace />} />
