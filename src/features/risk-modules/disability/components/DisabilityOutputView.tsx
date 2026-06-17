@@ -137,17 +137,21 @@ export function DisabilityOutputView({
   const assumedIncomeLabel = chartView === "gross" ? "Assumed Income (Gross)" : "Assumed Income (Net)"
   const ltdLabel = chartView === "gross" ? "Group LTD (Gross)" : "Group LTD (Net)"
   const totalBenefitLabel = chartView === "gross" ? "Total Benefit (Gross)" : "Total Benefit (Net)"
-  const incomeLossLabel = chartView === "gross" ? "Income Loss (Gross)" : "Income Loss (Net)"
-  const incomeLossDescription = chartView === "gross"
-    ? "Assumed gross income minus total gross monthly benefit"
-    : "Assumed net income minus total net monthly benefit"
+  const incomeGapKey = chartView === "gross" ? "Income Gap (Gross)" : "Income Gap (Net)"
+  const incomeLossLabel = chartView === "gross" ? "Income Gap / Surplus (Gross)" : "Income Gap / Surplus (Net)"
+  const incomeLossDescription = incomeLossDisplayMonthly > 0
+    ? chartView === "gross"
+      ? "Assumed gross income minus total gross monthly benefit"
+      : "Assumed net income minus total net monthly benefit"
+    : "No uncovered monthly gap at the selected age"
+  const incomeLossAccent: "green" | "red" = incomeLossDisplayMonthly > 0 ? "red" : "green"
 
-  const totalProjectedIncomeGross = outputs.incomeProjection.reduce((sum, point) => sum + point.annualIncome, 0)
+  const totalProjectedIncomeGross = outputs.totalProjectedIncomeGross ?? outputs.incomeProjection.reduce((sum, point) => sum + point.annualIncome, 0)
   const totalGroupLTDCoverageGross = outputs.incomeProjection.reduce(
     (sum, point) => sum + point.ltdAnnualBenefitGross,
     0,
   )
-  const totalCoverageGross = outputs.incomeProjection.reduce(
+  const totalCoverageGross = outputs.totalCoverageGross ?? outputs.incomeProjection.reduce(
     (sum, point) => sum + point.ltdAnnualBenefitGross + point.individualDIAnnualBenefit,
     0,
   )
@@ -157,9 +161,9 @@ export function DisabilityOutputView({
   // ── 3-card grid derived metrics ────────────────────────────────────────────
   const groupLTDDisplay = chartView === "gross" ? totalGroupLTDCoverageGross : outputs.totalGroupLTDCoverage
   const totalIncomeReplacedDisplay = chartView === "gross" ? totalCoverageGross : outputs.totalCoverage
-  const incomeGap1Display = projectedIncomeDisplay - groupLTDDisplay
-  const incomeGap2Display = projectedIncomeDisplay - totalIncomeReplacedDisplay
-  const incomeGapDiffDisplay = incomeGap1Display - incomeGap2Display
+  const incomeGap1Display = Math.max(0, projectedIncomeDisplay - groupLTDDisplay)
+  const incomeGap2Display = chartView === "gross" ? outputs.totalGapGross : outputs.totalGap
+  const incomeGapDiffDisplay = Math.max(0, incomeGap1Display - incomeGap2Display)
 
   // ── COLA Comparison card metrics ───────────────────────────────────────────
   // Flat (no-COLA) IDI total = base monthly benefit × 12 × active projection years.
@@ -180,14 +184,7 @@ export function DisabilityOutputView({
     if (!active || !payload?.length) return null
     const point = payload[0]?.payload
     const assumedIncomeAnnual = point?.[assumedIncomeKey] ?? 0
-    const grossIncome = point?.["Assumed Income (Gross)"] ?? 0
-    const netIncome = point?.["Assumed Income (Net)"] ?? 0
-    const ltdGross = point?.["Group LTD (Gross)"] ?? 0
-    const ltdNet = point?.["Group LTD (Net)"] ?? 0
-    const idiAnnual = point?.["Individual DI"] ?? 0
-    const displayGap = chartView === "gross"
-      ? grossIncome - (ltdGross + idiAnnual)
-      : netIncome - (ltdNet + idiAnnual)
+    const displayGap = Math.max(0, Number(point?.[incomeGapKey] ?? 0))
     return (
       <div className="min-w-52 rounded-lg border border-gray-700 bg-gray-900 p-3 text-sm shadow-lg">
         <p className="mb-2 font-semibold text-gray-100">Age {label}</p>
@@ -198,7 +195,7 @@ export function DisabilityOutputView({
           </span>
         </div>
         {payload.map((entry: any) => (
-          <div key={entry.name} className="mb-1 flex justify-between gap-4">
+          <div key={entry.dataKey ?? entry.name} className="mb-1 flex justify-between gap-4">
             <span style={{ color: entry.color }} className="text-xs">{entry.name}:</span>
             <span className="text-xs font-semibold text-gray-100">
               {entry.name === "Income Gap"
@@ -266,11 +263,11 @@ export function DisabilityOutputView({
                     <span className="font-mono font-semibold text-slate-200">{formatCurrency(projectedIncomeDisplay)}</span>
                   </div>
                   <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Income Gap #1</span>
+                    <span className="text-slate-400">Gap After Group LTD</span>
                     <span className="font-mono font-semibold text-red-400">{formatCurrency(incomeGap1Display)}</span>
                   </div>
                   <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Income Gap #2</span>
+                    <span className="text-slate-400">Gap After LTD + DI</span>
                     <span className="font-mono font-semibold text-orange-400">{formatCurrency(incomeGap2Display)}</span>
                   </div>
                 </div>
@@ -282,7 +279,7 @@ export function DisabilityOutputView({
                 <div className="mb-2 text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase">Outcome</div>
                 <div className="divide-y divide-slate-800/80 text-xs">
                   <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Gap Difference</span>
+                    <span className="text-slate-400">Gap Reduced By DI</span>
                     <span className="font-mono font-semibold text-emerald-400">{formatCurrency(incomeGapDiffDisplay)}</span>
                   </div>
                   {outputs.lifetimeIDIExpense > 0 ? (
@@ -378,7 +375,7 @@ export function DisabilityOutputView({
             <CardContent className="flex min-h-0 flex-1 flex-col px-6 pt-4 pb-6">
               <div className="flex min-h-0 flex-1 items-stretch gap-1">
                 <div className="flex w-3.5 shrink-0 items-center justify-center">
-                  <span style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }} className="text-[10px] font-semibold tracking-wider whitespace-nowrap text-slate-500 uppercase">Annual Benefit ($)</span>
+                  <span style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }} className="text-[10px] font-semibold tracking-wider whitespace-nowrap text-slate-500 uppercase">Annual Amount ($)</span>
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col">
                   <div className="chart-reveal min-h-52 w-full flex-1">
@@ -402,7 +399,7 @@ export function DisabilityOutputView({
                         <Tooltip content={CustomTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
                         <Bar dataKey={ltdLabel} stackId="a" fill="#3b82f6" isAnimationActive={false} />
                         <Bar dataKey="Individual DI" stackId="a" fill="#06b6d4" isAnimationActive={false} />
-                        <Bar dataKey="Income Gap" stackId="a" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={false} />
+                        <Bar dataKey={incomeGapKey} name="Income Gap" stackId="a" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={false} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -431,7 +428,7 @@ export function DisabilityOutputView({
             </MetricGroup>
             <MetricGroupDivider />
             <MetricGroup title="Gap">
-              <ModuleMetricCard label={incomeLossLabel} value={<>{formatCurrency(incomeLossDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description={incomeLossDescription} accent="red" />
+              <ModuleMetricCard label={incomeLossLabel} value={<>{formatCurrency(incomeLossDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description={incomeLossDescription} accent={incomeLossAccent} />
             </MetricGroup>
           </div>
         </div>
