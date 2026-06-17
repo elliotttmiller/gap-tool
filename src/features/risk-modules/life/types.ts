@@ -37,9 +37,10 @@ export interface LifeInputs {
   /** @deprecated Use targetIncomeSupportPct. Kept for persisted local-storage compatibility. */
   safeIncomeCoveragePct?: number;
   /**
-   * Annual asset return rate used in Module 2 (Coverage Runway Scenario).
-   * Models the existing coverage pool invested at this rate while drawing full
-   * projected income each year until the balance runs out. Default: 0.06 (6%).
+   * Annual asset return rate used in the income-gap modules.
+   * Module 1 uses this to translate entered coverage resources into a growing
+   * annual withdrawal stream. Module 2 uses it for resource-pool drawdown.
+   * Default: 0.06 (6%).
    */
   maxCoverageRoi?: number;
   /**
@@ -101,13 +102,14 @@ export interface LifeOutputs {
 export interface IncomeGapYearlyPoint {
   yearIndex: number;
   age: number;
-  /** Projected annual NET income need before the 85% Safe Income target is applied. */
+  /** Projected annual NET income need before the Safe Income target is applied. */
   projectedIncome: number;
   /** Module 1: advisor-modeled target income support for this year. */
   targetIncomeNeed?: number;
   /**
    * Module 1: annual target income covered by entered coverage resources.
-   * = targetIncomeNeed × coverageSupportRate, capped at targetIncomeNeed.
+   * Uses a growing withdrawal stream from the entered coverage pool, capped at
+   * the annual target income need.
    */
   safeIncomeCoverage: number;
   /** Module 1: survivor income gap for this year = targetIncomeNeed − safeIncomeCoverage. */
@@ -131,12 +133,20 @@ export interface IncomeGapModule1 {
   projectedNetIncomeTotal: number;
   /** Advisor target percentage, e.g. 0.85 means model 85% of projected income need. */
   targetIncomeSupportPct: number;
-  /** Sum of annual target income support amounts. This is the advisor-facing target need. */
+  /** Sum of annual target income support amounts. This is the advisor-facing income target. */
   targetIncomeSupportTotal: number;
-  /** Advisor-facing target death benefit need before existing resources are applied. */
+  /** Capital required today to support the target income stream using the safe-withdrawal assumptions. */
   targetDeathBenefitNeed: number;
-  /** Entered resources divided by targetDeathBenefitNeed, capped at 100%. */
+  /** Entered resources divided by the capital required, capped at 100%. */
   coverageSupportRate: number;
+  /** Starting annual withdrawal supported by entered coverage resources. */
+  startingAnnualWithdrawal: number;
+  /** Starting annual withdrawal divided by year-1 target income support. Can exceed 100% when overfunded. */
+  safeWithdrawalRate: number;
+  /** Annual growth rate applied to the withdrawal stream. */
+  safeWithdrawalGrowthRate: number;
+  /** Asset return rate used to convert resources into annual withdrawals. */
+  safeWithdrawalReturnRate: number;
   /** @deprecated Backward-compatible alias of coverageSupportRate for existing chart copy. */
   safeIncomeCoveragePct: number;
   /** Box 2b — Year-1 covered amount (for display reference; each subsequent year grows with income). */
@@ -151,7 +161,7 @@ export interface IncomeGapModule1 {
   pvOfTargetNeed: number;
   /** Box 4 — PV of the supported income coverage stream at the configured ROI. */
   pvOfCoverageStream: number;
-  /** Additional death benefit needed = targetDeathBenefitNeed − entered resources, floored at zero. */
+  /** Additional coverage resources needed = targetDeathBenefitNeed − entered resources, floored at zero. */
   deathBenefitNeeded: number;
   /** Alias of deathBenefitNeeded for clearer consuming code. */
   additionalDeathBenefitNeeded: number;
@@ -169,11 +179,11 @@ export interface IncomeGapModule2 {
   startCoverageAge: number;
   /** Last age with full coverage (used for sub-label). */
   endCoverageAge: number;
-  /** Box 3 — Sum of income during fully covered (green) years only. */
+  /** Box 3 — Total draws supported by the resource pool, including investment earnings during drawdown. */
   totalIncomeReplaced: number;
   /** Box 4 — Survivor gap = Box 1 − Box 3. */
   survivorGap: number;
-  /** Box 5 — Death benefit needed using annual-gap PV logic. */
+  /** Box 5 — Additional capital needed using annual-gap PV logic. */
   deathBenefitNeeded: number;
   maxCoverageRoi: number;
   roi: number;
@@ -184,7 +194,7 @@ export interface IncomeGapOutputs {
   module1: IncomeGapModule1;
   module2: IncomeGapModule2;
   yearsToRetirement: number;
-  /** True when entered resources meet or exceed the Module 1 target death benefit need. */
+  /** True when entered resources meet or exceed the Module 1 capital need. */
   isM1FullyCovered: boolean;
   /** Module 1 undiscounted survivor gap against the advisor target stream. */
   m1SurvivorGap: number;
