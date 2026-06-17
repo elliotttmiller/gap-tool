@@ -13,8 +13,8 @@ function computeLtdMonthlyGross(annualIncome: number, coveragePercent: number, m
 }
 
 /**
- * Maps a benefit period selector to the age at which the individual DI policy expires.
- * Returns null when the period is empty (treated as perpetual through retirement).
+ * Maps a benefit period selector to the first age at which the individual DI policy is no longer active.
+ * Returns null when the period is empty (treated as active through the projection end age).
  */
 function benefitPeriodToEndAge(period: DiBenefitPeriod | "", currentAge: number): number | null {
   switch (period) {
@@ -24,7 +24,7 @@ function benefitPeriodToEndAge(period: DiBenefitPeriod | "", currentAge: number)
     case "A65": return 65;
     case "A67": return 67;
     case "A70": return 70;
-    default:    return null; // perpetual through retirement
+    default:    return null; // active through projection end
   }
 }
 
@@ -64,13 +64,15 @@ export function calculateDisabilityGap(
     const ltdAnnualBenefit = roundCurrency(ltdNetAtAge * 12);
 
     // Individual DI: fixed base benefit, grown by COLA each projection year.
-    // Active until the benefit-period end age (or perpetual through retirement if none set).
-    const diIsActive = diEndAge === null ? privateDiMonthly > 0 : age <= diEndAge;
+    // Active until, but not including, the benefit-period end age.
+    const diIsActive = diEndAge === null ? privateDiMonthly > 0 : age < diEndAge;
     const diMonthlyAtAge = privateDiMonthly * Math.pow(1 + colaRate, year);
     const individualDIAnnualBenefit = diIsActive ? roundCurrency(diMonthlyAtAge * 12) : 0;
 
     const totalAnnualBenefit = roundCurrency(ltdAnnualBenefit + individualDIAnnualBenefit);
-    const annualGap = roundCurrency(Math.max(0, annualIncomeNetAtAge - totalAnnualBenefit));
+    const totalGrossAnnualBenefit = roundCurrency(ltdAnnualBenefitGross + individualDIAnnualBenefit);
+    const annualGapNet = roundCurrency(Math.max(0, annualIncomeNetAtAge - totalAnnualBenefit));
+    const annualGapGross = roundCurrency(Math.max(0, annualIncomeAtAge - totalGrossAnnualBenefit));
 
     projection.push({
       age,
@@ -80,20 +82,25 @@ export function calculateDisabilityGap(
       ltdAnnualBenefit,
       individualDIAnnualBenefit,
       totalAnnualBenefit,
-      annualGap,
+      annualGapNet,
+      annualGapGross,
+      annualGap: annualGapNet,
     });
   }
 
   // ── Aggregate stats ───────────────────────────────────────────────────────
   const projectedIncomeAtRetirement = projection.at(-1)?.annualIncomeNet ?? 0;
   const totalProjectedIncome = projection.reduce((s, p) => s + p.annualIncomeNet, 0);
+  const totalProjectedIncomeGross = projection.reduce((s, p) => s + p.annualIncome, 0);
   const totalGroupLTDCoverage = projection.reduce((s, p) => s + p.ltdAnnualBenefit, 0);
   const totalIndividualDICoverage = projection.reduce((s, p) => s + p.individualDIAnnualBenefit, 0);
   const totalCoverage = totalGroupLTDCoverage + totalIndividualDICoverage;
-  const totalGap = projection.reduce((s, p) => s + p.annualGap, 0);
+  const totalCoverageGross = projection.reduce((s, p) => s + p.ltdAnnualBenefitGross + p.individualDIAnnualBenefit, 0);
+  const totalGap = projection.reduce((s, p) => s + p.annualGapNet, 0);
+  const totalGapGross = projection.reduce((s, p) => s + p.annualGapGross, 0);
   const averageCoverageRate = roundPercent(safeDivide(totalCoverage, totalProjectedIncome));
 
-  // Income Loss (Net) at the starting year: net income / 12 × 0.70 − totalNetMonthly
+  // Income Loss (Net) at the starting year: net income / 12 − total net monthly benefit.
   const startingAnnualIncome = projection[0]?.annualIncome ?? annualIncome;
   const incomeLossNet = roundCurrency((startingAnnualIncome * 0.70 / 12) - totalNetMonthly);
 
@@ -118,6 +125,9 @@ export function calculateDisabilityGap(
     totalIndividualDICoverage: roundCurrency(totalIndividualDICoverage),
     totalCoverage: roundCurrency(totalCoverage),
     totalGap: roundCurrency(totalGap),
+    totalProjectedIncomeGross: roundCurrency(totalProjectedIncomeGross),
+    totalCoverageGross: roundCurrency(totalCoverageGross),
+    totalGapGross: roundCurrency(totalGapGross),
     averageCoverageRate,
     lifetimeIDIExpense,
   };
