@@ -60,7 +60,11 @@ export type DisabilityIncomeProjectionPoint = {
   individualDIAnnualBenefit: number;
   /** Combined annual benefit (LTD + individual DI). */
   totalAnnualBenefit: number;
-  /** Uncovered income gap: max(0, annualIncome − totalAnnualBenefit). */
+  /** Net uncovered income gap: max(0, annualIncomeNet − totalAnnualBenefit). */
+  annualGapNet: number;
+  /** Gross uncovered income gap: max(0, annualIncome − gross LTD − individual DI). */
+  annualGapGross: number;
+  /** Backward-compatible alias of annualGapNet. */
   annualGap: number;
 };
 
@@ -91,7 +95,13 @@ export type DisabilityOutputs = {
   totalIndividualDICoverage: number;
   totalCoverage: number;
   totalGap: number;
-  /** Fraction of projected lifetime income covered by combined benefits. */
+  /** Gross projected income over the projection period. */
+  totalProjectedIncomeGross: number;
+  /** Gross LTD + individual DI coverage over the projection period. */
+  totalCoverageGross: number;
+  /** Gross income gap over the projection period. */
+  totalGapGross: number;
+  /** Fraction of projected lifetime net income covered by combined benefits. */
   averageCoverageRate: number;
   /** Total premiums paid for individual DI from current age to retirement. */
   lifetimeIDIExpense: number;
