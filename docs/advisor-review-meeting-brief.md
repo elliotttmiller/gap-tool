@@ -8,17 +8,103 @@
 
 ## 1. Meeting Objective
 
-The goal of this review is not only to confirm that the app works technically. The more important objective is to confirm that the tool reflects how advisors actually want to analyze, explain, and present client protection gaps.
+The purpose of this meeting is to move the GAP Tool from a functional prototype toward an advisor-aligned planning workflow. The review should not only confirm whether the app works technically. The more valuable goal is to determine whether the tool is calculating, organizing, explaining, and presenting risk gaps the way NorthStar advisors actually want to use them in real client conversations.
 
-Use this meeting to validate:
+This meeting should help answer one central question:
 
-- Whether each module's calculation logic matches advisor methodology.
-- Whether default assumptions are appropriate.
-- Whether labels and narratives are compliant, advisor-friendly, and client-understandable.
-- Whether the workflow matches how an advisor would run a real client review.
-- Whether the presentation output shows the right numbers in the right order.
+> Are we building the right tool, with the right logic, the right workflow, the right assumptions, and the right advisor/client-facing language?
 
-The tool should remain an illustrative gap-analysis system, not a formal recommendation engine.
+The app should be evaluated as an illustrative gap-analysis system, not as a formal recommendation engine. The meeting should therefore focus on advisor methodology, presentation accuracy, workflow fit, compliance-safe wording, and the practical usefulness of each module.
+
+### What This Meeting Should Validate
+
+Use this review to validate seven core areas.
+
+1. **Calculation methodology**  
+   Confirm that each module's formulas, assumptions, offsets, thresholds, and gap calculations match how advisors believe the analysis should be performed. The key question is not only whether the math calculates correctly, but whether the math reflects the right planning methodology.
+
+2. **Input workflow**  
+   Confirm whether the current intake flow matches how advisors naturally gather client information. Determine whether inputs should remain in one centralized client setup flow, be moved into module-specific workflows, or be split between basic profile inputs and advanced module assumptions.
+
+3. **Default assumptions**  
+   Confirm whether default values are appropriate for advisor use. Examples include income replacement percentages, target income support percentages, LTD tax treatment, income growth, projection end age, reserve targets, and liability exposure assumptions.
+
+4. **Output hierarchy**  
+   Confirm which outputs deserve primary visual emphasis and which should be secondary. Each module may calculate several useful numbers, but the advisor needs to define the one or two numbers that should drive the client conversation.
+
+5. **Advisor-only versus client-facing content**  
+   Decide which metrics, formulas, assumptions, and explanations should be visible in a client meeting and which should remain behind the scenes for advisor analysis only.
+
+6. **Compliance and language**  
+   Identify labels, narratives, and phrases that may imply a formal recommendation, guarantee, requirement, legal conclusion, tax advice, or underwriting conclusion. Replace those phrases with advisor-safe language before broader use.
+
+7. **Presentation and report usefulness**  
+   Determine whether presentation mode should be used live with clients, saved as a PDF report, used internally by advisors, or separated into advisor-detail and client-safe versions.
+
+### What the Meeting Should Not Focus On First
+
+Avoid spending the majority of the meeting on small visual preferences before the logic and workflow are confirmed. Colors, spacing, card order, and chart polish matter, but they should come after the advisors confirm that the tool is modeling the right things.
+
+The first priority should be:
+
+1. Is the module asking for the right inputs?
+2. Is the module using those inputs correctly?
+3. Is the module calculating the right gap?
+4. Is the module showing the right output first?
+5. Is the module explaining the result in advisor-safe language?
+
+### Key Decisions to Capture During the Meeting
+
+For each module, try to capture specific decisions instead of general reactions.
+
+| Decision Area | What Needs to Be Confirmed |
+|---|---|
+| Primary use case | Internal advisor calculator, client-facing presentation, or both |
+| Required inputs | Which fields are required before the module should calculate |
+| Optional inputs | Which fields should be advanced or advisor-controlled |
+| Default assumptions | Which defaults NorthStar wants standardized |
+| Primary output | The main number advisors want clients to understand |
+| Secondary outputs | Useful supporting metrics that should not dominate the screen |
+| Client-facing language | Labels and explanations safe enough to show directly to clients |
+| Advisor-only details | Formulas, assumptions, or calculators that should stay internal |
+| Compliance concerns | Words, claims, or outputs requiring review before deployment |
+| Next development priority | What should be fixed, refined, or expanded first |
+
+### Module-Specific Objective
+
+The objective is not to make every module more complex. The objective is to make every module more precise, more useful, and more aligned with advisor behavior.
+
+For each module, determine:
+
+1. What real-world advisor question is this module answering?
+2. What inputs does the advisor actually need to answer that question accurately?
+3. What assumptions should the tool make automatically?
+4. What assumptions should the advisor control manually?
+5. What output should appear first?
+6. What output should be hidden, simplified, or moved into an advanced view?
+7. What wording would the advisor feel comfortable saying out loud to a client?
+8. What wording would compliance likely reject or want softened?
+
+### Recommended Framing for Advisors
+
+Open the meeting with a statement similar to this:
+
+> The goal today is not just to test whether the app functions. The goal is to pressure-test whether the tool thinks like an advisor. We need your feedback on whether the inputs, assumptions, calculations, labels, and outputs match how you would actually review these risks with a client. If a number is technically accurate but not useful in a client conversation, we need to know that. If a label is mathematically correct but not compliant or advisor-friendly, we need to know that too.
+
+### Success Criteria for the Meeting
+
+The meeting is successful if it produces clear answers to these questions:
+
+1. Which module logic is already directionally correct?
+2. Which module logic needs methodology changes?
+3. Which assumptions should become NorthStar defaults?
+4. Which assumptions should remain editable by advisors?
+5. Which outputs are client-facing versus advisor-only?
+6. Which labels or narratives need compliance review?
+7. Which workflow changes would make the tool easier to use in a real client meeting?
+8. Which improvements should be prioritized before the next advisor review?
+
+The most valuable outcome is a clear development direction: what to keep, what to revise, what to simplify, and what to validate with compliance before the tool becomes more broadly advisor-facing.
 
 ---
 
