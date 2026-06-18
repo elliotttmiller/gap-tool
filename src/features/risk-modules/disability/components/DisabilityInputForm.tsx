@@ -12,7 +12,7 @@ const selectClass =
   "flex h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-1 text-sm text-gray-50 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
 
 const BENEFIT_PERIOD_OPTIONS: { value: DiBenefitPeriod | ""; label: string }[] = [
-  { value: "", label: "Select a period…" },
+  { value: "", label: "Through Projection End" },
   { value: "2y", label: "2 Years" },
   { value: "5y", label: "5 Years" },
   { value: "10y", label: "10 Years" },
@@ -78,7 +78,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
       {/* ── Group Long Term Disability ────────────────────────────────────── */}
       <CollapsibleInputSection title="Group Long Term Disability (LTD)" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-3">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="ltdCoveragePercent" className="whitespace-nowrap">Coverage %</Label>
+            <Label htmlFor="ltdCoveragePercent" className="whitespace-nowrap">Coverage of Income</Label>
             <Input
               id="ltdCoveragePercent"
               type="number"
@@ -147,7 +147,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)_minmax(0,1fr)]">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="breakEvenRateOfReturn" className="whitespace-nowrap">Break-Even Rate</Label>
+            <Label htmlFor="breakEvenRateOfReturn" className="whitespace-nowrap">Break-Even Rate of Return</Label>
             <Input
               id="breakEvenRateOfReturn"
               type="number"
@@ -161,7 +161,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="breakEvenMonthsWithoutIncome" className="whitespace-nowrap">Months w/o Income</Label>
+            <Label htmlFor="breakEvenMonthsWithoutIncome" className="whitespace-nowrap">Months Without Income</Label>
             <Input
               id="breakEvenMonthsWithoutIncome"
               type="number"

@@ -7,6 +7,9 @@ export type DisabilityProjectionChartPoint = {
   "Group LTD (Net)": number
   "Group LTD (Gross)": number
   "Individual DI": number
+  "Income Gap (Net)": number
+  "Income Gap (Gross)": number
+  /** Backward-compatible alias for the net gap. */
   "Income Gap": number
 }
 
@@ -30,7 +33,9 @@ export function transformDisabilityChartData(outputs: DisabilityOutputs): Disabi
       "Group LTD (Net)": point.ltdAnnualBenefit,
       "Group LTD (Gross)": point.ltdAnnualBenefitGross,
       "Individual DI": point.individualDIAnnualBenefit,
-      "Income Gap": point.annualGap,
+      "Income Gap (Net)": point.annualGapNet,
+      "Income Gap (Gross)": point.annualGapGross,
+      "Income Gap": point.annualGapNet,
     }),
   )
 

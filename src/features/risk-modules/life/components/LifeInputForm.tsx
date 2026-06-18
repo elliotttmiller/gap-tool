@@ -62,6 +62,7 @@ export function LifeInputForm({ inputs, onChange, showMaxCoverageRoiInput = fals
     policyType === "term"
       ? "sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.35fr)]"
       : "sm:grid-cols-2"
+  const incomeGapGridCols = isMaxModule ? "sm:grid-cols-2" : "sm:grid-cols-3"
 
   return (
     <div className="space-y-4">
@@ -122,7 +123,7 @@ export function LifeInputForm({ inputs, onChange, showMaxCoverageRoiInput = fals
       </CollapsibleInputSection>
 
       <CollapsibleInputSection title="Income Gap Analysis" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className={`grid grid-cols-1 gap-3 ${incomeGapGridCols}`}>
             {!isMaxModule ? (
               <div className="flex flex-col gap-2">
                 <Label htmlFor="targetIncomeSupportPct">Target Income Support</Label>
@@ -138,18 +139,18 @@ export function LifeInputForm({ inputs, onChange, showMaxCoverageRoiInput = fals
                   onChange={(e) => onChange({ ...inputs, targetIncomeSupportPct: fromPercent(e.target.value), safeIncomeCoveragePct: fromPercent(e.target.value) })}
                   placeholder="85"
                 />
-                <p className="text-[10px] leading-snug text-gray-500">Modeled percentage of projected income need. Coverage support is then calculated from entered death benefit/resources.</p>
+                <p className="text-[10px] leading-snug text-gray-500">Modeled percentage of projected income need.</p>
               </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="maxCoverageRoi">Asset Return Rate</Label>
-                <AffixedInput id="maxCoverageRoi" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.maxCoverageRoi ?? 0.06) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, maxCoverageRoi: fromPercent(e.target.value) })} placeholder="6" />
-              </div>
-            )}
+            ) : null}
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="maxCoverageRoi">Asset Return Rate</Label>
+              <AffixedInput id="maxCoverageRoi" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.maxCoverageRoi ?? 0.06) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, maxCoverageRoi: fromPercent(e.target.value) })} placeholder="6" />
+              <p className="text-[10px] leading-snug text-gray-500">Used for Safe Withdrawal and Coverage Runway drawdown.</p>
+            </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="incomeGapRoi">PV Reference Rate</Label>
               <AffixedInput id="incomeGapRoi" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.incomeGapRoi ?? 0.05) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, incomeGapRoi: fromPercent(e.target.value) })} placeholder="5" />
-              <p className="text-[10px] leading-snug text-gray-500">Used for present-value reference figures, not the main fully-covered threshold.</p>
+              <p className="text-[10px] leading-snug text-gray-500">Used for present-value reference figures and runway capital gaps.</p>
             </div>
           </div>
       </CollapsibleInputSection>
