@@ -103,44 +103,30 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
           />
           <ModuleMetricCard
             className={compactCardClass}
-            label="Assets at Risk"
+            label="Other Assets at Risk"
             value={formatLiabilityMetric(outputs.nonQualifiedAssetsAtRisk)}
-            description="Non-qualified assets"
+            description="Home equity + taxable/liquid/business assets"
             accent="red"
           />
           <ModuleMetricCard
             className={compactCardClass}
-            label="Total Exposure"
+            label="Total Liability Exposure"
             value={formatLiabilityMetric(totalRisk)}
-            description="Garnishment + assets"
+            description="Garnishment + other assets"
             accent="cyan"
           />
           <ModuleMetricCard
             className={compactCardClass}
-            label="Coverage Gap"
+            label="Unprotected Liability Gap"
             value={formatLiabilityMetric(outputs.householdLiabilityGap)}
-            description="Exposure minus coverage"
+            description="Exposure minus current coverage"
             accent={outputs.householdLiabilityGap > 0 ? "red" : "green"}
-          />
-          <ModuleMetricCard
-            className={compactCardClass}
-            label="Umbrella Target"
-            value={formatLiabilityMetric(outputs.illustrativeUmbrellaCoverageLevel)}
-            description="Rounded to $1M blocks"
-            accent="amber"
-          />
-          <ModuleMetricCard
-            className={compactCardClass}
-            label="Umbrella Needed"
-            value={formatLiabilityMetric(outputs.umbrellaCoverageShortfall)}
-            description="Target minus current umbrella"
-            accent={outputs.umbrellaCoverageShortfall > 0 ? "red" : "green"}
           />
         </div>
       </div>
 
       <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
-        {advisorSafeCopy.liability.notRecommendation} Wage garnishment uses a simplified disposable-income proxy; actual garnishment rules vary by jurisdiction and case type.
+        {advisorSafeCopy.liability.notRecommendation} Wage garnishment uses a simplified disposable-income proxy; actual garnishment rules vary by jurisdiction and case type. Umbrella coverage is generally discussed in $1M blocks outside this illustrative model.
       </p>
     </div>
   )
