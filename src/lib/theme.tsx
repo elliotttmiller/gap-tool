@@ -56,7 +56,7 @@ function transitionTheme(theme: ResolvedTheme, updateState: () => void) {
   root.classList.add("theme-transitioning")
   applyTheme(theme)
   updateState()
-  window.setTimeout(() => root.classList.remove("theme-transitioning"), 420)
+  window.setTimeout(() => root.classList.remove("theme-transitioning"), 240)
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
