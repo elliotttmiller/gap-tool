@@ -5,9 +5,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatCurrency, formatPercent } from "@/lib/utils"
+import { ThemedSelect } from "@/components/ThemedSelect"
 
-const selectClass =
-  "flex h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-1 text-sm text-gray-50 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
 
 function toFloat(s: string): number {
   return parseFloat(s) || 0
@@ -120,28 +119,11 @@ export function BenefitTaxCalculator({
         </div>
         <div className="space-y-2">
           <Label htmlFor="btx-employer-paid">Premium Payer</Label>
-          <select
-            id="btx-employer-paid"
-            value={employerPaid ? "employer" : "employee"}
-            onChange={(e) => setEmployerPaid(e.target.value === "employer")}
-            className={selectClass}
-          >
-            <option value="employer">Employer-paid (benefits taxable)</option>
-            <option value="employee">Employee-paid after-tax (benefits tax-free)</option>
-          </select>
+          <ThemedSelect id="btx-employer-paid" ariaLabel="Premium Payer" value={employerPaid ? "employer" : "employee"} onValueChange={(value) => setEmployerPaid(value === "employer")} options={[{ value: "employer", label: "Employer-paid (benefits taxable)" }, { value: "employee", label: "Employee-paid after-tax (benefits tax-free)" }]} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="btx-filing">Filing Status</Label>
-          <select
-            id="btx-filing"
-            value={filingStatus}
-            onChange={(e) => setFilingStatus(e.target.value as FilingStatus)}
-            className={selectClass}
-          >
-            {FILING_STATUS_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
+          <ThemedSelect id="btx-filing" ariaLabel="Filing Status" value={filingStatus} onValueChange={(value) => setFilingStatus(value as FilingStatus)} options={FILING_STATUS_OPTIONS} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="btx-state-tax">State Income Tax Rate</Label>

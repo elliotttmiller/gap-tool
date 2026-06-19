@@ -2,8 +2,8 @@ import { LifeInputs, LifePolicyType } from "../types"
 import { Label } from "@/components/ui/label"
 import { Input, type InputProps } from "@/components/ui/input"
 import { CollapsibleInputSection } from "@/components/ui/collapsible-input-section"
+import { ThemedSelect } from "@/components/ThemedSelect"
 
-const selectClass = "flex h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-1 text-sm text-gray-50 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
 
 /** Convert a decimal rate (0.04) to a display percentage value (4). */
 function toPercent(rate: number): number {
@@ -98,15 +98,7 @@ export function LifeInputForm({ inputs, onChange, showMaxCoverageRoiInput = fals
           <div className={`grid grid-cols-1 gap-3 ${coverageDetailsGridCols}`}>
             <div className="flex flex-col gap-2">
               <Label htmlFor="privateLifePolicyType">Policy Type</Label>
-              <select
-                id="privateLifePolicyType"
-                value={policyType}
-                onChange={(e) => handlePolicyTypeChange(e.target.value as LifePolicyType)}
-                className={selectClass}
-              >
-                <option value="term">Term</option>
-                <option value="permanent">Permanent</option>
-              </select>
+              <ThemedSelect id="privateLifePolicyType" ariaLabel="Policy Type" value={policyType} onValueChange={(value) => handlePolicyTypeChange(value as LifePolicyType)} options={[{ value: "term", label: "Term" }, { value: "permanent", label: "Permanent" }]} />
             </div>
             {policyType === "term" ? (
               <div className="flex flex-col gap-2">

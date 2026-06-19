@@ -29,14 +29,14 @@ export function CollapsibleInputSection({
           aria-expanded={isOpen}
           aria-controls={contentId}
           onClick={() => setIsOpen((open) => !open)}
-          className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left transition-colors hover:bg-gray-900/35 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600 motion-reduce:transition-none"
+          className="flex w-full items-center justify-between gap-3 bg-[#24475d] px-5 py-4 text-left transition-colors hover:bg-[#2c566e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 motion-reduce:transition-none dark:bg-transparent dark:hover:bg-gray-900/35"
         >
-          <CardTitle className="text-xs font-bold uppercase tracking-wider text-gray-500">
+          <CardTitle className="text-xs font-bold uppercase tracking-wider text-[#e6f7f8] dark:text-gray-500">
             {title}
           </CardTitle>
           <RiArrowDownSLine
             className={cn(
-              "size-5 shrink-0 text-gray-500 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+              "size-5 shrink-0 text-[#b0e5e9] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none dark:text-gray-500",
               isOpen ? "rotate-180" : "rotate-0",
             )}
             aria-hidden="true"

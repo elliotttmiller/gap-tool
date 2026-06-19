@@ -9,6 +9,7 @@ import { calculateDisabilityGap } from "@/features/risk-modules/disability/calcu
 import { calculateUnemploymentGap } from "@/features/risk-modules/unemployment/calculations/calculateUnemploymentGap"
 import { calculateLiabilityGap } from "@/features/risk-modules/liability/calculations/calculateLiabilityGap"
 import { type RiskModuleType, useAppStore } from "@/lib/store"
+import { ThemedSelect } from "@/components/ThemedSelect"
 
 type JsonObject = Record<string, unknown>
 
@@ -146,7 +147,7 @@ function ModuleAudit({ item, defaultOpen }: { item: AnalysisModule; defaultOpen:
   const outputCount = scalarRows(item.outputs).length + scalarRows(item.supplementalOutputs).length
   return (
     <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)} className="group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950/30">
-      <summary className="flex cursor-pointer list-none items-center gap-4 px-5 py-4 transition hover:bg-gray-50 dark:hover:bg-gray-900/50 [&::-webkit-details-marker]:hidden">
+      <summary className="analysis-module-summary flex cursor-pointer list-none items-center gap-4 px-5 py-4 transition hover:brightness-110 dark:hover:bg-gray-900/50 [&::-webkit-details-marker]:hidden">
         <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-500/10 text-sm font-bold text-brand-700 ring-1 ring-brand-500/20 dark:text-brand-300">{moduleLabels[item.module].slice(0, 1)}</div>
         <div className="min-w-0 flex-1"><h3 className="font-semibold text-gray-950 dark:text-gray-50">{moduleLabels[item.module]}</h3><div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-gray-500"><span>Formula {item.formulaVersion}</span><span>{inputCount} inputs</span><span>{outputCount} outputs</span><span>{tables.reduce((total, table) => total + table.rows.length, 0)} schedule rows</span></div></div>
         <div className="hidden text-right text-[10px] text-gray-500 sm:block"><p>Last saved calculation</p><p className="mt-1 font-medium text-gray-700 dark:text-gray-300">{item.lastSavedCalculationAt ? new Date(item.lastSavedCalculationAt).toLocaleString() : "Not previously saved"}</p></div>
@@ -232,12 +233,7 @@ export function AnalysisCenter() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-3"><div className="flex size-9 items-center justify-center rounded-xl bg-brand-500/15 text-brand-300 ring-1 ring-brand-500/30"><ShieldCheck className="size-5" /></div><div><Dialog.Title className="text-lg font-semibold text-white">Calculation Analysis Center</Dialog.Title><Dialog.Description className="mt-0.5 text-xs text-[#94a3b8]">Structured evidence for methodology, source data, results, and schedules.</Dialog.Description></div></div>
             </div>
-            <label className="min-w-64"><span className="mb-1 block text-[9px] font-bold uppercase tracking-widest text-[#94a3b8]">Review scenario</span><select value={snapshot?.scenario.id ?? ""} onChange={(event) => { setScenarioId(event.target.value); setModuleFilter("all") }} className="w-full max-w-sm rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
-              {activeScenarios.map((scenario) => {
-                const client = clients.find((item) => item.id === scenario.clientId)
-                return <option key={scenario.id} value={scenario.id}>{client?.displayName ?? "Unknown client"} - {scenario.name}</option>
-              })}
-            </select></label>
+            <label className="w-full sm:w-80 lg:w-104"><span className="mb-1 block text-[9px] font-bold uppercase tracking-widest text-[#94a3b8]">Review scenario</span><ThemedSelect ariaLabel="Review scenario" value={snapshot?.scenario.id ?? ""} onValueChange={(value) => { setScenarioId(value); setModuleFilter("all") }} options={activeScenarios.map((scenario) => ({ value: scenario.id, label: `${clients.find((item) => item.id === scenario.clientId)?.displayName ?? "Unknown client"} - ${scenario.name}` }))} className="border-white/15 bg-white/5 text-white hover:bg-white/10 dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10" /></label>
             <button onClick={downloadSnapshot} disabled={!snapshot} className="inline-flex items-center gap-2 self-end rounded-lg border border-white/15 bg-white/5 px-3 py-2.5 text-xs font-semibold text-[#cbd5e1] transition hover:border-brand-500/50 hover:bg-brand-500/10 hover:text-white disabled:opacity-40"><Download className="size-4" /> Export evidence</button>
             <Dialog.Close asChild><button aria-label="Close analysis center" className="self-end rounded-full p-2.5 text-[#94a3b8] transition hover:bg-white/10 hover:text-white"><X className="size-5" /></button></Dialog.Close>
           </header>

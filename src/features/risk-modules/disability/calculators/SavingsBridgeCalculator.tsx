@@ -6,9 +6,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/Button"
 import { formatCurrency } from "@/lib/utils"
+import { ThemedSelect } from "@/components/ThemedSelect"
 
-const selectClass =
-  "flex h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-1 text-sm text-gray-50 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
 
 const ELIMINATION_PERIOD_OPTIONS = [
   { value: 30, label: "30 days" },
@@ -149,16 +148,7 @@ export function SavingsBridgeCalculator({
         </div>
         <div className="space-y-2">
           <Label htmlFor="sb-ep">Elimination Period</Label>
-          <select
-            id="sb-ep"
-            value={eliminationDays}
-            onChange={(e) => setEliminationDays(Number(e.target.value))}
-            className={selectClass}
-          >
-            {ELIMINATION_PERIOD_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
+          <ThemedSelect id="sb-ep" ariaLabel="Elimination Period" value={String(eliminationDays)} onValueChange={(value) => setEliminationDays(Number(value))} options={ELIMINATION_PERIOD_OPTIONS.map((option) => ({ value: String(option.value), label: option.label }))} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="sb-ltd">Monthly LTD Benefit (after EP)</Label>

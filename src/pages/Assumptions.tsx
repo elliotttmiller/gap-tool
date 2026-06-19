@@ -1,6 +1,7 @@
 import { useRef } from "react"
 import { Card } from "@/components/Card"
 import { AnalysisCenter } from "@/components/global/AnalysisCenter"
+import { ThemedSelect } from "@/components/ThemedSelect"
 import { useAppStore } from "@/lib/store"
 import type { PersistedAppData } from "@/lib/store"
 import {
@@ -48,14 +49,7 @@ function ToggleSelect({
   falseLabel?: string
 }) {
   return (
-    <select
-      value={value ? "true" : "false"}
-      onChange={(e) => onChange(e.target.value === "true")}
-      className="rounded-md border border-gray-700 bg-gray-900 px-2.5 py-1 text-sm font-semibold text-gray-100 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-    >
-      <option value="true">{trueLabel ?? "Yes"}</option>
-      <option value="false">{falseLabel ?? "No"}</option>
-    </select>
+    <ThemedSelect value={value ? "true" : "false"} onValueChange={(next) => onChange(next === "true")} options={[{ value: "true", label: trueLabel ?? "Yes" }, { value: "false", label: falseLabel ?? "No" }]} className="min-w-40 font-semibold" />
   )
 }
 
@@ -69,15 +63,7 @@ function EnumSelect<T extends string>({
   onChange: (v: T) => void
 }) {
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value as T)}
-      className="rounded-md border border-gray-700 bg-gray-900 px-2.5 py-1 text-sm font-semibold text-gray-100 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-    >
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>{o.label}</option>
-      ))}
-    </select>
+    <ThemedSelect value={value} onValueChange={(next) => onChange(next as T)} options={options} className="min-w-48 font-semibold" />
   )
 }
 

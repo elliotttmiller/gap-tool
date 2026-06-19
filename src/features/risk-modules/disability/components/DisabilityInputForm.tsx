@@ -2,14 +2,12 @@ import { DisabilityInputs, DiBenefitPeriod } from "../types"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { CollapsibleInputSection } from "@/components/ui/collapsible-input-section"
+import { ThemedSelect } from "@/components/ThemedSelect"
 
 interface DisabilityInputFormProps {
   inputs: DisabilityInputs
   onChange: (inputs: DisabilityInputs) => void
 }
-
-const selectClass =
-  "flex h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-1 text-sm text-gray-50 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
 
 const BENEFIT_PERIOD_OPTIONS: { value: DiBenefitPeriod | ""; label: string }[] = [
   { value: "", label: "Select a period…" },
@@ -105,15 +103,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="ltdTaxable">Taxable?</Label>
-            <select
-              id="ltdTaxable"
-              value={inputs.ltdTaxable ? "true" : "false"}
-              onChange={(e) => handleBoolean("ltdTaxable", e.target.value)}
-              className={selectClass}
-            >
-              <option value="true">Yes — 70% of gross</option>
-              <option value="false">No — full benefit</option>
-            </select>
+            <ThemedSelect id="ltdTaxable" ariaLabel="Taxable" value={inputs.ltdTaxable ? "true" : "false"} onValueChange={(value) => handleBoolean("ltdTaxable", value)} options={[{ value: "true", label: "Yes - 70% of gross" }, { value: "false", label: "No - full benefit" }]} />
           </div>
       </CollapsibleInputSection>
 
@@ -174,16 +164,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="privateDiBenefitPeriod" className="whitespace-nowrap">Benefit Period</Label>
-            <select
-              id="privateDiBenefitPeriod"
-              value={inputs.privateDiBenefitPeriod}
-              onChange={(e) => onChange({ ...inputs, privateDiBenefitPeriod: e.target.value as DiBenefitPeriod | "" })}
-              className={selectClass}
-            >
-              {BENEFIT_PERIOD_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
+            <ThemedSelect id="privateDiBenefitPeriod" ariaLabel="Benefit Period" value={inputs.privateDiBenefitPeriod} onValueChange={(value) => onChange({ ...inputs, privateDiBenefitPeriod: value as DiBenefitPeriod | "" })} options={BENEFIT_PERIOD_OPTIONS} />
           </div>
           </div>
       </CollapsibleInputSection>

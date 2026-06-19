@@ -37,7 +37,6 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
   const minimumPct = Math.min(100, (3 / gaugeMaxMonths) * 100)
   const idealPct = Math.min(100, (idealMonths / gaugeMaxMonths) * 100)
   const status = getReserveStatus(reserveMonths, idealMonths)
-  const targetCoveragePct = outputs.idealReserveTarget > 0 ? Math.min(100, (outputs.currentReserveLevel / outputs.idealReserveTarget) * 100) : 100
 
   return (
     <Card className="unemployment-chart-panel border-slate-800/80 bg-slate-950/60">
@@ -56,26 +55,7 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
       </CardHeader>
 
       <CardContent className="px-5 pb-4 pt-4">
-        <div className="grid gap-3 md:grid-cols-4">
-          <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 px-3 py-2">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Current Savings</p>
-            <p className="mt-1 text-lg font-bold leading-none text-cyan-300">{formatCurrency(outputs.currentReserveLevel)}</p>
-          </div>
-          <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 px-3 py-2">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Current Runway</p>
-            <p className="mt-1 text-lg font-bold leading-none text-cyan-300">{formatMonths(reserveMonths)}</p>
-          </div>
-          <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 px-3 py-2">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Ideal Target</p>
-            <p className="mt-1 text-lg font-bold leading-none text-slate-100">{formatCurrency(outputs.idealReserveTarget)}</p>
-          </div>
-          <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 px-3 py-2">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Target Covered</p>
-            <p className="mt-1 text-lg font-bold leading-none text-emerald-300">{Math.round(targetCoveragePct)}%</p>
-          </div>
-        </div>
-
-        <div className="mt-4 rounded-xl border border-slate-800/70 bg-slate-950/70 px-4 py-4">
+        <div className="rounded-xl border border-slate-800/70 bg-slate-950/70 px-4 py-4">
           <div className="relative h-5 overflow-hidden rounded-full bg-slate-900">
             <div className="absolute inset-y-0 left-0 bg-rose-500/65" style={{ width: `${dangerPct}%` }} />
             <div className="absolute inset-y-0 bg-amber-500/65" style={{ left: `${dangerPct}%`, width: `${Math.max(0, minimumPct - dangerPct)}%` }} />
@@ -96,21 +76,23 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
 
 export function UnemploymentOutputView({ outputs }: UnemploymentOutputViewProps) {
   const runwayAccent: "green" | "cyan" | "red" = outputs.reserveMonthsCurrent < 3 ? "red" : outputs.reserveMonthsCurrent < outputs.idealReserveMonths ? "cyan" : "green"
-  const gapAccent: "green" | "red" = outputs.reserveGap > 0 ? "red" : "green"
-  const gapValue = outputs.reserveGap > 0 ? formatCurrency(outputs.reserveGap) : "$0"
 
   return (
     <div className="unemployment-output-container">
-      <div className="unemployment-visual-dashboard">
-        <ReservePositionPanel outputs={outputs} />
+      <div className="grid grid-cols-2 gap-3">
+        <ModuleMetricCard className={compactCardClass} label="3 Month Target" value={formatCurrency(outputs.minimumReserveTarget)} description="Monthly gap × 3" accent="cyan" />
+        <ModuleMetricCard className={compactCardClass} label="6 Month Target" value={formatCurrency(outputs.idealReserveTarget)} description="Monthly gap × 6" accent="green" />
+      </div>
 
-        <div className="unemployment-metric-grid">
-          <ModuleMetricCard className={compactCardClass} label="Monthly Expense Replacement" value={`${formatCurrency(outputs.monthlyExpenseReplacement)}/mo`} description="Monthly expenses minus lower income" accent={outputs.monthlyExpenseReplacement > 0 ? "cyan" : "green"} />
-          <ModuleMetricCard className={compactCardClass} label="Current Savings" value={formatCurrency(outputs.currentReserveLevel)} description="Liquid emergency savings" accent={outputs.currentReserveLevel > 0 ? "cyan" : "red"} />
-          <ModuleMetricCard className={compactCardClass} label="Current Reserve Runway" value={formatMonths(outputs.reserveMonthsCurrent)} description="Savings ÷ replacement need" accent={runwayAccent} />
-          <ModuleMetricCard className={compactCardClass} label="Ideal Reserve Target" value={formatCurrency(outputs.idealReserveTarget)} description="Replacement need × 6 months" accent="slate" />
-          <ModuleMetricCard className={compactCardClass} label="Emergency Reserve Shortfall" value={gapValue} description="Ideal target minus savings" accent={gapAccent} />
-        </div>
+      <div className="mt-3">
+        <ReservePositionPanel outputs={outputs} />
+      </div>
+
+      <div className="unemployment-metric-grid mt-3">
+        <ModuleMetricCard className={compactCardClass} label="Remaining Income" value={`${formatCurrency(outputs.remainingIncome)}/mo`} description="Net household income remaining" accent={outputs.remainingIncome > 0 ? "cyan" : "red"} />
+        <ModuleMetricCard className={compactCardClass} label="Monthly Gap" value={`${formatCurrency(outputs.monthlyExpenseReplacement)}/mo`} description="Total expenses − remaining income" accent={outputs.monthlyExpenseReplacement > 0 ? "red" : "green"} />
+        <ModuleMetricCard className={compactCardClass} label="Current Reserves" value={formatCurrency(outputs.currentReserveLevel)} description="Current emergency reserves" accent={outputs.currentReserveLevel > 0 ? "cyan" : "red"} />
+        <ModuleMetricCard className={compactCardClass} label="Current Runway" value={formatMonths(outputs.reserveMonthsCurrent)} description="Reserves ÷ monthly gap" accent={runwayAccent} />
       </div>
 
       <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
