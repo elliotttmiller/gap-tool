@@ -102,7 +102,7 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
                       cx(
                         "inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-semibold transition-all",
                         isActive
-                          ? "bg-brand-950/70 text-white shadow-sm ring-1 ring-brand-700/70"
+                          ? "bg-brand-700 text-white shadow-sm ring-1 ring-brand-600 dark:bg-brand-950/70 dark:ring-brand-700/70"
                           : "text-slate-400 hover:bg-slate-900 hover:text-slate-100",
                       )
                     }

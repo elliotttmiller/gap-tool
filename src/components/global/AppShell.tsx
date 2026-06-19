@@ -86,7 +86,7 @@ export function AppShell() {
       {settingsOpen && (
         <div
           ref={panelRef}
-          className="fixed inset-x-0 top-16 z-40 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-[#b8cdd5] bg-[#edf4f6] shadow-2xl dark:border-brand-500/30 dark:bg-[#0d1b2a]"
+          className="fixed inset-x-0 top-16 z-40 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-[#9fb9c3] bg-[#d8e6ea] shadow-2xl dark:border-brand-500/30 dark:bg-[#0d1b2a]"
         >
           <div className="mx-auto max-w-5xl px-8 py-8">
             <div className="mb-6 flex items-center justify-between">
