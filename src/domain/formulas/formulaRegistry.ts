@@ -19,6 +19,15 @@ export const advisorFormulaRegistry: FormulaDefinition[] = [
     disclosure: "Death benefit needed is estimated from the present value of modeled annual income gaps.",
   },
   {
+    id: "life-coverage-runway-withdrawal",
+    module: "life",
+    label: "Coverage Runway Withdrawal",
+    description: "Solves an annual withdrawal stream that grows 3% per year and exhausts invested death benefits at the projection end age.",
+    formulaText: "W1 = P(r-g) / (1-((1+g)/(1+r))^n); Wt = W1(1+g)^(t-1), where g = 3%",
+    assumptions: ["deathBenefitAmount", "assetReturnRate", "projectionEndAge", "withdrawalGrowthRate"],
+    disclosure: "This is an illustrative level-growth withdrawal scenario; actual returns and available withdrawals will vary.",
+  },
+  {
     id: "liability-disposable-income-garnishment",
     module: "liability",
     label: "Wage Garnishment Exposure",

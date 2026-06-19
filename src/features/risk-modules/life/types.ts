@@ -38,8 +38,8 @@ export interface LifeInputs {
   safeIncomeCoveragePct?: number;
   /**
    * Annual asset return rate used in Module 2 (Coverage Runway Scenario).
-   * Models the existing coverage pool invested at this rate while drawing full
-   * projected income each year until the balance runs out. Default: 0.06 (6%).
+   * Models the entered group and private death benefits invested at this rate while taking a
+   * 3%-growing withdrawal that exhausts the pool at the end age. Default: 0.06 (6%).
    */
   maxCoverageRoi?: number;
   /**
@@ -114,7 +114,7 @@ export interface IncomeGapYearlyPoint {
   incomeGap: number;
   /** Running total of Module 1 income gaps. */
   cumulativeIncomeGap: number;
-  /** Module 2: income actually covered this year — projectedIncome if covered, partial if depleted. */
+  /** Module 2: scheduled annual withdrawal from the invested coverage pool. */
   maxCovered: number;
   /** Module 2: annual income gap after the existing coverage pool is depleted. */
   maxCoverageGap: number;
@@ -158,7 +158,7 @@ export interface IncomeGapModule1 {
   roi: number;
 }
 
-/** Results for Module 2 — Coverage Runway Scenario (asset return draw). */
+/** Results for Module 2 — Coverage Runway Scenario (death-benefit drawdown). */
 export interface IncomeGapModule2 {
   yearlyData: IncomeGapYearlyPoint[];
   /** Box 1 — Same total projected net income as Module 1. */
@@ -176,6 +176,8 @@ export interface IncomeGapModule2 {
   /** Box 5 — Death benefit needed using annual-gap PV logic. */
   deathBenefitNeeded: number;
   maxCoverageRoi: number;
+  /** Fixed annual growth rate applied to the solved runway withdrawal stream. */
+  withdrawalGrowthRate: number;
   roi: number;
 }
 

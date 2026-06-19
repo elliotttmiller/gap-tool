@@ -1,10 +1,3 @@
-# Advisor Review Meeting Brief
-
-**Project:** GAP Tool  
-**Audience:** NorthStar advisors / internal review team  
-**Purpose:** Guide a top-to-bottom advisor review of the current application so feedback improves the tool's logic, workflow, assumptions, labels, and presentation quality.
-
----
 
 ## 1. Meeting Objective
 
@@ -106,31 +99,8 @@ The meeting is successful if it produces clear answers to these questions:
 
 The most valuable outcome is a clear development direction: what to keep, what to revise, what to simplify, and what to validate with compliance before the tool becomes more broadly advisor-facing.
 
----
 
-## 2. Recommended Live Walkthrough
-
-Walk the advisors through the app exactly as they would use it with a real household.
-
-1. Create a new client profile.
-2. Enter core household information.
-3. Enter life insurance inputs.
-4. Enter disability insurance inputs.
-5. Enter unemployment/liquidity inputs.
-6. Enter liability/umbrella inputs.
-7. Generate the household risk review.
-8. Review each module output.
-9. Adjust module assumptions live.
-10. Open presentation mode / report view.
-11. Ask advisors what felt accurate, confusing, unnecessary, or missing.
-
-Primary question during walkthrough:
-
-> If you were using this with a real client, where would the workflow feel natural, and where would it slow you down or create confusion?
-
----
-
-## 3. Core Product Questions for Advisors
+Core Product Questions for Advisors
 
 Ask these before going module by module.
 

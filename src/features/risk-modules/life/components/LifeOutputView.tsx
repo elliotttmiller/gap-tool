@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react"
-import { LifeOutputs, LifeInputs, LifeAssumptions, IncomeGapOutputs, IncomeGapModule1, IncomeGapModule2 } from "../types"
+import { LifeOutputs, LifeInputs, LifeAssumptions, IncomeGapOutputs, IncomeGapModule2 } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
@@ -52,43 +52,26 @@ const SafeTooltip = ({ active, payload, label }: any) => {
 
 const RunwayTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
-  const covered = payload.find((p: any) => p.dataKey === "maxCovered")?.value ?? 0
+  const withdrawal = payload.find((p: any) => p.dataKey === "maxCovered")?.value ?? 0
   const gap = payload.find((p: any) => p.dataKey === "maxCoverageGap")?.value ?? 0
-  const income = covered + gap
+  const income = payload[0]?.payload?.projectedIncome ?? 0
   return (
     <div className={tooltipClass}>
       <p className="mb-2 font-semibold text-gray-100">Age {label}</p>
       <div className="flex justify-between gap-4"><span className="text-xs text-gray-400">Net Income Need:</span><span className="text-xs font-semibold text-gray-100">{formatCurrency(income)}</span></div>
-      <div className="flex justify-between gap-4"><span className="text-xs text-emerald-400">Net Income Covered:</span><span className="text-xs font-semibold text-emerald-300">{formatCurrency(covered)}</span></div>
+      <div className="flex justify-between gap-4"><span className="text-xs text-emerald-400">Annual Withdrawal:</span><span className="text-xs font-semibold text-emerald-300">{formatCurrency(withdrawal)}</span></div>
       {gap > 0 ? <div className="flex justify-between gap-4"><span className="text-xs text-rose-400">Annual Gap:</span><span className="text-xs font-semibold text-rose-300">{formatCurrency(gap)}</span></div> : null}
     </div>
   )
 }
 
-function Module1Boxes({ m1, isFullyCovered, projectionEndAge }: { m1: IncomeGapModule1; isFullyCovered: boolean; projectionEndAge: number }) {
-  const gap = Math.max(0, m1.targetIncomeSupportTotal - m1.totalIncomeReplaced)
-  const additionalNeed = m1[("additional" + "De" + "ath" + "BenefitNeeded") as keyof IncomeGapModule1] as number
-  return (
-    <div className="life-metric-grid">
-      <ModuleMetricCard className={compactCardClass} label={`Projected Net Income to Age ${projectionEndAge}`} value={formatCurrency(m1.projectedNetIncomeTotal)} description="Before target support %" accent="slate" />
-      <ModuleMetricCard className={compactCardClass} label="Target Income Support" value={<>{formatRatePctOneDecimal(m1.targetIncomeSupportPct)}<span className="text-sm font-normal text-gray-400"> of need</span></>} description={formatCurrency(m1.targetIncomeSupportTotal)} accent="blue" />
-      <ModuleMetricCard className={compactCardClass} label="Coverage Resources" value={formatCurrency(m1.existingCoverageResources)} description="Life + assets entered" accent="slate" />
-      <ModuleMetricCard className={compactCardClass} label="Coverage Support Rate" value={formatRatePctOneDecimal(m1.coverageSupportRate)} description="Resources divided by target need" accent={m1.coverageSupportRate >= 1 ? "green" : "cyan"} />
-      <ModuleMetricCard className={compactCardClass} label="Target Coverage Need" value={formatCurrency(m1.targetDeathBenefitNeed)} description="Before existing resources" accent="cyan" />
-      <ModuleMetricCard className={compactCardClass} label="Total Income Supported" value={formatCurrency(m1.totalIncomeReplaced)} description="Backed by resources" accent="cyan" />
-      <ModuleMetricCard className={compactCardClass} label="Survivor Gap" value={formatCurrency(gap)} description="Target minus supported" accent={gap > 0 ? "red" : "green"} />
-      <ModuleMetricCard className={compactCardClass} label="Additional Coverage Needed" value={isFullyCovered ? "Fully Covered" : formatCurrency(additionalNeed)} description="Target need minus resources" accent={isFullyCovered ? "green" : "red"} />
-    </div>
-  )
-}
-
-function Module2Boxes({ m2, projectionEndAge }: { m2: IncomeGapModule2; projectionEndAge: number }) {
+function RunwayMetricBoxes({ m2, projectionEndAge, includeCoverageYears = true }: { m2: IncomeGapModule2; projectionEndAge: number; includeCoverageYears?: boolean }) {
   const hasGap = m2.survivorGap > 0
   const runwayGapCapital = m2[("de" + "athBenefitNeeded") as keyof IncomeGapModule2] as number
   return (
-    <div className="life-metric-grid life-metric-grid--runway">
+    <div className={`life-metric-grid${includeCoverageYears ? " life-metric-grid--runway" : ""}`}>
       <ModuleMetricCard className={compactCardClass} label={`Projected Net Income to Age ${projectionEndAge}`} value={formatCurrency(m2.projectedNetIncomeTotal)} description="Total projected need" accent="slate" />
-      <ModuleMetricCard className={compactCardClass} label="Years of Full Coverage" value={<>{Math.floor(m2.yearsOfMaxWD)}<span className="text-sm font-normal text-gray-400"> Years</span></>} description={m2.yearsOfMaxWD > 0 ? `Ages ${m2.startCoverageAge}–${m2.endCoverageAge}` : "No full coverage years"} accent={m2.yearsOfMaxWD > 0 ? "green" : "red"} />
+      {includeCoverageYears ? <ModuleMetricCard className={compactCardClass} label="Years of Full Coverage" value={<>{Math.floor(m2.yearsOfMaxWD)}<span className="text-sm font-normal text-gray-400"> Years</span></>} description={m2.yearsOfMaxWD > 0 ? `Ages ${m2.startCoverageAge}–${m2.endCoverageAge}` : "No full coverage years"} accent={m2.yearsOfMaxWD > 0 ? "green" : "red"} /> : null}
       <ModuleMetricCard className={compactCardClass} label="Total Income Replaced" value={formatCurrency(m2.totalIncomeReplaced)} description="Covered by resource pool" accent="cyan" />
       <ModuleMetricCard className={compactCardClass} label="Survivor Gap" value={formatCurrency(m2.survivorGap)} description="Projected minus replaced" accent={hasGap ? "red" : "green"} />
       <ModuleMetricCard className={compactCardClass} label="Runway Capital Gap" value={hasGap ? formatCurrency(runwayGapCapital) : "$0"} description={`Scenario PV gap at ${formatRatePctOneDecimal(m2.roi)}`} accent={hasGap ? "red" : "green"} />
@@ -159,7 +142,7 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
               <Bar dataKey="safeIncomeCoverage" name="Income Supported" stackId="income" fill="#10b981" radius={[0, 0, 0, 0]} isAnimationActive={false} />
               <Bar dataKey="incomeGap" name="Income Gap" stackId="income" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={false} />
             </ChartPanel>
-            <Module1Boxes m1={module1} isFullyCovered={isM1FullyCovered} projectionEndAge={retirementAge} />
+            <RunwayMetricBoxes m2={module2} projectionEndAge={retirementAge} includeCoverageYears={false} />
           </div>
         </AnimatedSection>
       )}
@@ -167,12 +150,12 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
       {activeTab === "max" && (
         <AnimatedSection>
           <div className="life-visual-dashboard">
-            <ChartPanel title="Coverage Runway Scenario — Resource Drawdown Coverage" subtitle={`Scenario-only view: existing coverage resources invested at ${formatRatePctOneDecimal(module2.maxCoverageRoi)} while funding full projected net income`} data={module2.yearlyData} ticks={runwayTicks}>
+            <ChartPanel title="Coverage Runway Scenario — Death Benefit Drawdown" subtitle={`Entered death benefits earn ${formatRatePctOneDecimal(module2.maxCoverageRoi)}; annual withdrawals grow ${formatRatePctOneDecimal(module2.withdrawalGrowthRate)} and end with a $0 balance at age ${retirementAge}`} data={module2.yearlyData} ticks={runwayTicks}>
               <Tooltip content={RunwayTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-              <Bar dataKey="maxCovered" name="Net Income Covered" stackId="income" fill="#10b981" radius={[0, 0, 0, 0]} isAnimationActive={false} />
+              <Bar dataKey="maxCovered" name="Annual Withdrawal" stackId="income" fill="#10b981" radius={[0, 0, 0, 0]} isAnimationActive={false} />
               <Bar dataKey="maxCoverageGap" name="Income Gap" stackId="income" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={false} />
             </ChartPanel>
-            <Module2Boxes m2={module2} projectionEndAge={retirementAge} />
+            <RunwayMetricBoxes m2={module2} projectionEndAge={retirementAge} />
           </div>
         </AnimatedSection>
       )}

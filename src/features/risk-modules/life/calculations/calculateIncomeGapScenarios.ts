@@ -27,10 +27,10 @@
  *   narrative, and “Fully Covered” state cannot contradict each other.
  *
  * Module 2 — Coverage Runway Scenario
- *   Existing coverage resources (group + private + non-qualified assets) are
- *   invested at maxCoverageRoi each year. The survivor draws the FULL projected
- *   net income need each year until the balance runs out.
- *   Covered years → green bars. Gap years → red bars.
+ *   Entered death benefits (group + private life coverage) are invested at
+ *   maxCoverageRoi. The first annual withdrawal is solved so the
+ *   balance reaches $0 at the projection end age while withdrawals grow 3%
+ *   each year. Covered income → green bars. Gap income → red bars.
  *
  * Net income assumption: income figures use modeled net income need
  * (annualIncome × incomeReplacementRatio − spouseAnnualIncome offset).
@@ -67,6 +67,26 @@ function clampRate(value: number, max = 1.25): number {
   return Math.max(0, Math.min(max, value));
 }
 
+const RUNWAY_WITHDRAWAL_GROWTH_RATE = 0.03;
+
+function calculateFirstGrowingWithdrawal(
+  principal: number,
+  annualReturnRate: number,
+  annualGrowthRate: number,
+  withdrawalYears: number
+): number {
+  if (principal <= 0 || withdrawalYears <= 0) return 0;
+
+  const returnFactor = 1 + annualReturnRate;
+  const growthFactor = 1 + annualGrowthRate;
+  if (Math.abs(annualReturnRate - annualGrowthRate) < 1e-12) {
+    return principal * returnFactor / withdrawalYears;
+  }
+
+  return principal * (annualReturnRate - annualGrowthRate) /
+    (1 - Math.pow(growthFactor / returnFactor, withdrawalYears));
+}
+
 export function calculateIncomeGapScenarios(
   inputs: LifeInputs,
   assumptions: LifeAssumptions
@@ -91,6 +111,7 @@ export function calculateIncomeGapScenarios(
   const nonQualifiedAssets = nonNegative(
     requireNonNegativeNumber(inputs.nonQualifiedAssets ?? 0, "inputs.nonQualifiedAssets")
   );
+  const deathBenefitPool = groupLifeCoverage + privateLifeCoverage;
   const existingPool = groupLifeCoverage + privateLifeCoverage + nonQualifiedAssets;
 
   // Module 1 target: advisor-indicated safe income support defaults to 85%.
@@ -125,6 +146,12 @@ export function calculateIncomeGapScenarios(
   const targetIncomeStream = projectedIncomeStream.map((need) => need * targetIncomeSupportPct);
   const projectedNetIncomeTotal = projectedIncomeStream.reduce((sum, amount) => sum + amount, 0);
   const targetIncomeSupportTotal = targetIncomeStream.reduce((sum, amount) => sum + amount, 0);
+  const firstRunwayWithdrawal = calculateFirstGrowingWithdrawal(
+    deathBenefitPool,
+    maxCoverageRoi,
+    RUNWAY_WITHDRAWAL_GROWTH_RATE,
+    yearsToRetirement
+  );
 
   // Advisor-facing death benefit target is intentionally nominal so “Fully Covered”
   // aligns with the same dollar need shown to the advisor/client.
@@ -139,7 +166,7 @@ export function calculateIncomeGapScenarios(
   const yearlyData: IncomeGapYearlyPoint[] = [];
   let m1TotalReplaced = 0;
   let m1CumulativeGap = 0;
-  let module2Balance = existingPool;
+  let module2Balance = deathBenefitPool;
   let m2TotalReplaced = 0;
   let m2CumulativeGap = 0;
 
@@ -164,13 +191,16 @@ export function calculateIncomeGapScenarios(
     m1CumulativeGap += incomeGap;
 
     // ── Module 2: Coverage Runway Scenario ──────────────────────────────────
-    // Apply annual return to balance first, then draw full modeled income need.
+    // Apply annual return first, then take the 3%-growing withdrawal. The
+    // solved first withdrawal amortizes the full pool to $0 at the end age.
     module2Balance *= 1 + maxCoverageRoi;
-    const maxCovered = Math.min(module2Balance, projectedNetIncome);
-    const isCoveredMax = maxCovered >= projectedNetIncome && projectedNetIncome > 0;
+    const scheduledWithdrawal = firstRunwayWithdrawal * Math.pow(1 + RUNWAY_WITHDRAWAL_GROWTH_RATE, i);
+    const maxCovered = Math.min(module2Balance, scheduledWithdrawal);
+    const incomeReplaced = Math.min(maxCovered, projectedNetIncome);
+    const isCoveredMax = incomeReplaced >= projectedNetIncome && projectedNetIncome > 0;
     module2Balance = Math.max(0, module2Balance - maxCovered);
-    m2TotalReplaced += maxCovered;
-    const m2AnnualGap = Math.max(0, projectedNetIncome - maxCovered);
+    m2TotalReplaced += incomeReplaced;
+    const m2AnnualGap = Math.max(0, projectedNetIncome - incomeReplaced);
     m2GapStream.push(m2AnnualGap);
     m2CumulativeGap += m2AnnualGap;
 
@@ -241,6 +271,7 @@ export function calculateIncomeGapScenarios(
       survivorGap: m2SurvivorGap,
       deathBenefitNeeded: m2DeathBenefitNeeded,
       maxCoverageRoi,
+      withdrawalGrowthRate: RUNWAY_WITHDRAWAL_GROWTH_RATE,
       roi,
     },
     yearsToRetirement,
