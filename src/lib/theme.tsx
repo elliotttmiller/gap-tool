@@ -1,0 +1,80 @@
+import { createContext, useContext, useEffect, useMemo, useState } from "react"
+
+export type ThemePreference = "light" | "dark" | "system"
+type ResolvedTheme = Exclude<ThemePreference, "system">
+
+type ThemeContextValue = {
+  theme: ThemePreference
+  resolvedTheme: ResolvedTheme
+  setTheme: (theme: ThemePreference) => void
+  toggleTheme: () => void
+}
+
+const STORAGE_KEY = "northstar-theme"
+const mediaQuery = "(prefers-color-scheme: dark)"
+
+const ThemeContext = createContext<ThemeContextValue | null>(null)
+
+function getStoredTheme(): ThemePreference {
+  const stored = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem("theme")
+  return stored === "light" || stored === "dark" || stored === "system" ? stored : "system"
+}
+
+function getSystemTheme(): ResolvedTheme {
+  return window.matchMedia(mediaQuery).matches ? "dark" : "light"
+}
+
+function applyTheme(theme: ResolvedTheme, animate = false) {
+  const root = document.documentElement
+  if (animate) {
+    root.classList.add("theme-transitioning")
+    window.setTimeout(() => root.classList.remove("theme-transitioning"), 260)
+  }
+  root.classList.toggle("dark", theme === "dark")
+  root.classList.toggle("light", theme === "light")
+  root.style.colorScheme = theme
+  root.dataset.theme = theme
+  document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute(
+    "content",
+    theme === "dark" ? "#0d1b2a" : "#ffffff",
+  )
+}
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setThemeState] = useState<ThemePreference>(getStoredTheme)
+  const [systemTheme, setSystemTheme] = useState<ResolvedTheme>(getSystemTheme)
+  const resolvedTheme = theme === "system" ? systemTheme : theme
+
+  useEffect(() => {
+    const query = window.matchMedia(mediaQuery)
+    const handleChange = (event: MediaQueryListEvent) => setSystemTheme(event.matches ? "dark" : "light")
+    query.addEventListener("change", handleChange)
+    return () => query.removeEventListener("change", handleChange)
+  }, [])
+
+  useEffect(() => applyTheme(resolvedTheme, true), [resolvedTheme])
+
+  const value = useMemo<ThemeContextValue>(() => ({
+    theme,
+    resolvedTheme,
+    setTheme(nextTheme) {
+      setThemeState(nextTheme)
+      localStorage.setItem(STORAGE_KEY, nextTheme)
+      localStorage.removeItem("theme")
+    },
+    toggleTheme() {
+      const nextTheme = resolvedTheme === "dark" ? "light" : "dark"
+      setThemeState(nextTheme)
+      localStorage.setItem(STORAGE_KEY, nextTheme)
+      localStorage.removeItem("theme")
+    },
+  }), [resolvedTheme, theme])
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+}
+
+export function useTheme() {
+  const context = useContext(ThemeContext)
+  if (!context) throw new Error("useTheme must be used within ThemeProvider")
+  return context
+}

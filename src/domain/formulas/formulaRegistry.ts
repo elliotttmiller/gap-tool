@@ -28,6 +28,22 @@ export const advisorFormulaRegistry: FormulaDefinition[] = [
     disclosure: "This is an illustrative level-growth withdrawal scenario; actual returns and available withdrawals will vary.",
   },
   {
+    id: "disability-net-income-gap",
+    module: "disability",
+    label: "Net Disability Income Gap",
+    description: "Compares projected net earned income with net group LTD and individual disability benefits for every modeled year.",
+    formulaText: "annualGap = max(0, annualIncome * 70% - netGroupLTD - individualDIBenefit)",
+    assumptions: ["incomeGrowthRateAnnual", "ltdCoveragePercent", "ltdMonthlyCap", "ltdTaxable", "colaRate"],
+  },
+  {
+    id: "disability-group-ltd",
+    module: "disability",
+    label: "Group LTD Benefit",
+    description: "Applies the entered coverage percentage and monthly cap, then adjusts employer-paid taxable benefits to 70% net.",
+    formulaText: "grossMonthlyLTD = min(annualIncome * coveragePct / 12, monthlyCap); netMonthlyLTD = taxable ? grossMonthlyLTD * 70% : grossMonthlyLTD",
+    assumptions: ["ltdCoveragePercent", "ltdMonthlyCap", "ltdTaxable"],
+  },
+  {
     id: "liability-disposable-income-garnishment",
     module: "liability",
     label: "Wage Garnishment Exposure",

@@ -1,5 +1,6 @@
 import { useRef } from "react"
 import { Card } from "@/components/Card"
+import { AnalysisCenter } from "@/components/global/AnalysisCenter"
 import { useAppStore } from "@/lib/store"
 import type { PersistedAppData } from "@/lib/store"
 import {
@@ -210,6 +211,9 @@ export function AssumptionsPage() {
             records the formula version, input snapshot, and assumption snapshot used. Historical
             scenarios remain reproducible even after assumptions are updated.
           </p>
+        </div>
+        <div className="ml-auto shrink-0 self-center">
+          <AnalysisCenter />
         </div>
       </div>
 

@@ -4,6 +4,7 @@ import { ArrowLeft, Settings, X } from "lucide-react"
 import { AssumptionsPage } from "@/pages/Assumptions"
 import { InstallPWAButton } from "./InstallPWAButton"
 import { PWAUpdateToast } from "./PWAUpdateToast"
+import { ThemePicker, ThemeToggle } from "./ThemeControl"
 
 export function AppShell() {
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -17,6 +18,7 @@ export function AppShell() {
   useEffect(() => {
     if (!settingsOpen) return
     function handleClick(e: MouseEvent) {
+      if ((e.target as Element).closest?.("[data-analysis-center]")) return
       if (
         panelRef.current && !panelRef.current.contains(e.target as Node) &&
         buttonRef.current && !buttonRef.current.contains(e.target as Node)
@@ -37,16 +39,16 @@ export function AppShell() {
   }, [])
 
   return (
-    <div className="min-h-screen min-w-7xl bg-[#0d1b2a]">
+    <div className="min-h-screen min-w-7xl bg-gray-50 text-gray-900 transition-colors dark:bg-[#0d1b2a] dark:text-gray-50">
       <PWAUpdateToast />
-      <header className="fixed inset-x-0 top-0 z-50 h-16 border-b border-brand-500/30 bg-linear-to-br from-[#0d1b2a] to-[#1e3248] shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+      <header className="fixed inset-x-0 top-0 z-50 h-16 border-b border-gray-200 bg-white/95 shadow-sm backdrop-blur-xl transition-colors dark:border-brand-500/30 dark:bg-linear-to-br dark:from-[#0d1b2a]/95 dark:to-[#1e3248]/95 dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
         <div className="mx-auto flex h-full max-w-400 items-center px-8">
           <div className="flex flex-1 justify-start">
             {isInScenario ? (
               <Link
                 to="/"
                 aria-label="Back to Dashboard"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-400 transition-colors hover:bg-white/5 hover:text-white"
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-950 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
               >
                 <ArrowLeft className="h-5 w-5" />
                 <span className="text-sm font-medium">Back</span>
@@ -69,13 +71,14 @@ export function AppShell() {
             <button
               ref={buttonRef}
               aria-label="Settings"
+              title="Settings"
               aria-expanded={settingsOpen}
               onClick={() => setSettingsOpen((v) => !v)}
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-400 transition-colors hover:bg-white/5 hover:text-white"
+              className="flex size-9 items-center justify-center rounded-full text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-950 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
             >
-              <span className="text-sm font-medium">Settings</span>
               <Settings className="h-5 w-5" />
             </button>
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -83,21 +86,24 @@ export function AppShell() {
       {settingsOpen && (
         <div
           ref={panelRef}
-          className="fixed inset-x-0 top-16 z-40 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-brand-500/30 bg-[#0d1b2a] shadow-2xl"
+          className="fixed inset-x-0 top-16 z-40 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-gray-200 bg-white shadow-2xl dark:border-brand-500/30 dark:bg-[#0d1b2a]"
         >
           <div className="mx-auto max-w-5xl px-8 py-8">
             <div className="mb-6 flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-gray-50">Settings</h2>
+                <h2 className="text-lg font-semibold text-gray-950 dark:text-gray-50">Settings</h2>
                 <p className="mt-0.5 text-sm text-gray-400">Model assumptions and governance configuration.</p>
               </div>
               <button
                 onClick={() => setSettingsOpen(false)}
                 aria-label="Close settings"
-                className="rounded-md p-1.5 text-gray-500 transition-colors hover:bg-white/5 hover:text-white"
+                className="rounded-md p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-950 dark:hover:bg-white/5 dark:hover:text-white"
               >
                 <X className="h-5 w-5" />
               </button>
+            </div>
+            <div className="mb-8 max-w-sm">
+              <ThemePicker />
             </div>
             <AssumptionsPage />
           </div>
