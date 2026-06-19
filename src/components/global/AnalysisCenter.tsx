@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Calculator, ChevronDown, Database, Download, FileCode2, FileSearch, ShieldCheck, Table2, X } from "lucide-react"
 import { advisorFormulaRegistry } from "@/domain/formulas/formulaRegistry"
 import { calculateLifeInsuranceGap } from "@/features/risk-modules/life/calculations/calculateLifeInsuranceGap"
@@ -167,9 +167,19 @@ export function AnalysisCenter() {
   const clients = useAppStore((state) => state.clients)
   const scenarios = useAppStore((state) => state.scenarios)
   const records = useAppStore((state) => state.moduleRecordsByScenarioId)
-  const activeScenarios = scenarios.filter((scenario) => scenario.status !== "archived")
+  const activeScenarios = useMemo(
+    () => scenarios.filter((scenario) => scenario.status !== "archived"),
+    [scenarios],
+  )
   const [scenarioId, setScenarioId] = useState(activeScenarios[0]?.id ?? "")
   const [moduleFilter, setModuleFilter] = useState<RiskModuleType | "all">("all")
+
+  useEffect(() => {
+    if (!activeScenarios.some((scenario) => scenario.id === scenarioId)) {
+      setScenarioId(activeScenarios[0]?.id ?? "")
+      setModuleFilter("all")
+    }
+  }, [activeScenarios, scenarioId])
 
   const snapshot = useMemo(() => {
     const scenario = activeScenarios.find((item) => item.id === scenarioId) ?? activeScenarios[0]
@@ -233,7 +243,7 @@ export function AnalysisCenter() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-3"><div className="flex size-9 items-center justify-center rounded-xl bg-brand-500/15 text-brand-300 ring-1 ring-brand-500/30"><ShieldCheck className="size-5" /></div><div><Dialog.Title className="text-lg font-semibold text-white">Calculation Analysis Center</Dialog.Title><Dialog.Description className="mt-0.5 text-xs text-[#94a3b8]">Structured evidence for methodology, source data, results, and schedules.</Dialog.Description></div></div>
             </div>
-            <label className="w-full sm:w-80 lg:w-104"><span className="mb-1 block text-[9px] font-bold uppercase tracking-widest text-[#94a3b8]">Review scenario</span><ThemedSelect ariaLabel="Review scenario" value={snapshot?.scenario.id ?? ""} onValueChange={(value) => { setScenarioId(value); setModuleFilter("all") }} options={activeScenarios.map((scenario) => ({ value: scenario.id, label: `${clients.find((item) => item.id === scenario.clientId)?.displayName ?? "Unknown client"} - ${scenario.name}` }))} className="border-white/15 bg-white/5 text-white hover:bg-white/10 dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10" /></label>
+            <label className="w-full sm:w-80 lg:w-104"><span className="mb-1 block text-[9px] font-bold uppercase tracking-widest text-[#94a3b8]">Review scenario</span><ThemedSelect ariaLabel="Review scenario" value={scenarioId} onValueChange={(value) => { setScenarioId(value); setModuleFilter("all") }} options={activeScenarios.map((scenario) => ({ value: scenario.id, label: `${clients.find((item) => item.id === scenario.clientId)?.displayName ?? "Unknown client"} - ${scenario.name}` }))} disabled={activeScenarios.length === 0} contentClassName="z-[100]" className="border-white/15 bg-white/5 text-white hover:bg-white/10 dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10" /></label>
             <button onClick={downloadSnapshot} disabled={!snapshot} className="inline-flex items-center gap-2 self-end rounded-lg border border-white/15 bg-white/5 px-3 py-2.5 text-xs font-semibold text-[#cbd5e1] transition hover:border-brand-500/50 hover:bg-brand-500/10 hover:text-white disabled:opacity-40"><Download className="size-4" /> Export evidence</button>
             <Dialog.Close asChild><button aria-label="Close analysis center" className="self-end rounded-full p-2.5 text-[#94a3b8] transition hover:bg-white/10 hover:text-white"><X className="size-5" /></button></Dialog.Close>
           </header>
@@ -252,7 +262,7 @@ export function AnalysisCenter() {
               </div>
               <div className="flex-1 overflow-y-auto">
                 <div className="mx-auto max-w-7xl space-y-5 p-5 lg:p-7">
-                  <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950/30"><div className="grid sm:grid-cols-2 xl:grid-cols-4"><div className="border-b border-gray-200 p-4 sm:border-r xl:border-b-0 dark:border-gray-800"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Client</p><p className="mt-1 text-sm font-semibold text-gray-950 dark:text-gray-100">{snapshot.client?.displayName ?? "Unknown client"}</p></div><div className="border-b border-gray-200 p-4 xl:border-b-0 xl:border-r dark:border-gray-800"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Scenario status</p><p className="mt-1 text-sm font-semibold text-gray-950 dark:text-gray-100">{titleCase(snapshot.scenario.status)}</p></div><div className="border-b border-gray-200 p-4 sm:border-b-0 sm:border-r dark:border-gray-800"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Modules in scope</p><p className="mt-1 text-sm font-semibold text-gray-950 dark:text-gray-100">{snapshot.modules.length} calculation modules</p></div><div className="p-4"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Evidence generated</p><p className="mt-1 text-sm font-semibold text-gray-950 dark:text-gray-100">{new Date(snapshot.generatedAt).toLocaleString()}</p></div></div><div className="flex items-start gap-3 border-t border-brand-200 bg-brand-50 px-4 py-3 text-xs leading-5 text-brand-900 dark:border-brand-900 dark:bg-brand-950/30 dark:text-brand-200"><ShieldCheck className="mt-0.5 size-4 shrink-0" /><p><strong>Verified calculation provenance.</strong> {snapshot.engine}. AI does not determine or alter any value in this evidence snapshot.</p></div></section>
+                  <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950/30"><div className="grid sm:grid-cols-2 xl:grid-cols-4"><div className="border-b border-gray-200 p-4 sm:border-r xl:border-b-0 dark:border-gray-800"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Client</p><p className="mt-1 text-sm font-semibold text-gray-950 dark:text-gray-100">{snapshot.client?.displayName ?? "Unknown client"}</p></div><div className="border-b border-gray-200 p-4 xl:border-b-0 xl:border-r dark:border-gray-800"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Scenario status</p><p className="mt-1 text-sm font-semibold text-gray-950 dark:text-gray-100">{titleCase(snapshot.scenario.status)}</p></div><div className="border-b border-gray-200 p-4 sm:border-b-0 sm:border-r dark:border-gray-800"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Modules in scope</p><p className="mt-1 text-sm font-semibold text-gray-950 dark:text-gray-100">{snapshot.modules.length} calculation modules</p></div><div className="p-4"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Evidence generated</p><p className="mt-1 text-sm font-semibold text-gray-950 dark:text-gray-100">{new Date(snapshot.generatedAt).toLocaleString()}</p></div></div></section>
                   <div className="space-y-4">{visibleModules.map((item, index) => <ModuleAudit key={item.module} item={item} defaultOpen={moduleFilter !== "all" || index === 0} />)}</div>
                 </div>
               </div>
