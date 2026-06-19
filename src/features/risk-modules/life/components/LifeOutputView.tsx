@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react"
-import { LifeOutputs, LifeInputs, LifeAssumptions, IncomeGapOutputs, IncomeGapModule1, IncomeGapModule2 } from "../types"
+import { LifeOutputs, LifeInputs, LifeAssumptions, IncomeGapOutputs, IncomeGapModule2 } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
@@ -61,20 +61,6 @@ const RunwayTooltip = ({ active, payload, label }: any) => {
       <div className="flex justify-between gap-4"><span className="text-xs text-gray-400">Net Income Need:</span><span className="text-xs font-semibold text-gray-100">{formatCurrency(income)}</span></div>
       <div className="flex justify-between gap-4"><span className="text-xs text-emerald-400">Annual Withdrawal:</span><span className="text-xs font-semibold text-emerald-300">{formatCurrency(withdrawal)}</span></div>
       {gap > 0 ? <div className="flex justify-between gap-4"><span className="text-xs text-rose-400">Annual Gap:</span><span className="text-xs font-semibold text-rose-300">{formatCurrency(gap)}</span></div> : null}
-    </div>
-  )
-}
-
-function Module1MetricBoxes({ m1, isFullyCovered, projectionEndAge }: { m1: IncomeGapModule1; isFullyCovered: boolean; projectionEndAge: number }) {
-  const hasGap = m1.additionalDeathBenefitNeeded > 0
-  return (
-    <div className="life-metric-grid">
-      <ModuleMetricCard className={compactCardClass} label={`Projected Net Income to Age ${projectionEndAge}`} value={formatCurrency(m1.projectedNetIncomeTotal)} description="Modeled net income need" accent="slate" />
-      <ModuleMetricCard className={compactCardClass} label="Capital Required Today" value={formatCurrency(m1.targetDeathBenefitNeed)} description={`PV of target income at ${formatRatePctOneDecimal(m1.roi)}`} accent="cyan" />
-      <ModuleMetricCard className={compactCardClass} label="Coverage Resources" value={formatCurrency(m1.existingCoverageResources)} description="Entered resources" accent="slate" />
-      <ModuleMetricCard className={compactCardClass} label="Remaining Capital Gap" value={hasGap ? formatCurrency(m1.additionalDeathBenefitNeeded) : "$0"} description="Capital required minus resources" accent={hasGap ? "red" : "green"} />
-      <ModuleMetricCard className={compactCardClass} label="Annual Income Supported" value={formatCurrency(m1.annualCoverageYear1)} description="Year-1 modeled support" accent={m1.annualCoverageYear1 > 0 ? "green" : "red"} />
-      <ModuleMetricCard className={compactCardClass} label="Coverage Status" value={isFullyCovered ? "Fully Covered" : formatRatePctOneDecimal(m1.coverageSupportRate)} description="Against capital-required target" accent={isFullyCovered ? "green" : "red"} />
     </div>
   )
 }
@@ -156,7 +142,7 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
               <Bar dataKey="safeIncomeCoverage" name="Income Supported" stackId="income" fill="#10b981" radius={[0, 0, 0, 0]} isAnimationActive={false} />
               <Bar dataKey="incomeGap" name="Income Gap" stackId="income" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={false} />
             </ChartPanel>
-            <Module1MetricBoxes m1={module1} isFullyCovered={isM1FullyCovered} projectionEndAge={retirementAge} />
+            <RunwayMetricBoxes m2={module2} projectionEndAge={retirementAge} includeCoverageYears={false} />
           </div>
         </AnimatedSection>
       )}
