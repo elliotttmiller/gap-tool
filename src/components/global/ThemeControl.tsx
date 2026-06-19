@@ -18,7 +18,7 @@ export function ThemeToggle() {
       onClick={toggleTheme}
       aria-label={`Switch to ${destination} theme`}
       title={`Switch to ${destination} theme`}
-      className="flex size-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:shadow-none dark:hover:border-brand-500/50 dark:hover:bg-brand-500/10 dark:hover:text-brand-300"
+      className="flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[#cbd5e1] transition hover:border-brand-500/50 hover:bg-brand-500/10 hover:text-brand-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
     >
       <Icon className="size-4" aria-hidden="true" />
     </button>

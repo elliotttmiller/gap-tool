@@ -39,16 +39,16 @@ export function AppShell() {
   }, [])
 
   return (
-    <div className="min-h-screen min-w-7xl bg-gray-50 text-gray-900 transition-colors dark:bg-[#0d1b2a] dark:text-gray-50">
+    <div className="app-shell-surface min-h-screen min-w-7xl text-[#13283a] transition-colors dark:text-gray-50">
       <PWAUpdateToast />
-      <header className="fixed inset-x-0 top-0 z-50 h-16 border-b border-gray-200 bg-white/95 shadow-sm backdrop-blur-xl transition-colors dark:border-brand-500/30 dark:bg-linear-to-br dark:from-[#0d1b2a]/95 dark:to-[#1e3248]/95 dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+      <header className="fixed inset-x-0 top-0 z-50 h-16 border-b border-brand-500/30 bg-linear-to-br from-[#0d1b2a]/95 to-[#1e3248]/95 shadow-[0_4px_24px_rgba(0,0,0,0.4)] backdrop-blur-xl">
         <div className="mx-auto flex h-full max-w-400 items-center px-8">
           <div className="flex flex-1 justify-start">
             {isInScenario ? (
               <Link
                 to="/"
                 aria-label="Back to Dashboard"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-950 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-[#94a3b8] transition-colors hover:bg-white/5 hover:text-[#ffffff]"
               >
                 <ArrowLeft className="h-5 w-5" />
                 <span className="text-sm font-medium">Back</span>
@@ -74,7 +74,7 @@ export function AppShell() {
               title="Settings"
               aria-expanded={settingsOpen}
               onClick={() => setSettingsOpen((v) => !v)}
-              className="flex size-9 items-center justify-center rounded-full text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-950 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
+              className="flex size-9 items-center justify-center rounded-full text-[#94a3b8] transition-colors hover:bg-white/5 hover:text-[#ffffff]"
             >
               <Settings className="h-5 w-5" />
             </button>
@@ -86,7 +86,7 @@ export function AppShell() {
       {settingsOpen && (
         <div
           ref={panelRef}
-          className="fixed inset-x-0 top-16 z-40 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-gray-200 bg-white shadow-2xl dark:border-brand-500/30 dark:bg-[#0d1b2a]"
+          className="fixed inset-x-0 top-16 z-40 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-[#b8cdd5] bg-[#edf4f6] shadow-2xl dark:border-brand-500/30 dark:bg-[#0d1b2a]"
         >
           <div className="mx-auto max-w-5xl px-8 py-8">
             <div className="mb-6 flex items-center justify-between">

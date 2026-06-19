@@ -162,7 +162,7 @@ const DrawerContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTML
             ref={forwardedRef}
             className={cx(
               "fixed inset-y-2 mx-auto flex w-[95vw] flex-1 flex-col overflow-y-auto rounded-md border p-4 shadow-lg focus:outline-none max-sm:inset-x-2 sm:inset-y-2 sm:right-2 sm:max-w-lg sm:p-6",
-              "border-gray-200 bg-white animate-drawerSlideLeftAndFade dark:border-gray-800 dark:bg-[#090E1A]",
+              "border-[#c5d6dc] bg-[#edf4f6] animate-drawerSlideLeftAndFade dark:border-gray-800 dark:bg-[#090E1A]",
               focusRing,
               className,
             )}
