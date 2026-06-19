@@ -1,8 +1,8 @@
-import { useState, type ReactNode } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { LifeOutputs, LifeInputs, LifeAssumptions, IncomeGapOutputs, IncomeGapModule1, IncomeGapModule2 } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
+import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import { AnimatedSection } from "@/components/ui/animated-section"
 import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
 
@@ -22,7 +22,7 @@ function formatRatePctOneDecimal(rate: number): string {
   return `${(Math.round(rate * 1000) / 10).toFixed(1)}%`
 }
 
-function buildAgeTicks(data: { age: number }[], targetTickCount = 8): number[] {
+function buildAgeTicks(data: { age: number }[], targetTickCount = 14): number[] {
   if (data.length === 0) return []
   const firstAge = data[0].age
   const lastAge = data[data.length - 1].age
@@ -65,9 +65,21 @@ const RunwayTooltip = ({ active, payload, label }: any) => {
   )
 }
 
-function RunwayMetricBoxes({ m2, projectionEndAge }: { m2: IncomeGapModule2; projectionEndAge: number }) {
+function RunwayMetricBoxes({ m2, projectionEndAge, selectedAge }: { m2: IncomeGapModule2; projectionEndAge: number; selectedAge: number | null }) {
+  const selected = selectedAge === null ? undefined : m2.yearlyData.find((point) => point.age === selectedAge)
   const hasGap = m2.survivorGap > 0
   const runwayGapCapital = m2.deathBenefitNeeded
+  if (selected) {
+    return (
+      <div className="life-metric-grid life-metric-grid--runway">
+        <ModuleMetricCard className={compactCardClass} label={`Projected Net Income at Age ${selected.age}`} value={formatCurrency(selected.projectedIncome)} description="Annual projected need" accent="slate" />
+        <ModuleMetricCard className={compactCardClass} label={`Coverage at Age ${selected.age}`} value={selected.isCoveredMax ? "Fully Covered" : "Partial Coverage"} description={selected.isCoveredMax ? "Resource pool funds the full annual need" : "Resource pool does not fund the full annual need"} accent={selected.isCoveredMax ? "green" : "red"} />
+        <ModuleMetricCard className={compactCardClass} label={`Income Replaced at Age ${selected.age}`} value={formatCurrency(selected.maxCovered)} description="Covered by resource pool" accent="cyan" />
+        <ModuleMetricCard className={compactCardClass} label={`Income Gap at Age ${selected.age}`} value={formatCurrency(selected.maxCoverageGap)} description="Projected need minus amount covered" accent={selected.maxCoverageGap > 0 ? "red" : "green"} />
+        <ModuleMetricCard className={compactCardClass} label={`Cumulative Gap Through Age ${selected.age}`} value={formatCurrency(selected.cumulativeMaxCoverageGap)} description="Running uncovered income total" accent={selected.cumulativeMaxCoverageGap > 0 ? "red" : "green"} />
+      </div>
+    )
+  }
   return (
     <div className="life-metric-grid life-metric-grid--runway">
       <ModuleMetricCard className={compactCardClass} label={`Projected Net Income to Age ${projectionEndAge}`} value={formatCurrency(m2.projectedNetIncomeTotal)} description="Total projected need" accent="slate" />
@@ -79,12 +91,25 @@ function RunwayMetricBoxes({ m2, projectionEndAge }: { m2: IncomeGapModule2; pro
   )
 }
 
-function SafeIncomeMetricBoxes({ m1, projectionEndAge }: { m1: IncomeGapModule1; projectionEndAge: number }) {
+function SafeIncomeMetricBoxes({ m1, projectionEndAge, selectedAge }: { m1: IncomeGapModule1; projectionEndAge: number; selectedAge: number | null }) {
+  const selected = selectedAge === null ? undefined : m1.yearlyData.find((point) => point.age === selectedAge)
   const annualIncomeReplacementPct = m1.projectedNetIncomeTotal > 0
     ? m1.totalIncomeReplaced / m1.projectedNetIncomeTotal
     : 0
   const survivorGap = Math.max(0, m1.targetIncomeSupportTotal - m1.totalIncomeReplaced)
   const hasGap = survivorGap > 0
+  if (selected) {
+    const selectedCoveragePct = selected.projectedIncome > 0 ? selected.safeIncomeCoverage / selected.projectedIncome : 0
+    return (
+      <div className="life-metric-grid life-metric-grid--runway">
+        <ModuleMetricCard className={compactCardClass} label={`Projected Net Income at Age ${selected.age}`} value={formatCurrency(selected.projectedIncome)} description="Annual projected net income need" accent="slate" />
+        <ModuleMetricCard className={compactCardClass} label={`Safe Income Coverage at Age ${selected.age}`} value={formatRatePctOneDecimal(selectedCoveragePct)} description="Projected income replaced at this age" accent={selectedCoveragePct > 0 ? "green" : "red"} />
+        <ModuleMetricCard className={compactCardClass} label={`Income Supported at Age ${selected.age}`} value={formatCurrency(selected.safeIncomeCoverage)} description="Annual income backed by resources" accent="green" />
+        <ModuleMetricCard className={compactCardClass} label={`Income Gap at Age ${selected.age}`} value={formatCurrency(selected.incomeGap)} description="Target support minus supported income" accent={selected.incomeGap > 0 ? "red" : "green"} />
+        <ModuleMetricCard className={compactCardClass} label={`Cumulative Gap Through Age ${selected.age}`} value={formatCurrency(selected.cumulativeIncomeGap)} description="Running target-income gap" accent={selected.cumulativeIncomeGap > 0 ? "red" : "green"} />
+      </div>
+    )
+  }
 
   return (
     <div className="life-metric-grid life-metric-grid--runway">
@@ -97,20 +122,21 @@ function SafeIncomeMetricBoxes({ m1, projectionEndAge }: { m1: IncomeGapModule1;
   )
 }
 
-function ChartPanel({ title, subtitle, data, ticks, children }: { title: string; subtitle: string; data: any[]; ticks: number[]; children: ReactNode }) {
+function ChartPanel({ title, subtitle, data, ticks, selectedAge, onSelectAge, onReset, children }: { title: string; subtitle: string; data: any[]; ticks: number[]; selectedAge: number | null; onSelectAge: (age: number) => void; onReset: () => void; children: ReactNode }) {
   return (
     <Card className="life-chart-panel border-slate-800/80 bg-slate-950/60">
       <CardHeader className="px-5 pb-0 pt-4">
         <div className="text-center">
           <CardTitle className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">{title}</CardTitle>
           <p className="mt-1 text-xs leading-snug text-slate-400">{subtitle}</p>
+          {selectedAge !== null ? <div className="mt-2 flex items-center justify-center gap-2"><span className="rounded-full border border-brand-700 bg-brand-950/40 px-3 py-1 text-xs font-semibold text-brand-300">Age {selectedAge}</span><button type="button" onClick={onReset} className="text-xs text-gray-400 transition-colors hover:text-gray-100" aria-label="Reset selected age">× Reset</button></div> : <p className="mt-2 text-[10px] text-slate-500">Select a bar to inspect that age</p>}
         </div>
       </CardHeader>
       <CardContent className="px-5 pb-4 pt-3">
         <div className="life-chart-area chart-reveal">
           <ResponsiveContainer width="100%" height="100%" debounce={100}>
-            <BarChart data={data} margin={{ top: 6, right: 12, left: 0, bottom: 0 }} barCategoryGap="8%">
-              <XAxis dataKey="age" ticks={ticks} interval={0} tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
+            <BarChart data={data} margin={{ top: 6, right: 12, left: 0, bottom: 0 }} barCategoryGap="8%" onClick={(state) => { if (state?.activePayload) onSelectAge(Number(state.activeLabel)) }} style={{ cursor: "pointer" }}>
+              <XAxis dataKey="age" ticks={ticks} interval={0} minTickGap={8} tickMargin={8} tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis tickFormatter={(v) => `$${Math.round(Number(v) / 1000)}k`} tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} width={42} />
               {children}
             </BarChart>
@@ -124,6 +150,8 @@ function ChartPanel({ title, subtitle, data, ticks, children }: { title: string;
 
 export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onActiveTabChange }: LifeOutputViewProps) {
   const [activeTabInternal, setActiveTabInternal] = useState<"safe" | "max">("safe")
+  const [selectedSafeAge, setSelectedSafeAge] = useState<number | null>(null)
+  const [selectedRunwayAge, setSelectedRunwayAge] = useState<number | null>(null)
   const activeTab = activeTabProp ?? activeTabInternal
   const setActiveTab = (tab: "safe" | "max") => {
     setActiveTabInternal(tab)
@@ -136,6 +164,14 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
   const runwayTicks = buildAgeTicks(module2.yearlyData)
   const safePct = module1.targetIncomeSupportTotal > 0 ? Math.round((module1.totalIncomeReplaced / module1.targetIncomeSupportTotal) * 1000) / 10 : 0
   const runwayPct = module2.projectedNetIncomeTotal > 0 ? Math.round((module2.totalIncomeReplaced / module2.projectedNetIncomeTotal) * 1000) / 10 : 0
+
+  useEffect(() => {
+    if (selectedSafeAge !== null && !module1.yearlyData.some((point) => point.age === selectedSafeAge)) setSelectedSafeAge(null)
+  }, [module1.yearlyData, selectedSafeAge])
+
+  useEffect(() => {
+    if (selectedRunwayAge !== null && !module2.yearlyData.some((point) => point.age === selectedRunwayAge)) setSelectedRunwayAge(null)
+  }, [module2.yearlyData, selectedRunwayAge])
 
   const activeNarrative = activeTab === "safe"
     ? isM1FullyCovered
@@ -155,12 +191,12 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
       {activeTab === "safe" && (
         <AnimatedSection>
           <div className="life-visual-dashboard">
-            <ChartPanel title={`Safe Income Coverage — Target Annual Net Income to Age ${retirementAge}`} subtitle={`${formatRatePctOneDecimal(module1.targetIncomeSupportPct)} target income support; capital required uses ${formatRatePctOneDecimal(module1.roi)} PV reference rate`} data={module1.yearlyData} ticks={safeTicks}>
+            <ChartPanel title={`Safe Income Coverage — Target Annual Net Income to Age ${retirementAge}`} subtitle={`${formatRatePctOneDecimal(module1.targetIncomeSupportPct)} target income support; capital required uses ${formatRatePctOneDecimal(module1.roi)} PV reference rate`} data={module1.yearlyData} ticks={safeTicks} selectedAge={selectedSafeAge} onSelectAge={setSelectedSafeAge} onReset={() => setSelectedSafeAge(null)}>
               <Tooltip content={SafeTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-              <Bar dataKey="safeIncomeCoverage" name="Income Supported" stackId="income" fill="#10b981" radius={[0, 0, 0, 0]} isAnimationActive={false} />
-              <Bar dataKey="incomeGap" name="Income Gap" stackId="income" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={false} />
+              <Bar dataKey="safeIncomeCoverage" name="Income Supported" stackId="income" fill="#10b981" radius={[0, 0, 0, 0]} isAnimationActive={false}>{module1.yearlyData.map((point) => <Cell key={`safe-covered-${point.age}`} opacity={selectedSafeAge === null || selectedSafeAge === point.age ? 1 : 0.3} stroke={selectedSafeAge === point.age ? "#f8fafc" : "transparent"} strokeWidth={selectedSafeAge === point.age ? 1.5 : 0} style={{ transition: "opacity 220ms ease, filter 220ms ease", filter: selectedSafeAge === point.age ? "drop-shadow(0 0 5px rgba(16,185,129,0.65))" : "none" }} />)}</Bar>
+              <Bar dataKey="incomeGap" name="Income Gap" stackId="income" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={false}>{module1.yearlyData.map((point) => <Cell key={`safe-gap-${point.age}`} opacity={selectedSafeAge === null || selectedSafeAge === point.age ? 1 : 0.3} stroke={selectedSafeAge === point.age ? "#f8fafc" : "transparent"} strokeWidth={selectedSafeAge === point.age ? 1.5 : 0} style={{ transition: "opacity 220ms ease, filter 220ms ease" }} />)}</Bar>
             </ChartPanel>
-            <SafeIncomeMetricBoxes m1={module1} projectionEndAge={retirementAge} />
+            <div key={`safe-metrics-${selectedSafeAge ?? "all"}`} className="animate-slideUpAndFade"><SafeIncomeMetricBoxes m1={module1} projectionEndAge={retirementAge} selectedAge={selectedSafeAge} /></div>
           </div>
         </AnimatedSection>
       )}
@@ -168,12 +204,12 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
       {activeTab === "max" && (
         <AnimatedSection>
           <div className="life-visual-dashboard">
-            <ChartPanel title="Coverage Runway Scenario — Resource Drawdown Coverage" subtitle={`Scenario-only view: existing coverage resources invested at ${formatRatePctOneDecimal(module2.maxCoverageRoi)} while funding full projected net income`} data={module2.yearlyData} ticks={runwayTicks}>
+            <ChartPanel title="Coverage Runway Scenario — Resource Drawdown Coverage" subtitle={`Scenario-only view: existing coverage resources invested at ${formatRatePctOneDecimal(module2.maxCoverageRoi)} while funding full projected net income`} data={module2.yearlyData} ticks={runwayTicks} selectedAge={selectedRunwayAge} onSelectAge={setSelectedRunwayAge} onReset={() => setSelectedRunwayAge(null)}>
               <Tooltip content={RunwayTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-              <Bar dataKey="maxCovered" name="Net Income Covered" stackId="income" fill="#10b981" radius={[0, 0, 0, 0]} isAnimationActive={false} />
-              <Bar dataKey="maxCoverageGap" name="Income Gap" stackId="income" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={false} />
+              <Bar dataKey="maxCovered" name="Net Income Covered" stackId="income" fill="#10b981" radius={[0, 0, 0, 0]} isAnimationActive={false}>{module2.yearlyData.map((point) => <Cell key={`runway-covered-${point.age}`} opacity={selectedRunwayAge === null || selectedRunwayAge === point.age ? 1 : 0.3} stroke={selectedRunwayAge === point.age ? "#f8fafc" : "transparent"} strokeWidth={selectedRunwayAge === point.age ? 1.5 : 0} style={{ transition: "opacity 220ms ease, filter 220ms ease", filter: selectedRunwayAge === point.age ? "drop-shadow(0 0 5px rgba(16,185,129,0.65))" : "none" }} />)}</Bar>
+              <Bar dataKey="maxCoverageGap" name="Income Gap" stackId="income" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={false}>{module2.yearlyData.map((point) => <Cell key={`runway-gap-${point.age}`} opacity={selectedRunwayAge === null || selectedRunwayAge === point.age ? 1 : 0.3} stroke={selectedRunwayAge === point.age ? "#f8fafc" : "transparent"} strokeWidth={selectedRunwayAge === point.age ? 1.5 : 0} style={{ transition: "opacity 220ms ease, filter 220ms ease" }} />)}</Bar>
             </ChartPanel>
-            <RunwayMetricBoxes m2={module2} projectionEndAge={retirementAge} />
+            <div key={`runway-metrics-${selectedRunwayAge ?? "all"}`} className="animate-slideUpAndFade"><RunwayMetricBoxes m2={module2} projectionEndAge={retirementAge} selectedAge={selectedRunwayAge} /></div>
           </div>
         </AnimatedSection>
       )}
