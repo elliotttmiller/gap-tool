@@ -30,9 +30,9 @@
  *
  * Module 2 — Coverage Runway Scenario
  *   Entered death benefits (group + private life coverage) are invested at
- *   maxCoverageRoi. The first annual withdrawal is solved so the balance reaches
- *   $0 at the projection end age while withdrawals grow 3% each year. Covered
- *   income → green bars. Gap income → red bars.
+ *   maxCoverageRoi. Each year attempts to fund the full projected net income
+ *   need from the grown balance. Covered income produces green bars; any amount
+ *   the remaining pool cannot fund produces red gap bars.
  *
  * Net income assumption: income figures use modeled net income need
  * (annualIncome × incomeReplacementRatio − spouseAnnualIncome offset).
@@ -69,26 +69,6 @@ function clampRate(value: number, max = 1.25): number {
   return Math.max(0, Math.min(max, value));
 }
 
-const RUNWAY_WITHDRAWAL_GROWTH_RATE = 0.03;
-
-function calculateFirstGrowingWithdrawal(
-  principal: number,
-  annualReturnRate: number,
-  annualGrowthRate: number,
-  withdrawalYears: number
-): number {
-  if (principal <= 0 || withdrawalYears <= 0) return 0;
-
-  const returnFactor = 1 + annualReturnRate;
-  const growthFactor = 1 + annualGrowthRate;
-  if (Math.abs(annualReturnRate - annualGrowthRate) < 1e-12) {
-    return principal * returnFactor / withdrawalYears;
-  }
-
-  return principal * (annualReturnRate - annualGrowthRate) /
-    (1 - Math.pow(growthFactor / returnFactor, withdrawalYears));
-}
-
 export function calculateIncomeGapScenarios(
   inputs: LifeInputs,
   assumptions: LifeAssumptions
@@ -113,7 +93,6 @@ export function calculateIncomeGapScenarios(
   const nonQualifiedAssets = nonNegative(
     requireNonNegativeNumber(inputs.nonQualifiedAssets ?? 0, "inputs.nonQualifiedAssets")
   );
-  const deathBenefitPool = groupLifeCoverage + privateLifeCoverage;
   const existingPool = groupLifeCoverage + privateLifeCoverage + nonQualifiedAssets;
 
   // Module 1 target: advisor-indicated income support percentage.
@@ -155,18 +134,11 @@ export function calculateIncomeGapScenarios(
   const additionalDeathBenefitNeeded = Math.max(0, targetDeathBenefitNeed - existingPool);
   const pvOfTargetNeed = targetDeathBenefitNeed;
 
-  const firstRunwayWithdrawal = calculateFirstGrowingWithdrawal(
-    deathBenefitPool,
-    maxCoverageRoi,
-    RUNWAY_WITHDRAWAL_GROWTH_RATE,
-    yearsToRetirement
-  );
-
   // ── Build yearly data — a single schedule drives both modules ─────────────
   const yearlyData: IncomeGapYearlyPoint[] = [];
   let m1TotalReplaced = 0;
   let m1CumulativeGap = 0;
-  let module2Balance = deathBenefitPool;
+  let module2Balance = existingPool;
   let m2TotalReplaced = 0;
   let m2CumulativeGap = 0;
 
@@ -191,16 +163,14 @@ export function calculateIncomeGapScenarios(
     m1CumulativeGap += incomeGap;
 
     // ── Module 2: Coverage Runway Scenario ──────────────────────────────────
-    // Apply annual return first, then take the 3%-growing withdrawal. The
-    // solved first withdrawal amortizes the full pool to $0 at the end age.
+    // Apply annual return first, then attempt to fund the full projected net
+    // income need. This is a resource-runway model, not the Safe Income target.
     module2Balance *= 1 + maxCoverageRoi;
-    const scheduledWithdrawal = firstRunwayWithdrawal * Math.pow(1 + RUNWAY_WITHDRAWAL_GROWTH_RATE, i);
-    const maxCovered = Math.min(module2Balance, scheduledWithdrawal);
-    const incomeReplaced = Math.min(maxCovered, projectedNetIncome);
-    const isCoveredMax = incomeReplaced >= projectedNetIncome && projectedNetIncome > 0;
+    const maxCovered = Math.min(module2Balance, projectedNetIncome);
+    const isCoveredMax = maxCovered >= projectedNetIncome && projectedNetIncome > 0;
     module2Balance = Math.max(0, module2Balance - maxCovered);
-    m2TotalReplaced += incomeReplaced;
-    const m2AnnualGap = Math.max(0, projectedNetIncome - incomeReplaced);
+    m2TotalReplaced += maxCovered;
+    const m2AnnualGap = Math.max(0, projectedNetIncome - maxCovered);
     m2GapStream.push(m2AnnualGap);
     m2CumulativeGap += m2AnnualGap;
 
@@ -271,7 +241,6 @@ export function calculateIncomeGapScenarios(
       survivorGap: m2SurvivorGap,
       deathBenefitNeeded: m2DeathBenefitNeeded,
       maxCoverageRoi,
-      withdrawalGrowthRate: RUNWAY_WITHDRAWAL_GROWTH_RATE,
       roi,
     },
     yearsToRetirement,

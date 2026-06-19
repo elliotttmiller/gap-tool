@@ -176,8 +176,6 @@ export interface IncomeGapModule2 {
   /** Box 5 — Capital required using annual-gap PV logic. */
   deathBenefitNeeded: number;
   maxCoverageRoi: number;
-  /** Fixed annual growth rate applied to the solved runway withdrawal stream. */
-  withdrawalGrowthRate: number;
   roi: number;
 }
 
