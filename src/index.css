@@ -169,6 +169,19 @@
   .light .module-kpi-card [class~="text-slate-500"] { color: #b7cbd4 !important; }
   .light .module-kpi-card [class~="text-slate-600"],
   .light .module-kpi-card [class~="text-slate-700"] { color: #91adba !important; }
+  .light .module-metric-card {
+    border-color: #31586c !important;
+    background: linear-gradient(145deg, #19384c 0%, #122d40 100%) !important;
+    box-shadow: 0 10px 24px rgb(13 27 42 / 0.2);
+  }
+  .light .module-metric-card .module-metric-label { color: #b7cbd4 !important; }
+  .light .module-metric-card .module-metric-description { color: #9fb8c4 !important; }
+  .light .module-metric-card .module-metric-disclosure {
+    color: #8eacb9 !important;
+    border-color: #31586c !important;
+  }
+  .light .module-metric-card .module-metric-value.text-slate-50 { color: #f1f7f8 !important; }
+  .light .module-metric-card .module-metric-value [class~="text-gray-400"] { color: #b7cbd4 !important; }
   .light .analysis-module-summary {
     background: linear-gradient(135deg, #19384c 0%, #122d40 100%) !important;
     border-color: #31586c !important;

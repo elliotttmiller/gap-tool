@@ -103,7 +103,7 @@ function SafeIncomeMetricBoxes({ m1, projectionEndAge, selectedAge }: { m1: Inco
     return (
       <div className="life-metric-grid life-metric-grid--runway">
         <ModuleMetricCard className={compactCardClass} label={`Projected Net Income at Age ${selected.age}`} value={formatCurrency(selected.projectedIncome)} description="Annual projected net income need" accent="slate" />
-        <ModuleMetricCard className={compactCardClass} label={`Safe Income Coverage at Age ${selected.age}`} value={formatRatePctOneDecimal(selectedCoveragePct)} description="Projected income replaced at this age" accent={selectedCoveragePct > 0 ? "green" : "red"} />
+        <ModuleMetricCard className={compactCardClass} label={`Projected Income Replaced at Age ${selected.age}`} value={formatRatePctOneDecimal(selectedCoveragePct)} accent={selectedCoveragePct > 0 ? "green" : "red"} />
         <ModuleMetricCard className={compactCardClass} label={`Income Supported at Age ${selected.age}`} value={formatCurrency(selected.safeIncomeCoverage)} description="Annual income backed by resources" accent="green" />
         <ModuleMetricCard className={compactCardClass} label={`Income Gap at Age ${selected.age}`} value={formatCurrency(selected.incomeGap)} description="Target support minus supported income" accent={selected.incomeGap > 0 ? "red" : "green"} />
         <ModuleMetricCard className={compactCardClass} label={`Cumulative Gap Through Age ${selected.age}`} value={formatCurrency(selected.cumulativeIncomeGap)} description="Running target-income gap" accent={selected.cumulativeIncomeGap > 0 ? "red" : "green"} />
@@ -114,7 +114,7 @@ function SafeIncomeMetricBoxes({ m1, projectionEndAge, selectedAge }: { m1: Inco
   return (
     <div className="life-metric-grid life-metric-grid--runway">
       <ModuleMetricCard className={compactCardClass} label={`Projected Net Income to Age ${projectionEndAge}`} value={formatCurrency(m1.projectedNetIncomeTotal)} description="Full projected net income need" accent="slate" />
-      <ModuleMetricCard className={compactCardClass} label="Safe Income Coverage" value={formatRatePctOneDecimal(annualIncomeReplacementPct)} description="Projected income replaced annually" disclosure="Total safe income supported ÷ total projected income need" accent={annualIncomeReplacementPct > 0 ? "green" : "red"} />
+      <ModuleMetricCard className={compactCardClass} label="Projected Income Replaced" value={formatRatePctOneDecimal(annualIncomeReplacementPct)} disclosure="Total safe income supported ÷ total projected income need" accent={annualIncomeReplacementPct > 0 ? "green" : "red"} />
       <ModuleMetricCard className={compactCardClass} label="Total Income Supported" value={formatCurrency(m1.totalIncomeReplaced)} description="Supported target income stream" accent="green" />
       <ModuleMetricCard className={compactCardClass} label="Survivor Gap" value={formatCurrency(survivorGap)} description="Target support minus supported income" accent={hasGap ? "red" : "green"} />
       <ModuleMetricCard className={compactCardClass} label="Safe Income Capital Gap" value={formatCurrency(m1.additionalDeathBenefitNeeded)} description={`PV capital gap at ${formatRatePctOneDecimal(m1.roi)}`} accent={m1.additionalDeathBenefitNeeded > 0 ? "red" : "green"} />

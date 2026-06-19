@@ -154,13 +154,13 @@ function RiskReviewDrawer({ client, mode = "generate" }: { client: ClientRecord;
     const scenarioId = createScenario({ clientId: client.id, name: `${client.lastName} Household Risk Review`, includedModules: advisorReferenceModules, activeModule: "life" })
     if (scenarioId) navigate(`/scenarios/${scenarioId}/life`)
   }
-  return isRegenerate ? <button aria-label={`Regenerate risk review for ${client.displayName}`} title="Regenerate risk review" className="rounded-md p-1.5 text-blue-400 transition-colors hover:bg-blue-950/30 hover:text-blue-300" onClick={handleClick}><RiRefreshLine className="size-4" aria-hidden="true" /></button> : <Button variant="secondary" onClick={handleClick}>Generate Risk Review</Button>
+  return isRegenerate ? <button aria-label={`Regenerate risk review for ${client.displayName}`} title="Regenerate risk review" className="rounded-md p-1.5 text-[#80d5db] transition-colors hover:bg-brand-500/15 hover:text-[#b0e5e9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400" onClick={handleClick}><RiRefreshLine className="size-4" aria-hidden="true" /></button> : <Button variant="secondary" onClick={handleClick}>Generate Risk Review</Button>
 }
 
 function RemoveClientDrawer({ client, scenarioCount }: { client: ClientRecord; scenarioCount: number }) {
   const archiveClient = useAppStore((state) => state.archiveClient)
   const [open, setOpen] = useState(false)
-  return <Drawer open={open} onOpenChange={setOpen}><DrawerTrigger asChild><button aria-label={`Remove ${client.displayName}`} className="rounded-md p-1.5 text-red-500/60 transition-colors hover:bg-red-950/30 hover:text-red-400"><RiDeleteBinLine className="size-4" aria-hidden="true" /></button></DrawerTrigger><DrawerContent className="sm:max-w-xl"><DrawerHeader><DrawerTitle>Remove Client</DrawerTitle></DrawerHeader><DrawerBody className="space-y-5"><div className="rounded-2xl border border-red-900/60 bg-red-950/20 p-4"><div className="flex items-start gap-3"><div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-red-950 text-red-300 ring-1 ring-red-800/80"><RiAlertLine className="size-5" aria-hidden="true" /></div><div><p className="font-semibold text-red-100">Remove {client.displayName} from the dashboard?</p><p className="mt-1 text-sm leading-6 text-red-200/70">This will archive the client profile and hide it from active client setup and review workflows.</p></div></div></div><div className="rounded-xl border border-gray-800 bg-gray-950/70 p-4"><p className="text-sm font-medium text-gray-100">{client.displayName}</p><p className="mt-1 text-xs text-gray-500">{client.profile.clientType === "couple" ? "Couple" : "Individual"} · {scenarioCount} risk review{scenarioCount === 1 ? "" : "s"}</p></div></DrawerBody><DrawerFooter><Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button><Button variant="destructive" onClick={() => { archiveClient(client.id); setOpen(false) }}><RiDeleteBinLine className="size-4" />Remove Client</Button></DrawerFooter></DrawerContent></Drawer>
+  return <Drawer open={open} onOpenChange={setOpen}><DrawerTrigger asChild><button aria-label={`Remove ${client.displayName}`} title="Remove client" className="rounded-md p-1.5 text-[#fb7185] transition-colors hover:bg-rose-500/15 hover:text-[#fda4af] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-400"><RiDeleteBinLine className="size-4" aria-hidden="true" /></button></DrawerTrigger><DrawerContent className="sm:max-w-xl"><DrawerHeader><DrawerTitle>Remove Client</DrawerTitle></DrawerHeader><DrawerBody className="space-y-5"><div className="rounded-2xl border border-red-900/60 bg-red-950/20 p-4"><div className="flex items-start gap-3"><div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-red-950 text-red-300 ring-1 ring-red-800/80"><RiAlertLine className="size-5" aria-hidden="true" /></div><div><p className="font-semibold text-red-100">Remove {client.displayName} from the dashboard?</p><p className="mt-1 text-sm leading-6 text-red-200/70">This will archive the client profile and hide it from active client setup and review workflows.</p></div></div></div><div className="rounded-xl border border-gray-800 bg-gray-950/70 p-4"><p className="text-sm font-medium text-gray-100">{client.displayName}</p><p className="mt-1 text-xs text-gray-500">{client.profile.clientType === "couple" ? "Couple" : "Individual"} · {scenarioCount} risk review{scenarioCount === 1 ? "" : "s"}</p></div></DrawerBody><DrawerFooter><Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button><Button variant="destructive" onClick={() => { archiveClient(client.id); setOpen(false) }}><RiDeleteBinLine className="size-4" />Remove Client</Button></DrawerFooter></DrawerContent></Drawer>
 }
 
 export function Dashboard() {
@@ -173,5 +173,72 @@ export function Dashboard() {
   const firstScenarioByClientId = useMemo(() => scenarios.reduce<Record<string, { id: string; activeModule: RiskModuleType }>>((acc, scenario) => { if (!acc[scenario.clientId]) acc[scenario.clientId] = { id: scenario.id, activeModule: scenario.activeModule }; return acc }, {}), [scenarios])
   const filteredClients = useMemo(() => { const query = search.trim().toLowerCase(); return query ? clients.filter((client) => client.displayName.toLowerCase().includes(query)) : clients }, [clients, search])
 
-  return <div className="space-y-6"><div className="flex items-center justify-between gap-6"><div><h1 className="text-2xl font-semibold text-gray-50">Client Setup</h1><p className="mt-1 text-sm text-gray-400">Enter client information to generate a personalized gap analysis across all advisor modules.</p></div><AddClientDrawer /></div>{clients.length ? <div className="relative max-w-sm"><RiSearchLine className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search clients..." className="h-9 w-full rounded-lg border border-gray-700 bg-gray-900 pl-9 pr-4 text-sm text-gray-100 outline-none" /></div> : null}{clients.length === 0 ? <Card className="border-dashed border-gray-800 px-6 py-16 text-center"><RiUserLine className="mx-auto mb-3 size-8 text-gray-700" /><h2 className="text-lg font-semibold text-gray-100">No clients yet.</h2><div className="mt-6 flex justify-center"><AddClientDrawer /></div></Card> : <Card className="overflow-hidden p-0"><ul className="divide-y divide-gray-800/60">{filteredClients.map((client) => { const scenarioCount = scenariosByClientId[client.id] ?? 0; const firstScenario = firstScenarioByClientId[client.id]; const hasGeneratedReview = scenarioCount > 0; return <li key={client.id} className="flex items-center gap-4 px-6 py-4"><div className="min-w-0 flex-1"><div className="flex items-center gap-2"><Link to={`/clients/${client.id}/overview`} className="font-medium text-gray-100 transition-colors hover:text-cyan-300 hover:underline" title="View client overview">{client.displayName}</Link><Link to={`/clients/${client.id}/overview`} title="View and edit client overview" className="rounded-md p-1 text-cyan-400 transition-colors hover:bg-cyan-950/30 hover:text-cyan-300"><RiEyeLine className="size-3.5" aria-hidden="true" /></Link></div><p className="text-xs text-gray-500">Updated {formatDate(client.updatedAt)}</p></div><div className="flex items-center gap-2">{firstScenario ? <Link to={`/scenarios/${firstScenario.id}/${firstScenario.activeModule}`} className="text-sm text-blue-400 hover:text-blue-300">Open Review</Link> : null}{hasGeneratedReview ? <RiskReviewDrawer client={client} mode="regenerate" /> : <RiskReviewDrawer client={client} mode="generate" />}<RemoveClientDrawer client={client} scenarioCount={scenarioCount} /></div><RiArrowRightSLine className="size-4 text-gray-700" /></li>})}</ul></Card>}</div>
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-6">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-50">Client Setup</h1>
+          <p className="mt-1 text-sm text-gray-400">Enter client information to generate a personalized gap analysis across all advisor modules.</p>
+        </div>
+        <AddClientDrawer />
+      </div>
+
+      {clients.length ? (
+        <div className="relative max-w-sm">
+          <RiSearchLine className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-500" />
+          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search clients..." className="h-9 w-full rounded-lg border border-gray-700 bg-gray-900 pl-9 pr-4 text-sm text-gray-100 outline-none" />
+        </div>
+      ) : null}
+
+      {clients.length === 0 ? (
+        <Card className="border-dashed border-gray-800 px-6 py-16 text-center">
+          <RiUserLine className="mx-auto mb-3 size-8 text-gray-700" />
+          <h2 className="text-lg font-semibold text-gray-100">No clients yet.</h2>
+          <div className="mt-6 flex justify-center"><AddClientDrawer /></div>
+        </Card>
+      ) : (
+        <Card className="overflow-hidden border-[#41677b] bg-[#24475d] p-0 shadow-[0_14px_34px_rgba(13,27,42,0.22)] dark:border-gray-800 dark:bg-[#090E1A] dark:shadow-sm">
+          {filteredClients.length ? (
+            <ul className="divide-y divide-[#41677b] dark:divide-gray-800/60">
+              {filteredClients.map((client) => {
+                const scenarioCount = scenariosByClientId[client.id] ?? 0
+                const firstScenario = firstScenarioByClientId[client.id]
+                const hasGeneratedReview = scenarioCount > 0
+                return (
+                  <li key={client.id} className="group flex items-center gap-4 px-6 py-4 transition-colors hover:bg-[#2c566e] dark:hover:bg-gray-900/35">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-brand-400/25 bg-brand-500/10 text-[#80d5db] shadow-inner">
+                      <RiUserLine className="size-5" aria-hidden="true" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <Link to={`/clients/${client.id}/overview`} className="truncate font-semibold text-[#f1f7f8] transition-colors hover:text-[#80d5db] hover:underline" title="View client overview">{client.displayName}</Link>
+                        <Link to={`/clients/${client.id}/overview`} aria-label={`View and edit ${client.displayName}`} title="View and edit client overview" className="rounded-md p-1 text-[#40bec7] transition-colors hover:bg-brand-500/15 hover:text-[#b0e5e9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400"><RiEyeLine className="size-3.5" aria-hidden="true" /></Link>
+                      </div>
+                      <div className="mt-1 flex items-center gap-2 text-xs text-[#9fb8c4]">
+                        <span>Updated {formatDate(client.updatedAt)}</span>
+                        <span aria-hidden="true">•</span>
+                        <span>{scenarioCount} review{scenarioCount === 1 ? "" : "s"}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      {firstScenario ? <Link to={`/scenarios/${firstScenario.id}/${firstScenario.activeModule}`} className="rounded-lg border border-brand-400/25 bg-brand-500/10 px-3 py-1.5 text-sm font-semibold text-[#80d5db] transition-colors hover:border-brand-300/50 hover:bg-brand-500/20 hover:text-[#e6f7f8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400">Open Review</Link> : null}
+                      {hasGeneratedReview ? <RiskReviewDrawer client={client} mode="regenerate" /> : <RiskReviewDrawer client={client} mode="generate" />}
+                      <RemoveClientDrawer client={client} scenarioCount={scenarioCount} />
+                    </div>
+                    <RiArrowRightSLine className="size-4 shrink-0 text-[#7896a5] transition-transform group-hover:translate-x-0.5 group-hover:text-[#b0c6cf]" aria-hidden="true" />
+                  </li>
+                )
+              })}
+            </ul>
+          ) : (
+            <div className="px-6 py-12 text-center">
+              <RiSearchLine className="mx-auto size-6 text-[#7896a5]" aria-hidden="true" />
+              <p className="mt-3 text-sm font-semibold text-[#f1f7f8]">No clients match “{search}”</p>
+              <button type="button" onClick={() => setSearch("")} className="mt-2 text-xs font-medium text-[#80d5db] hover:text-[#b0e5e9]">Clear search</button>
+            </div>
+          )}
+        </Card>
+      )}
+    </div>
+  )
 }
