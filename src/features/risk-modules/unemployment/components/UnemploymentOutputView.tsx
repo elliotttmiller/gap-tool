@@ -44,10 +44,10 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <CardTitle className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
-              Emergency Reserve Position
+              Emergency Reserve Target Visualization
             </CardTitle>
             <p className="mt-1 text-xs leading-snug text-slate-400">
-              Current emergency savings compared with the 6-month replacement target
+              Current reserves measured against the 3-month and 6-month targets
             </p>
           </div>
           <div className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold ${status.tone}`}>{status.label}</div>
@@ -75,24 +75,30 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
 }
 
 export function UnemploymentOutputView({ outputs }: UnemploymentOutputViewProps) {
-  const runwayAccent: "green" | "cyan" | "red" = outputs.reserveMonthsCurrent < 3 ? "red" : outputs.reserveMonthsCurrent < outputs.idealReserveMonths ? "cyan" : "green"
+  const monthlyGap = Math.max(0, outputs.monthlyBurnRate - outputs.remainingIncome)
+  const threeMonthTarget = monthlyGap * 3
+  const sixMonthTarget = monthlyGap * 6
+  const currentRunway = monthlyGap > 0 ? outputs.currentReserveLevel / monthlyGap : 0
+  const runwayAccent: "green" | "cyan" | "red" = currentRunway < 3 ? "red" : currentRunway < 6 ? "cyan" : "green"
 
   return (
     <div className="unemployment-output-container">
+      {/* Advisor-approved target row: exactly two metrics above the visualization. */}
       <div className="grid grid-cols-2 gap-3">
-        <ModuleMetricCard className={compactCardClass} label="3 Month Target" value={formatCurrency(outputs.minimumReserveTarget)} description="Monthly gap × 3" accent="cyan" />
-        <ModuleMetricCard className={compactCardClass} label="6 Month Target" value={formatCurrency(outputs.idealReserveTarget)} description="Monthly gap × 6" accent="green" />
+        <ModuleMetricCard label="3 Month Target" value={formatCurrency(threeMonthTarget)} description="Monthly gap × 3" accent="cyan" />
+        <ModuleMetricCard label="6 Month Target" value={formatCurrency(sixMonthTarget)} description="Monthly gap × 6" accent="green" />
       </div>
 
       <div className="mt-3">
         <ReservePositionPanel outputs={outputs} />
       </div>
 
-      <div className="unemployment-metric-grid mt-3">
+      {/* Advisor-approved result row: exactly four metrics below the visualization. */}
+      <div className="mt-3 grid grid-cols-4 gap-3">
         <ModuleMetricCard className={compactCardClass} label="Remaining Income" value={`${formatCurrency(outputs.remainingIncome)}/mo`} description="Net household income remaining" accent={outputs.remainingIncome > 0 ? "cyan" : "red"} />
-        <ModuleMetricCard className={compactCardClass} label="Monthly Gap" value={`${formatCurrency(outputs.monthlyExpenseReplacement)}/mo`} description="Total expenses − remaining income" accent={outputs.monthlyExpenseReplacement > 0 ? "red" : "green"} />
+        <ModuleMetricCard className={compactCardClass} label="Monthly Gap" value={`${formatCurrency(monthlyGap)}/mo`} description="Total expenses − remaining income" accent={monthlyGap > 0 ? "red" : "green"} />
         <ModuleMetricCard className={compactCardClass} label="Current Reserves" value={formatCurrency(outputs.currentReserveLevel)} description="Current emergency reserves" accent={outputs.currentReserveLevel > 0 ? "cyan" : "red"} />
-        <ModuleMetricCard className={compactCardClass} label="Current Runway" value={formatMonths(outputs.reserveMonthsCurrent)} description="Reserves ÷ monthly gap" accent={runwayAccent} />
+        <ModuleMetricCard className={compactCardClass} label="Current Runway" value={formatMonths(currentRunway)} description="Reserves ÷ monthly gap" accent={runwayAccent} />
       </div>
 
       <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
