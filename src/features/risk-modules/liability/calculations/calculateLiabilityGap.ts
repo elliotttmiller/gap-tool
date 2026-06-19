@@ -65,22 +65,21 @@ export function calculateLiabilityGap(inputs: LiabilityInputs): LiabilityOutputs
   );
   const householdWageGarnishmentRisk = exposureSchedule.at(-1)?.cumulativeExposure ?? 0;
 
+  const homeEquity = Math.max(inputs.homeEquity ?? 0, 0);
+  const investmentAssets = Math.max(inputs.investmentAssets ?? 0, 0);
+  const savingsAssets = Math.max(inputs.savingsAssets ?? 0, 0);
   const businessOwnershipValue = Math.max(inputs.businessOwnershipValue ?? 0, 0);
-  const nonQualifiedAssetsAtRisk = Math.max(
-    inputs.nonQualifiedAssets ?? inputs.investmentAssets + inputs.savingsAssets + businessOwnershipValue,
-    0,
-  );
-  const totalHouseholdLiabilityRisk = householdWageGarnishmentRisk + nonQualifiedAssetsAtRisk;
+  const extendedAssetsAtRisk = homeEquity + investmentAssets + savingsAssets + businessOwnershipValue;
+  const legacyNonQualifiedAssets = Math.max(inputs.nonQualifiedAssets ?? 0, 0);
+  const otherAssetsAtRisk = extendedAssetsAtRisk > 0 ? extendedAssetsAtRisk : legacyNonQualifiedAssets;
+
+  const totalHouseholdLiabilityRisk = householdWageGarnishmentRisk + otherAssetsAtRisk;
   const householdAutoLiabilityCoverage = Math.max(inputs.autoLiabilityLimit ?? 0, 0);
   const householdUmbrellaCoverage = Math.max(inputs.umbrellaCoverage ?? 0, 0);
   const householdTotalCoverage = householdAutoLiabilityCoverage + householdUmbrellaCoverage;
   const householdLiabilityGap = Math.max(totalHouseholdLiabilityRisk - householdTotalCoverage, 0);
 
-  const homeEquity = Math.max(inputs.homeEquity ?? 0, 0);
-  const totalAtRiskAssets = Math.max(
-    homeEquity + (inputs.investmentAssets ?? 0) + (inputs.savingsAssets ?? 0) + businessOwnershipValue,
-    nonQualifiedAssetsAtRisk,
-  );
+  const totalAtRiskAssets = otherAssetsAtRisk;
   const primaryCoverage = householdAutoLiabilityCoverage;
   const totalCoverage = primaryCoverage + householdUmbrellaCoverage;
   const totalExposure = totalHouseholdLiabilityRisk;
@@ -88,13 +87,10 @@ export function calculateLiabilityGap(inputs: LiabilityInputs): LiabilityOutputs
   const erodedAssets = Math.min(coverageGap, totalAtRiskAssets);
   const wealthErosionPercentage = totalAtRiskAssets > 0 ? erodedAssets / totalAtRiskAssets : 0;
 
-  const netWorthAtRisk = Math.max(nonQualifiedAssetsAtRisk + homeEquity, 0);
-  const incomeMultipleTarget = Math.max((inputs.annualIncome ?? 0) * 5, 0);
   const modeledExposureAfterAuto = Math.max(totalHouseholdLiabilityRisk - householdAutoLiabilityCoverage, 0);
   const rawIllustrativeNeed = Math.max(
     modeledExposureAfterAuto,
-    netWorthAtRisk,
-    incomeMultipleTarget,
+    otherAssetsAtRisk,
     umbrellaBlockSize,
   );
   const illustrativeUmbrellaCoverageLevel =
@@ -111,7 +107,7 @@ export function calculateLiabilityGap(inputs: LiabilityInputs): LiabilityOutputs
     erodedAssets,
     wealthErosionPercentage,
     householdWageGarnishmentRisk,
-    nonQualifiedAssetsAtRisk,
+    nonQualifiedAssetsAtRisk: otherAssetsAtRisk,
     totalHouseholdLiabilityRisk,
     householdAutoLiabilityCoverage,
     householdUmbrellaCoverage,
