@@ -64,10 +64,6 @@ export function LiabilityInputForm({ inputs, onChange }: LiabilityInputFormProps
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="nonQualifiedAssets" className="whitespace-nowrap">Non-Qualified Assets</Label>
-            <Input id="nonQualifiedAssets" type="number" prefix="$" value={inputs.nonQualifiedAssets || ""} className="w-full" onChange={(e) => handleChange("nonQualifiedAssets", e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-2">
             <Label htmlFor="autoLiabilityLimit" className="whitespace-nowrap">Auto Liability Limit</Label>
             <Input id="autoLiabilityLimit" type="number" prefix="$" value={inputs.autoLiabilityLimit || ""} className="w-full" onChange={(e) => handleChange("autoLiabilityLimit", e.target.value)} />
           </div>
