@@ -144,7 +144,7 @@ Shared reusable UI belongs in `src/components/`. Smaller UI primitives can live 
 
 ### Copy And Compliance
 
-Use illustrative language. Avoid wording that implies the app is issuing a formal recommendation. For example, Liability output should use "Illustrative Umbrella Coverage Level" rather than "Recommended Umbrella."
+Use illustrative language. Avoid wording that implies the app is issuing a formal recommendation. For example, Liability output may use "Needed Umbrella" for the remaining coverage gap rounded to a $1M block, but must not use "Recommended Umbrella."
 
 When wording affects compliance posture, place it in shared advisor-safe copy or module constants rather than writing one-off text inside a component.
 

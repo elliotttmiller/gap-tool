@@ -33,8 +33,8 @@ const moduleLabels: Record<RiskModuleType, string> = {
 const formulaVersions: Record<RiskModuleType, string> = {
   life: "life-v1.0.0",
   disability: "di-v1.0.0",
-  unemployment: "unemployment-v1.0.0",
-  liability: "liability-v1.0.0",
+  unemployment: "unemployment-v1.1.0",
+  liability: "liability-v1.1.0",
 }
 
 function titleCase(value: string) {

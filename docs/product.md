@@ -64,7 +64,7 @@ The output includes reserve targets, reserve gap or excess reserve, cash-flow st
 
 The Liability module models illustrative household liability exposure. It uses income, spouse income, current age, retirement age, home equity, non-qualified/investment/savings assets, business ownership value, auto liability coverage, umbrella coverage, disposable-income ratio, wage garnishment rate, and income growth.
 
-The active methodology applies garnishment exposure to estimated disposable income rather than gross income. It also rounds illustrative umbrella coverage levels to common $1M umbrella policy blocks. Copy should avoid recommendation language and use labels such as "Illustrative Umbrella Coverage Level."
+The active methodology applies garnishment exposure to estimated disposable income rather than gross income. Total current coverage combines auto and existing umbrella limits, and Needed Umbrella rounds the remaining coverage gap up to the next $1M policy block. Copy avoids recommendation language and presents this as an illustrative gap calculation.
 
 ## Methodology Principles
 

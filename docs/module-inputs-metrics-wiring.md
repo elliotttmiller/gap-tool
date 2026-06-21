@@ -487,9 +487,9 @@ Visible output | Reserve-position gauge, reserve cards, cash-flow cards, runway/
 | Monthly Cash Flow | Both modeled net incomes − monthly expenses | Both incomes, net ratio, expenses |
 | Income Coverage | Remaining lower-earner net income ÷ expenses | Income concentration and expenses |
 | Remaining Income | Lower earner's modeled net monthly income | Both incomes and net ratio |
-| Reserve Runway | Emergency savings ÷ monthly expenses | Savings and expenses only |
+| Reserve Runway | Emergency savings ÷ monthly gap | Savings, expenses, and remaining income |
 | Reserve Gap / Excess | Difference from dynamic ideal target | Savings, expenses, remaining-income band |
-| Ideal Target | Expenses × 3–6 target months | Expenses and income-coverage band |
+| Ideal Target | Monthly gap × 3–6 target months | Expenses, remaining income, and income-coverage band |
 | Search Runway | Count of modeled search months without a shortfall | Search duration, offsets, savings, expenses |
 | Search Shortfall | Required search cash − savings | Search duration, offsets, savings, expenses |
 | Reserve-position bar | Current runway relative to minimum/ideal targets | Reserve months and target band |
@@ -504,25 +504,20 @@ Assets at risk | Prefer `nonQualifiedAssets`; only fall back to investment + sav
 Total risk | Lifetime cumulative wage garnishment + non-qualified assets at risk.
 Coverage | Auto liability limit + existing umbrella coverage.
 Coverage gap | `max(0, total risk − total coverage)`.
-Umbrella illustration | Round the largest of after-auto exposure, net worth at risk, 5× primary income, or $1M up to a $1M block.
-Visible output | Two-column protection stack, covered percentage, six metric cards, and disclosure.
+Umbrella need | Round the remaining coverage gap up to the next $1M block; return zero when there is no gap.
+Visible output | Two-column protection stack, covered percentage, four simplified metric cards, and disclosure.
 :::
 
 | Visible metric/visual | Exact source or formula | What impacts it |
 |---|---|---|
-| Wage Garnishment Risk | Final cumulative wage schedule | Incomes, ages, end age, growth, disposable ratio, garnishment rate |
-| Assets at Risk | `nonQualifiedAssetsAtRisk` | Usually the direct non-qualified-assets field |
-| Total Exposure | UI fallback around total household risk | Wage risk and assets, with zero-risk defect below |
+| Total Exposure | Total household liability risk | Wage risk and assets |
+| Total Current Coverage | Auto liability + existing umbrella | Both coverage inputs |
 | Coverage Gap | Total household risk − auto − umbrella | Exposure and coverage |
-| Umbrella Target | Rounded maximum methodology target | Exposure, home equity/net worth, primary income |
-| Umbrella Needed | Target − current umbrella | Target and current umbrella |
+| Needed Umbrella | Coverage gap rounded up to the next $1M block | Coverage gap |
 | Current Auto Only chart | Auto coverage plus pre-umbrella gap | Total risk and auto coverage |
 | With Umbrella chart | Auto + umbrella + remaining gap | Total risk and both coverages |
 
-**Visualization defects and omissions:**
-
-1. When `totalHouseholdLiabilityRisk` is zero, the view uses `householdTotalCoverage + householdLiabilityGap` as a fallback. Existing coverage can therefore be displayed as “Total Exposure,” and coverage can appear 100% even though modeled exposure is $0.
-2. `nonQualifiedAssets` is normally initialized to a number, including zero. That prevents the fallback from adding investment assets, savings, and business ownership to `nonQualifiedAssetsAtRisk`. Home equity and business ownership can affect the umbrella target or unused `totalAtRiskAssets` while remaining absent from the visible “Assets at Risk” and “Total Exposure” metrics.
+The metric row intentionally presents only total exposure, total current coverage, coverage gap, and needed umbrella. Component-level wage and asset details remain available in calculated outputs and the Analysis Center.
 
 ### Presentation module tabs and printed output
 

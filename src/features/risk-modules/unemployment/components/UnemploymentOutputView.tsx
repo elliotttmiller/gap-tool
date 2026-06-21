@@ -37,6 +37,7 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
   const minimumPct = Math.min(100, (3 / gaugeMaxMonths) * 100)
   const idealPct = Math.min(100, (idealMonths / gaugeMaxMonths) * 100)
   const status = getReserveStatus(reserveMonths, idealMonths)
+  const targetLabel = idealMonths === 3 ? "3 mo minimum / ideal" : `${idealMonths} mo ideal`
 
   return (
     <Card className="unemployment-chart-panel border-slate-800/80 bg-slate-950/60">
@@ -47,7 +48,7 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
               Emergency Reserve Target Visualization
             </CardTitle>
             <p className="mt-1 text-xs leading-snug text-slate-400">
-              Current reserves measured against the 3-month and 6-month targets
+              Current reserves measured against the monthly-gap minimum and income-adjusted ideal
             </p>
           </div>
           <div className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold ${status.tone}`}>{status.label}</div>
@@ -65,8 +66,8 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
           </div>
           <div className="relative mt-2 h-4 text-[10px] font-medium text-slate-500">
             <span className="absolute left-0">0 mo</span>
-            <span className="absolute -translate-x-1/2" style={{ left: `${minimumPct}%` }}>3 mo minimum</span>
-            <span className="absolute right-0">6+ mo ideal</span>
+            <span className="absolute -translate-x-1/2" style={{ left: `${minimumPct}%` }}>{idealMonths === 3 ? targetLabel : "3 mo minimum"}</span>
+            {idealMonths !== 3 ? <span className="absolute -translate-x-1/2" style={{ left: `${idealPct}%` }}>{targetLabel}</span> : null}
           </div>
         </div>
       </CardContent>
@@ -76,8 +77,6 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
 
 export function UnemploymentOutputView({ outputs }: UnemploymentOutputViewProps) {
   const monthlyGap = Math.max(0, outputs.monthlyBurnRate - outputs.remainingIncome)
-  const threeMonthTarget = monthlyGap * 3
-  const sixMonthTarget = monthlyGap * 6
   const currentRunway = monthlyGap > 0 ? outputs.currentReserveLevel / monthlyGap : 0
   const runwayAccent: "green" | "cyan" | "red" = currentRunway < 3 ? "red" : currentRunway < 6 ? "cyan" : "green"
 
@@ -85,8 +84,8 @@ export function UnemploymentOutputView({ outputs }: UnemploymentOutputViewProps)
     <div className="unemployment-output-container">
       {/* Advisor-approved target row: exactly two metrics above the visualization. */}
       <div className="grid grid-cols-2 gap-3">
-        <ModuleMetricCard label="3 Month Target" value={formatCurrency(threeMonthTarget)} description="Monthly gap × 3" accent="cyan" />
-        <ModuleMetricCard label="6 Month Target" value={formatCurrency(sixMonthTarget)} description="Monthly gap × 6" accent="green" />
+        <ModuleMetricCard label="3 Month Minimum" value={formatCurrency(outputs.minimumReserveTarget)} description="Monthly gap × 3" accent="cyan" />
+        <ModuleMetricCard label={`${outputs.idealReserveMonths} Month Ideal`} value={formatCurrency(outputs.idealReserveTarget)} description={`Monthly gap × ${outputs.idealReserveMonths}`} accent="green" />
       </div>
 
       <div className="mt-3">

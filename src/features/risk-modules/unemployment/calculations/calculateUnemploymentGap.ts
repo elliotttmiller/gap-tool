@@ -1,8 +1,6 @@
 import { UnemploymentInputs, UnemploymentOutputs } from "../types";
 import { defaultUnemploymentMethodologyAssumptions } from "@/domain/assumptions/defaultAssumptions";
 
-const IDEAL_RESERVE_MONTHS = 6;
-const MINIMUM_RESERVE_MONTHS = 3;
 const DANGER_RESERVE_MONTHS = 1.5;
 
 export function calculateUnemploymentGap(inputs: UnemploymentInputs): UnemploymentOutputs {
@@ -28,7 +26,7 @@ export function calculateUnemploymentGap(inputs: UnemploymentInputs): Unemployme
 
   // Advisor-updated reserve method:
   // If the highest income goes away, subtract the lower remaining net income from
-  // monthly expenses. The reserve target is 6 months of that replacement need.
+  // monthly expenses. The reserve target is a tiered 3-6 multiples of that gap.
   const incomeAtRisk = Math.max(annualIncome, spouseIncome);
   const hasTwoIncomes = annualIncome > 0 && spouseIncome > 0;
   const lowestSpousalNetIncome = hasTwoIncomes
@@ -38,8 +36,15 @@ export function calculateUnemploymentGap(inputs: UnemploymentInputs): Unemployme
   const monthlyExpenseReplacement = Math.max(0, monthlyBurnRate - remainingIncome);
   const remainingIncomeCoveragePct = monthlyBurnRate > 0 ? remainingIncome / monthlyBurnRate : 1;
 
-  const minimumReserveMonths = MINIMUM_RESERVE_MONTHS;
-  const idealReserveMonths = IDEAL_RESERVE_MONTHS;
+  const minimumReserveMonths = defaultUnemploymentMethodologyAssumptions.minimumReserveMonths;
+  const reserveBands = defaultUnemploymentMethodologyAssumptions.reserveCoverageBands;
+  const idealReserveMonths = remainingIncomeCoveragePct < 0.33
+    ? reserveBands.under33
+    : remainingIncomeCoveragePct < 0.5
+      ? reserveBands.under50
+      : remainingIncomeCoveragePct < 0.67
+        ? reserveBands.under67
+        : reserveBands.over67;
   const minimumReserveTarget = monthlyExpenseReplacement * minimumReserveMonths;
   const idealReserveTarget = monthlyExpenseReplacement * idealReserveMonths;
   const reserveGap = Math.max(0, idealReserveTarget - emergencySavings);

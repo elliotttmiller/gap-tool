@@ -27,20 +27,20 @@ export const advisorSafeCopy = {
     wageGarnishmentDisclosure:
       "Wage Garnishment Risk uses a simplified disposable-earnings proxy: garnishment is applied to an estimated 65% of gross income. Actual garnishable earnings and garnishment limits vary by jurisdiction and case type. This figure is illustrative only.",
     umbrellaBlocks:
-      "Umbrella coverage is commonly issued in $1M increments. This illustrative level rounds the modeled exposure gap to the next whole $1M block.",
+      "Umbrella coverage is commonly issued in $1M increments. Needed Umbrella rounds the remaining modeled coverage gap to the next whole $1M block.",
     illustrativeUmbrellaLabel:
-      "Illustrative Umbrella Coverage Level",
+      "Needed Umbrella",
     illustrativeUmbrellaDescription:
-      "Rounded to the next $1M umbrella policy block based on modeled household liability exposure.",
+      "Remaining modeled coverage gap rounded to the next $1M umbrella policy block.",
     umbrellaNeededDescription:
-      "Illustrative Umbrella Coverage Level minus existing umbrella coverage. Umbrella policies are typically available in $1M blocks.",
+      "Coverage gap rounded up to a $1M block.",
     notRecommendation:
       "Umbrella coverage levels shown are illustrative. Consult a licensed insurance professional for actual coverage guidance.",
   },
 
   unemployment: {
     dynamicTarget:
-      "The ideal reserve target is 3–6 months of household expenses. The specific target depends on how much remaining household income would continue if the highest earner lost their job.",
+      "The ideal reserve target is 3–6 multiples of the monthly gap after remaining household income. The specific target depends on how much income would continue if the highest earner lost their job.",
     reserveBandExplanation: (months: number, coveragePct: number): string => {
       const pct = Math.round(coveragePct * 100)
       return `With remaining household income covering approximately ${pct}% of monthly expenses, an ideal emergency reserve of ${months} months is modeled.`
@@ -50,7 +50,7 @@ export const advisorSafeCopy = {
     netIncomeProxy:
       "Remaining income is estimated using a 65% net income proxy. Actual net income varies by jurisdiction and tax situation.",
     minimumNote:
-      "A minimum of 3 months of household expenses is the baseline reserve threshold regardless of household income structure.",
+      "Three times the monthly gap is the baseline reserve threshold regardless of household income structure.",
     reserveDisclosure:
       "Reserve targets and search-period shortfall are illustrative estimates. Actual needs vary based on benefit eligibility, severance terms, and local cost of living.",
   },

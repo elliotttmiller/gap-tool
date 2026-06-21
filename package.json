@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "tsc --noEmit && vite build",
+    "test:formulas": "tsx scripts/verify-advisor-formulas.ts",
     "docs:module-wiring": "node scripts/generate-module-wiring-html.mjs",
     "preview": "vite preview",
     "lint": "tsc --noEmit"

@@ -12,7 +12,7 @@ This revision moves the application from the June 17 advisor-review baseline to 
 ### 1. Advisor Methodology Alignment
 
 - **Life Insurance:** Safe Income Coverage now calculates capital required from the present value of the modeled income-support stream. Coverage status, remaining capital gap, charts, and summary metrics use the same threshold.
-- **Unemployment:** Emergency reserve targets now use the household's monthly expense replacement need after remaining spousal net income. The model uses a 3-month minimum and 6-month ideal reserve target.
+- **Unemployment:** Emergency reserve targets use the household's monthly gap after remaining spousal net income. The model uses a 3-month minimum and a tiered 3-6 month ideal based on remaining-income coverage.
 - **Liability:** Assets at risk now use the entered home equity, investments, savings, and business ownership values without the previous income-multiple target. Coverage and umbrella need are based on the resulting modeled exposure.
 
 ### 2. Calculation Analysis Center

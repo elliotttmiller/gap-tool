@@ -54,17 +54,17 @@ export const advisorFormulaRegistry: FormulaDefinition[] = [
   {
     id: "liability-umbrella-blocks",
     module: "liability",
-    label: "Illustrative Umbrella Coverage Level",
-    description: "Rounds the modeled exposure level to common umbrella policy blocks.",
-    formulaText: "coverageLevel = ceil(rawIllustrativeNeed / umbrellaBlockSize) * umbrellaBlockSize",
+    label: "Needed Umbrella",
+    description: "Rounds the remaining coverage gap up to a purchasable umbrella policy block.",
+    formulaText: "neededUmbrella = coverageGap > 0 ? ceil(coverageGap / umbrellaBlockSize) * umbrellaBlockSize : 0",
     assumptions: ["umbrellaBlockSize"],
   },
   {
     id: "unemployment-income-concentration-reserve",
     module: "unemployment",
     label: "Income Concentration Reserve Target",
-    description: "Maps remaining household income coverage to a 3-6 month ideal reserve target.",
-    formulaText: "remainingIncomeCoveragePct = remainingNetMonthlyIncome / monthlyExpenses",
+    description: "Maps remaining household income coverage to a 3-6 multiple of the monthly gap.",
+    formulaText: "monthlyGap = max(0, monthlyExpenses - remainingNetMonthlyIncome); idealReserveTarget = monthlyGap * tieredIdealMonths",
     assumptions: ["netIncomeRatio", "minimumReserveMonths", "reserveCoverageBands"],
   },
 ]

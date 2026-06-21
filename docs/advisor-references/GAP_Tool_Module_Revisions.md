@@ -281,10 +281,10 @@ coverageRatio = remainingIncome / monthlyExpenses
 
 | Coverage Ratio | Ideal Savings Target |
 |---|---|
-| Less than 33% | 6 months of expenses |
-| 33% to less than 50% | 5 months of expenses |
-| 50% to less than 67% | 4 months of expenses |
-| 67% or greater | 3 months of expenses |
+| Less than 33% | 6 × monthly gap |
+| 33% to less than 50% | 5 × monthly gap |
+| 50% to less than 67% | 4 × monthly gap |
+| 67% or greater | 3 × monthly gap |
 
 **Logic rationale:** At each tier threshold, remaining income covers approximately 2, 3, or 4 months of expenses independently, making those months of savings genuinely redundant. The tier levels reflect mathematically meaningful breakpoints rather than arbitrary steps.
 
@@ -308,8 +308,8 @@ If no secondary income is entered (or secondary income = $0), the tool defaults 
 **Calculation:**
 - Coverage ratio: $5,417 / $20,000 = 27.1%
 - 27.1% < 33% → **Ideal savings target: 6 months**
-- Dollar target: $20,000 × 6 = **$120,000**
 - Monthly shortfall if primary income lost: $20,000 − $5,417 = **$14,583/month**
+- Dollar target: $14,583 × 6 = **$87,500**
 
 This example should be used as a QA test case when implementing the tiered formula.
 

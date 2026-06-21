@@ -39,9 +39,10 @@ function formatLiabilityMetric(value: number): string {
 
 export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
   const chartData = transformLiabilityChartData(outputs)
-  const totalRisk = outputs.totalHouseholdLiabilityRisk || outputs.householdTotalCoverage + outputs.householdLiabilityGap
+  const totalRisk = outputs.totalHouseholdLiabilityRisk
   const coveragePct = totalRisk > 0 ? Math.min(100, (outputs.householdTotalCoverage / totalRisk) * 100) : 0
-  const garnishPct = Math.round((outputs.assumptionGarnishmentRate ?? 0.25) * 100)
+  const neededUmbrellaCoverage = outputs.neededUmbrellaCoverage
+    ?? (outputs.householdLiabilityGap > 0 ? Math.ceil(outputs.householdLiabilityGap / 1_000_000) * 1_000_000 : 0)
 
   return (
     <div className="liability-output-container">
@@ -96,37 +97,37 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
         <div className="liability-metric-grid">
           <ModuleMetricCard
             className={compactCardClass}
-            label="Wage Garnishment Risk"
-            value={formatLiabilityMetric(outputs.householdWageGarnishmentRisk)}
-            description={`${garnishPct}% of disposable income`}
-            accent="red"
-          />
-          <ModuleMetricCard
-            className={compactCardClass}
-            label="Other Assets at Risk"
-            value={formatLiabilityMetric(outputs.nonQualifiedAssetsAtRisk)}
-            description="Home equity + taxable/liquid/business assets"
-            accent="red"
-          />
-          <ModuleMetricCard
-            className={compactCardClass}
-            label="Total Liability Exposure"
+            label="Total Exposure"
             value={formatLiabilityMetric(totalRisk)}
-            description="Garnishment + other assets"
+            description="Projected wage exposure + assets at risk"
             accent="cyan"
           />
           <ModuleMetricCard
             className={compactCardClass}
-            label="Unprotected Liability Gap"
+            label="Total Current Coverage"
+            value={formatLiabilityMetric(outputs.householdTotalCoverage)}
+            description="Auto liability + existing umbrella"
+            accent={outputs.householdTotalCoverage > 0 ? "green" : "red"}
+          />
+          <ModuleMetricCard
+            className={compactCardClass}
+            label="Coverage Gap"
             value={formatLiabilityMetric(outputs.householdLiabilityGap)}
             description="Exposure minus current coverage"
             accent={outputs.householdLiabilityGap > 0 ? "red" : "green"}
+          />
+          <ModuleMetricCard
+            className={compactCardClass}
+            label="Needed Umbrella"
+            value={formatLiabilityMetric(neededUmbrellaCoverage)}
+            description={advisorSafeCopy.liability.umbrellaNeededDescription}
+            accent={neededUmbrellaCoverage > 0 ? "red" : "green"}
           />
         </div>
       </div>
 
       <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
-        {advisorSafeCopy.liability.notRecommendation} Wage garnishment uses a simplified disposable-income proxy; actual garnishment rules vary by jurisdiction and case type. Umbrella coverage is generally discussed in $1M blocks outside this illustrative model.
+        {advisorSafeCopy.liability.notRecommendation} Wage garnishment uses a simplified disposable-income proxy; actual garnishment rules vary by jurisdiction and case type. {advisorSafeCopy.liability.umbrellaBlocks}
       </p>
     </div>
   )

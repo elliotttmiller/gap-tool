@@ -87,15 +87,13 @@ export function calculateLiabilityGap(inputs: LiabilityInputs): LiabilityOutputs
   const erodedAssets = Math.min(coverageGap, totalAtRiskAssets);
   const wealthErosionPercentage = totalAtRiskAssets > 0 ? erodedAssets / totalAtRiskAssets : 0;
 
-  const modeledExposureAfterAuto = Math.max(totalHouseholdLiabilityRisk - householdAutoLiabilityCoverage, 0);
-  const rawIllustrativeNeed = Math.max(
-    modeledExposureAfterAuto,
-    otherAssetsAtRisk,
-    umbrellaBlockSize,
-  );
-  const illustrativeUmbrellaCoverageLevel =
-    Math.ceil(rawIllustrativeNeed / umbrellaBlockSize) * umbrellaBlockSize;
-  const umbrellaCoverageShortfall = Math.max(illustrativeUmbrellaCoverageLevel - householdUmbrellaCoverage, 0);
+  // Additional umbrella need is the remaining gap rounded up to the next
+  // purchasable $1M policy block. A fully covered household has no added need.
+  const neededUmbrellaCoverage = householdLiabilityGap > 0
+    ? Math.ceil(householdLiabilityGap / umbrellaBlockSize) * umbrellaBlockSize
+    : 0;
+  const illustrativeUmbrellaCoverageLevel = householdUmbrellaCoverage + neededUmbrellaCoverage;
+  const umbrellaCoverageShortfall = neededUmbrellaCoverage;
 
   return {
     exposureSchedule,
@@ -113,6 +111,7 @@ export function calculateLiabilityGap(inputs: LiabilityInputs): LiabilityOutputs
     householdUmbrellaCoverage,
     householdTotalCoverage,
     householdLiabilityGap,
+    neededUmbrellaCoverage,
     illustrativeUmbrellaCoverageLevel,
     umbrellaCoverageShortfall,
     assumptionGarnishmentRate: garnishmentRate,

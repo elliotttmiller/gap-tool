@@ -50,7 +50,7 @@ export interface UnemploymentOutputs {
   // ── Reserve target outputs ────────────────────────────────────────────────
   /** Minimum reserve target: 3 months of monthly expense replacement. */
   minimumReserveTarget: number;
-  /** Ideal reserve target months. */
+  /** Tiered ideal reserve months based on remaining-income coverage: 6, 5, 4, or 3. */
   idealReserveMonths: number;
   /** Ideal reserve target: monthlyExpenseReplacement × idealReserveMonths. */
   idealReserveTarget: number;

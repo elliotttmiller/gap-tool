@@ -69,7 +69,7 @@ export function LiabilityInputForm({ inputs, onChange }: LiabilityInputFormProps
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="umbrellaCoverage" className="whitespace-nowrap">Existing Umbrella Coverage</Label>
-            <Input id="umbrellaCoverage" type="number" prefix="$" value={inputs.umbrellaCoverage || ""} className="w-full" onChange={(e) => handleChange("umbrellaCoverage", e.target.value)} />
+            <Input id="umbrellaCoverage" type="number" min={0} step={1_000_000} prefix="$" value={inputs.umbrellaCoverage || ""} className="w-full" onChange={(e) => handleChange("umbrellaCoverage", e.target.value)} />
           </div>
       </CollapsibleInputSection>
 
