@@ -197,9 +197,14 @@ function ModuleInputSpecs({
                     </div>
                   </div>
                 ) : (
-                  <select aria-label={spec.label} value={String(spec.rawValue)} onChange={(event) => onInputChange(spec.field, spec.field === "ltdTaxable" ? event.target.value === "true" : event.target.value)} className="presentation-input-control mt-1 h-7 w-full rounded-md border px-1.5 text-xs font-semibold outline-none">
-                    {spec.options?.map((option) => <option key={option.value || "empty"} value={option.value}>{option.label}</option>)}
-                  </select>
+                  <ThemedSelect
+                    ariaLabel={spec.label}
+                    value={String(spec.rawValue)}
+                    onValueChange={(value) => onInputChange(spec.field, spec.field === "ltdTaxable" ? value === "true" : value)}
+                    options={spec.options ?? []}
+                    className="presentation-input-control mt-1 h-7 w-full min-w-0 border px-2 py-0 text-xs font-semibold shadow-none"
+                    contentClassName="presentation-policy-menu z-50 border-[#31586c] bg-[#102d3f] text-white shadow-[0_16px_36px_rgba(5,24,36,0.32)]"
+                  />
                 )
               ) : (
                 <p className="presentation-input-value mt-1 truncate text-sm font-semibold leading-tight text-gray-100" title={spec.value}>{spec.value}</p>
