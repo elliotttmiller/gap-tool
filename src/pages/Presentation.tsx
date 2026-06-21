@@ -1,13 +1,16 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Link, useParams } from "react-router-dom"
 import { ArrowLeft, BriefcaseBusiness, HeartPulse, Scale, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ThemedSelect } from "@/components/ThemedSelect"
 import { LifeOutputView } from "@/features/risk-modules/life/components/LifeOutputView"
 import { calculateLifeInsuranceGap } from "@/features/risk-modules/life/calculations/calculateLifeInsuranceGap"
 import { calculateIncomeGapScenarios } from "@/features/risk-modules/life/calculations/calculateIncomeGapScenarios"
 import { sanitizeLifeInputs } from "@/features/risk-modules/life/utils/sanitizeLifeInputs"
+import type { LifePolicyType } from "@/features/risk-modules/life/types"
 import { DisabilityOutputView } from "@/features/risk-modules/disability/components/DisabilityOutputView"
 import { calculateDisabilityGap } from "@/features/risk-modules/disability/calculations/calculateDisabilityGap"
+import type { DiBenefitPeriod } from "@/features/risk-modules/disability/types"
 import { UnemploymentOutputView } from "@/features/risk-modules/unemployment/components/UnemploymentOutputView"
 import { calculateUnemploymentGap } from "@/features/risk-modules/unemployment/calculations/calculateUnemploymentGap"
 import { LiabilityOutputView } from "@/features/risk-modules/liability/components/LiabilityOutputView"
@@ -36,7 +39,15 @@ function formatModuleGap(module: RiskModuleType, record: ScenarioModuleRecords) 
   return formatGapCurrency(getModuleGapValue(module, record))
 }
 
-type InputSpec = { label: string; value: string }
+type InputSpec = {
+  label: string
+  value: string
+  field: string
+  editor: "currency" | "number" | "percent" | "select" | "policy"
+  rawValue: number | string | boolean
+  options?: Array<{ value: string; label: string }>
+  secondaryValue?: number
+}
 
 type InputSpecVariant = "block" | "rail"
 
@@ -44,17 +55,21 @@ function getPresentationInputSpecs(module: RiskModuleType, records: ScenarioModu
   if (module === "life" && records.life) {
     const inputs = records.life.inputs
     return [
-      { label: "Annual Income", value: formatCurrency(inputs.annualIncome) },
-      { label: "Current Age", value: String(inputs.currentAge) },
-      { label: "Retirement Age", value: String(inputs.retirementAge) },
-      { label: "Income Replacement Ratio", value: formatPercent(inputs.incomeReplacementRatio) },
-      { label: "Group Life Coverage", value: formatCurrency(inputs.groupLifeCoverage) },
-      { label: "Private Life Coverage", value: formatCurrency(inputs.privateLifeCoverage) },
+      { label: "Annual Income", value: formatCurrency(inputs.annualIncome), field: "annualIncome", editor: "currency", rawValue: inputs.annualIncome },
+      { label: "Current Age", value: String(inputs.currentAge), field: "currentAge", editor: "number", rawValue: inputs.currentAge },
+      { label: "Retirement Age", value: String(inputs.retirementAge), field: "retirementAge", editor: "number", rawValue: inputs.retirementAge },
+      { label: "Income Replacement Ratio", value: formatPercent(inputs.incomeReplacementRatio), field: "incomeReplacementRatio", editor: "percent", rawValue: inputs.incomeReplacementRatio },
+      { label: "Group Life Coverage", value: formatCurrency(inputs.groupLifeCoverage), field: "groupLifeCoverage", editor: "currency", rawValue: inputs.groupLifeCoverage },
+      { label: "Private Life Coverage", value: formatCurrency(inputs.privateLifeCoverage), field: "privateLifeCoverage", editor: "currency", rawValue: inputs.privateLifeCoverage },
       {
         label: "Private Policy",
         value: inputs.privateLifePolicyType === "term"
           ? `Term${inputs.privateLifeTermYears ? ` (${inputs.privateLifeTermYears} yrs)` : ""}`
           : "Permanent",
+        field: "privateLifePolicyType",
+        editor: "policy",
+        rawValue: inputs.privateLifePolicyType ?? "term",
+        secondaryValue: inputs.privateLifeTermYears ?? 20,
       },
     ]
   }
@@ -72,28 +87,77 @@ function getPresentationInputSpecs(module: RiskModuleType, records: ScenarioModu
         } as const)[inputs.privateDiBenefitPeriod]
       : "Until retirement"
     return [
-      { label: "Annual Income", value: formatCurrency(inputs.annualEarnedIncome) },
-      { label: "Current Age", value: String(inputs.currentAge) },
-      { label: "Retirement Age", value: String(inputs.retirementAge) },
-      { label: "LTD Coverage", value: formatPercent(inputs.ltdCoveragePercent) },
-      { label: "LTD Monthly Cap", value: formatCurrency(inputs.ltdMonthlyCap) },
-      { label: "LTD Taxable", value: inputs.ltdTaxable ? "Yes (70% net assumption)" : "No" },
-      { label: "Individual DI Benefit", value: `${formatCurrency(inputs.privateDiBenefitMonthly)}/mo` },
-      { label: "DI Benefit Period", value: periodLabel },
+      { label: "Annual Income", value: formatCurrency(inputs.annualEarnedIncome), field: "annualEarnedIncome", editor: "currency", rawValue: inputs.annualEarnedIncome },
+      { label: "Current Age", value: String(inputs.currentAge), field: "currentAge", editor: "number", rawValue: inputs.currentAge },
+      { label: "Retirement Age", value: String(inputs.retirementAge), field: "retirementAge", editor: "number", rawValue: inputs.retirementAge },
+      { label: "LTD Coverage", value: formatPercent(inputs.ltdCoveragePercent), field: "ltdCoveragePercent", editor: "percent", rawValue: inputs.ltdCoveragePercent },
+      { label: "LTD Monthly Cap", value: formatCurrency(inputs.ltdMonthlyCap), field: "ltdMonthlyCap", editor: "currency", rawValue: inputs.ltdMonthlyCap },
+      { label: "LTD Taxable", value: inputs.ltdTaxable ? "Yes (70% net assumption)" : "No", field: "ltdTaxable", editor: "select", rawValue: String(inputs.ltdTaxable), options: [{ value: "true", label: "Yes (70% net)" }, { value: "false", label: "No" }] },
+      { label: "Individual DI Benefit", value: `${formatCurrency(inputs.privateDiBenefitMonthly)}/mo`, field: "privateDiBenefitMonthly", editor: "currency", rawValue: inputs.privateDiBenefitMonthly },
+      { label: "DI Benefit Period", value: periodLabel, field: "privateDiBenefitPeriod", editor: "select", rawValue: inputs.privateDiBenefitPeriod, options: [{ value: "", label: "Until retirement" }, { value: "2y", label: "2 years" }, { value: "5y", label: "5 years" }, { value: "10y", label: "10 years" }, { value: "A65", label: "To age 65" }, { value: "A67", label: "To age 67" }, { value: "A70", label: "To age 70" }] },
     ]
   }
 
   return []
 }
 
+function SnapshotNumberInput({ label, value, onCommit, percent = false, currency = false, className = "mt-1" }: {
+  label: string
+  value: number
+  onCommit: (value: number) => void
+  percent?: boolean
+  currency?: boolean
+  className?: string
+}) {
+  const displayValue = percent ? value * 100 : value
+  const [draft, setDraft] = useState(String(displayValue))
+  const focused = useRef(false)
+
+  useEffect(() => {
+    if (!focused.current) setDraft(String(percent ? value * 100 : value))
+  }, [percent, value])
+
+  return (
+    <div className={`relative ${className}`}>
+      {currency ? <span className="presentation-input-affix absolute left-2 top-1/2 -translate-y-1/2 text-xs">$</span> : null}
+      <input
+        aria-label={label}
+        type="number"
+        min={0}
+        step={percent ? 0.1 : 1}
+        value={draft}
+        onFocus={() => { focused.current = true }}
+        onChange={(event) => {
+          const next = event.target.value
+          setDraft(next)
+          if (next !== "" && Number.isFinite(Number(next))) onCommit(Math.max(0, Number(next)) / (percent ? 100 : 1))
+        }}
+        onBlur={() => {
+          focused.current = false
+          if (draft === "") {
+            setDraft("0")
+            onCommit(0)
+          } else {
+            setDraft(String(percent ? value * 100 : value))
+          }
+        }}
+        className={`presentation-input-control h-7 w-full rounded-md border px-2 text-sm font-semibold outline-none ${currency ? "pl-5" : ""} ${percent ? "pr-5" : ""}`}
+      />
+      {percent ? <span className="presentation-input-affix absolute right-2 top-1/2 -translate-y-1/2 text-xs">%</span> : null}
+    </div>
+  )
+}
+
 function ModuleInputSpecs({
   module,
   records,
   variant = "block",
+  onInputChange,
 }: {
   module: RiskModuleType
   records: ScenarioModuleRecords
   variant?: InputSpecVariant
+  onInputChange?: (field: string, value: number | string | boolean) => void
 }) {
   const specs = getPresentationInputSpecs(module, records)
   if (!specs.length) return null
@@ -113,7 +177,33 @@ function ModuleInputSpecs({
           {specs.map((spec) => (
             <div key={spec.label} className="presentation-input-item rounded-lg border border-gray-800/90 bg-[#090E1A] px-3 py-2.5">
               <p className="presentation-input-label text-[9px] font-semibold uppercase tracking-[0.15em] text-gray-600">{spec.label}</p>
-              <p className="presentation-input-value mt-1 truncate text-sm font-semibold leading-tight text-gray-100" title={spec.value}>{spec.value}</p>
+              {onInputChange ? (
+                spec.editor === "currency" || spec.editor === "number" || spec.editor === "percent" ? (
+                  <SnapshotNumberInput label={spec.label} value={Number(spec.rawValue)} currency={spec.editor === "currency"} percent={spec.editor === "percent"} onCommit={(value) => onInputChange(spec.field, value)} />
+                ) : spec.editor === "policy" ? (
+                  <div className={`mt-1 grid gap-1.5 transition-[grid-template-columns] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${spec.rawValue === "term" ? "grid-cols-[minmax(0,1fr)_4.25rem]" : "grid-cols-[minmax(0,1fr)_0rem]"}`}>
+                    <ThemedSelect
+                      ariaLabel="Private policy type"
+                      value={String(spec.rawValue)}
+                      onValueChange={(value) => onInputChange(spec.field, value)}
+                      options={[{ value: "term", label: "Term" }, { value: "permanent", label: "Permanent" }]}
+                      className="presentation-input-control h-7 min-w-0 border px-2 py-0 text-xs font-semibold shadow-none"
+                      contentClassName="presentation-policy-menu z-50 border-[#31586c] bg-[#102d3f] text-white shadow-[0_16px_36px_rgba(5,24,36,0.32)]"
+                    />
+                    <div className={`grid min-w-0 transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${spec.rawValue === "term" ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+                      <div className="min-h-0 overflow-hidden">
+                        <SnapshotNumberInput className="" label="Term length in years" value={spec.secondaryValue ?? 20} onCommit={(value) => onInputChange("privateLifeTermYears", value)} />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <select aria-label={spec.label} value={String(spec.rawValue)} onChange={(event) => onInputChange(spec.field, spec.field === "ltdTaxable" ? event.target.value === "true" : event.target.value)} className="presentation-input-control mt-1 h-7 w-full rounded-md border px-1.5 text-xs font-semibold outline-none">
+                    {spec.options?.map((option) => <option key={option.value || "empty"} value={option.value}>{option.label}</option>)}
+                  </select>
+                )
+              ) : (
+                <p className="presentation-input-value mt-1 truncate text-sm font-semibold leading-tight text-gray-100" title={spec.value}>{spec.value}</p>
+              )}
             </div>
           ))}
         </div>
@@ -149,6 +239,8 @@ export function Presentation() {
   const records = useAppStore((state) =>
     scenarioId ? state.moduleRecordsByScenarioId[scenarioId] : undefined,
   )
+  const updateLifeInputs = useAppStore((state) => state.updateLifeInputs)
+  const updateDisabilityInputs = useAppStore((state) => state.updateDisabilityInputs)
 
   const lifeOutputs = useMemo(
     () => records?.life ? (records.life.output ?? calculateLifeInsuranceGap(sanitizeLifeInputs(records.life.inputs), records.life.assumptions)) : null,
@@ -205,6 +297,35 @@ export function Presentation() {
     ? getPresentationInputSpecs(selectedModule, records).length > 0 &&
       (selectedModule !== "disability" || disabilityVisualization === "incomeGap")
     : false
+
+  function updateSnapshotInput(module: RiskModuleType, field: string, value: number | string | boolean) {
+    if (!scenarioId || !records) return
+    if (module === "life" && records.life) {
+      const inputs = { ...records.life.inputs }
+      if (field === "annualIncome") inputs.annualIncome = Number(value)
+      else if (field === "currentAge") inputs.currentAge = Number(value)
+      else if (field === "retirementAge") inputs.retirementAge = Number(value)
+      else if (field === "incomeReplacementRatio") inputs.incomeReplacementRatio = Number(value)
+      else if (field === "groupLifeCoverage") inputs.groupLifeCoverage = Number(value)
+      else if (field === "privateLifeCoverage") inputs.privateLifeCoverage = Number(value)
+      else if (field === "privateLifePolicyType") inputs.privateLifePolicyType = value as LifePolicyType
+      else if (field === "privateLifeTermYears") inputs.privateLifeTermYears = Number(value)
+      updateLifeInputs(scenarioId, inputs)
+      return
+    }
+    if (module === "disability" && records.disability) {
+      const inputs = { ...records.disability.inputs }
+      if (field === "annualEarnedIncome") inputs.annualEarnedIncome = Number(value)
+      else if (field === "currentAge") inputs.currentAge = Number(value)
+      else if (field === "retirementAge") inputs.retirementAge = Number(value)
+      else if (field === "ltdCoveragePercent") inputs.ltdCoveragePercent = Number(value)
+      else if (field === "ltdMonthlyCap") inputs.ltdMonthlyCap = Number(value)
+      else if (field === "ltdTaxable") inputs.ltdTaxable = Boolean(value)
+      else if (field === "privateDiBenefitMonthly") inputs.privateDiBenefitMonthly = Number(value)
+      else if (field === "privateDiBenefitPeriod") inputs.privateDiBenefitPeriod = value as DiBenefitPeriod | ""
+      updateDisabilityInputs(scenarioId, inputs)
+    }
+  }
 
   function renderModule(module: RiskModuleType) {
     if (module === "life" && lifeOutputs && lifeIncomeGapOutputs && records?.life) {
@@ -266,7 +387,7 @@ export function Presentation() {
                 </div>
                 {selectedModuleHasSnapshot ? (
                   <div className="grid min-h-0 gap-4 xl:grid-cols-[16rem_minmax(0,1fr)] xl:items-start">
-                    <ModuleInputSpecs module={selectedModule} records={records} variant="rail" />
+                    <ModuleInputSpecs module={selectedModule} records={records} variant="rail" onInputChange={(field, value) => updateSnapshotInput(selectedModule, field, value)} />
                     <div className="min-w-0">{renderModule(selectedModule)}</div>
                   </div>
                 ) : (
