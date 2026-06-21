@@ -464,7 +464,7 @@ export function DisabilityOutputView({
         {renderVisualization()}
       </AnimatedSection>
 
-      {visualization === "incomeGap" && (
+      {visualization === "incomeGap" && mode === "builder" && (
         <AnimatedSection delay={0.46}>
           <Card className="border border-gray-800 bg-[#090E1A] text-white">
             <CardContent className="p-6">

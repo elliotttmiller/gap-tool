@@ -214,6 +214,7 @@ export function Presentation() {
           inputs={records.life.inputs}
           assumptions={records.life.assumptions}
           incomeGapOutputs={lifeIncomeGapOutputs}
+          mode="presentation"
         />
       )
     }

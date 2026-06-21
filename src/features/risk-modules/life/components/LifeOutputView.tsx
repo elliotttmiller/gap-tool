@@ -13,6 +13,7 @@ interface LifeOutputViewProps {
   incomeGapOutputs: IncomeGapOutputs
   activeTab?: "safe" | "max"
   onActiveTabChange?: (tab: "safe" | "max") => void
+  mode?: "builder" | "presentation"
 }
 
 const compactCardClass = "life-kpi-card"
@@ -174,7 +175,7 @@ function ChartPanel({ title, subtitle, coveredLabel, data, ticks, selectedAge, o
   )
 }
 
-export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onActiveTabChange }: LifeOutputViewProps) {
+export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onActiveTabChange, mode = "builder" }: LifeOutputViewProps) {
   const [activeTabInternal, setActiveTabInternal] = useState<"safe" | "max">("safe")
   const [selectedSafeAge, setSelectedSafeAge] = useState<number | null>(null)
   const [selectedRunwayAge, setSelectedRunwayAge] = useState<number | null>(null)
@@ -240,12 +241,14 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
         </AnimatedSection>
       )}
 
-      <Card className="mt-2 border border-gray-800 bg-[#090E1A]">
-        <CardContent className="px-4 py-3">
-          <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-blue-400">Planning Narrative</h4>
-          <p className="text-xs leading-relaxed text-gray-300">{activeNarrative}</p>
-        </CardContent>
-      </Card>
+      {mode === "builder" ? (
+        <Card className="mt-2 border border-gray-800 bg-[#090E1A]">
+          <CardContent className="px-4 py-3">
+            <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-blue-400">Planning Narrative</h4>
+            <p className="text-xs leading-relaxed text-gray-300">{activeNarrative}</p>
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   )
 }
