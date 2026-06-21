@@ -117,7 +117,7 @@ export function LifeInputForm({ inputs, onChange, showMaxCoverageRoiInput = fals
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {!isMaxModule ? (
               <div className="flex flex-col gap-2">
-                <Label htmlFor="targetIncomeSupportPct">Target Income Support</Label>
+                <Label htmlFor="targetIncomeSupportPct">Net Income Factor</Label>
                 <AffixedInput
                   id="targetIncomeSupportPct"
                   type="number"
@@ -130,7 +130,7 @@ export function LifeInputForm({ inputs, onChange, showMaxCoverageRoiInput = fals
                   onChange={(e) => onChange({ ...inputs, targetIncomeSupportPct: fromPercent(e.target.value), safeIncomeCoveragePct: fromPercent(e.target.value) })}
                   placeholder="85"
                 />
-                <p className="text-[10px] leading-snug text-gray-500">Modeled percentage of projected income need. Coverage support is then calculated from entered death benefit/resources.</p>
+                <p className="text-[10px] leading-snug text-gray-500">Percentage of gross annual income used to calculate projected net income. Coverage support is then calculated from entered death benefit/resources.</p>
               </div>
             ) : (
               <div className="flex flex-col gap-2">

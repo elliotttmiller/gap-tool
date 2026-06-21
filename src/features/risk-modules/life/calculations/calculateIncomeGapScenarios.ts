@@ -9,15 +9,14 @@
  *   - The entered death benefit/resource pool should drive the displayed coverage
  *     support rate.
  *   - “Fully Covered” must use the SAME threshold as the displayed capital need.
- *   - The Safe Income Coverage target defaults to the persisted advisor input and
- *     is applied to modeled annual net income need.
+ *   - The Net Income Factor converts gross annual income to modeled net income.
  *   - Capital Required Today is the present value of the growing annual income
  *     support stream using the configured PV Reference Rate. This reproduces the
- *     advisor example: age 41, $300k income, 70% replacement, 5% return, 3%
- *     growth, age 65 ≈ $3.88M when the target income support is 100%.
+ *     advisor example calculations using the configured net income factor,
+ *     return rate, growth rate, and projection horizon.
  *
  *   Target stream:
- *     targetIncomeNeed[year] = projectedNetIncomeNeed[year] × targetIncomeSupportPct
+ *     projectedNetIncomeNeed[year] = annualIncome × netIncomeFactor − spouseIncome
  *
  *   Advisor-facing capital required:
  *     targetDeathBenefitNeed = PV(targetIncomeNeed[year], incomeGapRoi)
@@ -35,7 +34,7 @@
  *   the remaining pool cannot fund produces red gap bars.
  *
  * Net income assumption: income figures use modeled net income need
- * (annualIncome × incomeReplacementRatio − spouseAnnualIncome offset).
+ * (annualIncome × netIncomeFactor − spouseAnnualIncome offset).
  * Death benefits are generally income-tax-free; no gross-to-net conversion is
  * applied to benefit amounts.
  */
@@ -95,7 +94,7 @@ export function calculateIncomeGapScenarios(
   );
   const existingPool = groupLifeCoverage + privateLifeCoverage + nonQualifiedAssets;
 
-  // Module 1 target: advisor-indicated income support percentage.
+  // Converts gross annual income to the modeled net income need.
   // `safeIncomeCoveragePct` is kept as a backward-compatible persisted-field alias.
   const targetIncomeSupportPct = clampRate(
     requireNonNegativeNumber(
@@ -113,18 +112,20 @@ export function calculateIncomeGapScenarios(
     )
   );
 
-  // Modeled annual net income need before the Safe Income target is applied.
+  // Income Replacement belongs to the core life-insurance need calculation. The
+  // income-gap scenarios use this factor directly so projected net income is not
+  // reduced by two independent percentages.
   const annualNetIncomeNeed = Math.max(
     0,
     nonNegative(requireNonNegativeNumber(inputs.annualIncome, "inputs.annualIncome")) *
-      nonNegative(requireNonNegativeNumber(inputs.incomeReplacementRatio, "inputs.incomeReplacementRatio")) -
+      targetIncomeSupportPct -
       nonNegative(requireNonNegativeNumber(inputs.spouseAnnualIncome, "inputs.spouseAnnualIncome"))
   );
 
   const projectedIncomeStream = Array.from({ length: yearsToRetirement }, (_, i) => {
     return annualNetIncomeNeed * Math.pow(1 + incomeGrowthRate, i);
   });
-  const targetIncomeStream = projectedIncomeStream.map((need) => need * targetIncomeSupportPct);
+  const targetIncomeStream = projectedIncomeStream;
   const projectedNetIncomeTotal = projectedIncomeStream.reduce((sum, amount) => sum + amount, 0);
   const targetIncomeSupportTotal = targetIncomeStream.reduce((sum, amount) => sum + amount, 0);
   const targetDeathBenefitNeed = presentValueOfAnnualStream(targetIncomeStream, roi);

@@ -30,8 +30,8 @@ export interface LifeInputs {
 
   // ── Income Gap Analysis inputs ────────────────────────────────────────────
   /**
-   * Advisor-facing income support target for Module 1.
-   * Example: 1.00 models 100% of projected net replacement need; 0.85 models 85%.
+   * Net income factor for the income-gap scenarios.
+   * Example: 0.85 models net income as 85% of gross annual income.
    */
   targetIncomeSupportPct?: number;
   /** @deprecated Use targetIncomeSupportPct. Kept for persisted local-storage compatibility. */
@@ -101,7 +101,7 @@ export interface LifeOutputs {
 export interface IncomeGapYearlyPoint {
   yearIndex: number;
   age: number;
-  /** Projected annual NET income need before the Safe Income target is applied. */
+  /** Projected annual net income need after applying the Net Income Factor. */
   projectedIncome: number;
   /** Module 1: advisor-modeled target income support for this year. */
   targetIncomeNeed?: number;
@@ -129,7 +129,7 @@ export interface IncomeGapModule1 {
   yearlyData: IncomeGapYearlyPoint[];
   /** Box 1 — Sum of all projected annual net income from current age to retirement age (undiscounted). */
   projectedNetIncomeTotal: number;
-  /** Advisor target percentage, e.g. 0.85 means model 85% of projected income need. */
+  /** Net income factor, e.g. 0.85 converts gross income to an 85% net-income need. */
   targetIncomeSupportPct: number;
   /** Sum of annual target income support amounts, undiscounted. */
   targetIncomeSupportTotal: number;
