@@ -369,8 +369,8 @@ export function DisabilityOutputView({
 
                 <div className="flex justify-center sm:justify-end">
                   <div className="flex shrink-0 overflow-hidden rounded-md border border-gray-700 text-xs">
-                    <button onClick={() => setChartView("net")} className={`px-3 py-1 transition-colors ${chartView === "net" ? "bg-brand-600 text-white" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}>Net</button>
-                    <button onClick={() => setChartView("gross")} className={`px-3 py-1 transition-colors ${chartView === "gross" ? "bg-brand-600 text-white" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}>Gross</button>
+                    <button onClick={() => setChartView("net")} className={`px-3 py-1 transition-colors ${chartView === "net" ? "bg-brand-700 text-white shadow-sm ring-1 ring-inset ring-brand-600 dark:bg-brand-950/70 dark:ring-brand-700/70" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}>Net</button>
+                    <button onClick={() => setChartView("gross")} className={`px-3 py-1 transition-colors ${chartView === "gross" ? "bg-brand-700 text-white shadow-sm ring-1 ring-inset ring-brand-600 dark:bg-brand-950/70 dark:ring-brand-700/70" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}>Gross</button>
                   </div>
                 </div>
               </div>
@@ -445,9 +445,9 @@ export function DisabilityOutputView({
         <div className="flex flex-wrap gap-1 mb-4">
           {(
             [
-              { value: "incomeGap", label: "Income Gap", active: "bg-blue-900/60 border border-blue-700 text-blue-200" },
-              { value: "premiumVsSelfInsured", label: "Premium vs Self-Insured", active: "bg-emerald-900/60 border border-emerald-700 text-emerald-200" },
-              { value: "jobComparison", label: "Job A vs Job B", active: "bg-violet-900/60 border border-violet-700 text-violet-200" },
+              { value: "incomeGap", label: "Income Gap", active: "border border-brand-700 bg-brand-700 text-white shadow-sm ring-1 ring-brand-600 dark:border-brand-950/70 dark:bg-brand-950/70 dark:text-white dark:ring-brand-700/70" },
+              { value: "premiumVsSelfInsured", label: "Premium vs Self-Insured", active: "border border-brand-700 bg-brand-700 text-white shadow-sm ring-1 ring-brand-600 dark:border-brand-950/70 dark:bg-brand-950/70 dark:text-white dark:ring-brand-700/70" },
+              { value: "jobComparison", label: "Job A vs Job B", active: "border border-brand-700 bg-brand-700 text-white shadow-sm ring-1 ring-brand-600 dark:border-brand-950/70 dark:bg-brand-950/70 dark:text-white dark:ring-brand-700/70" },
             ] as const
           ).map(({ value, label, active }) => (
             <button

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { Link, useParams } from "react-router-dom"
-import { ArrowLeft, BriefcaseBusiness, HeartPulse, Printer, Scale, ShieldAlert } from "lucide-react"
+import { ArrowLeft, BriefcaseBusiness, HeartPulse, Scale, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { LifeOutputView } from "@/features/risk-modules/life/components/LifeOutputView"
 import { calculateLifeInsuranceGap } from "@/features/risk-modules/life/calculations/calculateLifeInsuranceGap"
@@ -226,29 +226,24 @@ export function Presentation() {
   }
 
   return (
-    <div className="presentation-mode h-screen overflow-hidden bg-gray-950 p-4 text-gray-50 print:h-auto print:overflow-visible print:bg-white print:p-0">
-      <div className="mx-auto flex h-full max-w-7xl flex-col gap-4 print:hidden">
-        <div className="flex shrink-0 items-center justify-between rounded-lg border border-gray-800 bg-[#090E1A] px-4 py-3">
-          <Button variant="ghost" className="shadow-none" asChild>
-            <Link to={`/scenarios/${scenarioId}/${scenario.activeModule}`} className="gap-2">
-              <ArrowLeft className="h-4 w-4" /> Back to Builder
-            </Link>
-          </Button>
-          <Button variant="outline" className="gap-2" onClick={() => { window.focus(); setTimeout(() => window.print(), 150) }}>
-            <Printer className="h-4 w-4" /> Save as PDF
-          </Button>
-        </div>
+    <div className="presentation-mode relative h-screen overflow-hidden bg-gray-950 p-3 text-gray-50 print:h-auto print:overflow-visible print:bg-white print:p-0">
+      <Button variant="ghost" className="absolute left-4 top-4 z-20 h-9 px-2 shadow-none print:hidden" asChild>
+        <Link to={`/scenarios/${scenarioId}/${scenario.activeModule}`} className="gap-2">
+          <ArrowLeft className="h-4 w-4" /> Back to Builder
+        </Link>
+      </Button>
 
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#090E1A] shadow-lg">
-          <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-8 py-6">
+      <div className="mx-auto h-full max-w-7xl print:hidden">
+        <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#090E1A] shadow-lg">
+          <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-5 py-4">
             {selectedModule ? (
               <div className="flex min-h-full flex-col">
-                <div className="mb-5 flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-gray-800 pb-4">
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-50">{moduleCopy[selectedModule].title}</h2>
-                    <p className="mt-1 text-sm text-gray-500">Visualization and metrics for the selected risk module.</p>
+                <div className="mb-3 grid shrink-0 items-center gap-3 border-b border-gray-800 pb-3 pl-28 lg:grid-cols-[minmax(0,1fr)_auto] 2xl:pl-0">
+                  <div className="min-w-0">
+                    <h2 className="truncate text-xl font-semibold text-gray-50">{moduleCopy[selectedModule].title}</h2>
+                    <p className="mt-0.5 text-xs text-gray-500">Visualization and metrics for the selected risk module.</p>
                   </div>
-                  <div className="scrollbar-hide flex max-w-full gap-2 overflow-x-auto rounded-lg bg-gray-950/40 p-1">
+                  <div className="scrollbar-hide flex max-w-full gap-1 overflow-x-auto rounded-lg bg-gray-950/40 p-1 lg:justify-self-end">
                     {visibleModules.map((module) => {
                       const Icon = moduleIcons[module]
                       const selected = module === selectedModule
@@ -257,8 +252,8 @@ export function Presentation() {
                           key={module}
                           type="button"
                           onClick={() => setActiveModule(module)}
-                          className={`flex min-w-max items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-colors ${
-                            selected ? "bg-brand-600 text-white shadow-sm" : "text-gray-400 hover:bg-gray-900 hover:text-gray-100"
+                          className={`flex min-w-max items-center gap-2 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors ${
+                            selected ? "bg-brand-700 text-white shadow-sm ring-1 ring-brand-600 dark:bg-brand-950/70 dark:ring-brand-700/70" : "text-gray-400 hover:bg-gray-900 hover:text-gray-100"
                           }`}
                         >
                           <Icon className="h-4 w-4" />
@@ -269,7 +264,7 @@ export function Presentation() {
                   </div>
                 </div>
                 {selectedModuleHasSnapshot ? (
-                  <div className="grid min-h-0 gap-5 xl:grid-cols-[17rem_minmax(0,1fr)] xl:items-start">
+                  <div className="grid min-h-0 gap-4 xl:grid-cols-[16rem_minmax(0,1fr)] xl:items-start">
                     <ModuleInputSpecs module={selectedModule} records={records} variant="rail" />
                     <div className="min-w-0">{renderModule(selectedModule)}</div>
                   </div>
