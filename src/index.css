@@ -73,8 +73,8 @@
 @layer base {
   :root {
     color-scheme: light;
-    --light-canvas: #f4f7f8;
-    --light-surface: #ffffff;
+    --light-canvas: #eaf1f3;
+    --light-surface: #f6f9fa;
     --light-surface-raised: #ffffff;
     --light-surface-muted: #eef4f5;
     --light-border: #cbdadd;
@@ -103,9 +103,9 @@
 
 .app-shell-surface {
   background:
-    radial-gradient(circle at 8% 0%, rgb(0 153 168 / 0.09), transparent 32rem),
-    radial-gradient(circle at 92% 16%, rgb(74 112 138 / 0.06), transparent 28rem),
-    linear-gradient(180deg, #f8fbfb 0%, #f2f6f7 100%);
+    radial-gradient(circle at 8% 0%, rgb(0 153 168 / 0.10), transparent 32rem),
+    radial-gradient(circle at 92% 16%, rgb(74 112 138 / 0.08), transparent 28rem),
+    linear-gradient(180deg, #f1f7f7 0%, #e8f0f2 100%);
 }
 
 .dark .app-shell-surface {
@@ -168,13 +168,16 @@
 
   .light input:not([type="checkbox"]):not([type="radio"]),
   .light textarea {
-    background-color: #fff !important;
+    background-color: #f1f6f7 !important;
     border-color: #c8d7db !important;
     color: var(--light-text) !important;
     box-shadow: 0 1px 2px rgb(15 42 58 / 0.04) !important;
   }
   .light input:not([type="checkbox"]):not([type="radio"]):hover,
-  .light textarea:hover { border-color: #9ebbc2 !important; }
+  .light textarea:hover {
+    background-color: #fff !important;
+    border-color: #9ebbc2 !important;
+  }
   .light input:not([type="checkbox"]):not([type="radio"]):focus,
   .light textarea:focus {
     border-color: #0099a8 !important;
@@ -194,7 +197,7 @@
 
   .light .module-kpi-card {
     border-color: #d4e2e5 !important;
-    background: linear-gradient(145deg, #ffffff 0%, #f6fafb 100%) !important;
+    background: linear-gradient(145deg, #f8fbfb 0%, #eef5f6 100%) !important;
     box-shadow: var(--light-shadow-sm);
   }
   .light .module-kpi-card [class~="text-slate-50"] { color: #102a3a !important; }
@@ -203,7 +206,7 @@
   .light .module-kpi-card [class~="text-slate-700"] { color: #718894 !important; }
   .light .module-metric-card {
     border-color: #d4e2e5 !important;
-    background: linear-gradient(145deg, #ffffff 0%, #f6fafb 100%) !important;
+    background: linear-gradient(145deg, #f8fbfb 0%, #eef5f6 100%) !important;
     box-shadow: var(--light-shadow-sm);
   }
   .light .module-metric-card .module-metric-label { color: #607583 !important; }
@@ -214,6 +217,11 @@
   }
   .light .module-metric-card .module-metric-value.text-slate-50 { color: #102a3a !important; }
   .light .module-metric-card .module-metric-value [class~="text-gray-400"] { color: #607583 !important; }
+  .light .module-metric-card [class~="text-emerald-300"] { color: #047857 !important; }
+  .light .module-metric-card [class~="text-rose-300"] { color: #be123c !important; }
+  .light .module-metric-card [class~="text-cyan-300"] { color: #0e7490 !important; }
+  .light .module-metric-card [class~="text-amber-300"] { color: #a16207 !important; }
+  .light .module-metric-card [class~="text-blue-300"] { color: #1d4ed8 !important; }
   .light .analysis-module-summary {
     background: linear-gradient(135deg, #19384c 0%, #122d40 100%) !important;
     border-color: #31586c !important;

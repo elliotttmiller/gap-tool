@@ -22,7 +22,7 @@ export function CollapsibleInputSection({
   const contentId = React.useId()
 
   return (
-    <Card className={cn("w-full overflow-hidden", className)}>
+    <Card className={cn("w-full overflow-hidden bg-[#f8fbfb] dark:bg-[#090E1A]", className)}>
       <CardHeader className="p-0">
         <button
           type="button"
