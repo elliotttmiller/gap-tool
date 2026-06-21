@@ -365,14 +365,14 @@
     gap: 0.5rem;
   }
 
-  .liability-chart-panel-compact,
   .unemployment-chart-panel {
     min-width: 0;
     max-height: 22rem;
     overflow: hidden;
   }
 
-  .life-chart-panel {
+  .life-chart-panel,
+  .liability-chart-panel-compact {
     min-width: 0;
     overflow: visible;
   }
@@ -441,7 +441,7 @@
     }
 
     .liability-metric-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     .unemployment-metric-grid {

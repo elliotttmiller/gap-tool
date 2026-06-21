@@ -67,26 +67,34 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
             </div>
           </CardHeader>
 
-          <CardContent className="px-5 pb-3 pt-2">
-            <div className="liability-chart-area chart-reveal">
-              <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                <BarChart
-                  data={chartData.protectionStackData}
-                  margin={{ top: 8, right: 24, left: 0, bottom: 0 }}
-                  barSize={92}
-                  barCategoryGap="48%"
-                >
-                  <CartesianGrid stroke="rgba(148,163,184,0.06)" strokeDasharray="4 4" vertical={false} />
-                  <XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} dy={4} />
-                  <YAxis tickFormatter={(val) => `$${Math.round(Number(val) / 1000)}k`} tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} width={46} />
-                  <Tooltip content={CustomTooltip} cursor={{ fill: "rgba(255,255,255,0.025)" }} />
-                  <Bar dataKey="AutoCoverage" name="Auto Liability Coverage" stackId="a" fill="#22c55e" radius={[0, 0, 0, 0]} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
-                  <Bar dataKey="UmbrellaCoverage" name="Umbrella Coverage" stackId="a" fill="#06b6d4" radius={[0, 0, 0, 0]} isAnimationActive={true} animationBegin={100} animationDuration={1200} animationEasing="ease-out" />
-                  <Bar dataKey="ExposureGap" name="Unprotected Liability Gap" stackId="a" fill="#f43f5e" radius={[5, 5, 0, 0]} isAnimationActive={true} animationBegin={160} animationDuration={1200} animationEasing="ease-out" />
-                </BarChart>
-              </ResponsiveContainer>
+          <CardContent className="px-5 pb-4 pt-3">
+            <div className="flex items-stretch gap-1">
+              <div className="flex w-4 shrink-0 items-center justify-center">
+                <span style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }} className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider text-slate-500">Exposure and Coverage ($)</span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="liability-chart-area chart-reveal">
+                  <ResponsiveContainer width="100%" height="100%" debounce={100}>
+                    <BarChart
+                      data={chartData.protectionStackData}
+                      margin={{ top: 8, right: 24, left: 2, bottom: 12 }}
+                      barSize={92}
+                      barCategoryGap="48%"
+                    >
+                      <CartesianGrid stroke="rgba(100,116,139,0.16)" strokeDasharray="3 5" vertical={false} />
+                      <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 11, fontWeight: 600 }} axisLine={{ stroke: "#64748b", strokeOpacity: 0.45 }} tickLine={{ stroke: "#64748b", strokeOpacity: 0.45 }} tickMargin={10} />
+                      <YAxis tickFormatter={(val) => `$${Math.round(Number(val) / 1000)}k`} tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} width={50} />
+                      <Tooltip content={CustomTooltip} cursor={{ fill: "rgba(255,255,255,0.025)" }} />
+                      <Bar dataKey="AutoCoverage" name="Auto Liability Coverage" stackId="a" fill="#22c55e" radius={[0, 0, 0, 0]} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
+                      <Bar dataKey="UmbrellaCoverage" name="Umbrella Coverage" stackId="a" fill="#06b6d4" radius={[0, 0, 0, 0]} isAnimationActive={true} animationBegin={100} animationDuration={1200} animationEasing="ease-out" />
+                      <Bar dataKey="ExposureGap" name="Unprotected Liability Gap" stackId="a" fill="#f43f5e" radius={[5, 5, 0, 0]} isAnimationActive={true} animationBegin={160} animationDuration={1200} animationEasing="ease-out" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-1 text-center"><span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Coverage Scenario</span></div>
+              </div>
             </div>
-            <div className="mt-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-slate-800/50 pt-2">
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-slate-800/50 pt-2">
               <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400"><span className="h-2 w-4 rounded-sm bg-emerald-500" />Auto Liability</span>
               <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400"><span className="h-2 w-4 rounded-sm bg-cyan-500" />Umbrella</span>
               <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400"><span className="h-2 w-4 rounded-sm bg-rose-500" />Unprotected Gap</span>
