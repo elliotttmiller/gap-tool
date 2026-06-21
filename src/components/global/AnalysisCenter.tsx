@@ -167,24 +167,55 @@ export function AnalysisCenter() {
   const clients = useAppStore((state) => state.clients)
   const scenarios = useAppStore((state) => state.scenarios)
   const records = useAppStore((state) => state.moduleRecordsByScenarioId)
-  const activeScenarios = useMemo(
-    () => scenarios.filter((scenario) => scenario.status !== "archived"),
-    [scenarios],
+  const clientsById = useMemo(
+    () => new Map(clients.map((client) => [client.id, client])),
+    [clients],
   )
-  const [scenarioId, setScenarioId] = useState(activeScenarios[0]?.id ?? "")
+  const selectableScenarios = useMemo(
+    () => scenarios
+      .filter((scenario) => scenario.status !== "archived" && clientsById.has(scenario.clientId))
+      .sort((a, b) => {
+        const clientComparison = (clientsById.get(a.clientId)?.displayName ?? "").localeCompare(clientsById.get(b.clientId)?.displayName ?? "")
+        return clientComparison || new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime() || a.id.localeCompare(b.id)
+      }),
+    [clientsById, scenarios],
+  )
+  const [scenarioId, setScenarioId] = useState(selectableScenarios[0]?.id ?? "")
   const [moduleFilter, setModuleFilter] = useState<RiskModuleType | "all">("all")
+  const selectedScenario = useMemo(
+    () => selectableScenarios.find((scenario) => scenario.id === scenarioId) ?? null,
+    [scenarioId, selectableScenarios],
+  )
+  const scenarioOptions = useMemo(() => {
+    const clientNameCounts = new Map<string, number>()
+    clients.forEach((client) => clientNameCounts.set(client.displayName, (clientNameCounts.get(client.displayName) ?? 0) + 1))
+    return selectableScenarios.map((scenario) => {
+      const client = clientsById.get(scenario.clientId)!
+      const clientLabel = (clientNameCounts.get(client.displayName) ?? 0) > 1 && client.email
+        ? `${client.displayName} (${client.email})`
+        : client.displayName
+      const updated = new Date(scenario.updatedAt)
+      const updatedLabel = Number.isNaN(updated.getTime())
+        ? "date unavailable"
+        : updated.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })
+      return {
+        value: scenario.id,
+        label: `${clientLabel} - ${scenario.name} - Updated ${updatedLabel} - #${scenario.id.slice(-6)}`,
+      }
+    })
+  }, [clients, clientsById, selectableScenarios])
 
   useEffect(() => {
-    if (!activeScenarios.some((scenario) => scenario.id === scenarioId)) {
-      setScenarioId(activeScenarios[0]?.id ?? "")
+    if (!selectableScenarios.some((scenario) => scenario.id === scenarioId)) {
+      setScenarioId(selectableScenarios[0]?.id ?? "")
       setModuleFilter("all")
     }
-  }, [activeScenarios, scenarioId])
+  }, [scenarioId, selectableScenarios])
 
   const snapshot = useMemo(() => {
-    const scenario = activeScenarios.find((item) => item.id === scenarioId) ?? activeScenarios[0]
+    const scenario = selectedScenario
     if (!scenario) return null
-    const client = clients.find((item) => item.id === scenario.clientId)
+    const client = clientsById.get(scenario.clientId)
     const scenarioRecords = records[scenario.id]
     const modules = scenario.includedModules.flatMap<AnalysisModule>((module): AnalysisModule[] => {
       if (module === "life") {
@@ -214,7 +245,7 @@ export function AnalysisCenter() {
       scenario: { id: scenario.id, name: scenario.name, status: scenario.status, updatedAt: scenario.updatedAt, lastCalculatedAt: scenario.lastCalculatedAt ?? null },
       modules,
     }
-  }, [activeScenarios, clients, records, scenarioId])
+  }, [clientsById, records, selectedScenario])
 
   const visibleModules = snapshot?.modules.filter((item) => moduleFilter === "all" || item.module === moduleFilter) ?? []
 
@@ -243,7 +274,7 @@ export function AnalysisCenter() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-3"><div className="flex size-9 items-center justify-center rounded-xl bg-brand-500/15 text-brand-300 ring-1 ring-brand-500/30"><ShieldCheck className="size-5" /></div><div><Dialog.Title className="text-lg font-semibold text-white">Calculation Analysis Center</Dialog.Title><Dialog.Description className="mt-0.5 text-xs text-[#94a3b8]">Structured evidence for methodology, source data, results, and schedules.</Dialog.Description></div></div>
             </div>
-            <label className="w-full sm:w-80 lg:w-104"><span className="mb-1 block text-[9px] font-bold uppercase tracking-widest text-[#94a3b8]">Review scenario</span><ThemedSelect ariaLabel="Review scenario" value={scenarioId} onValueChange={(value) => { setScenarioId(value); setModuleFilter("all") }} options={activeScenarios.map((scenario) => ({ value: scenario.id, label: `${clients.find((item) => item.id === scenario.clientId)?.displayName ?? "Unknown client"} - ${scenario.name}` }))} disabled={activeScenarios.length === 0} contentClassName="z-[100]" className="border-white/15 bg-white/5 text-white hover:bg-white/10 dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10" /></label>
+            <label className="w-full sm:w-96 lg:w-128"><span className="mb-1 block text-[9px] font-bold uppercase tracking-widest text-[#94a3b8]">Review scenario</span><ThemedSelect ariaLabel="Review scenario" value={scenarioId} onValueChange={(value) => { if (value === scenarioId) return; setScenarioId(value); setModuleFilter("all") }} options={scenarioOptions} disabled={selectableScenarios.length === 0} contentClassName="z-[100]" className="border-white/15 bg-white/5 text-white hover:bg-white/10 dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10" /></label>
             <button onClick={downloadSnapshot} disabled={!snapshot} className="inline-flex items-center gap-2 self-end rounded-lg border border-white/15 bg-white/5 px-3 py-2.5 text-xs font-semibold text-[#cbd5e1] transition hover:border-brand-500/50 hover:bg-brand-500/10 hover:text-white disabled:opacity-40"><Download className="size-4" /> Export evidence</button>
             <Dialog.Close asChild><button aria-label="Close analysis center" className="self-end rounded-full p-2.5 text-[#94a3b8] transition hover:bg-white/10 hover:text-white"><X className="size-5" /></button></Dialog.Close>
           </header>
@@ -262,8 +293,8 @@ export function AnalysisCenter() {
               </div>
               <div className="flex-1 overflow-y-auto">
                 <div className="mx-auto max-w-7xl space-y-5 p-5 lg:p-7">
-                  <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950/30"><div className="grid sm:grid-cols-2 xl:grid-cols-4"><div className="border-b border-gray-200 p-4 sm:border-r xl:border-b-0 dark:border-gray-800"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Client</p><p className="mt-1 text-sm font-semibold text-gray-950 dark:text-gray-100">{snapshot.client?.displayName ?? "Unknown client"}</p></div><div className="border-b border-gray-200 p-4 xl:border-b-0 xl:border-r dark:border-gray-800"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Scenario status</p><p className="mt-1 text-sm font-semibold text-gray-950 dark:text-gray-100">{titleCase(snapshot.scenario.status)}</p></div><div className="border-b border-gray-200 p-4 sm:border-b-0 sm:border-r dark:border-gray-800"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Modules in scope</p><p className="mt-1 text-sm font-semibold text-gray-950 dark:text-gray-100">{snapshot.modules.length} calculation modules</p></div><div className="p-4"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Evidence generated</p><p className="mt-1 text-sm font-semibold text-gray-950 dark:text-gray-100">{new Date(snapshot.generatedAt).toLocaleString()}</p></div></div></section>
-                  <div className="space-y-4">{visibleModules.map((item, index) => <ModuleAudit key={item.module} item={item} defaultOpen={moduleFilter !== "all" || index === 0} />)}</div>
+                  <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950/30"><div className="grid sm:grid-cols-2 xl:grid-cols-5"><div className="border-b border-gray-200 p-4 sm:border-r xl:border-b-0 dark:border-gray-800"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Client</p><p className="mt-1 text-sm font-semibold text-gray-950 dark:text-gray-100">{snapshot.client?.displayName ?? "Unknown client"}</p></div><div className="border-b border-gray-200 p-4 xl:border-b-0 xl:border-r dark:border-gray-800"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Review</p><p className="mt-1 truncate text-sm font-semibold text-gray-950 dark:text-gray-100" title={snapshot.scenario.name}>{snapshot.scenario.name}</p></div><div className="border-b border-gray-200 p-4 sm:border-r xl:border-b-0 dark:border-gray-800"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Scenario status</p><p className="mt-1 text-sm font-semibold text-gray-950 dark:text-gray-100">{titleCase(snapshot.scenario.status)}</p></div><div className="border-b border-gray-200 p-4 xl:border-b-0 xl:border-r dark:border-gray-800"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Modules in scope</p><p className="mt-1 text-sm font-semibold text-gray-950 dark:text-gray-100">{snapshot.modules.length} calculation modules</p></div><div className="p-4"><p className="text-[9px] font-bold uppercase tracking-widest text-gray-400">Evidence generated</p><p className="mt-1 text-sm font-semibold text-gray-950 dark:text-gray-100">{new Date(snapshot.generatedAt).toLocaleString()}</p></div></div></section>
+                  <div className="space-y-4">{visibleModules.map((item, index) => <ModuleAudit key={`${snapshot.scenario.id}-${item.module}`} item={item} defaultOpen={moduleFilter !== "all" || index === 0} />)}</div>
                 </div>
               </div>
             </div>

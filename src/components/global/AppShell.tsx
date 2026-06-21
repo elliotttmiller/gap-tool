@@ -18,7 +18,10 @@ export function AppShell() {
   useEffect(() => {
     if (!settingsOpen) return
     function handleClick(e: MouseEvent) {
-      if ((e.target as Element).closest?.("[data-analysis-center]")) return
+      // Radix select menus are portaled outside both the dialog and settings
+      // panel. Keep the settings tree mounted for every interaction while the
+      // Analysis Center is open so scenario selection cannot dismiss the panel.
+      if (document.querySelector("[data-analysis-center]")) return
       if (
         panelRef.current && !panelRef.current.contains(e.target as Node) &&
         buttonRef.current && !buttonRef.current.contains(e.target as Node)
@@ -32,7 +35,9 @@ export function AppShell() {
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setSettingsOpen(false)
+      if (e.key === "Escape" && !document.querySelector("[data-analysis-center]")) {
+        setSettingsOpen(false)
+      }
     }
     document.addEventListener("keydown", handleKey)
     return () => document.removeEventListener("keydown", handleKey)
