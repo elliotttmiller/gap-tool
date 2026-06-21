@@ -98,6 +98,22 @@ function getPresentationInputSpecs(module: RiskModuleType, records: ScenarioModu
     ]
   }
 
+  if (module === "unemployment" && records.unemployment) {
+    const inputs = records.unemployment.inputs
+    return [
+      { label: "Annual Income", value: formatCurrency(inputs.annualIncome), field: "annualIncome", editor: "currency", rawValue: inputs.annualIncome },
+      { label: "Spouse Income", value: formatCurrency(inputs.spouseIncome), field: "spouseIncome", editor: "currency", rawValue: inputs.spouseIncome },
+      { label: "Monthly Expenses", value: formatCurrency(inputs.monthlyExpenses), field: "monthlyExpenses", editor: "currency", rawValue: inputs.monthlyExpenses },
+      { label: "Emergency Savings", value: formatCurrency(inputs.emergencySavings), field: "emergencySavings", editor: "currency", rawValue: inputs.emergencySavings },
+      { label: "Net Income Proxy", value: formatPercent(inputs.netIncomeRatio ?? 0.65), field: "netIncomeRatio", editor: "percent", rawValue: inputs.netIncomeRatio ?? 0.65 },
+      { label: "Monthly Severance", value: formatCurrency(inputs.severanceMonthly), field: "severanceMonthly", editor: "currency", rawValue: inputs.severanceMonthly },
+      { label: "Severance Duration", value: `${inputs.severanceDurationMonths} months`, field: "severanceDurationMonths", editor: "number", rawValue: inputs.severanceDurationMonths },
+      { label: "Unemployment Benefit", value: formatCurrency(inputs.unemploymentBenefitMonthly), field: "unemploymentBenefitMonthly", editor: "currency", rawValue: inputs.unemploymentBenefitMonthly },
+      { label: "Benefit Duration", value: `${inputs.unemploymentBenefitDurationMonths} months`, field: "unemploymentBenefitDurationMonths", editor: "number", rawValue: inputs.unemploymentBenefitDurationMonths },
+      { label: "Search Duration", value: `${inputs.estimatedJobSearchMonths} months`, field: "estimatedJobSearchMonths", editor: "number", rawValue: inputs.estimatedJobSearchMonths },
+    ]
+  }
+
   return []
 }
 
@@ -246,6 +262,7 @@ export function Presentation() {
   )
   const updateLifeInputs = useAppStore((state) => state.updateLifeInputs)
   const updateDisabilityInputs = useAppStore((state) => state.updateDisabilityInputs)
+  const updateUnemploymentInputs = useAppStore((state) => state.updateUnemploymentInputs)
 
   const lifeOutputs = useMemo(
     () => records?.life ? (records.life.output ?? calculateLifeInsuranceGap(sanitizeLifeInputs(records.life.inputs), records.life.assumptions)) : null,
@@ -329,6 +346,21 @@ export function Presentation() {
       else if (field === "privateDiBenefitMonthly") inputs.privateDiBenefitMonthly = Number(value)
       else if (field === "privateDiBenefitPeriod") inputs.privateDiBenefitPeriod = value as DiBenefitPeriod | ""
       updateDisabilityInputs(scenarioId, inputs)
+      return
+    }
+    if (module === "unemployment" && records.unemployment) {
+      const inputs = { ...records.unemployment.inputs }
+      if (field === "annualIncome") inputs.annualIncome = Number(value)
+      else if (field === "spouseIncome") inputs.spouseIncome = Number(value)
+      else if (field === "monthlyExpenses") inputs.monthlyExpenses = Math.round(Number(value))
+      else if (field === "emergencySavings") inputs.emergencySavings = Number(value)
+      else if (field === "netIncomeRatio") inputs.netIncomeRatio = Math.min(1, Number(value))
+      else if (field === "severanceMonthly") inputs.severanceMonthly = Number(value)
+      else if (field === "severanceDurationMonths") inputs.severanceDurationMonths = Math.min(60, Math.floor(Number(value)))
+      else if (field === "unemploymentBenefitMonthly") inputs.unemploymentBenefitMonthly = Number(value)
+      else if (field === "unemploymentBenefitDurationMonths") inputs.unemploymentBenefitDurationMonths = Math.min(60, Math.floor(Number(value)))
+      else if (field === "estimatedJobSearchMonths") inputs.estimatedJobSearchMonths = Math.min(60, Math.floor(Number(value)))
+      updateUnemploymentInputs(scenarioId, inputs)
     }
   }
 
