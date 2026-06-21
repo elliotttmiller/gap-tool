@@ -325,7 +325,7 @@ export function DisabilityOutputView({
             ) : null}
           </div>
 
-          <Card className="disability-chart-panel module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
+          <Card className="module-chart-card disability-chart-panel module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
             <CardHeader className="shrink-0 px-6 pt-5 pb-0">
               <div className="grid gap-3">
                 <div className="flex items-start justify-between gap-4">

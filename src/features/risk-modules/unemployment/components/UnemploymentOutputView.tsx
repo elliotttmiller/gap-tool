@@ -40,7 +40,7 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
   const targetLabel = idealMonths === 3 ? "3 mo minimum / ideal" : `${idealMonths} mo ideal`
 
   return (
-    <Card className="unemployment-chart-panel border-slate-800/80 bg-slate-950/60">
+    <Card className="module-chart-card unemployment-chart-panel border-slate-800/80 bg-slate-950/60">
       <CardHeader className="px-5 pb-0 pt-4">
         <div className="flex items-start justify-between gap-4">
           <div>

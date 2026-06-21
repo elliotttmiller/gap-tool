@@ -35,7 +35,8 @@ function buildHouseholdExposureSchedule(
 
     schedule.push({
       yearIndex,
-      age: primaryCurrentAge + yearIndex,
+      // Label exposure by attained age at the end of the annual period.
+      age: primaryCurrentAge + yearIndex + 1,
       grossIncome,
       disposableIncome,
       garnishableIncome,

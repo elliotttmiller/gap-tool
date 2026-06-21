@@ -65,9 +65,9 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
   const includedTabs = scenario?.includedModules ?? []
 
   return (
-    <div className="w-full max-w-full space-y-5 overflow-x-hidden">
+    <div className="builder-mode w-full max-w-full space-y-5 overflow-x-hidden">
       {/* ── Module header ──────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-800 pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-2xl border border-gray-800 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,42,58,0.04),0_12px_32px_rgba(15,42,58,0.06)] dark:bg-[#090E1A]">
         {/* Left: title + subtitle */}
         <div className="min-w-0">
           <h2 className="text-base font-semibold text-gray-50">{title}</h2>

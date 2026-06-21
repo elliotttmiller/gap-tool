@@ -146,7 +146,9 @@ export function calculateIncomeGapScenarios(
   const m2GapStream: number[] = [];
 
   for (let i = 0; i < yearsToRetirement; i++) {
-    const age = currentAge + i;
+    // Label each annual period by the age attained at its end. A 40-to-65
+    // projection therefore remains 25 periods while the chart ends at age 65.
+    const age = currentAge + i + 1;
 
     const projectedNetIncome = projectedIncomeStream[i] ?? 0;
     const targetIncomeNeed = targetIncomeStream[i] ?? 0;
@@ -209,8 +211,8 @@ export function calculateIncomeGapScenarios(
 
   const coveredPoints = yearlyData.filter((p) => p.isCoveredMax);
   const yearsOfMaxWD = coveredPoints.length;
-  const startCoverageAge = coveredPoints[0]?.age ?? currentAge;
-  const endCoverageAge = coveredPoints[coveredPoints.length - 1]?.age ?? currentAge;
+  const startCoverageAge = coveredPoints[0]?.age ?? currentAge + 1;
+  const endCoverageAge = coveredPoints[coveredPoints.length - 1]?.age ?? currentAge + 1;
 
   return {
     module1: {

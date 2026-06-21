@@ -32,7 +32,8 @@ export function calculateLifeInsuranceGap(
   let targetIncomeSupportTotal = 0;
 
   for (let yearIndex = 0; yearIndex < yearsToRetirement; yearIndex++) {
-    const age = currentAge + yearIndex;
+    // Annual rows are labeled by attained age at the end of each period.
+    const age = currentAge + yearIndex + 1;
     const projectedIncome = annualReplacementNeed * Math.pow(1 + incomeGrowth, yearIndex);
     const targetNeed = projectedIncome * targetIncomeSupportPct;
     projectedIncomeToRetirement += projectedIncome;

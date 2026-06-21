@@ -52,7 +52,8 @@ export function calculateDisabilityGap(
   const yearsToRetirement = retirementAge - currentAge;
 
   for (let year = 0; year < yearsToRetirement; year++) {
-    const age = currentAge + year;
+    // Annual rows are labeled by attained age at the end of each period.
+    const age = currentAge + year + 1;
     const annualIncomeAtAge = roundCurrency(annualIncome * Math.pow(1 + growthRate, year));
     const annualIncomeNetAtAge = roundCurrency(annualIncomeAtAge * 0.70);
 

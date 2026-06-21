@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react"
 import { LifeOutputs, LifeInputs, LifeAssumptions, IncomeGapOutputs, IncomeGapModule1, IncomeGapModule2 } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
-import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
+import { BarChart, Bar, CartesianGrid, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import { AnimatedSection } from "@/components/ui/animated-section"
 import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
 
@@ -20,6 +20,17 @@ const tooltipClass = "bg-gray-900 p-3 border border-gray-700 rounded-lg shadow-l
 
 function formatRatePctOneDecimal(rate: number): string {
   return `${(Math.round(rate * 1000) / 10).toFixed(1)}%`
+}
+
+function getRunwayCoverageStatus(covered: number, need: number) {
+  const coverageRate = need > 0 ? Math.max(0, Math.min(1, covered / need)) : 1
+  if (coverageRate >= 0.999999) {
+    return { label: "Fully Covered", description: "Resource pool funds the full annual need", accent: "green" as const, coverageRate }
+  }
+  if (coverageRate <= 0.000001) {
+    return { label: "Uncovered", description: "Resource pool funds none of the annual need", accent: "red" as const, coverageRate }
+  }
+  return { label: "Partially Covered", description: "Resource pool funds part of the annual need", accent: "amber" as const, coverageRate }
 }
 
 function buildAgeTicks(data: { age: number }[], targetTickCount = 14): number[] {
@@ -55,12 +66,14 @@ const RunwayTooltip = ({ active, payload, label }: any) => {
   const covered = payload.find((p: any) => p.dataKey === "maxCovered")?.value ?? 0
   const gap = payload.find((p: any) => p.dataKey === "maxCoverageGap")?.value ?? 0
   const income = covered + gap
+  const status = getRunwayCoverageStatus(covered, income)
   return (
     <div className={tooltipClass}>
       <p className="mb-2 font-semibold text-gray-100">Age {label}</p>
       <div className="flex justify-between gap-4"><span className="text-xs text-gray-400">Net Income Need:</span><span className="text-xs font-semibold text-gray-100">{formatCurrency(income)}</span></div>
       <div className="flex justify-between gap-4"><span className="text-xs text-emerald-400">Net Income Covered:</span><span className="text-xs font-semibold text-emerald-300">{formatCurrency(covered)}</span></div>
       {gap > 0 ? <div className="flex justify-between gap-4"><span className="text-xs text-rose-400">Annual Gap:</span><span className="text-xs font-semibold text-rose-300">{formatCurrency(gap)}</span></div> : null}
+      <div className="mt-2 flex justify-between gap-4 border-t border-gray-700 pt-2"><span className="text-xs text-gray-400">Coverage Status:</span><span className="text-xs font-semibold text-gray-100">{status.label} ({formatRatePctOneDecimal(status.coverageRate)})</span></div>
     </div>
   )
 }
@@ -70,10 +83,11 @@ function RunwayMetricBoxes({ m2, projectionEndAge, selectedAge }: { m2: IncomeGa
   const hasGap = m2.survivorGap > 0
   const runwayGapCapital = m2.deathBenefitNeeded
   if (selected) {
+    const status = getRunwayCoverageStatus(selected.maxCovered, selected.projectedIncome)
     return (
       <div className="life-metric-grid life-metric-grid--runway">
         <ModuleMetricCard className={compactCardClass} label={`Projected Net Income at Age ${selected.age}`} value={formatCurrency(selected.projectedIncome)} description="Annual projected need" accent="slate" />
-        <ModuleMetricCard className={compactCardClass} label={`Coverage at Age ${selected.age}`} value={selected.isCoveredMax ? "Fully Covered" : "Partial Coverage"} description={selected.isCoveredMax ? "Resource pool funds the full annual need" : "Resource pool does not fund the full annual need"} accent={selected.isCoveredMax ? "green" : "red"} />
+        <ModuleMetricCard className={compactCardClass} label={`Coverage at Age ${selected.age}`} value={status.label} description={`${formatRatePctOneDecimal(status.coverageRate)} covered. ${status.description}`} accent={status.accent} />
         <ModuleMetricCard className={compactCardClass} label={`Income Replaced at Age ${selected.age}`} value={formatCurrency(selected.maxCovered)} description="Covered by resource pool" accent="cyan" />
         <ModuleMetricCard className={compactCardClass} label={`Income Gap at Age ${selected.age}`} value={formatCurrency(selected.maxCoverageGap)} description="Projected need minus amount covered" accent={selected.maxCoverageGap > 0 ? "red" : "green"} />
         <ModuleMetricCard className={compactCardClass} label={`Cumulative Gap Through Age ${selected.age}`} value={formatCurrency(selected.cumulativeMaxCoverageGap)} description="Running uncovered income total" accent={selected.cumulativeMaxCoverageGap > 0 ? "red" : "green"} />
@@ -122,9 +136,9 @@ function SafeIncomeMetricBoxes({ m1, projectionEndAge, selectedAge }: { m1: Inco
   )
 }
 
-function ChartPanel({ title, subtitle, data, ticks, selectedAge, onSelectAge, onReset, children }: { title: string; subtitle: string; data: any[]; ticks: number[]; selectedAge: number | null; onSelectAge: (age: number) => void; onReset: () => void; children: ReactNode }) {
+function ChartPanel({ title, subtitle, coveredLabel, data, ticks, selectedAge, onSelectAge, onReset, children }: { title: string; subtitle: string; coveredLabel: string; data: any[]; ticks: number[]; selectedAge: number | null; onSelectAge: (age: number) => void; onReset: () => void; children: ReactNode }) {
   return (
-    <Card className="life-chart-panel border-slate-800/80 bg-slate-950/60">
+    <Card className="module-chart-card life-chart-panel border-slate-800/80 bg-slate-950/60">
       <CardHeader className="px-5 pb-0 pt-4">
         <div className="text-center">
           <CardTitle className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">{title}</CardTitle>
@@ -133,16 +147,28 @@ function ChartPanel({ title, subtitle, data, ticks, selectedAge, onSelectAge, on
         </div>
       </CardHeader>
       <CardContent className="px-5 pb-4 pt-3">
-        <div className="life-chart-area chart-reveal">
-          <ResponsiveContainer width="100%" height="100%" debounce={100}>
-            <BarChart data={data} margin={{ top: 6, right: 12, left: 0, bottom: 0 }} barCategoryGap="8%" onClick={(state) => { if (state?.activePayload) onSelectAge(Number(state.activeLabel)) }} style={{ cursor: "pointer" }}>
-              <XAxis dataKey="age" ticks={ticks} interval={0} minTickGap={8} tickMargin={8} tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis tickFormatter={(v) => `$${Math.round(Number(v) / 1000)}k`} tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} width={42} />
-              {children}
-            </BarChart>
-          </ResponsiveContainer>
+        <div className="flex items-stretch gap-1">
+          <div className="flex w-4 shrink-0 items-center justify-center">
+            <span style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }} className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider text-slate-500">Annual Income ($)</span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="life-chart-area chart-reveal">
+              <ResponsiveContainer width="100%" height="100%" debounce={100}>
+                <BarChart data={data} margin={{ top: 8, right: 14, left: 2, bottom: 8 }} barCategoryGap="8%" onClick={(state) => { if (state?.activePayload) onSelectAge(Number(state.activeLabel)) }} style={{ cursor: "pointer" }}>
+                  <CartesianGrid stroke="rgba(100,116,139,0.16)" strokeDasharray="3 5" vertical={false} />
+                  <XAxis dataKey="age" ticks={ticks} interval={0} minTickGap={8} tickMargin={9} tick={{ fill: "#64748b", fontSize: 10, fontWeight: 600 }} axisLine={{ stroke: "#64748b", strokeOpacity: 0.45 }} tickLine={{ stroke: "#64748b", strokeOpacity: 0.45 }} />
+                  <YAxis tickFormatter={(v) => `$${Math.round(Number(v) / 1000)}k`} tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} width={46} />
+                  {children}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-1 text-center"><span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Age (Years)</span></div>
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 border-t border-slate-800/50 pt-2">
+              <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400"><span className="h-2.5 w-4 rounded-sm bg-emerald-500" />{coveredLabel}</span>
+              <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400"><span className="h-2.5 w-4 rounded-sm bg-red-500" />Income Gap</span>
+            </div>
+          </div>
         </div>
-        <div className="mt-0.5 text-center"><span className="text-[9px] font-semibold uppercase tracking-wider text-slate-500">Age</span></div>
       </CardContent>
     </Card>
   )
@@ -159,7 +185,7 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
   }
 
   const { module1, module2, isM1FullyCovered, m1SurvivorGap } = incomeGapOutputs
-  const retirementAge = (module1.yearlyData.at(-1)?.age ?? 64) + 1
+  const retirementAge = module1.yearlyData.at(-1)?.age ?? 65
   const safeTicks = buildAgeTicks(module1.yearlyData)
   const runwayTicks = buildAgeTicks(module2.yearlyData)
   const safePct = module1.targetIncomeSupportTotal > 0 ? Math.round((module1.totalIncomeReplaced / module1.targetIncomeSupportTotal) * 1000) / 10 : 0
@@ -191,7 +217,7 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
       {activeTab === "safe" && (
         <AnimatedSection>
           <div className="life-visual-dashboard">
-            <ChartPanel title={`Safe Income Coverage — Target Annual Net Income to Age ${retirementAge}`} subtitle={`${formatRatePctOneDecimal(module1.targetIncomeSupportPct)} net income factor; capital required uses ${formatRatePctOneDecimal(module1.roi)} PV reference rate`} data={module1.yearlyData} ticks={safeTicks} selectedAge={selectedSafeAge} onSelectAge={setSelectedSafeAge} onReset={() => setSelectedSafeAge(null)}>
+            <ChartPanel title={`Safe Income Coverage — Target Annual Net Income to Age ${retirementAge}`} subtitle={`${formatRatePctOneDecimal(module1.targetIncomeSupportPct)} net income factor; capital required uses ${formatRatePctOneDecimal(module1.roi)} PV reference rate`} coveredLabel="Income Supported" data={module1.yearlyData} ticks={safeTicks} selectedAge={selectedSafeAge} onSelectAge={setSelectedSafeAge} onReset={() => setSelectedSafeAge(null)}>
               <Tooltip content={SafeTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
               <Bar dataKey="safeIncomeCoverage" name="Income Supported" stackId="income" fill="#10b981" radius={[0, 0, 0, 0]} isAnimationActive={false}>{module1.yearlyData.map((point) => <Cell key={`safe-covered-${point.age}`} opacity={selectedSafeAge === null || selectedSafeAge === point.age ? 1 : 0.3} stroke={selectedSafeAge === point.age ? "#f8fafc" : "transparent"} strokeWidth={selectedSafeAge === point.age ? 1.5 : 0} style={{ transition: "opacity 220ms ease, filter 220ms ease", filter: selectedSafeAge === point.age ? "drop-shadow(0 0 5px rgba(16,185,129,0.65))" : "none" }} />)}</Bar>
               <Bar dataKey="incomeGap" name="Income Gap" stackId="income" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={false}>{module1.yearlyData.map((point) => <Cell key={`safe-gap-${point.age}`} opacity={selectedSafeAge === null || selectedSafeAge === point.age ? 1 : 0.3} stroke={selectedSafeAge === point.age ? "#f8fafc" : "transparent"} strokeWidth={selectedSafeAge === point.age ? 1.5 : 0} style={{ transition: "opacity 220ms ease, filter 220ms ease" }} />)}</Bar>
@@ -204,7 +230,7 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
       {activeTab === "max" && (
         <AnimatedSection>
           <div className="life-visual-dashboard">
-            <ChartPanel title="Coverage Runway Scenario — Resource Drawdown Coverage" subtitle={`Scenario-only view: existing coverage resources invested at ${formatRatePctOneDecimal(module2.maxCoverageRoi)} while funding full projected net income`} data={module2.yearlyData} ticks={runwayTicks} selectedAge={selectedRunwayAge} onSelectAge={setSelectedRunwayAge} onReset={() => setSelectedRunwayAge(null)}>
+            <ChartPanel title="Coverage Runway Scenario — Resource Drawdown Coverage" subtitle={`Scenario-only view: existing coverage resources invested at ${formatRatePctOneDecimal(module2.maxCoverageRoi)} while funding full projected net income`} coveredLabel="Net Income Covered" data={module2.yearlyData} ticks={runwayTicks} selectedAge={selectedRunwayAge} onSelectAge={setSelectedRunwayAge} onReset={() => setSelectedRunwayAge(null)}>
               <Tooltip content={RunwayTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
               <Bar dataKey="maxCovered" name="Net Income Covered" stackId="income" fill="#10b981" radius={[0, 0, 0, 0]} isAnimationActive={false}>{module2.yearlyData.map((point) => <Cell key={`runway-covered-${point.age}`} opacity={selectedRunwayAge === null || selectedRunwayAge === point.age ? 1 : 0.3} stroke={selectedRunwayAge === point.age ? "#f8fafc" : "transparent"} strokeWidth={selectedRunwayAge === point.age ? 1.5 : 0} style={{ transition: "opacity 220ms ease, filter 220ms ease", filter: selectedRunwayAge === point.age ? "drop-shadow(0 0 5px rgba(16,185,129,0.65))" : "none" }} />)}</Bar>
               <Bar dataKey="maxCoverageGap" name="Income Gap" stackId="income" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={false}>{module2.yearlyData.map((point) => <Cell key={`runway-gap-${point.age}`} opacity={selectedRunwayAge === null || selectedRunwayAge === point.age ? 1 : 0.3} stroke={selectedRunwayAge === point.age ? "#f8fafc" : "transparent"} strokeWidth={selectedRunwayAge === point.age ? 1.5 : 0} style={{ transition: "opacity 220ms ease, filter 220ms ease" }} />)}</Bar>

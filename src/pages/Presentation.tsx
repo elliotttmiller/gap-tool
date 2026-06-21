@@ -226,7 +226,7 @@ export function Presentation() {
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-gray-950 p-4 text-gray-50 print:h-auto print:overflow-visible print:bg-white print:p-0">
+    <div className="presentation-mode h-screen overflow-hidden bg-gray-950 p-4 text-gray-50 print:h-auto print:overflow-visible print:bg-white print:p-0">
       <div className="mx-auto flex h-full max-w-7xl flex-col gap-4 print:hidden">
         <div className="flex shrink-0 items-center justify-between rounded-lg border border-gray-800 bg-[#090E1A] px-4 py-3">
           <Button variant="ghost" className="shadow-none" asChild>

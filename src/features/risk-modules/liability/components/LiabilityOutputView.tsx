@@ -47,7 +47,7 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
   return (
     <div className="liability-output-container">
       <div className="liability-visual-dashboard">
-        <Card className="liability-chart-panel-compact border-slate-800/80 bg-slate-950/60">
+        <Card className="module-chart-card liability-chart-panel-compact border-slate-800/80 bg-slate-950/60">
           <CardHeader className="px-5 pb-0 pt-4">
             <div className="relative flex items-start justify-center">
               <div className="text-center">
