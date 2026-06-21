@@ -270,22 +270,22 @@
     color: #f8fcfc;
   }
   .presentation-mode .presentation-input-affix { color: #82cbd1; }
-  .presentation-mode .presentation-policy-menu {
+  .presentation-policy-menu {
     color-scheme: dark;
     border-color: #31586c !important;
     background: linear-gradient(155deg, #173d51 0%, #0e293a 100%) !important;
     color: #f8fcfc !important;
     transform-origin: var(--radix-select-content-transform-origin);
   }
-  .presentation-mode .presentation-policy-menu [role="option"] {
+  .presentation-policy-menu [role="option"] {
     color: #d9e8ec !important;
   }
-  .presentation-mode .presentation-policy-menu [role="option"]:hover,
-  .presentation-mode .presentation-policy-menu [role="option"]:focus-visible {
+  .presentation-policy-menu [role="option"]:hover,
+  .presentation-policy-menu [role="option"]:focus-visible {
     background: rgb(0 153 168 / 0.2) !important;
     color: #ffffff !important;
   }
-  .presentation-mode .presentation-policy-menu [role="option"][data-state="checked"] {
+  .presentation-policy-menu [role="option"][data-state="checked"] {
     background: rgb(0 153 168 / 0.3) !important;
     color: #ffffff !important;
   }

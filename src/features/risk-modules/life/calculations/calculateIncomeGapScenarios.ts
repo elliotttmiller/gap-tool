@@ -112,20 +112,23 @@ export function calculateIncomeGapScenarios(
     )
   );
 
-  // Income Replacement belongs to the core life-insurance need calculation. The
-  // income-gap scenarios use this factor directly so projected net income is not
-  // reduced by two independent percentages.
+  const incomeReplacementRatio = clampRate(
+    requireNonNegativeNumber(inputs.incomeReplacementRatio, "inputs.incomeReplacementRatio")
+  );
+
+  // Income Replacement establishes the projected income basis. The separate
+  // Net Income Factor then determines the Safe Income target stream below.
   const annualNetIncomeNeed = Math.max(
     0,
     nonNegative(requireNonNegativeNumber(inputs.annualIncome, "inputs.annualIncome")) *
-      targetIncomeSupportPct -
+      incomeReplacementRatio -
       nonNegative(requireNonNegativeNumber(inputs.spouseAnnualIncome, "inputs.spouseAnnualIncome"))
   );
 
   const projectedIncomeStream = Array.from({ length: yearsToRetirement }, (_, i) => {
     return annualNetIncomeNeed * Math.pow(1 + incomeGrowthRate, i);
   });
-  const targetIncomeStream = projectedIncomeStream;
+  const targetIncomeStream = projectedIncomeStream.map((amount) => amount * targetIncomeSupportPct);
   const projectedNetIncomeTotal = projectedIncomeStream.reduce((sum, amount) => sum + amount, 0);
   const targetIncomeSupportTotal = targetIncomeStream.reduce((sum, amount) => sum + amount, 0);
   const targetDeathBenefitNeed = presentValueOfAnnualStream(targetIncomeStream, roi);

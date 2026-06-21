@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 import { calculateLiabilityGap } from "../src/features/risk-modules/liability/calculations/calculateLiabilityGap"
 import { calculateUnemploymentGap } from "../src/features/risk-modules/unemployment/calculations/calculateUnemploymentGap"
+import { calculateIncomeGapScenarios } from "../src/features/risk-modules/life/calculations/calculateIncomeGapScenarios"
 
 function approximately(actual: number, expected: number, tolerance = 0.01): void {
   assert.ok(
@@ -8,6 +9,40 @@ function approximately(actual: number, expected: number, tolerance = 0.01): void
     `Expected ${actual} to be within ${tolerance} of ${expected}`,
   )
 }
+
+const lifeBaseInputs = {
+  currentAge: 40,
+  retirementAge: 65,
+  annualIncome: 200_000,
+  spouseAnnualIncome: 0,
+  incomeReplacementYears: 25,
+  incomeReplacementRatio: 0.7,
+  groupLifeCoverage: 300_000,
+  privateLifeCoverage: 500_000,
+  privateLifePolicyType: "term" as const,
+  privateLifeTermYears: 20,
+  nonQualifiedAssets: 0,
+  debtsTotal: 0,
+  educationGoal: 0,
+  finalExpenses: 0,
+  targetIncomeSupportPct: 0.85,
+  maxCoverageRoi: 0.06,
+  incomeGapRoi: 0.06,
+}
+const lifeAssumptions = {
+  inflationRateAnnual: 0.03,
+  discountRateAnnual: 0.04,
+  incomeGrowthRateAnnual: 0.03,
+  usePresentValue: true,
+  includeLiquidAssetsOffset: false,
+  deathBenefitTaxTreatment: "generally_income_tax_free" as const,
+}
+const lifeAt70 = calculateIncomeGapScenarios(lifeBaseInputs, lifeAssumptions)
+const lifeAt80 = calculateIncomeGapScenarios({ ...lifeBaseInputs, incomeReplacementRatio: 0.8 }, lifeAssumptions)
+assert.ok(lifeAt80.module1.projectedNetIncomeTotal > lifeAt70.module1.projectedNetIncomeTotal)
+assert.ok(lifeAt80.module1.targetIncomeSupportTotal > lifeAt70.module1.targetIncomeSupportTotal)
+approximately(lifeAt70.module1.yearlyData[0].projectedIncome, 140_000)
+approximately(lifeAt70.module1.yearlyData[0].targetIncomeNeed, 119_000)
 
 const unemployment = calculateUnemploymentGap({
   annualIncome: 300_000,
