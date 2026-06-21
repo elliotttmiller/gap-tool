@@ -12,7 +12,6 @@ import { JobComparisonModule } from "../calculators/JobComparisonModule"
 import {
   ModuleMetricCard,
   MetricGroup,
-  MetricGroupDivider,
 } from "@/features/risk-modules/core/ModuleMetricCard"
 
 /** Default COLA rate applied when the rider is toggled on (mirrors SSA average). */
@@ -428,9 +427,6 @@ export function DisabilityOutputView({
               <ModuleMetricCard label={ltdLabel} value={<>{formatCurrency(ltdDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description={chartView === "gross" ? "Gross monthly LTD benefit" : "Net after-tax LTD monthly benefit"} accent="blue" />
               <ModuleMetricCard label="Individual DI" value={<>{formatCurrency(monthly.individualDIMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description="Private disability insurance benefit" accent="cyan" />
               <ModuleMetricCard label={totalBenefitLabel} value={<>{formatCurrency(totalDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description="Combined LTD + individual DI monthly benefit" accent="slate" />
-            </MetricGroup>
-            <MetricGroupDivider />
-            <MetricGroup title="Gap">
               <ModuleMetricCard label={incomeLossLabel} value={<>{formatCurrency(incomeLossDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description={incomeLossDescription} accent="red" />
             </MetricGroup>
           </div>

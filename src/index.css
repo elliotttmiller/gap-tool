@@ -222,6 +222,44 @@
   .light .module-metric-card [class~="text-cyan-300"] { color: #0e7490 !important; }
   .light .module-metric-card [class~="text-amber-300"] { color: #a16207 !important; }
   .light .module-metric-card [class~="text-blue-300"] { color: #1d4ed8 !important; }
+
+  .light .presentation-mode {
+    background:
+      radial-gradient(circle at 85% 5%, rgb(0 153 168 / 0.08), transparent 28rem),
+      linear-gradient(145deg, #edf4f5 0%, #e5eef0 100%) !important;
+  }
+  .light .presentation-mode .presentation-input-rail {
+    border-color: #244c61 !important;
+    background: linear-gradient(155deg, #173d51 0%, #0e293a 100%) !important;
+    box-shadow: 0 16px 36px rgb(15 42 58 / 0.18) !important;
+  }
+  .light .presentation-mode .presentation-input-rail > div:first-child {
+    border-color: rgb(176 229 233 / 0.2) !important;
+  }
+  .light .presentation-mode .presentation-input-title { color: #b0e5e9 !important; }
+  .light .presentation-mode .presentation-input-badge {
+    border-color: rgb(176 229 233 / 0.28) !important;
+    background: rgb(255 255 255 / 0.08) !important;
+    color: #d9f1f3 !important;
+  }
+  .light .presentation-mode .presentation-input-item {
+    border-color: rgb(176 229 233 / 0.16) !important;
+    background: rgb(255 255 255 / 0.07) !important;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04) !important;
+  }
+  .light .presentation-mode .presentation-input-label { color: #82cbd1 !important; }
+  .light .presentation-mode .presentation-input-value { color: #f8fcfc !important; }
+  .light .presentation-mode .presentation-module-tabs {
+    border: 1px solid #d4e2e5;
+    background: #f3f8f8 !important;
+    box-shadow: inset 0 1px 2px rgb(15 42 58 / 0.05);
+  }
+  .light .presentation-mode .module-metric-card,
+  .light .presentation-mode .module-kpi-card {
+    border-color: #d7e5e7 !important;
+    background: #ffffff !important;
+    box-shadow: 0 1px 2px rgb(15 42 58 / 0.04), 0 8px 22px rgb(15 42 58 / 0.07) !important;
+  }
   .light .analysis-module-summary {
     background: linear-gradient(135deg, #19384c 0%, #122d40 100%) !important;
     border-color: #31586c !important;

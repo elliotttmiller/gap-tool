@@ -100,20 +100,20 @@ function ModuleInputSpecs({
 
   if (variant === "rail") {
     return (
-      <aside className="rounded-xl border border-gray-800 bg-gray-950/55 p-3.5 shadow-inner shadow-black/20 xl:sticky xl:top-0">
+      <aside className="presentation-input-rail rounded-xl border border-gray-800 bg-gray-950/55 p-3.5 shadow-inner shadow-black/20 xl:sticky xl:top-0">
         <div className="mb-3 flex items-center justify-between gap-3 border-b border-gray-800 pb-2.5">
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-gray-400">
+          <p className="presentation-input-title text-[10px] font-bold uppercase tracking-[0.22em] text-gray-400">
             Input Snapshot
           </p>
-          <span className="rounded-full border border-gray-800 bg-[#090E1A] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+          <span className="presentation-input-badge rounded-full border border-gray-800 bg-[#090E1A] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-gray-500">
             Live Data
           </span>
         </div>
         <div className="grid gap-2">
           {specs.map((spec) => (
-            <div key={spec.label} className="rounded-lg border border-gray-800/90 bg-[#090E1A] px-3 py-2.5">
-              <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-gray-600">{spec.label}</p>
-              <p className="mt-1 truncate text-sm font-semibold leading-tight text-gray-100" title={spec.value}>{spec.value}</p>
+            <div key={spec.label} className="presentation-input-item rounded-lg border border-gray-800/90 bg-[#090E1A] px-3 py-2.5">
+              <p className="presentation-input-label text-[9px] font-semibold uppercase tracking-[0.15em] text-gray-600">{spec.label}</p>
+              <p className="presentation-input-value mt-1 truncate text-sm font-semibold leading-tight text-gray-100" title={spec.value}>{spec.value}</p>
             </div>
           ))}
         </div>
@@ -243,7 +243,7 @@ export function Presentation() {
                     <h2 className="truncate text-xl font-semibold text-gray-50">{moduleCopy[selectedModule].title}</h2>
                     <p className="mt-0.5 text-xs text-gray-500">Visualization and metrics for the selected risk module.</p>
                   </div>
-                  <div className="scrollbar-hide flex max-w-full gap-1 overflow-x-auto rounded-lg bg-gray-950/40 p-1 lg:justify-self-end">
+                  <div className="presentation-module-tabs scrollbar-hide flex max-w-full gap-1 overflow-x-auto rounded-lg bg-gray-950/40 p-1 lg:justify-self-end">
                     {visibleModules.map((module) => {
                       const Icon = moduleIcons[module]
                       const selected = module === selectedModule
