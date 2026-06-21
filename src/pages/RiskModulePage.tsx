@@ -128,17 +128,17 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
         </div>
       </div>
 
-      {/* Toggle button — fixed to viewport, lives outside any containing-block ancestor */}
       <button
         type="button"
         aria-label={inputsOpen ? "Collapse input forms" : "Expand input forms"}
         aria-expanded={inputsOpen}
+        title={inputsOpen ? "Hide input panel" : "Show input panel"}
         onClick={() => setInputsOpen((open) => !open)}
         className={cx(
-          "fixed top-1/2 z-40 hidden h-9 w-6 -translate-y-1/2 items-center justify-center border border-slate-700/70 bg-slate-950/35 text-slate-400 shadow-lg shadow-black/20 backdrop-blur-md transition-[left,transform,background-color,border-color,color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-brand-500/80 hover:bg-brand-950/25 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-500 xl:flex",
+          "fixed top-1/2 z-40 hidden h-14 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-brand-600/40 bg-white text-brand-700 shadow-[0_8px_24px_rgba(15,42,58,0.16)] ring-4 ring-[#eaf1f3] transition-[left,transform,background-color,border-color,color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-brand-600 hover:bg-brand-50 hover:text-brand-800 hover:shadow-[0_10px_28px_rgba(0,153,168,0.18)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:ring-[#0d1b2a] dark:hover:border-brand-500 dark:hover:bg-brand-950 dark:hover:text-white xl:flex",
           inputsOpen
-            ? "left-[max(3rem,calc((100vw-100rem)/2+3rem))] -translate-x-1/2 rounded-full"
-            : "left-0 rounded-r-full border-l-0",
+            ? "left-[max(1rem,calc((100vw-100rem)/2+1rem))]"
+            : "left-4",
         )}
       >
         {inputsOpen ? (
@@ -150,9 +150,9 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
 
       <div
         className={cx(
-          "grid w-full min-w-0 items-start gap-5 overflow-visible transition-[grid-template-columns,gap] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:gap-6",
+          "relative grid w-full min-w-0 items-start gap-5 overflow-visible transition-[grid-template-columns,gap] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:gap-6",
           inputsOpen
-            ? "xl:grid-cols-[minmax(20rem,23rem)_minmax(0,1fr)]"
+            ? "xl:grid-cols-[24rem_minmax(0,1fr)]"
             : "xl:grid-cols-[0rem_minmax(0,1fr)] xl:gap-x-0",
         )}
       >
