@@ -1,211 +1,170 @@
-# Revision Overview - June 19, 2026
+# GAP Tool Revision Brief
 
-This file summarizes the updates and revisions made when comparing commit `017f285eed6bffeb6afcfdfdf3fca9f633714cbc` to commit `86c0f78f7d2836686a7286ba1ae3850647465f0c`.
+## Advisor Review Summary
 
-## Comparison
+This document summarizes the most recent updates made to the GAP Tool for advisor review. The purpose of these revisions was to make the tool clearer, more consistent, and more useful during real advisor conversations.
 
-- **Starting version:** `017f285eed6bffeb6afcfdfdf3fca9f633714cbc`
-- **Updated version:** `86c0f78f7d2836686a7286ba1ae3850647465f0c`
-- **Scope of change:** 19 commits across module calculations, module outputs, presentation mode, documentation, theme support, and verification tooling.
-
-The updated version continues the advisor-alignment pass. It keeps the same core application structure, but improves how module calculations are explained, verified, displayed, and presented.
+The focus of this update was not to change the overall purpose of the application. The core goal remains the same: help advisors identify, explain, and review potential financial protection gaps across key household risk areas.
 
 ---
 
-## High-Level Summary
+## Executive Summary
 
-The main revisions between these versions are:
+The latest version improves the tool in four main ways:
 
-1. **Life Insurance calculations were refined** so income replacement and target income support are handled more clearly and consistently.
-2. **Unemployment reserve logic was updated** to use monthly expense replacement after remaining spousal net income, with a tiered 3-6 month ideal reserve target.
-3. **Liability calculations were tightened** around disposable-income wage garnishment, other assets at risk, umbrella need, and policy-block rounding.
-4. **Presentation mode was expanded** so advisors can view and adjust key input snapshots while reviewing module outputs.
-5. **A Calculation Analysis Center was strengthened** to give a clearer audit trail from inputs to formulas to outputs.
-6. **Formula verification tooling was added** so key advisor examples can be tested directly from the command line.
-7. **Documentation and module wiring references were refreshed** to make the current methodology easier to review.
+1. **More advisor-aligned calculations**  
+   Several module calculations were refined so the outputs better reflect the planning logic advisors have been reviewing.
 
----
+2. **Clearer module outputs**  
+   The main results in each module were reorganized around the numbers that matter most in an advisor-client conversation.
 
-## 1. Life Insurance Revisions
+3. **Improved presentation workflow**  
+   Presentation mode now gives advisors a more useful way to review assumptions, explain outputs, and walk through a client scenario.
 
-The Life Insurance module received important logic and output refinements.
+4. **Stronger review and validation structure**  
+   The tool now provides a clearer path for reviewing how inputs, assumptions, and outputs connect across the analysis.
 
-### Main changes
-
-- Safe Income Coverage continues to use a present-value capital-required model for the projected income support stream.
-- The calculation now separates the **income replacement ratio** from the **target income support percentage**, instead of allowing one percentage to unintentionally stand in for the other.
-- The annual schedule now labels projected periods by the age reached at the end of each annual period, making the projection timeline easier to interpret.
-- Coverage Runway was clarified as a resource drawdown model that attempts to fund annual projected income from the available resource pool.
-- Life output cards and charts now support age-level selection, allowing a reviewer to inspect annual income need, income supported, income gap, and cumulative gap for a selected age.
-
-### Practical impact
-
-The Life module is now better suited for advisor review because the displayed income-support outputs are more traceable to the underlying calculation assumptions.
+Overall, this version is a stronger advisor-review build. It is more organized, more explainable, and better prepared for feedback on methodology, assumptions, and client-facing presentation.
 
 ---
 
-## 2. Unemployment / Liquidity Revisions
+## What Changed by Module
 
-The Unemployment module was revised around a clearer reserve methodology.
+## 1. Life Insurance
 
-### Main changes
+The Life Insurance module was refined to make the income-support analysis easier to understand and more consistent from input to output.
 
-- The module now calculates **Monthly Expense Replacement** as monthly expenses minus the lower remaining net income.
-- The reserve target is now based on that replacement need instead of full household expenses.
-- The model keeps a 3-month minimum reserve reference and uses a tiered 3-6 month ideal target based on how much income remains after the higher income is removed.
-- Output metrics were reorganized around the most important reserve-planning numbers:
+### Key updates
+
+- The module now presents the modeled income support need more clearly.
+- Safe Income Coverage is better connected to the capital needed to support the projected income stream.
+- Coverage status, income supported, remaining gap, and summary metrics are now more consistent with each other.
+- The Coverage Runway view is clearer as a separate scenario showing how long available resources may support projected income needs.
+- Advisors can review age-by-age results more easily, including annual income need, income supported, income gap, and cumulative gap.
+
+### Advisor value
+
+These changes make the Life Insurance module easier to explain because the main outputs are more directly connected to the underlying assumptions. The module is better suited for reviewing whether existing coverage and available resources appear sufficient under the selected assumptions.
+
+---
+
+## 2. Unemployment / Liquidity
+
+The Unemployment module was refined to focus more directly on household reserve needs and monthly expense replacement.
+
+### Key updates
+
+- The module now focuses on **Monthly Expense Replacement**, which reflects monthly expenses after accounting for remaining household income.
+- Reserve targets are based on the amount of expenses that would need to be replaced, not simply total household expenses.
+- The output hierarchy now emphasizes the most useful reserve-planning numbers:
   - Monthly Expense Replacement
   - Current Savings
   - Current Reserve Runway
   - Ideal Reserve Target
   - Emergency Reserve Shortfall or Excess
-- The reserve visual now focuses on danger, minimum, ideal, and above-target reserve zones.
+- The reserve view is easier to interpret, with clearer reserve zones such as danger, minimum, ideal, and above target.
 
-### Practical impact
+### Advisor value
 
-The Unemployment module now better reflects the household's actual monthly replacement need after accounting for remaining spousal income. This makes the reserve result more useful than a simple expenses-only calculation.
-
----
-
-## 3. Liability / Lawsuit Revisions
-
-The Liability module was refined to better match the advisor's lawsuit and umbrella-analysis notes.
-
-### Main changes
-
-- Wage garnishment exposure continues to use a disposable-income proxy rather than gross income.
-- Annual wage exposure is now labeled by the age reached at the end of each projection year.
-- Other Assets at Risk are based on entered home equity, investment/taxable accounts, liquid savings, and business ownership value, with legacy non-qualified assets used only as a fallback.
-- Added a clearer **Needed Umbrella Coverage** calculation that rounds the remaining liability gap up to the next $1M umbrella block.
-- Liability output labels were clarified around:
-  - Wage Garnishment Risk
-  - Other Assets at Risk
-  - Total Liability Exposure
-  - Unprotected Liability Gap
-  - Additional Umbrella to Review
-- The auto liability input received helper guidance so advisors can confirm they are entering the correct policy limit.
-- The liability chart now more clearly separates auto coverage, umbrella coverage, and unprotected gap.
-
-### Practical impact
-
-The Liability module is now easier to audit because total exposure, current coverage, remaining gap, and umbrella-block logic are more directly connected.
+These changes make the Unemployment / Liquidity module more practical for advisor conversations. Instead of only showing how much cash a household has, the module now better explains how long that cash may last relative to the household's actual replacement need.
 
 ---
 
-## 4. Disability Revisions
+## 3. Liability / Lawsuit
 
-The Disability module received smaller output and calculation refinements.
+The Liability module was updated to better organize household exposure, current coverage, and remaining liability gap.
 
-### Main changes
+### Key updates
 
-- Disability gap calculations were lightly adjusted for more consistent annual-gap behavior.
-- Output displays were simplified so the selected view is easier to interpret.
-- Disability assumptions can now be reviewed or adjusted more directly inside presentation workflows.
+- Wage Garnishment Risk is now presented more clearly as part of the household's potential liability exposure.
+- Other Assets at Risk now more clearly reflect household assets such as home equity, taxable/investment accounts, liquid savings, and business ownership value.
+- Total Liability Exposure is easier to understand as a combined view of wage exposure plus assets at risk.
+- Unprotected Liability Gap is now more clearly shown as the difference between modeled exposure and current liability coverage.
+- Umbrella coverage is presented in a way that better supports advisor discussion around common policy increments.
+- Additional helper guidance was added around auto liability limits to reduce the chance of entering the wrong policy figure.
 
-### Practical impact
+### Advisor value
 
-The Disability module did not receive the same level of methodology change as Life, Unemployment, or Liability, but its output flow is now more consistent with the broader advisor-review experience.
-
----
-
-## 5. Presentation Mode Revisions
-
-Presentation mode was expanded significantly.
-
-### Main changes
-
-- Advisors can now see an input snapshot beside the selected module during presentation review.
-- Several key inputs can be adjusted from the presentation view, including Life, Disability, and Unemployment inputs.
-- Presentation mode recalculates module results from the current scenario data, keeping outputs tied to the visible input snapshot.
-- Module navigation and printed report behavior were improved.
-- The print/export view still includes module sections and disclaimer content.
-
-### Practical impact
-
-Presentation mode is now closer to a live advisor-review workspace instead of only a static display page. Advisors can review assumptions, adjust key values, and immediately see the effect on module results.
+These changes make the Liability module easier to review because the major exposure categories are clearer and the gap calculation is easier to explain. Advisors can more easily distinguish between current protection, modeled exposure, and any remaining gap.
 
 ---
 
-## 6. Calculation Analysis Center and Audit Trail
+## 4. Disability Insurance
 
-The Analysis Center was improved to make formulas, inputs, outputs, and schedules easier to inspect.
+The Disability module received smaller refinements focused on readability and consistency.
 
-### Main changes
+### Key updates
 
-- Added clearer module formula versions.
-- Added better formatting for exact input and output values.
-- Added formula descriptions, assumptions, disclosures, and schedule tables.
-- Improved scenario/module filtering and export support.
-- Added a generated JSON export under `docs/` for calculation evidence and review.
+- Disability outputs were adjusted to make the selected view easier to interpret.
+- The module better supports advisor review of gross and net disability income gaps.
+- Presentation workflows now make it easier to review or adjust key disability assumptions.
 
-### Practical impact
+### Advisor value
 
-The app now has a stronger audit path. A reviewer can trace how entered data flows through formulas and into displayed results without needing to inspect the source code directly.
+The Disability module is more consistent with the rest of the tool and easier to include in a broader household risk review.
 
 ---
 
-## 7. Formula Verification Tooling
+## Presentation Mode Improvements
 
-A new formula verification script was added.
+Presentation mode was improved to better support live advisor review.
 
-### Main changes
+### Key updates
 
-- Added `scripts/verify-advisor-formulas.ts`.
-- Added `npm run test:formulas` to `package.json`.
-- The script checks key advisor-aligned examples for Life, Unemployment, and Liability.
-- Liability verification now includes the advisor wage-garnishment example for a $300,000 income, age 41, projected to age 65.
+- Advisors can now view key input assumptions alongside the selected module.
+- Important inputs can be adjusted during presentation review, allowing advisors to test assumptions more efficiently.
+- Module results update from the active scenario data, helping keep the visible assumptions and displayed outputs aligned.
+- Navigation between modules is cleaner and more useful for a guided client review.
+- Print and report views were refined for a more complete presentation experience.
 
-### Practical impact
+### Advisor value
 
-The project now has a simple regression-check path for important advisor formulas. This helps reduce the risk of future updates silently breaking key calculation logic.
-
----
-
-## 8. Documentation Updates
-
-Several documentation files were refreshed.
-
-### Main changes
-
-- Formula references were updated to match the revised module logic.
-- Advisor module revision notes were adjusted.
-- Module input/metric wiring documentation was regenerated and refreshed.
-- Product and technology documentation received small consistency updates.
-- A generated export file was added under `docs/` for review and traceability.
-
-### Practical impact
-
-The documentation is now more closely aligned with the implemented module behavior and easier to use during advisor or developer review.
+Presentation mode is now closer to a working advisor review environment. It can support a more natural conversation where the advisor reviews assumptions, explains results, and adjusts certain values without leaving the presentation flow.
 
 ---
 
-## 9. Theme and Interface Support
+## Calculation Review and Transparency
 
-Although the main purpose of this revision was methodology and output alignment, the version also includes interface support work.
+The tool now provides a stronger structure for reviewing how results are produced.
 
-### Main changes
+### Key updates
 
-- Added or refined persistent Light, Dark, and System theme support.
-- Updated shared card, drawer, dropdown, select, collapsible-section, and layout components for better consistency.
-- Improved print and presentation styles.
+- Advisors and reviewers can more clearly see the connection between client inputs, assumptions, formulas, and outputs.
+- Module results are easier to inspect in a structured review format.
+- Supporting documentation was refreshed to better match the current module logic and outputs.
+- Internal validation checks were added to help confirm that key formulas continue producing expected results.
 
-### Practical impact
+### Advisor value
 
-These changes make the app more consistent across presentation, builder, and print contexts. They are secondary to the calculation and output revisions but support a cleaner advisor-review experience.
+This makes the tool easier to validate before broader use. It also helps create more confidence that the numbers shown in the modules are tied to the intended assumptions and methodology.
 
 ---
 
-## Overall Result
+## Overall Impact
 
-Compared with `017f285eed6bffeb6afcfdfdf3fca9f633714cbc`, commit `86c0f78f7d2836686a7286ba1ae3850647465f0c` makes the app more complete, auditable, and advisor-ready.
+This revision moves the GAP Tool closer to an advisor-ready review experience.
 
 The most important improvements are:
 
-- More consistent Life Insurance income-support logic.
-- More useful Unemployment reserve calculations based on replacement need.
-- Clearer Liability exposure and umbrella-block calculations.
-- Stronger presentation-mode workflows.
-- Better formula documentation and regression checks.
-- A more complete calculation audit trail.
+- Clearer Life Insurance income-support analysis.
+- More practical Unemployment / Liquidity reserve outputs.
+- Better-organized Liability / Lawsuit exposure and gap results.
+- More consistent Disability review flow.
+- Stronger presentation-mode functionality.
+- Better transparency around how inputs and assumptions lead to outputs.
 
-The codebase remains the same core application, but the newer version is better aligned for advisor testing, methodology review, and future refinement.
+The tool remains an illustrative gap-analysis resource. These updates are intended to improve advisor review, support clearer client conversations, and help identify where further methodology or compliance review may still be needed.
+
+---
+
+## Recommended Advisor Review Focus
+
+During advisor review, the most useful feedback will be around these questions:
+
+1. Do the revised outputs show the right numbers first?
+2. Are the module assumptions aligned with how advisors would explain the analysis to clients?
+3. Are any labels, phrases, or outputs too strong, unclear, or potentially compliance-sensitive?
+4. Should any outputs be advisor-only instead of client-facing?
+5. What additional refinements would make the tool more useful in a real client review?
+
+The next round of feedback should focus primarily on calculation methodology, output hierarchy, advisor workflow, and client-facing language.
