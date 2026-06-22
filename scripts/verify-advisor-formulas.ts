@@ -137,4 +137,18 @@ assert.equal(fullyCoveredLiability.totalHouseholdLiabilityRisk, 0)
 assert.equal(fullyCoveredLiability.householdLiabilityGap, 0)
 assert.equal(fullyCoveredLiability.neededUmbrellaCoverage, 0)
 
+const advisorWageExposureExample = calculateLiabilityGap({
+  annualIncome: 300_000,
+  spouseAnnualIncome: 0,
+  currentAge: 41,
+  spouseCurrentAge: 41,
+  retirementAge: 65,
+  investmentAssets: 0,
+  savingsAssets: 0,
+  autoLiabilityLimit: 0,
+  umbrellaCoverage: 0,
+})
+assert.ok(Math.abs(advisorWageExposureExample.householdWageGarnishmentRisk - 1_678_290) < 1)
+assert.equal(advisorWageExposureExample.totalHouseholdLiabilityRisk, advisorWageExposureExample.householdWageGarnishmentRisk)
+
 console.log("Advisor formula regression checks passed.")

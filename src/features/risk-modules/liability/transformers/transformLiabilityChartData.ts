@@ -22,13 +22,13 @@ export function transformLiabilityChartData(outputs: LiabilityOutputs): Liabilit
   return {
     protectionStackData: [
       {
-        name: "Current (Auto Only)",
+        name: "Auto Limit Only",
         AutoCoverage: outputs.householdAutoLiabilityCoverage,
         UmbrellaCoverage: 0,
         ExposureGap: preUmbrellaGap,
       },
       {
-        name: "With Umbrella",
+        name: "Current Protection",
         AutoCoverage: outputs.householdAutoLiabilityCoverage,
         UmbrellaCoverage: outputs.householdUmbrellaCoverage,
         ExposureGap: outputs.householdLiabilityGap,

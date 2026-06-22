@@ -2,6 +2,7 @@ import { LiabilityInputs } from "../types"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { CollapsibleInputSection } from "@/components/ui/collapsible-input-section"
+import { Info } from "lucide-react"
 
 interface LiabilityInputFormProps {
   inputs: LiabilityInputs
@@ -9,6 +10,8 @@ interface LiabilityInputFormProps {
 }
 
 export function LiabilityInputForm({ inputs, onChange }: LiabilityInputFormProps) {
+  const autoLiabilityLimitNeedsReview = inputs.autoLiabilityLimit > 0 && inputs.autoLiabilityLimit < 100_000
+
   const handleChange = (field: keyof LiabilityInputs, value: string) => {
     const numericValue = value === "" ? 0 : Number(value)
     onChange({ ...inputs, [field]: numericValue })
@@ -64,8 +67,28 @@ export function LiabilityInputForm({ inputs, onChange }: LiabilityInputFormProps
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="autoLiabilityLimit" className="whitespace-nowrap">Auto Liability Limit</Label>
-            <Input id="autoLiabilityLimit" type="number" prefix="$" value={inputs.autoLiabilityLimit || ""} className="w-full" onChange={(e) => handleChange("autoLiabilityLimit", e.target.value)} />
+            <div className="flex items-center gap-1.5">
+              <Label htmlFor="autoLiabilityLimit" className="whitespace-nowrap">Auto Liability Limit</Label>
+              <span className="group relative inline-flex">
+                <button
+                  type="button"
+                  aria-label="About the auto liability limit"
+                  aria-describedby="auto-liability-limit-help"
+                  className={`rounded-full p-0.5 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-cyan-500/70 ${autoLiabilityLimitNeedsReview ? "text-amber-500 hover:text-amber-400" : "text-slate-500 hover:text-cyan-400"}`}
+                >
+                  <Info className="size-3.5" aria-hidden="true" />
+                </button>
+                <span
+                  id="auto-liability-limit-help"
+                  role="tooltip"
+                  className={`pointer-events-none absolute bottom-full right-0 z-50 mb-2 w-64 translate-y-1 rounded-lg border bg-slate-950/95 px-3 py-2.5 text-[10px] font-normal leading-relaxed opacity-0 shadow-xl backdrop-blur-sm transition-all duration-150 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100 ${autoLiabilityLimitNeedsReview ? "border-amber-700/70 text-amber-400" : "border-slate-700/80 text-slate-300"}`}
+                >
+                  Enter the household per-occurrence liability limit from the policy declarations; confirm this is not a deductible or property-damage sublimit.
+                  <span className={`absolute -bottom-1 right-2.5 size-2 rotate-45 border-b border-r bg-slate-950 ${autoLiabilityLimitNeedsReview ? "border-amber-700/70" : "border-slate-700/80"}`} aria-hidden="true" />
+                </span>
+              </span>
+            </div>
+            <Input id="autoLiabilityLimit" type="number" min={0} step={50_000} prefix="$" value={inputs.autoLiabilityLimit || ""} className="w-full" onChange={(e) => handleChange("autoLiabilityLimit", e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="umbrellaCoverage" className="whitespace-nowrap">Existing Umbrella Coverage</Label>

@@ -1,7 +1,7 @@
 import { LiabilityOutputs } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts"
 import { transformLiabilityChartData } from "../transformers/transformLiabilityChartData"
 import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
 import { advisorSafeCopy } from "@/domain/copy/advisorSafeCopy"
@@ -43,6 +43,11 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
   const coveragePct = totalRisk > 0 ? Math.min(100, (outputs.householdTotalCoverage / totalRisk) * 100) : 0
   const neededUmbrellaCoverage = outputs.neededUmbrellaCoverage
     ?? (outputs.householdLiabilityGap > 0 ? Math.ceil(outputs.householdLiabilityGap / 1_000_000) * 1_000_000 : 0)
+  const coverageLayers = [
+    { label: "Auto Liability", value: outputs.householdAutoLiabilityCoverage, tone: "bg-emerald-500", text: "text-emerald-300" },
+    { label: "Existing Umbrella", value: outputs.householdUmbrellaCoverage, tone: "bg-cyan-500", text: "text-cyan-300" },
+    { label: "Unprotected Gap", value: outputs.householdLiabilityGap, tone: "bg-rose-500", text: "text-rose-300" },
+  ]
 
   return (
     <div className="liability-output-container">
@@ -85,7 +90,16 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
                       <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 11, fontWeight: 600 }} axisLine={{ stroke: "#64748b", strokeOpacity: 0.45 }} tickLine={{ stroke: "#64748b", strokeOpacity: 0.45 }} tickMargin={10} />
                       <YAxis tickFormatter={(val) => `$${Math.round(Number(val) / 1000)}k`} tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} width={50} />
                       <Tooltip content={CustomTooltip} cursor={{ fill: "rgba(255,255,255,0.025)" }} />
-                      <Bar dataKey="AutoCoverage" name="Auto Liability Coverage" stackId="a" fill="#22c55e" radius={[0, 0, 0, 0]} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
+                      {outputs.householdAutoLiabilityCoverage > 0 ? (
+                        <ReferenceLine
+                          y={outputs.householdAutoLiabilityCoverage}
+                          stroke="#34d399"
+                          strokeDasharray="4 4"
+                          strokeOpacity={0.75}
+                          label={{ value: `Auto limit ${formatLiabilityMetric(outputs.householdAutoLiabilityCoverage)}`, position: "insideBottomLeft", fill: "#6ee7b7", fontSize: 10 }}
+                        />
+                      ) : null}
+                      <Bar dataKey="AutoCoverage" name="Auto Liability Coverage" stackId="a" fill="#22c55e" minPointSize={6} radius={[0, 0, 0, 0]} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
                       <Bar dataKey="UmbrellaCoverage" name="Umbrella Coverage" stackId="a" fill="#06b6d4" radius={[0, 0, 0, 0]} isAnimationActive={true} animationBegin={100} animationDuration={1200} animationEasing="ease-out" />
                       <Bar dataKey="ExposureGap" name="Unprotected Liability Gap" stackId="a" fill="#f43f5e" radius={[5, 5, 0, 0]} isAnimationActive={true} animationBegin={160} animationDuration={1200} animationEasing="ease-out" />
                     </BarChart>
@@ -94,11 +108,18 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
                 <div className="mt-1 text-center"><span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Coverage Scenario</span></div>
               </div>
             </div>
-            <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-slate-800/50 pt-2">
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400"><span className="h-2 w-4 rounded-sm bg-emerald-500" />Auto Liability</span>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400"><span className="h-2 w-4 rounded-sm bg-cyan-500" />Umbrella</span>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400"><span className="h-2 w-4 rounded-sm bg-rose-500" />Unprotected Gap</span>
+            <div className="mt-2 grid gap-2 border-t border-slate-800/50 pt-2 sm:grid-cols-3">
+              {coverageLayers.map((layer) => (
+                <div key={layer.label} className="flex items-center justify-between gap-3 rounded-lg border border-slate-800/70 bg-slate-950/50 px-3 py-2">
+                  <span className="flex min-w-0 items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                    <span className={`h-7 w-1 shrink-0 rounded-full ${layer.tone}`} />
+                    {layer.label}
+                  </span>
+                  <span className={`text-xs font-bold tabular-nums ${layer.text}`}>{formatLiabilityMetric(layer.value)}</span>
+                </div>
+              ))}
             </div>
+            <p className="mt-1.5 text-center text-[9px] leading-snug text-slate-600">The chart uses a 6px minimum display thickness for non-zero coverage layers; labels, axis, and tooltips retain actual dollar values.</p>
           </CardContent>
         </Card>
 
