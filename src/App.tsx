@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { AppShell } from './components/global/AppShell';
 
 const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -54,9 +54,9 @@ export default function App() {
               <p className="text-5xl font-bold text-gray-800">404</p>
               <p className="mt-4 text-lg font-medium text-gray-50">Page not found</p>
               <p className="mt-1 text-sm text-gray-500">The page you're looking for doesn't exist.</p>
-              <a href="/" className="mt-6 text-sm font-medium text-brand-500 hover:text-brand-400">
+              <Link to="/" className="mt-6 text-sm font-medium text-brand-500 hover:text-brand-400">
                 ← Back to Dashboard
-              </a>
+              </Link>
             </div>
           } />
         </Route>
