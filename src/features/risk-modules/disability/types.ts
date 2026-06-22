@@ -1,3 +1,5 @@
+import type { DisabilityColaTerms } from "./calculations/disabilityCola";
+
 export type DiBenefitPeriod = "2y" | "5y" | "10y" | "A65" | "A67" | "A70";
 
 export type DisabilityInputs = {
@@ -35,13 +37,13 @@ export type DisabilityInputs = {
   breakEvenMonthsWithoutIncome?: number;
 };
 
-export type DisabilityAssumptions = {
+export type DisabilityAssumptions = DisabilityColaTerms & {
   /** Annual income growth rate applied to the projection (e.g. 0.03 = 3%). */
   incomeGrowthRateAnnual: number;
   /**
    * Annual Cost of Living Adjustment applied to the individual DI benefit.
-   * Formula: benefitAtYear Y = baseBenefit × (1 + colaRate)^Y
-   * e.g. 0.03 = 3%.  Defaults to 0 (no COLA).
+   * For fixed COLA, e.g. 0.03 = 3%. Defaults to 0 (no COLA).
+   * The first increase applies after 12 completed benefit months by default.
    */
   colaRate?: number;
 };

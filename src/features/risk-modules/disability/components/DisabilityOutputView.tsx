@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 import { getDisabilityNarrative } from "../constants/moduleCopy"
 import { AnimatedSection } from "@/components/ui/animated-section"
 import { transformDisabilityChartData } from "../transformers/transformDisabilityChartData"
+import { resolveDisabilityColaRate } from "../calculations/disabilityCola"
 import { PremiumVsSelfInsuredModule } from "../calculators/PremiumVsSelfInsuredModule"
 import { JobComparisonModule } from "../calculators/JobComparisonModule"
 import {
@@ -112,10 +113,13 @@ export function DisabilityOutputView({
   const [visualizationInternal, setVisualizationInternal] = useState<DisabilityVisualization>("incomeGap")
 
   // ── COLA toggle ─────────────────────────────────────────────────────────
-  const colaRate = assumptions?.colaRate ?? 0
+  const colaRate = resolveDisabilityColaRate(assumptions ?? {})
   const colaEnabled = colaRate > 0
   function toggleCola() {
-    onAssumptionsChange?.({ colaRate: colaEnabled ? 0 : DEFAULT_COLA_RATE })
+    onAssumptionsChange?.({
+      colaMethod: "fixed",
+      colaRate: colaEnabled ? 0 : DEFAULT_COLA_RATE,
+    })
   }
 
   const visualization = visualizationProp ?? visualizationInternal

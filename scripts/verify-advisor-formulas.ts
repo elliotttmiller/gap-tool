@@ -2,12 +2,56 @@ import assert from "node:assert/strict"
 import { calculateLiabilityGap } from "../src/features/risk-modules/liability/calculations/calculateLiabilityGap"
 import { calculateUnemploymentGap } from "../src/features/risk-modules/unemployment/calculations/calculateUnemploymentGap"
 import { calculateIncomeGapScenarios } from "../src/features/risk-modules/life/calculations/calculateIncomeGapScenarios"
+import { calculateDisabilityGap } from "../src/features/risk-modules/disability/calculations/calculateDisabilityGap"
+import { calculateBreakEven } from "../src/features/risk-modules/disability/calculators/calculateBreakEven"
+import { disabilityColaFactor, resolveDisabilityColaRate } from "../src/features/risk-modules/disability/calculations/disabilityCola"
 
 function approximately(actual: number, expected: number, tolerance = 0.01): void {
   assert.ok(
     Math.abs(actual - expected) <= tolerance,
     `Expected ${actual} to be within ${tolerance} of ${expected}`,
   )
+}
+
+assert.equal(disabilityColaFactor(11, { colaRate: 0.03 }), 1)
+assert.equal(disabilityColaFactor(12, { colaRate: 0.03 }), 1.03)
+approximately(disabilityColaFactor(24, { colaRate: 0.03 }), 1.0609)
+approximately(resolveDisabilityColaRate({ colaMethod: "cpi", cpiPrevious: 300, cpiCurrent: 309 }), 0.03)
+approximately(resolveDisabilityColaRate({ colaMethod: "cpi", cpiPrevious: 300, cpiCurrent: 324, colaAnnualCap: 0.06 }), 0.06)
+assert.equal(disabilityColaFactor(36, { colaRate: 0.03, colaFirstAdjustmentYear: 4 }), 1)
+assert.equal(disabilityColaFactor(48, { colaRate: 0.03, colaFirstAdjustmentYear: 4 }), 1.03)
+
+const disabilityInputs = {
+  annualEarnedIncome: 120_000,
+  currentAge: 40,
+  retirementAge: 43,
+  ltdCoveragePercent: 0,
+  ltdMonthlyCap: 0,
+  ltdTaxable: false,
+  privateDiBenefitMonthly: 4_000,
+  privateDiBenefitPeriod: "" as const,
+}
+const disability = calculateDisabilityGap(disabilityInputs, {
+  incomeGrowthRateAnnual: 0,
+  colaRate: 0.03,
+})
+assert.deepEqual(
+  disability.incomeProjection.map((point) => point.individualDIAnnualBenefit),
+  [48_000, 49_440, 50_923],
+)
+
+const breakEven = calculateBreakEven({
+  monthlyPremium: 500,
+  monthlyBenefit: 4_000,
+  annualRateOfReturn: 0.06,
+  monthsWithoutIncome: 13,
+  colaRate: 0.03,
+})
+assert.equal(breakEven.ok, true)
+if (breakEven.ok) {
+  approximately(breakEven.benefitsReceived, 12 * 4_000 + 4_000 * 1.03)
+  approximately(breakEven.schedule[11].cumulativeBenefits, 48_000)
+  approximately(breakEven.schedule[12].cumulativeBenefits, 52_120)
 }
 
 const lifeBaseInputs = {
