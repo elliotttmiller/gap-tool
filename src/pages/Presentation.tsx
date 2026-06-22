@@ -114,6 +114,25 @@ function getPresentationInputSpecs(module: RiskModuleType, records: ScenarioModu
     ]
   }
 
+  if (module === "liability" && records.liability) {
+    const inputs = records.liability.inputs
+    return [
+      { label: "Primary Annual Income", value: formatCurrency(inputs.annualIncome ?? 0), field: "annualIncome", editor: "currency", rawValue: inputs.annualIncome ?? 0 },
+      { label: "Primary Current Age", value: String(inputs.currentAge ?? 0), field: "currentAge", editor: "number", rawValue: inputs.currentAge ?? 0 },
+      { label: "Secondary Annual Income", value: formatCurrency(inputs.spouseAnnualIncome ?? 0), field: "spouseAnnualIncome", editor: "currency", rawValue: inputs.spouseAnnualIncome ?? 0 },
+      { label: "Secondary Current Age", value: String(inputs.spouseCurrentAge ?? 0), field: "spouseCurrentAge", editor: "number", rawValue: inputs.spouseCurrentAge ?? 0 },
+      { label: "Projection End Age", value: String(inputs.retirementAge ?? 0), field: "retirementAge", editor: "number", rawValue: inputs.retirementAge ?? 0 },
+      { label: "Garnishment Rate", value: formatPercent(inputs.garnishmentRate ?? 0), field: "garnishmentRate", editor: "percent", rawValue: inputs.garnishmentRate ?? 0 },
+      { label: "Income Growth Rate", value: formatPercent(inputs.incomeGrowthRate ?? 0), field: "incomeGrowthRate", editor: "percent", rawValue: inputs.incomeGrowthRate ?? 0 },
+      { label: "Auto Liability Limit", value: formatCurrency(inputs.autoLiabilityLimit), field: "autoLiabilityLimit", editor: "currency", rawValue: inputs.autoLiabilityLimit },
+      { label: "Existing Umbrella Coverage", value: formatCurrency(inputs.umbrellaCoverage), field: "umbrellaCoverage", editor: "currency", rawValue: inputs.umbrellaCoverage },
+      { label: "Home Equity", value: formatCurrency(inputs.homeEquity ?? 0), field: "homeEquity", editor: "currency", rawValue: inputs.homeEquity ?? 0 },
+      { label: "Investment / Taxable Accounts", value: formatCurrency(inputs.investmentAssets), field: "investmentAssets", editor: "currency", rawValue: inputs.investmentAssets },
+      { label: "Business Ownership Value", value: formatCurrency(inputs.businessOwnershipValue ?? 0), field: "businessOwnershipValue", editor: "currency", rawValue: inputs.businessOwnershipValue ?? 0 },
+      { label: "Liquid Savings", value: formatCurrency(inputs.savingsAssets), field: "savingsAssets", editor: "currency", rawValue: inputs.savingsAssets },
+    ]
+  }
+
   return []
 }
 
@@ -181,13 +200,10 @@ function ModuleInputSpecs({
   if (variant === "rail") {
     return (
       <aside className="presentation-input-rail rounded-xl border border-gray-800 bg-gray-950/55 p-3.5 shadow-inner shadow-black/20 xl:sticky xl:top-0">
-        <div className="mb-3 flex items-center justify-between gap-3 border-b border-gray-800 pb-2.5">
+        <div className="mb-3 border-b border-gray-800 pb-2.5">
           <p className="presentation-input-title text-[10px] font-bold uppercase tracking-[0.22em] text-gray-400">
             Input Snapshot
           </p>
-          <span className="presentation-input-badge rounded-full border border-gray-800 bg-[#090E1A] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-gray-500">
-            Live Data
-          </span>
         </div>
         <div className="grid gap-2">
           {specs.map((spec) => (
@@ -264,6 +280,7 @@ export function Presentation() {
   const updateDisabilityInputs = useAppStore((state) => state.updateDisabilityInputs)
   const updateDisabilityAssumptions = useAppStore((state) => state.updateDisabilityAssumptions)
   const updateUnemploymentInputs = useAppStore((state) => state.updateUnemploymentInputs)
+  const updateLiabilityInputs = useAppStore((state) => state.updateLiabilityInputs)
 
   const lifeOutputs = useMemo(
     () => records?.life ? (records.life.output ?? calculateLifeInsuranceGap(sanitizeLifeInputs(records.life.inputs), records.life.assumptions)) : null,
@@ -362,6 +379,24 @@ export function Presentation() {
       else if (field === "unemploymentBenefitDurationMonths") inputs.unemploymentBenefitDurationMonths = Math.min(60, Math.floor(Number(value)))
       else if (field === "estimatedJobSearchMonths") inputs.estimatedJobSearchMonths = Math.min(60, Math.floor(Number(value)))
       updateUnemploymentInputs(scenarioId, inputs)
+      return
+    }
+    if (module === "liability" && records.liability) {
+      const inputs = { ...records.liability.inputs }
+      if (field === "annualIncome") inputs.annualIncome = Number(value)
+      else if (field === "currentAge") inputs.currentAge = Number(value)
+      else if (field === "spouseAnnualIncome") inputs.spouseAnnualIncome = Number(value)
+      else if (field === "spouseCurrentAge") inputs.spouseCurrentAge = Number(value)
+      else if (field === "retirementAge") inputs.retirementAge = Number(value)
+      else if (field === "garnishmentRate") inputs.garnishmentRate = Math.min(1, Number(value))
+      else if (field === "incomeGrowthRate") inputs.incomeGrowthRate = Math.min(1, Number(value))
+      else if (field === "autoLiabilityLimit") inputs.autoLiabilityLimit = Number(value)
+      else if (field === "umbrellaCoverage") inputs.umbrellaCoverage = Number(value)
+      else if (field === "homeEquity") inputs.homeEquity = Number(value)
+      else if (field === "investmentAssets") inputs.investmentAssets = Number(value)
+      else if (field === "businessOwnershipValue") inputs.businessOwnershipValue = Number(value)
+      else if (field === "savingsAssets") inputs.savingsAssets = Number(value)
+      updateLiabilityInputs(scenarioId, inputs)
     }
   }
 
