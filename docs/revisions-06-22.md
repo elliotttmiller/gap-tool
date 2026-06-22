@@ -6,7 +6,7 @@ This brief summarizes the latest GAP Tool updates for NorthStar advisor review.
 
 The goal of this update is to make the tool easier for advisors to review, easier to explain, and more useful during household risk conversations. The tool remains an illustrative gap-analysis resource. It is intended to support advisor review and discussion, not replace advisor judgment or formal compliance review.
 
-This version focuses on clearer outputs, cleaner module flow, and a better explanation of how each result is being calculated.
+This version focuses on clearer outputs, cleaner module flow, and a better plain-English explanation of how each result is being calculated.
 
 ---
 
@@ -20,8 +20,8 @@ This version improves the tool in four main areas:
 2. **Better module flow**  
    Each module places more emphasis on the main numbers advisors are likely to review first.
 
-3. **Improved calculation logic**  
-   Several formulas were refined so the tool better reflects the intended planning discussion for each module.
+3. **Improved formula logic**  
+   Several calculations were refined so the results better match the intended planning discussion for each module.
 
 4. **Stronger review structure**  
    Inputs, assumptions, and outputs are easier to review together.
@@ -30,18 +30,16 @@ Overall, this version is cleaner, more organized, and better prepared for adviso
 
 ---
 
-## Formula and Logic Updates — Plain-English Overview
+## Formula and Logic Updates - Advisor-Friendly Overview
 
-The biggest change in this revision is that several modules now explain the gap in a more practical way. The tool is no longer only showing totals. It is doing a better job connecting the household's information to the actual question each module is trying to answer.
+This update adds clearer logic behind the numbers shown in each module. The goal is not to overload the review with technical detail. The goal is to make it easier to see what each module is solving for.
 
 At a high level:
 
-- **Life** focuses on whether available coverage and resources can support the modeled income need.
-- **Unemployment / Liquidity** focuses on how much monthly expense would need to be replaced if income is reduced.
-- **Liability / Lawsuit** focuses on modeled household exposure compared with existing liability protection.
-- **Disability** is presented more clearly so gross and net income gaps are easier to review.
-
-The following sections explain the logic changes in a non-technical way.
+- **Life** estimates the income support need and compares it against available coverage and resources.
+- **Unemployment / Liquidity** estimates how much monthly expense would need to be replaced and how long current reserves may last.
+- **Liability / Lawsuit** estimates possible exposure and compares it against existing liability protection.
+- **Disability** compares income need against group LTD and individual disability benefits.
 
 ---
 
@@ -53,7 +51,7 @@ The Life module was refined to make the income-support analysis easier to follow
 
 ### What changed
 
-- The module presents the modeled income support need more clearly.
+- The modeled income support need is presented more clearly.
 - Safe Income Coverage is more closely tied to the capital needed to support the projected income stream.
 - Status, income supported, remaining gap, and summary metrics are more consistent with one another.
 - Coverage Runway is clearer as a separate scenario.
@@ -61,13 +59,31 @@ The Life module was refined to make the income-support analysis easier to follow
 
 ### Formula / logic update
 
-Previously, parts of the Life analysis could feel disconnected because different outputs were not always explaining the same concept. The updated logic keeps the main Life outputs tied to one central idea:
+The Life module is now organized around one core question:
 
-> How much support is needed to help replace the modeled income stream, and how much of that need is supported by the coverage and resources entered?
+> How much income support is needed, and how much of that need is supported by the coverage and resources entered?
 
-The module now looks at the projected income need over time, applies the selected assumptions, and compares that need against the available coverage and resources. This makes the remaining gap easier to understand because the status, income supported, and capital gap are all based on the same underlying calculation.
+Plain-English formula flow:
 
-Coverage Runway remains separate. That view is meant to show how long available resources may last under the selected assumptions. It should be reviewed as a scenario view, not confused with the main Safe Income Coverage result.
+1. **Modeled annual income need**  
+   Annual Income x Income Replacement Percentage, minus any spouse/partner income entered.
+
+2. **Projected income need over time**  
+   The annual income need is projected forward through the selected end age using the income growth assumption.
+
+3. **Capital required today**  
+   The projected income support stream is translated into a present-day capital amount using the selected reference rate.
+
+4. **Available coverage resources**  
+   Group life coverage + private life coverage + modeled available assets.
+
+5. **Remaining capital gap**  
+   Capital required today - available coverage resources. If resources meet or exceed the need, the remaining gap shows as zero.
+
+6. **Income support status**  
+   The tool compares available coverage resources against the capital required amount to show whether the modeled income support need appears fully covered, partially covered, or still has a gap.
+
+Coverage Runway remains separate. It shows how long the entered resources may last if they are used to support annual income needs over time. It should be reviewed as a scenario view, not confused with the main Safe Income Coverage result.
 
 ### Why it matters
 
@@ -93,21 +109,31 @@ The Unemployment / Liquidity module was refined to focus more directly on reserv
 
 ### Formula / logic update
 
-The module now starts with a simpler question:
+The Unemployment / Liquidity module is now organized around this core question:
 
-> If income is reduced, how much of the household's monthly expenses still need to be covered?
+> If household income is reduced, how much monthly expense still needs to be covered by reserves?
 
-Instead of treating total monthly expenses as the full reserve need every time, the tool now accounts for remaining household income. The remaining income is subtracted from monthly expenses to estimate the monthly amount that would need to be replaced.
+Plain-English formula flow:
 
-In plain terms:
+1. **Estimate remaining monthly income**  
+   The tool looks at the income that may still remain available in the household after the higher income is removed.
 
-- Start with monthly expenses.
-- Subtract the remaining income that is still available.
-- The result is the monthly expense replacement need.
-- Compare current savings against that replacement need.
-- Show how many months of runway the current savings may provide.
+2. **Monthly Expense Replacement**  
+   Monthly Expenses - Remaining Monthly Income.
 
-This makes the reserve result more practical because it reflects the household's actual monthly shortfall under the selected assumptions.
+3. **Current Reserve Runway**  
+   Current Emergency Savings divided by Monthly Expense Replacement.
+
+4. **Reserve target**  
+   The reserve target is based on the monthly expense replacement amount, not simply total household expenses.
+
+5. **Ideal Reserve Target**  
+   Monthly Expense Replacement x the selected target month range.
+
+6. **Emergency Reserve Shortfall or Excess**  
+   Ideal Reserve Target - Current Savings. If current savings are above the target, the tool shows the excess instead of a shortfall.
+
+This makes the reserve result more practical because it reflects the household's estimated monthly shortfall under the selected assumptions.
 
 ### Why it matters
 
@@ -130,25 +156,29 @@ The Liability / Lawsuit module was updated to make exposure, current protection,
 
 ### Formula / logic update
 
-The Liability module now organizes the analysis around three simpler ideas:
+The Liability / Lawsuit module is now organized around this core question:
+
+> What is the modeled household exposure, and how much of it is not currently protected by existing liability coverage?
+
+Plain-English formula flow:
 
 1. **Potential wage exposure**  
-   The tool estimates how much future income could be exposed by looking at a portion of disposable income over the projection period.
+   Gross income is converted to an estimated disposable income amount. A portion of that disposable income is then modeled as potential wage exposure through the selected projection period.
 
-2. **Other assets at risk**  
-   The tool includes household assets such as home equity, taxable or investment accounts, liquid savings, and business ownership value.
+2. **Other Assets at Risk**  
+   Home equity + taxable/investment accounts + liquid savings + business ownership value.
 
-3. **Current protection versus modeled exposure**  
-   The tool compares the total modeled exposure against existing auto liability and umbrella coverage.
+3. **Total Liability Exposure**  
+   Potential wage exposure + Other Assets at Risk.
 
-In plain terms:
+4. **Current Liability Protection**  
+   Auto liability coverage + existing umbrella coverage.
 
-- Estimate potential wage exposure.
-- Add other household assets at risk.
-- Compare that total against current liability protection.
-- Show the remaining unprotected gap, if any.
+5. **Unprotected Liability Gap**  
+   Total Liability Exposure - Current Liability Protection. If current protection meets or exceeds the modeled exposure, the remaining gap shows as zero.
 
-Umbrella coverage is easier to review because the result is organized around the gap and common policy increments.
+6. **Umbrella review amount**  
+   When there is a remaining gap, the tool helps frame the gap in relation to common umbrella coverage increments.
 
 ### Why it matters
 
@@ -168,17 +198,28 @@ The Disability module received smaller refinements focused on clarity and consis
 
 ### Formula / logic update
 
-The Disability module is focused on the difference between income need and available disability benefits.
+The Disability module is organized around this core question:
 
-In plain terms:
+> If earned income is reduced by disability, how much of the income need is covered by benefits, and what gap remains?
 
-- Start with the household's modeled income need.
-- Apply group LTD benefits, including caps and taxable benefit assumptions.
-- Add individual disability benefits where entered.
-- Show the remaining income gap.
-- Allow gross and net views to be reviewed more clearly.
+Plain-English formula flow:
 
-The main change is not a complete new formula. It is a clearer presentation of the disability income gap so advisors can more easily see what is covered, what remains exposed, and which assumptions are driving the result.
+1. **Modeled income need**  
+   The tool starts with the household's modeled earned income need.
+
+2. **Group LTD benefit**  
+   Group LTD is calculated using the entered coverage percentage and monthly cap. If the benefit is taxable, the tool applies the taxable benefit assumption.
+
+3. **Individual disability benefit**  
+   Any entered individual disability benefit is added to the available benefit amount.
+
+4. **Remaining disability income gap**  
+   Modeled income need - available disability benefits.
+
+5. **Gross and net views**  
+   The output can be reviewed from both gross and net perspectives so advisors can understand the difference between pre-tax and after-tax income gaps.
+
+The main change is not a complete new disability formula. It is a clearer presentation of what is covered, what remains exposed, and which assumptions are driving the result.
 
 ### Why it matters
 
