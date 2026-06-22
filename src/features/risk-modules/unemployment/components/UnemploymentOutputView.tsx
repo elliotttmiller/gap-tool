@@ -48,7 +48,7 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
               Emergency Reserve Target Visualization
             </CardTitle>
             <p className="mt-1 text-xs leading-snug text-slate-400">
-              Current reserves measured against the monthly-gap minimum and income-adjusted ideal
+              Current reserves measured against the monthly-gap minimum and income-adjusted ideal; temporary transition benefits are shown below
             </p>
           </div>
           <div className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold ${status.tone}`}>{status.label}</div>
@@ -59,10 +59,10 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
         <div className="unemployment-reserve-plot flex min-h-[28rem] items-center justify-center rounded-2xl border border-slate-800/70 bg-slate-950/70 px-5 py-6">
           <div className="relative h-96 w-80" role="img" aria-label={`Current reserves cover ${reserveMonths.toFixed(1)} months; the minimum is 3 months and the ideal is ${idealMonths} months`}>
             <div className="absolute bottom-3 left-24 top-3 w-28 overflow-hidden rounded-[1.5rem] border border-slate-700/80 bg-slate-900 shadow-[inset_0_1px_2px_rgba(255,255,255,0.08),0_18px_38px_rgba(2,6,23,0.32)]">
-              <div className="absolute inset-x-0 bottom-0 bg-rose-500/80" style={{ height: `${dangerPct}%` }} />
-              <div className="absolute inset-x-0 bg-amber-500/75" style={{ bottom: `${dangerPct}%`, height: `${Math.max(0, minimumPct - dangerPct)}%` }} />
-              <div className="absolute inset-x-0 bg-emerald-500/70" style={{ bottom: `${minimumPct}%`, height: `${Math.max(0, idealPct - minimumPct)}%` }} />
-              <div className="absolute inset-x-0 top-0 bg-brand-700/65" style={{ height: `${Math.max(0, 100 - idealPct)}%` }} />
+              <div className="absolute inset-x-0 bottom-0 bg-rose-500/80 transition-[height] duration-500 ease-out" style={{ height: `${dangerPct}%` }} />
+              <div className="absolute inset-x-0 bg-amber-500/75 transition-[bottom,height] duration-500 ease-out" style={{ bottom: `${dangerPct}%`, height: `${Math.max(0, minimumPct - dangerPct)}%` }} />
+              <div className="absolute inset-x-0 bg-emerald-500/70 transition-[bottom,height] duration-500 ease-out" style={{ bottom: `${minimumPct}%`, height: `${Math.max(0, idealPct - minimumPct)}%` }} />
+              <div className="absolute inset-x-0 top-0 bg-brand-700/65 transition-[height] duration-500 ease-out" style={{ height: `${Math.max(0, 100 - idealPct)}%` }} />
               <div className="absolute inset-x-0 border-t border-dashed border-white/60" style={{ bottom: `${minimumPct}%` }} />
               <div className="absolute inset-x-0 border-t border-dashed border-white/70" style={{ bottom: `${idealPct}%` }} />
               <span className="absolute inset-x-0 bottom-[8%] text-center text-[9px] font-bold uppercase tracking-widest text-white/85">Danger</span>
@@ -78,7 +78,7 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
               </div>
             ))}
 
-            <div className="absolute left-20 right-0 z-10 flex translate-y-1/2 items-center" style={{ bottom: `${12 + 360 * (markerPct / 100)}px` }}>
+            <div className="absolute left-20 right-0 z-10 flex translate-y-1/2 items-center transition-[bottom] duration-500 ease-out" style={{ bottom: `${12 + 360 * (markerPct / 100)}px` }}>
               <span className="h-px w-36 bg-cyan-300 shadow-[0_0_8px_rgba(103,232,249,0.75)]" />
               <span className="-ml-1 size-3 rounded-full border-2 border-white bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.8)]" />
               <span className="ml-2 rounded-full border border-cyan-800/60 bg-cyan-950/70 px-2.5 py-1 text-[10px] font-bold whitespace-nowrap text-cyan-200 shadow-lg">Current: {reserveMonths.toFixed(1)} mo</span>
@@ -113,6 +113,13 @@ export function UnemploymentOutputView({ outputs }: UnemploymentOutputViewProps)
         <ModuleMetricCard className={compactCardClass} label="Monthly Gap" value={`${formatCurrency(monthlyGap)}/mo`} description="Total expenses − remaining income" accent={monthlyGap > 0 ? "red" : "green"} />
         <ModuleMetricCard className={compactCardClass} label="Current Reserves" value={formatCurrency(outputs.currentReserveLevel)} description="Current emergency reserves" accent={outputs.currentReserveLevel > 0 ? "cyan" : "red"} />
         <ModuleMetricCard className={compactCardClass} label="Current Runway" value={formatMonths(currentRunway)} description="Reserves ÷ monthly gap" accent={runwayAccent} />
+      </div>
+
+      <div className="unemployment-metric-grid mt-3">
+        <ModuleMetricCard className={compactCardClass} label="Search-Period Expenses" value={formatCurrency(outputs.totalExpensesDuringSearch)} description="Monthly expenses × entered search duration" accent="slate" />
+        <ModuleMetricCard className={compactCardClass} label="Transition Income Offsets" value={formatCurrency(outputs.totalOffsetDuringSearch)} description="Remaining income + severance + unemployment benefits" accent={outputs.totalOffsetDuringSearch > 0 ? "cyan" : "red"} />
+        <ModuleMetricCard className={compactCardClass} label="Reserve Draw" value={formatCurrency(outputs.coveredBySavings)} description="Search-period need funded from emergency savings" accent={outputs.coveredBySavings > 0 ? "amber" : "slate"} />
+        <ModuleMetricCard className={compactCardClass} label="Uncovered Shortfall" value={formatCurrency(outputs.remainingShortfall)} description="Cash need remaining after offsets and reserves" accent={outputs.remainingShortfall > 0 ? "red" : "green"} />
       </div>
 
       <p className="mt-2 text-[10px] leading-relaxed text-slate-500">

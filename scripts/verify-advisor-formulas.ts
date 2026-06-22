@@ -64,6 +64,24 @@ approximately(unemployment.idealReserveTarget, 87_500)
 assert.equal(unemployment.idealReserveMonths, 6)
 approximately(unemployment.reserveMonthsCurrent, 60_000 / 14_583.333333333334)
 
+const unemploymentWithOffsets = calculateUnemploymentGap({
+  annualIncome: 300_000,
+  spouseIncome: 100_000,
+  monthlyExpenses: 20_000,
+  emergencySavings: 60_000,
+  severanceMonthly: 4_000,
+  severanceDurationMonths: 3,
+  unemploymentBenefitMonthly: 2_000,
+  unemploymentBenefitDurationMonths: 6,
+  estimatedJobSearchMonths: 6,
+  netIncomeRatio: 0.65,
+})
+assert.ok(unemploymentWithOffsets.totalOffsetDuringSearch > unemployment.totalOffsetDuringSearch)
+assert.ok(unemploymentWithOffsets.netCashNeeded < unemployment.netCashNeeded)
+assert.ok(unemploymentWithOffsets.remainingShortfall < unemployment.remainingShortfall)
+approximately(unemploymentWithOffsets.minimumReserveTarget, unemployment.minimumReserveTarget)
+approximately(unemploymentWithOffsets.idealReserveTarget, unemployment.idealReserveTarget)
+
 for (const [spouseIncome, expectedMonths] of [
   [122_000, 5],
   [185_000, 4],
