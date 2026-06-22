@@ -2,9 +2,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
 import { advisorSafeCopy } from "@/domain/copy/advisorSafeCopy"
 import { UnemploymentOutputs } from "../types"
+import { useRef, useState } from "react"
 
 interface UnemploymentOutputViewProps {
   outputs: UnemploymentOutputs
+  onReserveLevelChange?: (value: number) => void
 }
 
 const compactCardClass = "unemployment-kpi-card"
@@ -28,16 +30,34 @@ function getReserveStatus(months: number, idealMonths: number): { label: string;
   return { label: "Target Met", tone: "text-emerald-300 border-emerald-800/60 bg-emerald-950/40" }
 }
 
-function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
+function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOutputViewProps) {
   const reserveMonths = outputs.reserveMonthsCurrent
   const idealMonths = outputs.idealReserveMonths
-  const gaugeMaxMonths = Math.max(6, idealMonths, Math.ceil(reserveMonths))
+  const naturalGaugeMax = Math.max(9, idealMonths + 3, Math.ceil(reserveMonths))
+  const [dragScale, setDragScale] = useState<number | null>(null)
+  const gaugeMaxMonths = dragScale ?? naturalGaugeMax
+  const barRef = useRef<HTMLDivElement>(null)
+  const canAdjust = Boolean(onReserveLevelChange && outputs.monthlyGapAtDepletion > 0)
   const markerPct = Math.min(100, Math.max(0, (reserveMonths / gaugeMaxMonths) * 100))
   const dangerPct = Math.min(100, (1.5 / gaugeMaxMonths) * 100)
   const minimumPct = Math.min(100, (3 / gaugeMaxMonths) * 100)
   const idealPct = Math.min(100, (idealMonths / gaugeMaxMonths) * 100)
   const status = getReserveStatus(reserveMonths, idealMonths)
   const ticks = Array.from(new Set([0, 1.5, 3, idealMonths, gaugeMaxMonths])).sort((a, b) => a - b)
+
+  function setMonthsFromClientY(clientY: number) {
+    const rect = barRef.current?.getBoundingClientRect()
+    if (!rect || !onReserveLevelChange || outputs.monthlyGapAtDepletion <= 0) return
+    const ratio = Math.max(0, Math.min(1, (rect.bottom - clientY) / rect.height))
+    const months = ratio * gaugeMaxMonths
+    onReserveLevelChange(Math.round(months * outputs.monthlyGapAtDepletion))
+  }
+
+  function nudgeMonths(delta: number) {
+    if (!onReserveLevelChange || outputs.monthlyGapAtDepletion <= 0) return
+    const months = Math.max(0, Math.min(gaugeMaxMonths, reserveMonths + delta))
+    onReserveLevelChange(Math.round(months * outputs.monthlyGapAtDepletion))
+  }
 
   return (
     <Card className="module-chart-card unemployment-chart-panel border-slate-800/80 bg-slate-950/60">
@@ -58,7 +78,7 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
       <CardContent className="px-5 pb-5 pt-4">
         <div className="unemployment-reserve-plot flex min-h-[28rem] items-center justify-center rounded-2xl border border-slate-800/70 bg-slate-950/70 px-5 py-6">
           <div className="relative h-96 w-80" role="img" aria-label={`Current reserves cover ${reserveMonths.toFixed(1)} months; the minimum is 3 months and the ideal is ${idealMonths} months`}>
-            <div className="absolute bottom-3 left-24 top-3 w-28 overflow-hidden rounded-[1.5rem] border border-slate-700/80 bg-slate-900 shadow-[inset_0_1px_2px_rgba(255,255,255,0.08),0_18px_38px_rgba(2,6,23,0.32)]">
+            <div ref={barRef} className="absolute bottom-3 left-24 top-3 w-28 overflow-hidden rounded-[1.5rem] border border-slate-700/80 bg-slate-900 shadow-[inset_0_1px_2px_rgba(255,255,255,0.08),0_18px_38px_rgba(2,6,23,0.32)]">
               <div className="absolute inset-x-0 bottom-0 bg-rose-500/80 transition-[height] duration-500 ease-out" style={{ height: `${dangerPct}%` }} />
               <div className="absolute inset-x-0 bg-amber-500/75 transition-[bottom,height] duration-500 ease-out" style={{ bottom: `${dangerPct}%`, height: `${Math.max(0, minimumPct - dangerPct)}%` }} />
               <div className="absolute inset-x-0 bg-emerald-500/70 transition-[bottom,height] duration-500 ease-out" style={{ bottom: `${minimumPct}%`, height: `${Math.max(0, idealPct - minimumPct)}%` }} />
@@ -71,6 +91,40 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
               {100 - idealPct > 12 ? <span className="absolute inset-x-0 top-[8%] text-center text-[9px] font-bold uppercase tracking-widest text-white/85">Ideal+</span> : null}
             </div>
 
+            {canAdjust ? (
+              <div
+                role="slider"
+                tabIndex={0}
+                aria-label="Current emergency reserve coverage"
+                aria-valuemin={0}
+                aria-valuemax={gaugeMaxMonths}
+                aria-valuenow={Number(reserveMonths.toFixed(2))}
+                aria-valuetext={`${reserveMonths.toFixed(1)} months, ${formatCurrency(outputs.currentReserveLevel)}`}
+                title="Drag to adjust current emergency savings"
+                className="absolute bottom-3 left-20 top-3 z-20 w-40 touch-none cursor-ns-resize rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70"
+                onPointerDown={(event) => {
+                  event.currentTarget.setPointerCapture(event.pointerId)
+                  setDragScale(naturalGaugeMax)
+                  setMonthsFromClientY(event.clientY)
+                }}
+                onPointerMove={(event) => {
+                  if (event.currentTarget.hasPointerCapture(event.pointerId)) setMonthsFromClientY(event.clientY)
+                }}
+                onPointerUp={(event) => {
+                  if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
+                  setDragScale(null)
+                }}
+                onPointerCancel={() => setDragScale(null)}
+                onLostPointerCapture={() => setDragScale(null)}
+                onKeyDown={(event) => {
+                  if (event.key === "ArrowUp" || event.key === "ArrowRight") { event.preventDefault(); nudgeMonths(event.shiftKey ? 1 : 0.25) }
+                  if (event.key === "ArrowDown" || event.key === "ArrowLeft") { event.preventDefault(); nudgeMonths(event.shiftKey ? -1 : -0.25) }
+                  if (event.key === "Home") { event.preventDefault(); nudgeMonths(-reserveMonths) }
+                  if (event.key === "End") { event.preventDefault(); nudgeMonths(gaugeMaxMonths - reserveMonths) }
+                }}
+              />
+            ) : null}
+
             {ticks.map((month) => (
               <div key={month} className="absolute left-0 right-56 flex -translate-y-1/2 items-center justify-end gap-1.5" style={{ bottom: `${12 + 360 * (month / gaugeMaxMonths)}px` }}>
                 <span className="whitespace-nowrap text-[10px] font-medium tabular-nums text-slate-500">{month % 1 === 0 ? month : month.toFixed(1)} mo</span>
@@ -81,7 +135,7 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
             <div className="absolute left-20 right-0 z-10 flex translate-y-1/2 items-center transition-[bottom] duration-500 ease-out" style={{ bottom: `${12 + 360 * (markerPct / 100)}px` }}>
               <span className="h-px w-36 bg-cyan-300 shadow-[0_0_8px_rgba(103,232,249,0.75)]" />
               <span className="-ml-1 size-3 rounded-full border-2 border-white bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.8)]" />
-              <span className="ml-2 rounded-full border border-cyan-800/60 bg-cyan-950/70 px-2.5 py-1 text-[10px] font-bold whitespace-nowrap text-cyan-200 shadow-lg">Current: {reserveMonths.toFixed(1)} mo</span>
+              <span className="ml-2 rounded-full border border-cyan-800/60 bg-cyan-950/70 px-2.5 py-1 text-[10px] font-bold whitespace-nowrap text-cyan-200 shadow-lg">Current: {reserveMonths.toFixed(1)} mo{canAdjust ? " · drag" : ""}</span>
             </div>
           </div>
         </div>
@@ -90,7 +144,7 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
   )
 }
 
-export function UnemploymentOutputView({ outputs }: UnemploymentOutputViewProps) {
+export function UnemploymentOutputView({ outputs, onReserveLevelChange }: UnemploymentOutputViewProps) {
   const monthlyGap = Math.max(0, outputs.monthlyBurnRate - outputs.remainingIncome)
   const currentRunway = monthlyGap > 0 ? outputs.currentReserveLevel / monthlyGap : 0
   const runwayAccent: "green" | "cyan" | "red" = currentRunway < 3 ? "red" : currentRunway < 6 ? "cyan" : "green"
@@ -104,7 +158,7 @@ export function UnemploymentOutputView({ outputs }: UnemploymentOutputViewProps)
       </div>
 
       <div className="mt-3">
-        <ReservePositionPanel outputs={outputs} />
+        <ReservePositionPanel outputs={outputs} onReserveLevelChange={onReserveLevelChange} />
       </div>
 
       {/* Advisor-approved result row: exactly four metrics below the visualization. */}

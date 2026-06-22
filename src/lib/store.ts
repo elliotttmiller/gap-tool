@@ -340,7 +340,13 @@ export const useAppStore = create<AppState>()(
             ...state.moduleRecordsByScenarioId,
             [scenarioId]: {
               ...state.moduleRecordsByScenarioId[scenarioId],
-              disability: { ...record, assumptions: { ...record.assumptions, ...updates }, updatedAt: nowIso() },
+              disability: {
+                ...record,
+                assumptions: { ...record.assumptions, ...updates },
+                output: null,
+                updatedAt: nowIso(),
+                lastCalculatedAt: undefined,
+              },
             },
           },
         }

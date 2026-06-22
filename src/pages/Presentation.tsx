@@ -262,6 +262,7 @@ export function Presentation() {
   )
   const updateLifeInputs = useAppStore((state) => state.updateLifeInputs)
   const updateDisabilityInputs = useAppStore((state) => state.updateDisabilityInputs)
+  const updateDisabilityAssumptions = useAppStore((state) => state.updateDisabilityAssumptions)
   const updateUnemploymentInputs = useAppStore((state) => state.updateUnemploymentInputs)
 
   const lifeOutputs = useMemo(
@@ -377,9 +378,28 @@ export function Presentation() {
       )
     }
     if (module === "disability" && disabilityOutputs) {
-      return <DisabilityOutputView outputs={disabilityOutputs} inputs={records?.disability?.inputs} mode="presentation" visualization={disabilityVisualization} onVisualizationChange={setDisabilityVisualization} />
+      return (
+        <DisabilityOutputView
+          outputs={disabilityOutputs}
+          inputs={records?.disability?.inputs}
+          assumptions={records?.disability?.assumptions}
+          onAssumptionsChange={(updates) => updateDisabilityAssumptions(scenarioId, updates)}
+          mode="presentation"
+          visualization={disabilityVisualization}
+          onVisualizationChange={setDisabilityVisualization}
+        />
+      )
     }
-    if (module === "unemployment" && unemploymentOutputs) return <UnemploymentOutputView outputs={unemploymentOutputs} />
+    if (module === "unemployment" && unemploymentOutputs) {
+      return (
+        <UnemploymentOutputView
+          outputs={unemploymentOutputs}
+          onReserveLevelChange={(emergencySavings) =>
+            updateSnapshotInput("unemployment", "emergencySavings", emergencySavings)
+          }
+        />
+      )
+    }
     if (module === "liability" && liabilityOutputs) return <LiabilityOutputView outputs={liabilityOutputs} />
     return null
   }
