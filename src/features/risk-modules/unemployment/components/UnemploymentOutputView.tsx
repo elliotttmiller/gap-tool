@@ -37,8 +37,6 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
   const minimumPct = Math.min(100, (3 / gaugeMaxMonths) * 100)
   const idealPct = Math.min(100, (idealMonths / gaugeMaxMonths) * 100)
   const status = getReserveStatus(reserveMonths, idealMonths)
-  const minimumGap = Math.max(0, outputs.minimumReserveTarget - outputs.currentReserveLevel)
-  const idealGap = Math.max(0, outputs.idealReserveTarget - outputs.currentReserveLevel)
   const ticks = Array.from(new Set([0, 1.5, 3, idealMonths, gaugeMaxMonths])).sort((a, b) => a - b)
 
   return (
@@ -58,9 +56,9 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
       </CardHeader>
 
       <CardContent className="px-5 pb-5 pt-4">
-        <div className="grid items-center gap-6 rounded-2xl border border-slate-800/70 bg-slate-950/70 px-5 py-5 sm:grid-cols-[12rem_minmax(0,1fr)]">
-          <div className="relative mx-auto h-72 w-44" role="img" aria-label={`Current reserves cover ${reserveMonths.toFixed(1)} months; the minimum is 3 months and the ideal is ${idealMonths} months`}>
-            <div className="absolute bottom-3 right-3 top-3 w-24 overflow-hidden rounded-[1.35rem] border border-slate-700/80 bg-slate-900 shadow-[inset_0_1px_2px_rgba(255,255,255,0.08),0_14px_30px_rgba(2,6,23,0.28)]">
+        <div className="unemployment-reserve-plot flex min-h-[28rem] items-center justify-center rounded-2xl border border-slate-800/70 bg-slate-950/70 px-5 py-6">
+          <div className="relative h-96 w-80" role="img" aria-label={`Current reserves cover ${reserveMonths.toFixed(1)} months; the minimum is 3 months and the ideal is ${idealMonths} months`}>
+            <div className="absolute bottom-3 left-24 top-3 w-28 overflow-hidden rounded-[1.5rem] border border-slate-700/80 bg-slate-900 shadow-[inset_0_1px_2px_rgba(255,255,255,0.08),0_18px_38px_rgba(2,6,23,0.32)]">
               <div className="absolute inset-x-0 bottom-0 bg-rose-500/80" style={{ height: `${dangerPct}%` }} />
               <div className="absolute inset-x-0 bg-amber-500/75" style={{ bottom: `${dangerPct}%`, height: `${Math.max(0, minimumPct - dangerPct)}%` }} />
               <div className="absolute inset-x-0 bg-emerald-500/70" style={{ bottom: `${minimumPct}%`, height: `${Math.max(0, idealPct - minimumPct)}%` }} />
@@ -68,42 +66,23 @@ function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
               <div className="absolute inset-x-0 border-t border-dashed border-white/60" style={{ bottom: `${minimumPct}%` }} />
               <div className="absolute inset-x-0 border-t border-dashed border-white/70" style={{ bottom: `${idealPct}%` }} />
               <span className="absolute inset-x-0 bottom-[8%] text-center text-[9px] font-bold uppercase tracking-widest text-white/85">Danger</span>
-              {idealPct - minimumPct > 16 ? <span className="absolute inset-x-0 text-center text-[9px] font-bold uppercase tracking-widest text-white/85" style={{ bottom: `${minimumPct + (idealPct - minimumPct) / 2}%` }}>Minimum</span> : null}
+              {minimumPct - dangerPct > 12 ? <span className="absolute inset-x-0 text-center text-[9px] font-bold uppercase tracking-widest text-white/85" style={{ bottom: `${dangerPct + (minimumPct - dangerPct) / 2}%` }}>Below Minimum</span> : null}
+              {idealPct - minimumPct > 16 ? <span className="absolute inset-x-0 text-center text-[9px] font-bold uppercase tracking-widest text-white/85" style={{ bottom: `${minimumPct + (idealPct - minimumPct) / 2}%` }}>Target Range</span> : null}
               {100 - idealPct > 12 ? <span className="absolute inset-x-0 top-[8%] text-center text-[9px] font-bold uppercase tracking-widest text-white/85">Ideal+</span> : null}
             </div>
 
             {ticks.map((month) => (
-              <div key={month} className="absolute left-0 right-28 flex -translate-y-1/2 items-center justify-end gap-1.5" style={{ bottom: `${12 + 264 * (month / gaugeMaxMonths)}px` }}>
+              <div key={month} className="absolute left-0 right-56 flex -translate-y-1/2 items-center justify-end gap-1.5" style={{ bottom: `${12 + 360 * (month / gaugeMaxMonths)}px` }}>
                 <span className="whitespace-nowrap text-[10px] font-medium tabular-nums text-slate-500">{month % 1 === 0 ? month : month.toFixed(1)} mo</span>
                 <span className="h-px w-2 bg-slate-600" />
               </div>
             ))}
 
-            <div className="absolute right-0 z-10 flex translate-y-1/2 items-center" style={{ bottom: `${12 + 264 * (markerPct / 100)}px` }}>
-              <span className="h-px w-28 bg-cyan-300 shadow-[0_0_8px_rgba(103,232,249,0.75)]" />
+            <div className="absolute left-20 right-0 z-10 flex translate-y-1/2 items-center" style={{ bottom: `${12 + 360 * (markerPct / 100)}px` }}>
+              <span className="h-px w-36 bg-cyan-300 shadow-[0_0_8px_rgba(103,232,249,0.75)]" />
               <span className="-ml-1 size-3 rounded-full border-2 border-white bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.8)]" />
+              <span className="ml-2 rounded-full border border-cyan-800/60 bg-cyan-950/70 px-2.5 py-1 text-[10px] font-bold whitespace-nowrap text-cyan-200 shadow-lg">Current: {reserveMonths.toFixed(1)} mo</span>
             </div>
-          </div>
-
-          <div className="min-w-0 space-y-3">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">Current Position</p>
-              <p className="mt-1 text-2xl font-bold tracking-tight text-cyan-300">{formatCurrency(outputs.currentReserveLevel)}</p>
-              <p className="mt-1 text-sm font-semibold text-slate-300">{reserveMonths.toFixed(1)} months of the monthly gap covered</p>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <div className="rounded-lg border border-amber-800/40 bg-amber-950/20 px-3 py-2.5">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-amber-400">3-Month Minimum</p>
-                <p className="mt-1 text-sm font-bold text-slate-100">{formatCurrency(outputs.minimumReserveTarget)}</p>
-                <p className="mt-0.5 text-[10px] text-slate-500">{minimumGap > 0 ? `${formatCurrency(minimumGap)} still needed` : "Minimum funded"}</p>
-              </div>
-              <div className="rounded-lg border border-emerald-800/40 bg-emerald-950/20 px-3 py-2.5">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-emerald-400">{idealMonths}-Month Ideal</p>
-                <p className="mt-1 text-sm font-bold text-slate-100">{formatCurrency(outputs.idealReserveTarget)}</p>
-                <p className="mt-0.5 text-[10px] text-slate-500">{idealGap > 0 ? `${formatCurrency(idealGap)} still needed` : "Ideal funded"}</p>
-              </div>
-            </div>
-            <p className="text-[10px] leading-relaxed text-slate-500">The marker moves with current emergency savings. Thresholds scale from the modeled monthly gap after remaining household income.</p>
           </div>
         </div>
       </CardContent>

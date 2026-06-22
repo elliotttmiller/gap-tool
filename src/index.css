@@ -465,14 +465,9 @@
     gap: 0.5rem;
   }
 
-  .unemployment-chart-panel {
-    min-width: 0;
-    max-height: 22rem;
-    overflow: hidden;
-  }
-
   .life-chart-panel,
-  .liability-chart-panel-compact {
+  .liability-chart-panel-compact,
+  .unemployment-chart-panel {
     min-width: 0;
     overflow: visible;
   }
