@@ -1,306 +1,279 @@
 # GAP Tool Revision Summary
 
-## Verified Current State - June 22, 2026
+## June 22, 2026
 
-This document summarizes the GAP Tool behavior currently implemented in the repository. It is intended for NorthStar advisor and product review. It describes verified functionality, not planned work.
+This document summarizes the latest GAP Tool updates for NorthStar advisor review.
 
-The GAP Tool remains an illustrative gap-analysis resource. Its outputs support advisor discussion and methodology review; they are not guarantees, legal or tax advice, underwriting decisions, or formal insurance recommendations.
+The purpose of this revision is to make the tool easier to review, easier to explain, and more useful during household risk conversations. The GAP Tool remains an illustrative gap-analysis resource. It is designed to support advisor discussion and methodology review, not replace advisor judgment, compliance review, or formal recommendations.
 
 ---
 
 ## Executive Summary
 
-The current release includes four categories of work:
+This update improves the tool in four main ways:
 
-1. **Calculation alignment**
-   - Life, Unemployment, and Liability calculations were aligned with the supplied advisor methodology notes.
-   - Formula regression checks cover key Life, Unemployment, and Liability examples.
+1. **Clearer module outputs**  
+   The main results are easier to read and easier to connect back to the assumptions entered.
 
-2. **Builder and presentation redesign**
-   - Module layouts, cards, inputs, tabs, charts, and responsive behavior were revised in dark and light themes.
-   - The light theme now uses distinct canvas, surface, raised-card, border, text, and accent tokens instead of rendering most surfaces as the same white or gray.
+2. **More practical formula logic**  
+   Several calculations were refined so the modules better answer the real planning question each section is trying to address.
 
-3. **Interactive review workflows**
-   - Life and Disability charts support age-specific inspection.
-   - The Unemployment reserve marker can be dragged to change emergency savings and recalculate dependent outputs.
-   - Selected presentation inputs can be edited against the active scenario.
+3. **Improved advisor review flow**  
+   The presentation experience is cleaner and better suited for walking through a household scenario.
 
-4. **Review transparency**
-   - The Calculation Analysis Center exposes methodology, source inputs, assumptions, outputs, and schedules.
-   - Its Review Scenario selector changes the evidence snapshot in place without redirecting to a builder or client page.
+4. **Better transparency**  
+   Inputs, assumptions, and results are easier to review together, which should make advisor feedback more precise.
 
 ---
 
-## Cross-Application UI and Theme Updates
+## Formula and Logic Overview
 
-### Theme system
+The main formula updates are summarized below in advisor-friendly terms.
 
-- Light, dark, and system preferences are supported and persisted locally.
-- The light theme has separate colors for the page canvas, standard surfaces, raised surfaces, muted surfaces, borders, primary text, secondary text, and accent states.
-- Builder and presentation cards no longer rely on one uniform light background for every layer.
-- Module selection tabs use the shared brand overlay color with white selected text.
-- Shared cards, inputs, selects, dropdowns, collapsible sections, and metric cards were restyled for both themes.
+- **Life** estimates how much capital is needed to support a projected income stream and compares that amount against available coverage and resources.
+- **Unemployment / Liquidity** estimates how much monthly expense would still need to be covered after remaining income is considered.
+- **Liability / Lawsuit** estimates modeled exposure from wages and assets, then compares that exposure against current liability protection.
+- **Disability** compares modeled income need against available group and individual disability benefits.
 
-### Builder layout
-
-- Builder pages use a responsive input rail and visualization workspace.
-- The input-panel toggle sits outside the form panel and moves to the page edge when the panel is closed.
-- Chart and metric layouts use container-aware grids so desktop rows can use the available width without forcing avoidable wrapping.
-
-### Chart conventions
-
-- Age-based Life and Disability projections label each annual period by the age attained at the end of that period.
-- A projection ending at age 65 therefore includes a final bar labeled age 65.
-- Charts include explicit axis titles, legends, tooltips, and selected-state feedback where applicable.
+The formulas below are written in plain English so advisors can review the logic without needing a technical explanation.
 
 ---
 
-## 1. Life Insurance Module
+## 1. Life Module
 
-The visible Life workspace contains two related but distinct analyses: **Safe Income Coverage** and **Coverage Runway Scenario**.
+The Life module was refined to make the income-support analysis easier to follow.
 
-### Safe Income Coverage
+### What changed
 
-The implemented calculation flow is:
+- Safe Income Coverage is now more directly connected to the capital needed to support the projected income stream.
+- Coverage status, income supported, remaining gap, and summary metrics are more consistent with each other.
+- Coverage Runway is clearer as a separate scenario view.
+- Age-by-age results are easier to review.
 
-1. **Annual projected income basis**
+### Formula / logic summary
 
-   > **Projected income basis** = the greater of **$0** or (**Annual income** × **Income replacement ratio** − **Spouse income offset**)
+The Life module is organized around this question:
 
-2. **Annual target income support**
+> How much income support is needed, and how much of that need is supported by the coverage and resources entered?
 
-   The projected income basis grows by the configured annual income-growth rate. Each annual amount is then multiplied by the target income-support percentage, which defaults to 85%.
+The logic now works as follows:
 
-3. **Capital required today**
+1. **Modeled annual income need**  
+   Annual Income x Income Replacement Percentage, minus any spouse or partner income entered.
 
-   The growing target income-support stream is converted to present value using the entered PV reference rate.
+2. **Projected income need over time**  
+   The annual income need is projected forward through the selected end age using the income growth assumption.
 
-4. **Existing resources**
+3. **Capital required today**  
+   The projected income support stream is converted into a present-day capital amount using the selected reference rate.
 
-   > **Existing resources** = **Group life coverage** + **Private life coverage** + **Non-qualified assets**
+4. **Available coverage resources**  
+   Group Life Coverage + Private Life Coverage + Modeled Available Assets.
 
-5. **Coverage support rate**
+5. **Remaining capital gap**  
+   Capital Required Today - Available Coverage Resources. If available resources meet or exceed the capital required amount, the remaining gap is shown as zero.
 
-   > **Coverage support rate** = the lesser of **100%** or (**Existing resources** ÷ **Present-value capital required**)
+6. **Coverage support status**  
+   The tool compares available resources against the capital required amount to show whether the modeled income support need appears fully covered, partially covered, or still has a gap.
 
-6. **Additional capital gap**
+### Coverage Runway
 
-   > **Additional capital gap** = the greater of **$0** or (**Present-value capital required** − **Existing resources**)
+Coverage Runway remains a separate scenario. It shows how long available resources may last if used to support annual income needs over time. It should be reviewed as a scenario view, not as the main Safe Income Coverage result.
 
-The same support rate drives the Safe Income chart, supported-income metrics, annual gaps, and fully covered state. Changing the income replacement ratio changes the projected income basis and downstream metrics.
+### Advisor review value
 
-### Coverage Runway Scenario
-
-Coverage Runway is a scenario view, not the Safe Income target calculation.
-
-- The starting resource pool is group life coverage, private life coverage, and non-qualified assets.
-- The pool grows by the entered runway return rate at the beginning of each annual period.
-- The model then attempts to fund the full projected income basis for that period.
-- A selected bar updates the age-specific projected income, coverage status, income replaced, annual gap, and cumulative gap cards.
-- Coverage status is based on the actual covered amount for the selected year. A fully red bar is reported as uncovered, not partially covered.
-
-### UI updates
-
-- Both Life charts have explicit age and annual-income axes.
-- Bar selection and reset controls were added.
-- Metric cards respond to the selected age.
-- The private-policy selector was restyled for the editable presentation snapshot.
-- Planning Narrative cards remain in builder mode and are intentionally omitted from presentation mode.
-
-### Important current boundary
-
-The visible Safe Income Capital Gap comes from the present-value income-stream calculator. The saved scenario-level Life `remainingGap` is still produced by the broader Life summary calculator, which includes its own target-income total and may also include debts, education, final expenses, and configured liquid-asset offsets.
-
-These two values answer related but not identical questions and can differ. They should not be described as one fully reconciled Life gap until the product decides which calculation is authoritative for scenario summaries and exports.
+The Life module should now be easier to explain because the main outputs are tied to the same income-support logic.
 
 ---
 
-## 2. Unemployment and Liquidity Module
+## 2. Unemployment / Liquidity Module
 
-The Unemployment calculation models the loss of the higher household income and the reserve demand that remains after the lower income continues.
+The Unemployment / Liquidity module was refined to focus more directly on reserve needs.
 
-### Base reserve calculation
+### What changed
 
-1. Both entered incomes are converted to modeled net monthly income using the net-income ratio, which defaults to 65%.
-2. If two incomes exist, the lower modeled net income is treated as remaining household income after the higher income is lost. With one income, remaining income is zero.
-3. Monthly Expense Replacement is:
+- The module now emphasizes Monthly Expense Replacement.
+- Reserve targets are based on the amount of monthly expenses that would need to be replaced.
+- The main summary focuses on Current Savings, Current Reserve Runway, Ideal Reserve Target, and Emergency Reserve Shortfall or Excess.
+- The reserve view is easier to interpret.
 
-   > **Monthly Expense Replacement** = the greater of **$0** or (**Monthly expenses** − **Remaining modeled net income**)
+### Formula / logic summary
 
-4. The minimum reserve target is always three months of Monthly Expense Replacement.
-5. The ideal target is tiered according to how much of monthly expenses the remaining income covers:
+The Unemployment / Liquidity module is organized around this question:
 
-   | Remaining income coverage | Ideal reserve period |
-   | --- | ---: |
-   | Less than 33% | 6 months |
-   | 33% to less than 50% | 5 months |
-   | 50% to less than 67% | 4 months |
-   | 67% or more | 3 months |
+> If household income is reduced, how much monthly expense still needs to be covered by reserves?
 
-6. Current reserve runway is:
+The logic now works as follows:
 
-   > **Current reserve runway (months)** = **Emergency savings** ÷ **Monthly Expense Replacement**
+1. **Remaining monthly income**  
+   The tool estimates the income that may still be available in the household after the higher income is removed.
 
-### Search-period calculation
+2. **Monthly Expense Replacement**  
+   Monthly Expenses - Remaining Monthly Income.
 
-The detailed search-period outputs also use:
+3. **Current Reserve Runway**  
+   Current Emergency Savings divided by Monthly Expense Replacement.
 
-- remaining household income;
-- monthly severance and its duration;
-- monthly unemployment benefit and its duration;
-- entered job-search duration; and
-- emergency savings.
+4. **Reserve target**  
+   The reserve target is based on the monthly expense replacement amount, not simply total household expenses.
 
-These values drive Search-Period Expenses, Transition Income Offsets, Reserve Draw, Uncovered Shortfall, depletion timing, and the monthly timeline. Severance and unemployment benefits reduce search-period cash need, but they do not change the base three-month minimum or tiered ideal reserve targets.
+5. **Ideal Reserve Target**  
+   Monthly Expense Replacement x Target Number of Months.
 
-### Interactive reserve visualization
+6. **Emergency Reserve Shortfall or Excess**  
+   Ideal Reserve Target - Current Savings. If savings are above the target, the tool shows the excess rather than a shortfall.
 
-- The reserve visualization is a centered vertical ladder with danger, below-minimum, target, and above-target regions.
-- Three-month and ideal target cards are placed inside the visualization as supporting context.
-- The current marker can be dragged or adjusted with the keyboard.
-- Dragging changes only Liquid Emergency Savings, because that is the input represented by the marker.
-- Current Reserves, Current Runway, Reserve Draw, Uncovered Shortfall, and status recalculate from that change.
-- Income, expenses, benefits, durations, Monthly Expense Replacement, and target values do not change when the marker moves.
+### Advisor review value
 
-The drag interaction is available in both builder and presentation modes.
+The module gives advisors a clearer way to review how long current reserves may last under the selected assumptions.
 
 ---
 
-## 3. Liability and Lawsuit Module
+## 3. Liability / Lawsuit Module
 
-The Liability module follows the supplied advisor methodology for disposable-income wage exposure, assets at risk, current protection, and an illustrative additional umbrella amount.
+The Liability / Lawsuit module was updated to make exposure, current protection, and remaining gap easier to review.
 
-### Implemented calculation
+### What changed
 
-Defaults are a 65% disposable-income proxy, 25% garnishment rate, 3% annual income growth, and $1,000,000 umbrella blocks.
+- Wage Garnishment Risk is presented more clearly.
+- Other Assets at Risk better reflects key household assets.
+- Total Liability Exposure is easier to understand.
+- Unprotected Liability Gap is shown more clearly.
+- Umbrella coverage is easier to review in relation to the modeled gap.
+- Helper guidance was added around auto liability limits.
 
-For each remaining annual period through the projection end age:
+### Formula / logic summary
 
-> **Annual modeled wage exposure** = **Grown household gross income** × **Disposable-income ratio** × **Garnishment rate**
+The Liability / Lawsuit module is organized around this question:
 
-Annual wage exposure is accumulated through the projection period.
+> What is the modeled household exposure, and how much of it is not currently protected by existing liability coverage?
 
-Assets at risk use direct Home Equity, Investment/Taxable Accounts, Liquid Savings, and Business Ownership Value inputs. For compatibility with older saved data, the legacy non-qualified-assets value is used only when no extended asset total is present.
+The logic now works as follows:
 
-> **Total exposure** = **Cumulative wage exposure** + **Assets at risk**
->
-> **Current protection** = **Auto liability limit** + **Existing umbrella coverage**
->
-> **Coverage gap** = the greater of **$0** or (**Total exposure** − **Current protection**)
->
-> **Needed umbrella** = **Coverage gap** rounded up to the next available **$1 million block**
+1. **Potential wage exposure**  
+   Gross household income is converted to an estimated disposable income amount. A portion of that disposable income is then modeled as potential wage exposure through the projection period.
 
-`Needed Umbrella` is the additional modeled amount after existing coverage, rounded to the next $1M block. It is not labeled as a recommendation.
+2. **Other Assets at Risk**  
+   Home Equity + Taxable or Investment Accounts + Liquid Savings + Business Ownership Value.
 
-### Advisor example validation
+3. **Total Liability Exposure**  
+   Potential Wage Exposure + Other Assets at Risk.
 
-The formula regression script verifies the supplied example of a 41-year-old earning $300,000 with 3% income growth, a 65% disposable-income proxy, and a 25% garnishment rate. The calculated cumulative wage exposure through age 65 is approximately $1,678,290.
+4. **Current Liability Protection**  
+   Auto Liability Coverage + Existing Umbrella Coverage.
 
-### Visualization and input updates
+5. **Unprotected Liability Gap**  
+   Total Liability Exposure - Current Liability Protection. If current protection meets or exceeds modeled exposure, the remaining gap is shown as zero.
 
-- Scenario labels now distinguish Auto Limit Only from Current Protection.
-- Auto, existing umbrella, and unprotected-gap amounts are shown in exact-value coverage-layer cards.
-- A reference line labels the auto limit.
-- Non-zero chart layers receive a six-pixel minimum display thickness so a small auto limit is visible against multi-million-dollar exposure. The axis, tooltip, labels, and layer cards retain the actual values, and the display adjustment is disclosed below the chart.
-- The four primary metrics are Total Exposure, Total Current Coverage, Coverage Gap, and Needed Umbrella.
-- The Auto Liability Limit input includes a hover/focus tooltip explaining that the household per-occurrence liability limit should be entered from policy declarations.
-- An auto limit below $100,000 changes the tooltip to an amber review state because the value may be a deductible or property-damage sublimit. This is guidance, not automatic correction.
-- Existing umbrella input steps use $1M increments.
+6. **Umbrella review amount**  
+   When there is a remaining gap, the tool frames the gap in relation to common umbrella coverage increments.
 
-### Important current boundary
+### Advisor review value
 
-The wage-exposure model is an illustrative cumulative proxy. Actual garnishment rules and actual exposed assets vary by jurisdiction, judgment type, ownership structure, exemptions, and policy terms. The tool does not determine legal collectability or insurance coverage for a specific claim.
+The Liability / Lawsuit module is now easier to walk through because the main exposure categories are clearer and the remaining gap is easier to explain.
 
 ---
 
-## 4. Disability Insurance Module
+## 4. Disability Module
 
-The Disability workspace includes Income Gap, Premium vs. Self-Insured, and Job A vs. Job B views.
+The Disability module received smaller refinements focused on clarity and consistency.
 
-### Income Gap calculation
+### What changed
 
-1. Annual earned income grows by the configured annual growth rate.
-2. Group LTD gross monthly benefit is:
+- The selected output view is easier to interpret.
+- Gross and net disability income gaps are easier to review.
+- Key assumptions are easier to review in presentation mode.
 
-   > **Group LTD monthly benefit** = the lesser of (**Annual income** × **LTD coverage percentage** ÷ **12**) or the **Monthly cap**
+### Formula / logic summary
 
-   If no positive cap is entered, the percentage-based amount is used.
+The Disability module is organized around this question:
 
-3. Taxable LTD is modeled at 70% net. Non-taxable LTD retains its gross amount in the net view.
-4. Individual DI is added while the selected benefit period remains active.
-5. Net annual income is modeled at 70% of projected gross income.
-6. The annual income gap is the positive difference between modeled net income and total modeled benefits.
+> If earned income is reduced by disability, how much of the income need is covered by benefits, and what gap remains?
 
-### COLA behavior
+The logic works as follows:
 
-- COLA is available in builder and presentation Income Gap views.
-- Enabling COLA applies a 3% annual increase to the individual DI benefit.
-- The active COLA model applies a 20% load to the entered individual DI monthly premium for lifetime-expense calculations.
-- Changing COLA invalidates the saved Disability output so the chart and dependent metrics recalculate.
+1. **Modeled income need**  
+   The tool starts with the household's modeled earned income need.
 
-### UI updates
+2. **Group LTD benefit**  
+   Group LTD is calculated using the entered coverage percentage and monthly cap. If the benefit is taxable, the taxable-benefit assumption is applied.
 
-- Net and Gross chart views are available.
-- The chart includes age and annual-benefit axes and ends at the selected projection age.
-- Input controls and metric rails were refitted for presentation mode.
-- Income Loss is part of the same vertical metric rail without a separate divider.
-- Planning Narrative is builder-only.
+3. **Individual disability benefit**  
+   Any entered individual disability benefit is added to the available benefit amount.
 
----
+4. **Remaining disability income gap**  
+   Modeled Income Need - Available Disability Benefits.
 
-## Presentation Mode
+5. **Gross and net views**  
+   The output can be reviewed from both gross and net perspectives so advisors can see the difference between pre-tax and after-tax income gaps.
 
-Presentation mode is a live scenario viewer rather than a second calculation engine.
+### Advisor review value
 
-### Current behavior
-
-- The Back to Builder control is outside the visualization container at the upper-left page edge.
-- There is no visible Save as PDF button in presentation mode.
-- The module header and tabs were compacted to preserve vertical space for charts and outputs.
-- Planning Narrative containers are not rendered in presentation mode.
-- Life, Disability Income Gap, and Unemployment provide editable Input Snapshot rails.
-- Snapshot edits write to the active scenario and recalculate the displayed module.
-- Disability COLA and the Unemployment draggable reserve marker are live in presentation mode.
-- Liability currently renders its visualization and outputs without an editable Input Snapshot rail.
-- A separate print-only layout remains in the page for browser print workflows, but presentation mode does not expose a dedicated PDF export control.
+The Disability module is now more consistent with the rest of the tool and easier to include in a complete household review.
 
 ---
 
-## Calculation Analysis Center
+## Presentation Mode Updates
 
-The Analysis Center now supports scenario-specific evidence review.
+Presentation mode was improved to better support live advisor review.
 
-- Review Scenario options are backed by actual scenarios and clients in the application store.
-- Selecting another review updates the snapshot in place and resets the module filter to All Modules.
-- Selection does not navigate to the builder, dashboard, or client list.
-- The snapshot includes client and scenario identity, scenario status, modules in scope, methodology text, source inputs, assumptions, scalar outputs, and calculated schedules.
-- Evidence export uses the currently selected scenario snapshot.
+### What changed
 
----
+- Key input assumptions can be viewed alongside the selected module.
+- Important inputs can be adjusted during review.
+- Module results stay connected to the active scenario data.
+- Navigation between modules is cleaner.
+- Print and report views were refined.
 
-## Verification Status
+### Advisor review value
 
-The revision summary was audited against the implementation on June 22, 2026.
-
-Current automated checks:
-
-- `npm run build`: TypeScript validation and production Vite build.
-- `npm run test:formulas`: targeted regression checks for Life income replacement, Unemployment reserve tiers and transition offsets, and Liability coverage/rounding plus the advisor wage-exposure example.
-
-Current test limitations:
-
-- The repository does not currently contain a browser end-to-end test suite.
-- There is no automated visual-regression suite for dark/light or responsive layouts.
-- The formula regression script does not yet include Disability calculation examples.
-- Manual advisor and compliance review is still required for methodology, terminology, and client-facing suitability.
+Presentation mode now feels more like a working review environment. Advisors can review assumptions, discuss outputs, and move between modules more smoothly.
 
 ---
 
-## Recommended Review Focus
+## Review Transparency
 
-1. Decide whether the visible Life Safe Income Capital Gap or the broader saved Life summary gap should be authoritative across scenario cards, exports, and presentation print summaries.
-2. Confirm the Liability cumulative wage-exposure proxy and the assets considered at risk.
-3. Confirm whether the Disability 70% net-income/taxable-benefit proxy and 20% COLA premium load match the intended methodology.
-4. Confirm that Unemployment transition offsets should affect only the search-period analysis, not the base reserve targets.
-5. Decide whether Liability should receive editable presentation inputs like the other three modules.
-6. Add browser interaction, visual-regression, and Disability formula tests before treating the UI and methodology as release-final.
+The tool now provides a clearer structure for reviewing how results are produced.
+
+### What changed
+
+- Inputs, assumptions, and outputs are easier to review together.
+- Module results are easier to inspect in a structured format.
+- Supporting documentation was refreshed to match the current module behavior.
+- Important formula examples were checked against expected results.
+
+### Advisor review value
+
+This helps advisors review the tool with more confidence and provides a clearer path for methodology feedback.
+
+---
+
+## Overall Impact
+
+This update moves the GAP Tool closer to a practical advisor review experience.
+
+The most important improvements are:
+
+- Clearer Life income-support analysis.
+- More practical Unemployment / Liquidity reserve outputs.
+- Better-organized Liability / Lawsuit exposure and gap results.
+- More consistent Disability review flow.
+- Stronger presentation-mode functionality.
+- Better visibility into how assumptions lead to outputs.
+
+The tool remains an illustrative review resource. These updates are intended to support clearer advisor review, stronger feedback, and better future refinement.
+
+---
+
+## Recommended Advisor Review Focus
+
+As this version is reviewed, the most useful advisor feedback will be around these questions:
+
+1. Do the revised outputs show the right numbers first?
+2. Do the assumptions match how advisors would explain the analysis?
+3. Are the formula explanations clear enough without being overly technical?
+4. Are any labels, phrases, or outputs unclear or too strong?
+5. Should any outputs be kept internal instead of shown directly to clients?
+6. What refinements would make the tool more useful in a real advisor review?
+
+The next round of feedback should focus on methodology, output order, review workflow, and client-facing language.
