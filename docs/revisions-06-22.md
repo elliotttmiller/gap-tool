@@ -35,7 +35,7 @@ The main formula updates are summarized below in advisor-friendly terms.
 - **Liability / Lawsuit** estimates modeled exposure from wages and assets, then compares that exposure against current liability protection.
 - **Disability** compares modeled income need against available group and individual disability benefits.
 
-The formulas below are written in plain English so advisors can review the logic without needing a technical explanation.
+The formulas below are written in plain English so advisors can review the logic without needing behind-the-scenes detail.
 
 ---
 
@@ -45,7 +45,8 @@ The Life module was refined to make the income-support analysis easier to follow
 
 ### What changed
 
-- Safe Income Coverage is now more directly connected to the capital needed to support the projected income stream.
+- The modeled income support need is presented more clearly.
+- Safe Income Coverage is more closely tied to the capital needed to support the projected income stream.
 - Coverage status, income supported, remaining gap, and summary metrics are more consistent with each other.
 - Coverage Runway is clearer as a separate scenario view.
 - Age-by-age results are easier to review.
@@ -271,7 +272,7 @@ As this version is reviewed, the most useful advisor feedback will be around the
 
 1. Do the revised outputs show the right numbers first?
 2. Do the assumptions match how advisors would explain the analysis?
-3. Are the formula explanations clear enough without being overly technical?
+3. Are the formula explanations clear enough without being overly detailed?
 4. Are any labels, phrases, or outputs unclear or too strong?
 5. Should any outputs be kept internal instead of shown directly to clients?
 6. What refinements would make the tool more useful in a real advisor review?
