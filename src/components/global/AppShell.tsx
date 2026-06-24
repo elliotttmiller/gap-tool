@@ -46,16 +46,16 @@ export function AppShell() {
   return (
     <div className="app-shell-surface min-h-screen min-w-7xl text-[#13283a] transition-colors dark:text-gray-50">
       <PWAUpdateToast />
-      <header className="fixed inset-x-0 top-0 z-50 h-16 border-b border-brand-500/30 bg-linear-to-br from-[#0d1b2a]/95 to-[#1e3248]/95 shadow-[0_4px_24px_rgba(0,0,0,0.4)] backdrop-blur-xl">
+      <header className="fixed inset-x-0 top-0 z-50 h-14 border-b border-brand-500/30 bg-linear-to-br from-[#0d1b2a]/95 to-[#1e3248]/95 shadow-[0_4px_24px_rgba(0,0,0,0.4)] backdrop-blur-xl">
         <div className="mx-auto flex h-full max-w-400 items-center px-8">
           <div className="flex flex-1 justify-start">
             {isInScenario ? (
               <Link
                 to="/"
                 aria-label="Back to Dashboard"
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-[#94a3b8] transition-colors hover:bg-white/5 hover:text-[#ffffff]"
+                className="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-[#94a3b8] transition-colors hover:bg-white/5 hover:text-[#ffffff]"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-4 w-4" />
                 <span className="text-sm font-medium">Back</span>
               </Link>
             ) : null}
@@ -66,7 +66,7 @@ export function AppShell() {
               <img
                 src={`${import.meta.env.BASE_URL}northstar-logo.svg`}
                 alt="North Star Resource Group"
-                className="h-18 w-auto object-contain"
+                className="h-14 w-auto object-contain"
               />
             </Link>
           </div>
@@ -79,9 +79,9 @@ export function AppShell() {
               title="Settings"
               aria-expanded={settingsOpen}
               onClick={() => setSettingsOpen((v) => !v)}
-              className="flex size-9 items-center justify-center rounded-full text-[#94a3b8] transition-colors hover:bg-white/5 hover:text-[#ffffff]"
+              className="flex size-8 items-center justify-center rounded-full text-[#94a3b8] transition-colors hover:bg-white/5 hover:text-[#ffffff]"
             >
-              <Settings className="h-5 w-5" />
+              <Settings className="h-4.5 w-4.5" />
             </button>
             <ThemeToggle />
           </div>
@@ -91,7 +91,7 @@ export function AppShell() {
       {settingsOpen && (
         <div
           ref={panelRef}
-          className="fixed inset-x-0 top-16 z-40 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-[#d5e2e5] bg-white/95 shadow-[0_24px_60px_rgba(15,42,58,0.16)] backdrop-blur-xl dark:border-brand-500/30 dark:bg-[#0d1b2a]"
+          className="fixed inset-x-0 top-14 z-40 max-h-[calc(100vh-3.5rem)] overflow-y-auto border-b border-[#d5e2e5] bg-white/95 shadow-[0_24px_60px_rgba(15,42,58,0.16)] backdrop-blur-xl dark:border-brand-500/30 dark:bg-[#0d1b2a]"
         >
           <div className="mx-auto max-w-5xl px-8 py-8">
             <div className="mb-6 flex items-center justify-between">
@@ -115,8 +115,8 @@ export function AppShell() {
         </div>
       )}
 
-      <main className="pt-16">
-        <div className="mx-auto max-w-400 px-8 py-10 sm:px-12">
+      <main className="pt-14">
+        <div className={isInScenario ? "mx-auto max-w-400 px-8 py-4 sm:px-10" : "mx-auto max-w-400 px-8 py-8 sm:px-12"}>
           <Outlet />
         </div>
       </main>
