@@ -125,10 +125,10 @@ function getPresentationInputSpecs(module: RiskModuleType, records: ScenarioModu
       { label: "Garnishment Rate", value: formatPercent(inputs.garnishmentRate ?? 0), field: "garnishmentRate", editor: "percent", rawValue: inputs.garnishmentRate ?? 0 },
       { label: "Income Growth Rate", value: formatPercent(inputs.incomeGrowthRate ?? 0), field: "incomeGrowthRate", editor: "percent", rawValue: inputs.incomeGrowthRate ?? 0 },
       { label: "Auto Liability Limit", value: formatCurrency(inputs.autoLiabilityLimit), field: "autoLiabilityLimit", editor: "currency", rawValue: inputs.autoLiabilityLimit },
-      { label: "Existing Umbrella Coverage", value: formatCurrency(inputs.umbrellaCoverage), field: "umbrellaCoverage", editor: "currency", rawValue: inputs.umbrellaCoverage },
+      { label: "Existing Umbrella", value: formatCurrency(inputs.umbrellaCoverage), field: "umbrellaCoverage", editor: "currency", rawValue: inputs.umbrellaCoverage },
       { label: "Home Equity", value: formatCurrency(inputs.homeEquity ?? 0), field: "homeEquity", editor: "currency", rawValue: inputs.homeEquity ?? 0 },
-      { label: "Investment / Taxable Accounts", value: formatCurrency(inputs.investmentAssets), field: "investmentAssets", editor: "currency", rawValue: inputs.investmentAssets },
-      { label: "Business Ownership Value", value: formatCurrency(inputs.businessOwnershipValue ?? 0), field: "businessOwnershipValue", editor: "currency", rawValue: inputs.businessOwnershipValue ?? 0 },
+      { label: "Investment / Taxable", value: formatCurrency(inputs.investmentAssets), field: "investmentAssets", editor: "currency", rawValue: inputs.investmentAssets },
+      { label: "Business Ownership", value: formatCurrency(inputs.businessOwnershipValue ?? 0), field: "businessOwnershipValue", editor: "currency", rawValue: inputs.businessOwnershipValue ?? 0 },
       { label: "Liquid Savings", value: formatCurrency(inputs.savingsAssets), field: "savingsAssets", editor: "currency", rawValue: inputs.savingsAssets },
     ]
   }
@@ -136,12 +136,13 @@ function getPresentationInputSpecs(module: RiskModuleType, records: ScenarioModu
   return []
 }
 
-function SnapshotNumberInput({ label, value, onCommit, percent = false, currency = false, className = "mt-1" }: {
+function SnapshotNumberInput({ label, value, onCommit, percent = false, currency = false, compact = false, className = "mt-1" }: {
   label: string
   value: number
   onCommit: (value: number) => void
   percent?: boolean
   currency?: boolean
+  compact?: boolean
   className?: string
 }) {
   const displayValue = percent ? value * 100 : value
@@ -154,7 +155,7 @@ function SnapshotNumberInput({ label, value, onCommit, percent = false, currency
 
   return (
     <div className={`relative ${className}`}>
-      {currency ? <span className="presentation-input-affix absolute left-2 top-1/2 -translate-y-1/2 text-xs">$</span> : null}
+      {currency ? <span className={`presentation-input-affix absolute left-2 top-1/2 -translate-y-1/2 ${compact ? "text-[10px]" : "text-xs"}`}>$</span> : null}
       <input
         aria-label={label}
         type="number"
@@ -176,9 +177,9 @@ function SnapshotNumberInput({ label, value, onCommit, percent = false, currency
             setDraft(String(percent ? value * 100 : value))
           }
         }}
-        className={`presentation-input-control h-7 w-full rounded-md border px-2 text-sm font-semibold outline-none ${currency ? "pl-5" : ""} ${percent ? "pr-5" : ""}`}
+        className={`presentation-input-control w-full rounded-md border px-2 font-semibold outline-none ${compact ? "h-6 text-xs" : "h-7 text-sm"} ${currency ? "pl-5" : ""} ${percent ? "pr-5" : ""}`}
       />
-      {percent ? <span className="presentation-input-affix absolute right-2 top-1/2 -translate-y-1/2 text-xs">%</span> : null}
+      {percent ? <span className={`presentation-input-affix absolute right-2 top-1/2 -translate-y-1/2 ${compact ? "text-[10px]" : "text-xs"}`}>%</span> : null}
     </div>
   )
 }
@@ -196,35 +197,36 @@ function ModuleInputSpecs({
 }) {
   const specs = getPresentationInputSpecs(module, records)
   if (!specs.length) return null
+  const denseRail = variant === "rail" && (module === "liability" || specs.length > 9)
 
   if (variant === "rail") {
     return (
-      <aside className="presentation-input-rail rounded-xl border border-gray-800 bg-gray-950/55 p-3.5 shadow-inner shadow-black/20 xl:sticky xl:top-0">
-        <div className="mb-3 border-b border-gray-800 pb-2.5">
-          <p className="presentation-input-title text-[10px] font-bold uppercase tracking-[0.22em] text-gray-400">
+      <aside className={`presentation-input-rail rounded-xl border border-gray-800 bg-gray-950/55 shadow-inner shadow-black/20 xl:sticky xl:top-0 ${denseRail ? "p-2.5" : "p-3.5"}`}>
+        <div className={`border-b border-gray-800 ${denseRail ? "mb-2 pb-1.5" : "mb-3 pb-2.5"}`}>
+          <p className={`presentation-input-title font-bold uppercase text-gray-400 ${denseRail ? "text-[9px] tracking-[0.18em]" : "text-[10px] tracking-[0.22em]"}`}>
             Input Snapshot
           </p>
         </div>
-        <div className="grid gap-2">
+        <div className={denseRail ? "grid grid-cols-2 gap-1.5" : "grid gap-2"}>
           {specs.map((spec) => (
-            <div key={spec.label} className="presentation-input-item rounded-lg border border-gray-800/90 bg-[#090E1A] px-3 py-2.5">
-              <p className="presentation-input-label text-[9px] font-semibold uppercase tracking-[0.15em] text-gray-600">{spec.label}</p>
+            <div key={spec.label} className={`presentation-input-item min-w-0 rounded-lg border border-gray-800/90 bg-[#090E1A] ${denseRail ? "px-2 py-1.5" : "px-3 py-2.5"}`}>
+              <p className={`presentation-input-label truncate font-semibold uppercase text-gray-600 ${denseRail ? "text-[7.5px] leading-tight tracking-[0.12em]" : "text-[9px] tracking-[0.15em]"}`} title={spec.label}>{spec.label}</p>
               {onInputChange ? (
                 spec.editor === "currency" || spec.editor === "number" || spec.editor === "percent" ? (
-                  <SnapshotNumberInput label={spec.label} value={Number(spec.rawValue)} currency={spec.editor === "currency"} percent={spec.editor === "percent"} onCommit={(value) => onInputChange(spec.field, value)} />
+                  <SnapshotNumberInput compact={denseRail} className={denseRail ? "mt-0.5" : "mt-1"} label={spec.label} value={Number(spec.rawValue)} currency={spec.editor === "currency"} percent={spec.editor === "percent"} onCommit={(value) => onInputChange(spec.field, value)} />
                 ) : spec.editor === "policy" ? (
-                  <div className={`mt-1 grid gap-1.5 transition-[grid-template-columns] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${spec.rawValue === "term" ? "grid-cols-[minmax(0,1fr)_4.25rem]" : "grid-cols-[minmax(0,1fr)_0rem]"}`}>
+                  <div className={`grid gap-1.5 transition-[grid-template-columns] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${denseRail ? "mt-0.5" : "mt-1"} ${spec.rawValue === "term" ? "grid-cols-[minmax(0,1fr)_4.25rem]" : "grid-cols-[minmax(0,1fr)_0rem]"}`}>
                     <ThemedSelect
                       ariaLabel="Private policy type"
                       value={String(spec.rawValue)}
                       onValueChange={(value) => onInputChange(spec.field, value)}
                       options={[{ value: "term", label: "Term" }, { value: "permanent", label: "Permanent" }]}
-                      className="presentation-input-control h-7 min-w-0 border px-2 py-0 text-xs font-semibold shadow-none"
+                      className={`presentation-input-control min-w-0 border px-2 py-0 text-xs font-semibold shadow-none ${denseRail ? "h-6" : "h-7"}`}
                       contentClassName="presentation-policy-menu z-50 border-[#31586c] bg-[#102d3f] text-white shadow-[0_16px_36px_rgba(5,24,36,0.32)]"
                     />
                     <div className={`grid min-w-0 transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${spec.rawValue === "term" ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
                       <div className="min-h-0 overflow-hidden">
-                        <SnapshotNumberInput className="" label="Term length in years" value={spec.secondaryValue ?? 20} onCommit={(value) => onInputChange("privateLifeTermYears", value)} />
+                        <SnapshotNumberInput compact={denseRail} className="" label="Term length in years" value={spec.secondaryValue ?? 20} onCommit={(value) => onInputChange("privateLifeTermYears", value)} />
                       </div>
                     </div>
                   </div>
@@ -234,12 +236,12 @@ function ModuleInputSpecs({
                     value={String(spec.rawValue)}
                     onValueChange={(value) => onInputChange(spec.field, spec.field === "ltdTaxable" ? value === "true" : value)}
                     options={spec.options ?? []}
-                    className="presentation-input-control mt-1 h-7 w-full min-w-0 border px-2 py-0 text-xs font-semibold shadow-none"
+                    className={`presentation-input-control w-full min-w-0 border px-2 py-0 text-xs font-semibold shadow-none ${denseRail ? "mt-0.5 h-6" : "mt-1 h-7"}`}
                     contentClassName="presentation-policy-menu z-50 border-[#31586c] bg-[#102d3f] text-white shadow-[0_16px_36px_rgba(5,24,36,0.32)]"
                   />
                 )
               ) : (
-                <p className="presentation-input-value mt-1 truncate text-sm font-semibold leading-tight text-gray-100" title={spec.value}>{spec.value}</p>
+                <p className={`presentation-input-value truncate font-semibold leading-tight text-gray-100 ${denseRail ? "mt-0.5 text-xs" : "mt-1 text-sm"}`} title={spec.value}>{spec.value}</p>
               )}
             </div>
           ))}
@@ -440,22 +442,22 @@ export function Presentation() {
   }
 
   return (
-    <div className="presentation-mode relative h-screen overflow-hidden bg-gray-950 p-3 text-gray-50 print:h-auto print:overflow-visible print:bg-white print:p-0">
-      <Button variant="ghost" className="absolute left-4 top-4 z-20 h-9 px-2 shadow-none print:hidden" asChild>
+    <div className="presentation-mode relative h-screen overflow-hidden bg-gray-950 p-2 text-gray-50 print:h-auto print:overflow-visible print:bg-white print:p-0">
+      <Button variant="ghost" className="absolute left-3 top-3 z-20 h-8 px-2 shadow-none print:hidden" asChild>
         <Link to={`/scenarios/${scenarioId}/${scenario.activeModule}`} className="gap-2">
           <ArrowLeft className="h-4 w-4" /> Back to Builder
         </Link>
       </Button>
 
-      <div className="mx-auto h-full max-w-7xl print:hidden">
+      <div className="mx-auto h-full max-w-400 print:hidden">
         <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#090E1A] shadow-lg">
-          <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-5 py-4">
+          <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-4 py-3">
             {selectedModule ? (
               <div className="flex min-h-full flex-col">
-                <div className="mb-3 grid shrink-0 items-center gap-3 border-b border-gray-800 pb-3 pl-28 lg:grid-cols-[minmax(0,1fr)_auto] 2xl:pl-0">
+                <div className="mb-2 grid shrink-0 items-center gap-2 border-b border-gray-800 pb-2 pl-24 lg:grid-cols-[minmax(0,1fr)_auto] 2xl:pl-0">
                   <div className="min-w-0">
-                    <h2 className="truncate text-xl font-semibold text-gray-50">{moduleCopy[selectedModule].title}</h2>
-                    <p className="mt-0.5 text-xs text-gray-500">Visualization and metrics for the selected risk module.</p>
+                    <h2 className="truncate text-lg font-semibold leading-tight text-gray-50">{moduleCopy[selectedModule].title}</h2>
+                    <p className="mt-0.5 text-xs leading-tight text-gray-500">Visualization and metrics for the selected risk module.</p>
                   </div>
                   <div className="presentation-module-tabs scrollbar-hide flex max-w-full gap-1 overflow-x-auto rounded-lg bg-gray-950/40 p-1 lg:justify-self-end">
                     {visibleModules.map((module) => {
@@ -466,11 +468,11 @@ export function Presentation() {
                           key={module}
                           type="button"
                           onClick={() => setActiveModule(module)}
-                          className={`flex min-w-max items-center gap-2 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors ${
+                          className={`flex min-w-max items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
                             selected ? "bg-brand-700 text-white shadow-sm ring-1 ring-brand-600 dark:bg-brand-950/70 dark:ring-brand-700/70" : "text-gray-400 hover:bg-gray-900 hover:text-gray-100"
                           }`}
                         >
-                          <Icon className="h-4 w-4" />
+                          <Icon className="h-3.5 w-3.5" />
                           {moduleCopy[module].tabLabel}
                         </button>
                       )
@@ -478,7 +480,7 @@ export function Presentation() {
                   </div>
                 </div>
                 {selectedModuleHasSnapshot ? (
-                  <div className="grid min-h-0 gap-4 xl:grid-cols-[16rem_minmax(0,1fr)] xl:items-start">
+                  <div className={selectedModule === "liability" ? "grid min-h-0 gap-3 xl:grid-cols-[22rem_minmax(0,1fr)] xl:items-start" : "grid min-h-0 gap-4 xl:grid-cols-[16rem_minmax(0,1fr)] xl:items-start"}>
                     <ModuleInputSpecs module={selectedModule} records={records} variant="rail" onInputChange={(field, value) => updateSnapshotInput(selectedModule, field, value)} />
                     <div className="min-w-0">{renderModule(selectedModule)}</div>
                   </div>
