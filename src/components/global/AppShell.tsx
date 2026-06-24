@@ -81,7 +81,7 @@ export function AppShell() {
               onClick={() => setSettingsOpen((v) => !v)}
               className="flex size-8 items-center justify-center rounded-full text-[#94a3b8] transition-colors hover:bg-white/5 hover:text-[#ffffff]"
             >
-              <Settings className="h-4.5 w-4.5" />
+              <Settings className="h-4 w-4" />
             </button>
             <ThemeToggle />
           </div>
