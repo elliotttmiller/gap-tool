@@ -31,8 +31,8 @@ export const defaultUnemploymentMethodologyAssumptions: UnemploymentMethodologyA
   minimumReserveMonths: 3,
   reserveCoverageBands: {
     under33: 6,
-    under50: 5,
-    under67: 4,
-    over67: 3,
+    under50: 6,
+    under67: 6,
+    over67: 6,
   },
 }
