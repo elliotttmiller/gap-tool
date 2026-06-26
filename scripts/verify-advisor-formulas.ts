@@ -126,12 +126,8 @@ assert.ok(unemploymentWithOffsets.remainingShortfall < unemployment.remainingSho
 approximately(unemploymentWithOffsets.minimumReserveTarget, unemployment.minimumReserveTarget)
 approximately(unemploymentWithOffsets.idealReserveTarget, unemployment.idealReserveTarget)
 
-for (const [spouseIncome, expectedMonths] of [
-  [122_000, 5],
-  [185_000, 4],
-  [250_000, 3],
-] as const) {
-  const tieredResult = calculateUnemploymentGap({
+for (const spouseIncome of [122_000, 185_000, 250_000] as const) {
+  const reserveResult = calculateUnemploymentGap({
     ...{
       annualIncome: 300_000,
       monthlyExpenses: 20_000,
@@ -145,10 +141,10 @@ for (const [spouseIncome, expectedMonths] of [
     },
     spouseIncome,
   })
-  assert.equal(tieredResult.idealReserveMonths, expectedMonths)
+  assert.equal(reserveResult.idealReserveMonths, 6)
   approximately(
-    tieredResult.idealReserveTarget,
-    tieredResult.monthlyExpenseReplacement * expectedMonths,
+    reserveResult.idealReserveTarget,
+    reserveResult.monthlyExpenseReplacement * 6,
   )
 }
 
