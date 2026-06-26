@@ -1,5 +1,7 @@
 export type DisabilityColaMethod = "fixed" | "cpi"
 
+export const DEFAULT_DISABILITY_COLA_RATE = 0.03
+
 export interface DisabilityColaTerms {
   /** Fixed annual increase, expressed as a decimal (3% = 0.03). */
   colaRate?: number
@@ -17,9 +19,13 @@ function finiteNonNegative(value: number | undefined): number {
   return Number.isFinite(value) ? Math.max(0, Number(value)) : 0
 }
 
-/** Resolves the policy's annual COLA rate, including CPI calculation and cap. */
+/**
+ * Resolves the policy's annual COLA rate.
+ * Default advisor behavior assumes the entered individual DI benefit and premium
+ * already include COLA. A deliberate colaRate of 0 models removing COLA.
+ */
 export function resolveDisabilityColaRate(terms: DisabilityColaTerms): number {
-  let rate = finiteNonNegative(terms.colaRate)
+  let rate = terms.colaRate === undefined ? DEFAULT_DISABILITY_COLA_RATE : finiteNonNegative(terms.colaRate)
 
   if (terms.colaMethod === "cpi") {
     const current = Number(terms.cpiCurrent)
