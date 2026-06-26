@@ -7,6 +7,12 @@ import { MoveVertical } from "lucide-react"
 
 interface UnemploymentOutputViewProps {
   outputs: UnemploymentOutputs
+  /**
+   * Interactive reserve marker callback.
+   * Dragging the month marker updates liquid emergency savings only:
+   * emergencySavings = selectedRunwayMonths × monthlyExpenseReplacement.
+   * Monthly gap remains driven by expenses minus remaining income.
+   */
   onReserveLevelChange?: (value: number) => void
 }
 
@@ -69,7 +75,7 @@ function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOut
               Emergency Reserve Target Visualization
             </CardTitle>
             <p className="mt-1 text-xs leading-snug text-slate-400">
-              Current reserves measured against the monthly-gap minimum and six-month ideal target
+              Current liquid emergency savings measured against the monthly-gap minimum and six-month ideal target
             </p>
           </div>
           <div className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold ${status.tone}`}>{status.label}</div>
@@ -80,15 +86,19 @@ function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOut
         <div className="unemployment-reserve-plot grid min-h-[25rem] gap-5 rounded-2xl border border-slate-800/70 bg-slate-950/70 p-5 lg:grid-cols-[13rem_minmax(20rem,1fr)_13rem] lg:items-center">
           <aside className="grid grid-cols-2 gap-3 lg:flex lg:flex-col" aria-label="Reserve targets">
             <div className="col-span-2 px-1 lg:col-span-1">
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">Reserve Targets</p>
-              <p className="mt-1 text-[10px] leading-relaxed text-slate-600">Calculated from the current monthly income gap.</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">Reserve Formula</p>
+              <p className="mt-1 text-[10px] leading-relaxed text-slate-600">
+                Runway equals liquid savings divided by the monthly gap. The drag marker changes savings only.
+              </p>
             </div>
+            <ModuleMetricCard className={compactCardClass} label="Monthly Gap" value={`${formatCurrency(outputs.monthlyGapAtDepletion)}/mo`} description="Expenses − remaining income" accent={outputs.monthlyGapAtDepletion > 0 ? "red" : "green"} />
+            <ModuleMetricCard className={compactCardClass} label="Liquid Savings" value={formatCurrency(outputs.currentReserveLevel)} description="Drag marker updates this value" accent={outputs.currentReserveLevel > 0 ? "cyan" : "red"} />
             <ModuleMetricCard className={compactCardClass} label="3 Month Minimum" value={formatCurrency(outputs.minimumReserveTarget)} description="Monthly gap × 3" accent="cyan" />
             <ModuleMetricCard className={compactCardClass} label="6 Month Ideal" value={formatCurrency(outputs.idealReserveTarget)} description="Monthly gap × 6" accent="green" />
           </aside>
 
           <div className="flex min-w-0 items-center justify-center py-1">
-          <div className="relative h-[22rem] w-full max-w-[26rem]" role="img" aria-label={`Current reserves cover ${reserveMonths.toFixed(1)} months; the minimum is 3 months and the ideal is ${idealMonths} months`}>
+          <div className="relative h-[22rem] w-full max-w-[26rem]" role="img" aria-label={`Current liquid emergency savings cover ${reserveMonths.toFixed(1)} months; the minimum is 3 months and the ideal is ${idealMonths} months`}>
             <div ref={barRef} className="absolute bottom-3 left-1/2 top-3 w-28 -translate-x-1/2 overflow-hidden rounded-[1.5rem] border border-slate-700/80 bg-slate-900 shadow-[inset_0_1px_2px_rgba(255,255,255,0.08),0_18px_38px_rgba(2,6,23,0.32)]">
               <div className="absolute inset-x-0 bottom-0 bg-rose-500/80 transition-[height] duration-500 ease-out" style={{ height: `${dangerPct}%` }} />
               <div className="absolute inset-x-0 bg-amber-500/75 transition-[bottom,height] duration-500 ease-out" style={{ bottom: `${dangerPct}%`, height: `${Math.max(0, minimumPct - dangerPct)}%` }} />
@@ -106,12 +116,12 @@ function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOut
               <div
                 role="slider"
                 tabIndex={0}
-                aria-label="Current emergency reserve coverage"
+                aria-label="Liquid emergency savings coverage"
                 aria-valuemin={0}
                 aria-valuemax={gaugeMaxMonths}
                 aria-valuenow={Number(reserveMonths.toFixed(2))}
-                aria-valuetext={`${reserveMonths.toFixed(1)} months, ${formatCurrency(outputs.currentReserveLevel)}`}
-                title="Drag to adjust current emergency savings"
+                aria-valuetext={`${reserveMonths.toFixed(1)} months of runway, ${formatCurrency(outputs.currentReserveLevel)} liquid emergency savings`}
+                title="Drag to model liquid emergency savings. Monthly gap is controlled by expenses and remaining income."
                 className="peer absolute bottom-3 left-1/2 top-3 z-20 w-40 -translate-x-1/2 touch-none cursor-ns-resize rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
                 onPointerDown={(event) => {
                   event.currentTarget.setPointerCapture(event.pointerId)
@@ -153,8 +163,8 @@ function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOut
                 </span>
                 <span className={`ml-2 flex items-center gap-2 rounded-xl border border-cyan-700/60 bg-slate-950/95 px-2.5 py-1.5 whitespace-nowrap shadow-[0_8px_24px_rgba(2,6,23,0.45)] backdrop-blur transition-all duration-200 peer-hover:-translate-y-0.5 peer-hover:border-cyan-500/70 ${dragScale !== null ? "-translate-y-0.5 border-cyan-400/80 shadow-[0_10px_28px_rgba(8,145,178,0.22)]" : ""}`}>
                   <span className="flex flex-col leading-none">
-                    <span className="text-[8px] font-bold uppercase tracking-[0.16em] text-slate-500">Current</span>
-                    <span className="mt-1 text-[11px] font-bold tabular-nums text-cyan-200">{reserveMonths.toFixed(1)} mo</span>
+                    <span className="text-[8px] font-bold uppercase tracking-[0.16em] text-slate-500">Savings Level</span>
+                    <span className="mt-1 text-[11px] font-bold tabular-nums text-cyan-200">{reserveMonths.toFixed(1)} mo · {formatCurrency(outputs.currentReserveLevel)}</span>
                   </span>
                   {canAdjust ? <MoveVertical className="size-3.5 text-cyan-400" aria-hidden="true" /> : null}
                 </span>
@@ -163,6 +173,10 @@ function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOut
           </div>
           </div>
           <div className="hidden lg:block" aria-hidden="true" />
+        </div>
+        <div className="mt-3 rounded-lg border border-slate-800/70 bg-slate-950/60 px-3 py-2 text-[10px] leading-relaxed text-slate-500">
+          <span className="font-semibold uppercase tracking-[0.14em] text-slate-400">Interaction note:</span>{" "}
+          Dragging the marker models liquid emergency savings only. Monthly Gap remains calculated from Monthly Expenses minus Remaining Income.
         </div>
       </CardContent>
     </Card>
@@ -181,9 +195,9 @@ export function UnemploymentOutputView({ outputs, onReserveLevelChange }: Unempl
       {/* Advisor-approved result row: primary reserve metrics only. */}
       <div className="mt-3 grid grid-cols-4 gap-3">
         <ModuleMetricCard className={compactCardClass} label="Remaining Income" value={`${formatCurrency(outputs.remainingIncome)}/mo`} description="Net household income remaining" accent={outputs.remainingIncome > 0 ? "cyan" : "red"} />
-        <ModuleMetricCard className={compactCardClass} label="Monthly Gap" value={`${formatCurrency(monthlyGap)}/mo`} description="Total expenses − remaining income" accent={monthlyGap > 0 ? "red" : "green"} />
-        <ModuleMetricCard className={compactCardClass} label="Current Reserves" value={formatCurrency(outputs.currentReserveLevel)} description="Current emergency reserves" accent={outputs.currentReserveLevel > 0 ? "cyan" : "red"} />
-        <ModuleMetricCard className={compactCardClass} label="Current Runway" value={formatMonths(currentRunway)} description="Reserves ÷ monthly gap" accent={runwayAccent} />
+        <ModuleMetricCard className={compactCardClass} label="Monthly Gap" value={`${formatCurrency(monthlyGap)}/mo`} description="Expenses − remaining income" accent={monthlyGap > 0 ? "red" : "green"} />
+        <ModuleMetricCard className={compactCardClass} label="Liquid Emergency Savings" value={formatCurrency(outputs.currentReserveLevel)} description="Drag marker updates this value" accent={outputs.currentReserveLevel > 0 ? "cyan" : "red"} />
+        <ModuleMetricCard className={compactCardClass} label="Current Runway" value={formatMonths(currentRunway)} description="Savings ÷ monthly gap" accent={runwayAccent} />
       </div>
 
       <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
