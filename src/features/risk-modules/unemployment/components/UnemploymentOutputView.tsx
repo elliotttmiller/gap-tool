@@ -34,7 +34,7 @@ function getReserveStatus(months: number, idealMonths: number): { label: string;
 function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOutputViewProps) {
   const reserveMonths = outputs.reserveMonthsCurrent
   const idealMonths = outputs.idealReserveMonths
-  const naturalGaugeMax = Math.max(9, idealMonths + 3, Math.ceil(reserveMonths))
+  const naturalGaugeMax = Math.max(6, idealMonths, Math.ceil(reserveMonths))
   const [dragScale, setDragScale] = useState<number | null>(null)
   const gaugeMaxMonths = dragScale ?? naturalGaugeMax
   const barRef = useRef<HTMLDivElement>(null)
@@ -69,7 +69,7 @@ function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOut
               Emergency Reserve Target Visualization
             </CardTitle>
             <p className="mt-1 text-xs leading-snug text-slate-400">
-              Current reserves measured against the monthly-gap minimum and income-adjusted ideal; temporary transition benefits are shown below
+              Current reserves measured against the monthly-gap minimum and six-month ideal target
             </p>
           </div>
           <div className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold ${status.tone}`}>{status.label}</div>
@@ -84,7 +84,7 @@ function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOut
               <p className="mt-1 text-[10px] leading-relaxed text-slate-600">Calculated from the current monthly income gap.</p>
             </div>
             <ModuleMetricCard className={compactCardClass} label="3 Month Minimum" value={formatCurrency(outputs.minimumReserveTarget)} description="Monthly gap × 3" accent="cyan" />
-            <ModuleMetricCard className={compactCardClass} label={`${outputs.idealReserveMonths} Month Ideal`} value={formatCurrency(outputs.idealReserveTarget)} description={`Monthly gap × ${outputs.idealReserveMonths}`} accent="green" />
+            <ModuleMetricCard className={compactCardClass} label="6 Month Ideal" value={formatCurrency(outputs.idealReserveTarget)} description="Monthly gap × 6" accent="green" />
           </aside>
 
           <div className="flex min-w-0 items-center justify-center py-1">
@@ -178,19 +178,12 @@ export function UnemploymentOutputView({ outputs, onReserveLevelChange }: Unempl
     <div className="unemployment-output-container">
       <ReservePositionPanel outputs={outputs} onReserveLevelChange={onReserveLevelChange} />
 
-      {/* Advisor-approved result row: exactly four metrics below the visualization. */}
+      {/* Advisor-approved result row: primary reserve metrics only. */}
       <div className="mt-3 grid grid-cols-4 gap-3">
         <ModuleMetricCard className={compactCardClass} label="Remaining Income" value={`${formatCurrency(outputs.remainingIncome)}/mo`} description="Net household income remaining" accent={outputs.remainingIncome > 0 ? "cyan" : "red"} />
         <ModuleMetricCard className={compactCardClass} label="Monthly Gap" value={`${formatCurrency(monthlyGap)}/mo`} description="Total expenses − remaining income" accent={monthlyGap > 0 ? "red" : "green"} />
         <ModuleMetricCard className={compactCardClass} label="Current Reserves" value={formatCurrency(outputs.currentReserveLevel)} description="Current emergency reserves" accent={outputs.currentReserveLevel > 0 ? "cyan" : "red"} />
         <ModuleMetricCard className={compactCardClass} label="Current Runway" value={formatMonths(currentRunway)} description="Reserves ÷ monthly gap" accent={runwayAccent} />
-      </div>
-
-      <div className="unemployment-metric-grid mt-3">
-        <ModuleMetricCard className={compactCardClass} label="Search-Period Expenses" value={formatCurrency(outputs.totalExpensesDuringSearch)} description="Monthly expenses × entered search duration" accent="slate" />
-        <ModuleMetricCard className={compactCardClass} label="Transition Income Offsets" value={formatCurrency(outputs.totalOffsetDuringSearch)} description="Remaining income + severance + unemployment benefits" accent={outputs.totalOffsetDuringSearch > 0 ? "cyan" : "red"} />
-        <ModuleMetricCard className={compactCardClass} label="Reserve Draw" value={formatCurrency(outputs.coveredBySavings)} description="Search-period need funded from emergency savings" accent={outputs.coveredBySavings > 0 ? "amber" : "slate"} />
-        <ModuleMetricCard className={compactCardClass} label="Uncovered Shortfall" value={formatCurrency(outputs.remainingShortfall)} description="Cash need remaining after offsets and reserves" accent={outputs.remainingShortfall > 0 ? "red" : "green"} />
       </div>
 
       <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
