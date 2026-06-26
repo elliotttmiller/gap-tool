@@ -62,9 +62,9 @@ export const advisorFormulaRegistry: FormulaDefinition[] = [
   {
     id: "unemployment-income-concentration-reserve",
     module: "unemployment",
-    label: "Income Concentration Reserve Target",
-    description: "Maps remaining household income coverage to a 3-6 multiple of the monthly gap.",
-    formulaText: "monthlyGap = max(0, monthlyExpenses - remainingNetMonthlyIncome); idealReserveTarget = monthlyGap * tieredIdealMonths",
-    assumptions: ["netIncomeRatio", "minimumReserveMonths", "reserveCoverageBands"],
+    label: "Reserve Replacement Target",
+    description: "Calculates the monthly expense replacement need after remaining household income, then compares current reserves against a 3-month minimum and 6-month ideal target.",
+    formulaText: "monthlyGap = max(0, monthlyExpenses - remainingNetMonthlyIncome); minimumReserveTarget = monthlyGap * 3; idealReserveTarget = monthlyGap * 6",
+    assumptions: ["netIncomeRatio", "minimumReserveMonths", "idealReserveMonths"],
   },
 ]
