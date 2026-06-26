@@ -27,7 +27,7 @@ export type DisabilityInputs = {
   privateDiBenefitMonthly: number;
   /** Benefit period for the individual DI policy. Empty string means perpetual through retirement. */
   privateDiBenefitPeriod: DiBenefitPeriod | "";
-  /** Monthly premium paid for the individual DI policy (optional, defaults to 0). */
+  /** Monthly premium paid for the individual DI policy. Treated as COLA-included unless COLA is removed in assumptions. */
   privateDiMonthlyPremium?: number;
 
   // ── Break-Even Calculator ─────────────────────────────────────────────────
@@ -42,8 +42,8 @@ export type DisabilityAssumptions = DisabilityColaTerms & {
   incomeGrowthRateAnnual: number;
   /**
    * Annual Cost of Living Adjustment applied to the individual DI benefit.
-   * For fixed COLA, e.g. 0.03 = 3%. Defaults to 0 (no COLA).
-   * The first increase applies after 12 completed benefit months by default.
+   * If omitted, the policy is treated as COLA-included by default at 3%.
+   * Set to 0 to model removing COLA from the policy.
    */
   colaRate?: number;
 };
@@ -58,7 +58,7 @@ export type DisabilityIncomeProjectionPoint = {
   ltdAnnualBenefitGross: number;
   /** Net annual group LTD benefit at this age (after taxability and income-scaling). */
   ltdAnnualBenefit: number;
-  /** Annual individual DI benefit at this age (fixed, zero after benefit period ends). */
+  /** Annual individual DI benefit at this age. Includes COLA unless removed in assumptions. */
   individualDIAnnualBenefit: number;
   /** Combined annual benefit (LTD + individual DI). */
   totalAnnualBenefit: number;
