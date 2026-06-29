@@ -4,6 +4,7 @@ import type { DisabilityInputs, DisabilityAssumptions } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
+import { RotateCcw, ShieldCheck, ShieldOff } from "lucide-react"
 import { getDisabilityNarrative } from "../constants/moduleCopy"
 import { AnimatedSection } from "@/components/ui/animated-section"
 import { transformDisabilityChartData } from "../transformers/transformDisabilityChartData"
@@ -187,6 +188,11 @@ export function DisabilityOutputView({
   }, 0)
   const colaBenefitGivenUp = roundCurrencyValue(Math.max(0, withColaIndividualDICoverage - outputs.totalIndividualDICoverage))
   const showColaRemovedCard = !colaEnabled && (enteredMonthlyPremium > 0 || colaBenefitGivenUp > 0)
+  const colaActionLabel = colaEnabled ? "Model without COLA" : "Restore COLA"
+  const colaStatusTitle = colaEnabled ? "Policy includes COLA" : "COLA removed for comparison"
+  const colaStatusDetail = colaEnabled
+    ? `${(colaRate * 100).toFixed(1)}% annual benefit growth is included in the entered benefit and premium.`
+    : `${formatCurrency(colaRemovedMonthlySavings)}/mo premium savings modeled; benefit growth removed.`
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null
@@ -319,15 +325,15 @@ export function DisabilityOutputView({
                   <div className="mb-2 text-[10px] font-bold tracking-[0.18em] text-amber-500 uppercase">COLA Removed</div>
                   <div className="divide-y divide-slate-800/80 text-xs">
                     <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">Monthly Premium Savings</span>
+                      <span className="text-slate-400">Premium Saved</span>
                       <span className="font-mono font-semibold text-emerald-300">{formatCurrency(colaRemovedMonthlySavings)}/mo</span>
                     </div>
                     <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">Lifetime Premium Savings</span>
+                      <span className="text-slate-400">Lifetime Premium Saved</span>
                       <span className="font-mono font-semibold text-emerald-300">{formatCurrency(colaRemovedLifetimeSavings)}</span>
                     </div>
                     <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">Benefit Given Up</span>
+                      <span className="text-slate-400">Growth Benefit Given Up</span>
                       <span className="font-mono font-semibold text-red-300">{formatCurrency(colaBenefitGivenUp)}</span>
                     </div>
                   </div>
@@ -354,23 +360,42 @@ export function DisabilityOutputView({
                   </div>
 
                   {onAssumptionsChange ? (
-                    <button
-                      type="button"
-                      onClick={toggleCola}
-                      aria-pressed={colaEnabled}
-                      title={colaEnabled ? "Click to remove COLA from this scenario" : "Restore COLA benefit growth"}
-                      className={`flex shrink-0 items-center gap-2 rounded-lg border px-2.5 py-1.5 text-[11px] transition-all ${
-                        colaEnabled
-                          ? "border-emerald-700/60 bg-emerald-950/50 text-emerald-300 hover:border-emerald-600"
-                          : "border-amber-700/60 bg-amber-950/40 text-amber-300 hover:border-amber-600"
-                      }`}
-                    >
-                      <span className="font-bold uppercase tracking-widest">{colaEnabled ? "COLA Included" : "COLA Removed"}</span>
-                      <span className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors ${colaEnabled ? "bg-emerald-500" : "bg-amber-600"}`}>
-                        <span className={`inline-block h-3 w-3 rounded-full bg-white shadow transition-transform ${colaEnabled ? "translate-x-3.5" : "translate-x-0.5"}`} />
-                      </span>
-                      {colaEnabled ? <span className="font-mono font-semibold">{(colaRate * 100).toFixed(1)}%</span> : null}
-                    </button>
+                    <div className={`w-full max-w-sm shrink-0 rounded-lg border p-3 ${
+                      colaEnabled
+                        ? "border-emerald-800/70 bg-emerald-950/25"
+                        : "border-amber-800/70 bg-amber-950/25"
+                    }`}>
+                      <div className="flex items-start gap-2.5">
+                        <div className={`mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md ${
+                          colaEnabled ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300"
+                        }`}>
+                          {colaEnabled ? <ShieldCheck className="size-4" aria-hidden="true" /> : <ShieldOff className="size-4" aria-hidden="true" />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className={`text-[10px] font-bold tracking-[0.16em] uppercase ${
+                            colaEnabled ? "text-emerald-300" : "text-amber-300"
+                          }`}>
+                            COLA Assumption
+                          </div>
+                          <div className="mt-0.5 text-sm font-semibold text-slate-100">{colaStatusTitle}</div>
+                          <div className="mt-0.5 text-xs leading-snug text-slate-400">{colaStatusDetail}</div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={toggleCola}
+                        aria-pressed={!colaEnabled}
+                        title={colaEnabled ? "Model the policy with COLA removed" : "Restore COLA benefit growth"}
+                        className={`mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md border px-3 py-2 text-xs font-bold transition-colors ${
+                          colaEnabled
+                            ? "border-amber-700/60 bg-amber-950/40 text-amber-200 hover:border-amber-500 hover:bg-amber-900/50"
+                            : "border-emerald-700/60 bg-emerald-950/40 text-emerald-200 hover:border-emerald-500 hover:bg-emerald-900/50"
+                        }`}
+                      >
+                        {colaEnabled ? <ShieldOff className="size-3.5" aria-hidden="true" /> : <RotateCcw className="size-3.5" aria-hidden="true" />}
+                        {colaActionLabel}
+                      </button>
+                    </div>
                   ) : null}
                 </div>
 
