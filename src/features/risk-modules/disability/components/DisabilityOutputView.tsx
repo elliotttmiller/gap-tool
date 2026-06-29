@@ -4,7 +4,7 @@ import type { DisabilityInputs, DisabilityAssumptions } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
-import { ShieldCheck, ShieldOff } from "lucide-react"
+import { ShieldOff } from "lucide-react"
 import { getDisabilityNarrative } from "../constants/moduleCopy"
 import { AnimatedSection } from "@/components/ui/animated-section"
 import { transformDisabilityChartData } from "../transformers/transformDisabilityChartData"
@@ -188,11 +188,10 @@ export function DisabilityOutputView({
   }, 0)
   const colaBenefitGivenUp = roundCurrencyValue(Math.max(0, withColaIndividualDICoverage - outputs.totalIndividualDICoverage))
   const showColaRemovedCard = !colaEnabled && (enteredMonthlyPremium > 0 || colaBenefitGivenUp > 0)
-  const colaActionLabel = colaEnabled ? "Click to remove" : "Click to restore"
-  const colaStatusTitle = colaEnabled ? "COLA included" : "COLA removed"
-  const colaStatusDetail = colaEnabled
-    ? `${(colaRate * 100).toFixed(1)}% in policy`
-    : `${formatCurrency(colaRemovedMonthlySavings)}/mo saved`
+  const colaRemoved = !colaEnabled
+  const colaToggleDetail = colaRemoved
+    ? `${formatCurrency(colaRemovedMonthlySavings)}/mo saved`
+    : `${(colaRate * 100).toFixed(1)}% included`
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null
@@ -363,35 +362,29 @@ export function DisabilityOutputView({
                     <button
                       type="button"
                       onClick={toggleCola}
-                      aria-pressed={!colaEnabled}
-                      title={colaEnabled ? "Model the policy with COLA removed" : "Restore COLA benefit growth"}
-                      className={`group flex shrink-0 items-center gap-2.5 rounded-full border px-3 py-2 text-left shadow-sm transition-all ${
-                        colaEnabled
-                          ? "border-emerald-700/50 bg-emerald-950/35 text-emerald-200 hover:border-amber-500/70 hover:bg-amber-950/30 hover:text-amber-100"
-                          : "border-amber-700/60 bg-amber-950/35 text-amber-200 hover:border-emerald-500/70 hover:bg-emerald-950/30 hover:text-emerald-100"
+                      aria-pressed={colaRemoved}
+                      title={colaRemoved ? "Restore COLA benefit growth" : "Remove COLA from this comparison"}
+                      className={`group flex shrink-0 items-center gap-2 rounded-full border py-1.5 pr-2 pl-2.5 text-left shadow-sm transition-all ${
+                        colaRemoved
+                          ? "border-amber-700/60 bg-amber-950/30 text-amber-100 hover:border-emerald-500/70 hover:bg-emerald-950/25 hover:text-emerald-100"
+                          : "border-emerald-800/60 bg-emerald-950/20 text-emerald-100 hover:border-amber-500/70 hover:bg-amber-950/25 hover:text-amber-100"
                       }`}
                     >
-                      <span className={`flex size-7 shrink-0 items-center justify-center rounded-full ${
-                        colaEnabled ? "bg-emerald-400/15 text-emerald-300" : "bg-amber-400/15 text-amber-300"
+                      <span className={`flex size-6 shrink-0 items-center justify-center rounded-full transition-colors ${
+                        colaRemoved ? "bg-amber-400/15 text-amber-300" : "bg-emerald-400/15 text-emerald-300 group-hover:bg-amber-400/15 group-hover:text-amber-300"
                       }`}>
-                        {colaEnabled ? <ShieldCheck className="size-4" aria-hidden="true" /> : <ShieldOff className="size-4" aria-hidden="true" />}
+                        <ShieldOff className="size-3.5" aria-hidden="true" />
                       </span>
-                      <span className="min-w-0">
-                        <span className="block text-[10px] font-bold leading-none tracking-[0.14em] uppercase opacity-75">COLA</span>
-                        <span className="mt-0.5 flex items-baseline gap-1.5 whitespace-nowrap">
-                          <span className="text-xs font-bold">{colaStatusTitle}</span>
-                          <span className="text-[11px] opacity-75">{colaStatusDetail}</span>
-                        </span>
+                      <span className="flex min-w-0 items-baseline gap-1.5 whitespace-nowrap">
+                        <span className="text-xs font-bold">Remove COLA</span>
+                        <span className="text-[11px] opacity-70">{colaToggleDetail}</span>
                       </span>
-                      <span className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
-                        colaEnabled ? "bg-emerald-500" : "bg-amber-600"
+                      <span className={`relative h-4.5 w-8 shrink-0 rounded-full transition-colors ${
+                        colaRemoved ? "bg-amber-500" : "bg-slate-700"
                       }`}>
-                        <span className={`absolute top-0.5 size-4 rounded-full bg-white shadow transition-transform ${
-                          colaEnabled ? "left-4" : "left-0.5"
+                        <span className={`absolute top-0.5 size-3.5 rounded-full bg-white shadow transition-transform ${
+                          colaRemoved ? "left-4" : "left-0.5"
                         }`} />
-                      </span>
-                      <span className="hidden border-l border-current/20 pl-2 text-[10px] font-semibold uppercase tracking-wide opacity-65 transition-opacity group-hover:opacity-100 xl:inline">
-                        {colaActionLabel}
                       </span>
                     </button>
                   ) : null}
