@@ -4,7 +4,6 @@ import type { DisabilityInputs, DisabilityAssumptions } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
-import { ShieldOff } from "lucide-react"
 import { getDisabilityNarrative } from "../constants/moduleCopy"
 import { AnimatedSection } from "@/components/ui/animated-section"
 import { transformDisabilityChartData } from "../transformers/transformDisabilityChartData"
@@ -371,13 +370,7 @@ export function DisabilityOutputView({
                           : "border-emerald-800/60 bg-emerald-950/20 text-emerald-100 hover:border-amber-500/70 hover:bg-amber-950/25 hover:text-amber-100"
                       }`}
                     >
-                      <span className={`flex size-6 shrink-0 items-center justify-center rounded-full transition-colors ${
-                        colaRemoved ? "bg-amber-400/15 text-amber-300" : "bg-emerald-400/15 text-emerald-300 group-hover:bg-amber-400/15 group-hover:text-amber-300"
-                      }`}>
-                        <ShieldOff className="size-3.5" aria-hidden="true" />
-                      </span>
                       <span className="flex min-w-0 items-baseline gap-1.5 whitespace-nowrap">
-                        <span className="text-[10px] font-semibold uppercase tracking-wide opacity-65">Current</span>
                         <span className="text-xs font-bold">{colaCurrentMode}</span>
                         <span className="text-[11px] opacity-70">{colaToggleDetail}</span>
                       </span>
@@ -387,9 +380,6 @@ export function DisabilityOutputView({
                         <span className={`absolute top-0.5 size-3.5 rounded-full bg-white shadow transition-transform ${
                           colaRemoved ? "left-0.5" : "left-4"
                         }`} />
-                      </span>
-                      <span className="hidden border-l border-current/20 pl-2 text-[10px] font-semibold uppercase tracking-wide opacity-65 transition-opacity group-hover:opacity-100 xl:inline">
-                        {colaRemoved ? "Restore" : "Remove"}
                       </span>
                     </button>
                   ) : null}
