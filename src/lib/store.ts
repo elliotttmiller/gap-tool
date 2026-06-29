@@ -292,6 +292,24 @@ function syncModuleRecordsForClientUpdate(state: AppState, clientId: string, pro
   return updatedRecords
 }
 
+function normalizePersistedDisabilityCola(state: Record<string, unknown>) {
+  const globalAssumptions = state.globalDisabilityAssumptions as DisabilityAssumptions | undefined
+  if (globalAssumptions?.colaRate === 0) {
+    delete globalAssumptions.colaRate
+  }
+
+  const recordsByScenario = state.moduleRecordsByScenarioId as Record<string, ScenarioModuleRecords> | undefined
+  if (!recordsByScenario) return
+
+  for (const records of Object.values(recordsByScenario)) {
+    const disability = records.disability
+    if (!disability || disability.assumptions.colaRate !== 0) continue
+    delete disability.assumptions.colaRate
+    disability.output = null
+    disability.lastCalculatedAt = undefined
+  }
+}
+
 function updateScenarioForSave(scenario: ScenarioRecord, timestamp: string): ScenarioRecord {
   return { ...scenario, status: scenario.status === "inputs_needed" || scenario.status === "draft" ? "calculated" : scenario.status, updatedAt: timestamp, lastCalculatedAt: timestamp }
 }
@@ -473,12 +491,15 @@ export const useAppStore = create<AppState>()(
         })
       },
 
-      importAppData: (data) => set({ clients: data.clients ?? [], scenarios: data.scenarios ?? [], moduleRecordsByScenarioId: data.moduleRecordsByScenarioId ?? {}, globalLifeAssumptions: data.globalLifeAssumptions ?? { ...defaultLifeAssumptions }, globalDisabilityAssumptions: data.globalDisabilityAssumptions ?? { ...defaultDisabilityAssumptions } }),
+      importAppData: (data) => {
+        normalizePersistedDisabilityCola(data as unknown as Record<string, unknown>)
+        set({ clients: data.clients ?? [], scenarios: data.scenarios ?? [], moduleRecordsByScenarioId: data.moduleRecordsByScenarioId ?? {}, globalLifeAssumptions: data.globalLifeAssumptions ?? { ...defaultLifeAssumptions }, globalDisabilityAssumptions: data.globalDisabilityAssumptions ?? { ...defaultDisabilityAssumptions } })
+      },
     }),
     {
       name: "gap-tool-app-state-v1",
       storage: createJSONStorage(() => localStorage),
-      version: 5,
+      version: 6,
       migrate: (persistedState: unknown) => {
         if (persistedState === null || typeof persistedState !== "object") return undefined
         const state = persistedState as Record<string, unknown>
@@ -496,6 +517,7 @@ export const useAppStore = create<AppState>()(
             profile.expectedRetirementAge = profile.expectedRetirementAge ?? DEFAULT_RETIREMENT_AGE
           }
         }
+        normalizePersistedDisabilityCola(state)
         return state
       },
       partialize: (state) => ({ clients: state.clients, scenarios: state.scenarios, moduleRecordsByScenarioId: state.moduleRecordsByScenarioId, globalLifeAssumptions: state.globalLifeAssumptions, globalDisabilityAssumptions: state.globalDisabilityAssumptions }),

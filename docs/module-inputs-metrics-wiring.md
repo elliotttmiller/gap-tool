@@ -161,7 +161,7 @@ These outputs are calculated and displayed live but are not written to the scena
 | `breakEvenRateOfReturn` | Visible | Premium-vs-Self-Insured prefill | **LOCAL** to embedded calculator; not used by main gap formula |
 | `breakEvenMonthsWithoutIncome` | Visible | Premium-vs-Self-Insured prefill | **LOCAL** to embedded calculator; not used by main gap formula |
 | `incomeGrowthRateAnnual` assumption | Persisted; default 3% | Annual income growth | **E2E** via default, not page-editable |
-| `colaRate` assumption | Output-view toggle; default 0/3% | Grows IDI benefits and adds 20% premium load | **E2E** |
+| `colaRate` assumption | Output-view toggle; default COLA-included 3%, explicit 0% removes COLA | Grows IDI benefits; entered premium is COLA-included and is reduced 20% when COLA is removed | **E2E** |
 
 ### `DisabilityOutputs`
 
@@ -418,9 +418,9 @@ Visible output | Net/Gross chart, lifetime cards, selected-age monthly cards, CO
 | Income Gap #1 | Projected income − group LTD | Net/Gross local display derivation |
 | Income Gap #2 | Projected income − group LTD − IDI | Net/Gross local display derivation |
 | Gap Difference | Income Gap #1 − Income Gap #2 | Effectively displayed IDI contribution |
-| IDI Expense | Monthly premium × projection months; 20% load when COLA is active | Premium, ages, COLA |
+| IDI Expense | Monthly premium × projection months; entered premium is treated as COLA-included, with a 20% reduction when COLA is removed | Premium, ages, COLA |
 | Monthly Benefits rail | Selected-age income, LTD, IDI, combined benefit, and loss | Chart age selection and Net/Gross toggle |
-| COLA comparison | COLA benefit gain and premium differences versus flat benefit | COLA toggle |
+| COLA comparison | Premium savings and benefit given up when COLA is removed | COLA toggle |
 | Stacked chart | LTD + IDI + `Income Gap` by age | Output schedule plus view toggle |
 
 **Visualization defect:** the `Income Gap` chart series always comes from `point.annualGap`, which is the **net** gap. Switching the chart to Gross changes the income/LTD series and tooltip calculation, but the red bar remains the net gap. Therefore the Gross bar stack, tooltip, and gross summary cards can disagree.
@@ -449,7 +449,7 @@ Visible output | Interactive chart, three funding cards, three break-even cards,
 | Break-even month | Ceiling of NPER result | Same inputs |
 | Chart | Investment balance versus constant total benefit needed | Same local inputs |
 
-**Visualization impacts:** zero/empty client policy values do not remain zero. The local state substitutes at least a $450 premium and $10,000 benefit through defaults/minimums, so the tab can show a hypothetical policy that was not entered. The main COLA toggle loads the premium by 20%, but the local Benefit COLA slider initializes at 0%, so premium and benefit assumptions can be out of alignment until the slider is adjusted. All slider results are local and unsaved.
+**Visualization impacts:** zero/empty client policy values do not remain zero. The local state substitutes at least a $450 premium and $10,000 benefit through defaults/minimums, so the tab can show a hypothetical policy that was not entered. The main COLA toggle feeds the local Benefit COLA slider and reduces the modeled premium by 20% when COLA is removed. All slider results are local and unsaved.
 
 ### Disability tab: Job A vs Job B
 

@@ -16,6 +16,7 @@ function approximately(actual: number, expected: number, tolerance = 0.01): void
 assert.equal(disabilityColaFactor(11, { colaRate: 0.03 }), 1)
 assert.equal(disabilityColaFactor(12, { colaRate: 0.03 }), 1.03)
 approximately(disabilityColaFactor(24, { colaRate: 0.03 }), 1.0609)
+assert.equal(resolveDisabilityColaRate({}), 0.03)
 approximately(resolveDisabilityColaRate({ colaMethod: "cpi", cpiPrevious: 300, cpiCurrent: 309 }), 0.03)
 approximately(resolveDisabilityColaRate({ colaMethod: "cpi", cpiPrevious: 300, cpiCurrent: 324, colaAnnualCap: 0.06 }), 0.06)
 assert.equal(disabilityColaFactor(36, { colaRate: 0.03, colaFirstAdjustmentYear: 4 }), 1)
@@ -39,6 +40,26 @@ assert.deepEqual(
   disability.incomeProjection.map((point) => point.individualDIAnnualBenefit),
   [48_000, 49_440, 50_923],
 )
+
+const disabilityDefaultCola = calculateDisabilityGap(
+  { ...disabilityInputs, privateDiMonthlyPremium: 70 },
+  { incomeGrowthRateAnnual: 0 },
+)
+assert.deepEqual(
+  disabilityDefaultCola.incomeProjection.map((point) => point.individualDIAnnualBenefit),
+  [48_000, 49_440, 50_923],
+)
+assert.equal(disabilityDefaultCola.lifetimeIDIExpense, 70 * 36)
+
+const disabilityWithoutCola = calculateDisabilityGap(
+  { ...disabilityInputs, privateDiMonthlyPremium: 70 },
+  { incomeGrowthRateAnnual: 0, colaRate: 0 },
+)
+assert.deepEqual(
+  disabilityWithoutCola.incomeProjection.map((point) => point.individualDIAnnualBenefit),
+  [48_000, 48_000, 48_000],
+)
+assert.equal(disabilityWithoutCola.lifetimeIDIExpense, 56 * 36)
 
 const breakEven = calculateBreakEven({
   monthlyPremium: 500,
