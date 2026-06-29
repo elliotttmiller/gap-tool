@@ -189,9 +189,10 @@ export function DisabilityOutputView({
   const colaBenefitGivenUp = roundCurrencyValue(Math.max(0, withColaIndividualDICoverage - outputs.totalIndividualDICoverage))
   const showColaRemovedCard = !colaEnabled && (enteredMonthlyPremium > 0 || colaBenefitGivenUp > 0)
   const colaRemoved = !colaEnabled
+  const colaCurrentMode = colaRemoved ? "COLA removed" : "COLA included"
   const colaToggleDetail = colaRemoved
     ? `${formatCurrency(colaRemovedMonthlySavings)}/mo saved`
-    : `${(colaRate * 100).toFixed(1)}% included`
+    : `${(colaRate * 100).toFixed(1)}% growth`
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null
@@ -376,15 +377,19 @@ export function DisabilityOutputView({
                         <ShieldOff className="size-3.5" aria-hidden="true" />
                       </span>
                       <span className="flex min-w-0 items-baseline gap-1.5 whitespace-nowrap">
-                        <span className="text-xs font-bold">Remove COLA</span>
+                        <span className="text-[10px] font-semibold uppercase tracking-wide opacity-65">Current</span>
+                        <span className="text-xs font-bold">{colaCurrentMode}</span>
                         <span className="text-[11px] opacity-70">{colaToggleDetail}</span>
                       </span>
                       <span className={`relative h-4.5 w-8 shrink-0 rounded-full transition-colors ${
-                        colaRemoved ? "bg-amber-500" : "bg-slate-700"
+                        colaRemoved ? "bg-amber-500" : "bg-emerald-500"
                       }`}>
                         <span className={`absolute top-0.5 size-3.5 rounded-full bg-white shadow transition-transform ${
-                          colaRemoved ? "left-4" : "left-0.5"
+                          colaRemoved ? "left-0.5" : "left-4"
                         }`} />
+                      </span>
+                      <span className="hidden border-l border-current/20 pl-2 text-[10px] font-semibold uppercase tracking-wide opacity-65 transition-opacity group-hover:opacity-100 xl:inline">
+                        {colaRemoved ? "Restore" : "Remove"}
                       </span>
                     </button>
                   ) : null}
