@@ -33,7 +33,6 @@ interface PremiumVsSelfInsuredState {
   monthlyBenefit: number
   annualRateOfReturn: number
   monthsWithoutIncome: number
-  colaRate: number
 }
 
 interface PremiumChartPoint {
@@ -91,15 +90,12 @@ function getInitialState({
   monthlyBenefit,
   annualRateOfReturn,
   monthsWithoutIncome,
-  benefitColaRate,
 }: PremiumVsSelfInsuredModuleProps): PremiumVsSelfInsuredState {
-  const normalizedColaRate = Number.isFinite(benefitColaRate) ? Math.max(0, benefitColaRate ?? 0) : 0
   return {
     monthlyPremium: Math.max(100, roundToStep(monthlyPremium > 0 ? monthlyPremium : 450, 50)),
     monthlyBenefit: Math.max(1000, roundToStep(monthlyBenefit > 0 ? monthlyBenefit : 10000, 500)),
     annualRateOfReturn: Number.isFinite(annualRateOfReturn) && annualRateOfReturn >= 0 ? annualRateOfReturn : 0.06,
     monthsWithoutIncome: Math.min(60, Math.max(3, Math.round(monthsWithoutIncome > 0 ? monthsWithoutIncome : 12))),
-    colaRate: normalizedColaRate,
   }
 }
 
@@ -176,10 +172,11 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
   const isPresentationMode = mode === "presentation"
   const [values, setValues] = useState<PremiumVsSelfInsuredState>(() => getInitialState(props))
   const [highlightMetric, setHighlightMetric] = useState<HighlightMetric>("none")
+  const benefitColaRate = Number.isFinite(props.benefitColaRate) ? Math.max(0, props.benefitColaRate ?? 0) : 0
 
   useEffect(() => {
     setValues(getInitialState(props))
-  }, [props.monthlyPremium, props.monthlyBenefit, props.annualRateOfReturn, props.monthsWithoutIncome, props.benefitColaRate])
+  }, [props.monthlyPremium, props.monthlyBenefit, props.annualRateOfReturn, props.monthsWithoutIncome])
 
   useEffect(() => {
     if (highlightMetric === "none") return
@@ -187,7 +184,7 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
     return () => window.clearTimeout(timeoutId)
   }, [highlightMetric])
 
-  const result = useMemo(() => calculateBreakEven({ ...values, colaRate: values.colaRate }), [values])
+  const result = useMemo(() => calculateBreakEven({ ...values, colaRate: benefitColaRate }), [values, benefitColaRate])
 
   // Derive retirement age from benefit period (A65/A67/A70) or fall back to retirementAge input.
   const currentAge = props.inputs?.currentAge ?? 0
@@ -320,15 +317,6 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                 value={values.annualRateOfReturn}
                 displayValue={formatPlainPercent(values.annualRateOfReturn)}
                 onChange={(annualRateOfReturn) => handleSliderChange("annualRateOfReturn", annualRateOfReturn, "breakeven")}
-              />
-              <SliderRow
-                label="Benefit COLA"
-                min={0}
-                max={0.05}
-                step={0.001}
-                value={values.colaRate}
-                displayValue={formatPlainPercent(values.colaRate)}
-                onChange={(colaRate) => handleSliderChange("colaRate", colaRate, "benefits")}
               />
             </div>
           </CardContent>

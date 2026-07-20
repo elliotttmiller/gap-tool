@@ -16,6 +16,9 @@ import {
 } from "@/features/risk-modules/core/ModuleMetricCard"
 
 const COLA_REMOVED_PREMIUM_FACTOR = 0.8
+const SUMMARY_ROW_CLASS = "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 py-1.5"
+const SUMMARY_LABEL_CLASS = "min-w-0 whitespace-nowrap text-slate-400"
+const SUMMARY_VALUE_CLASS = "whitespace-nowrap text-right font-mono font-semibold"
 
 interface DisabilityOutputViewProps {
   outputs: DisabilityOutputs
@@ -189,9 +192,6 @@ export function DisabilityOutputView({
   const showColaRemovedCard = !colaEnabled && (enteredMonthlyPremium > 0 || colaBenefitGivenUp > 0)
   const colaRemoved = !colaEnabled
   const colaCurrentMode = colaRemoved ? "Without COLA" : "COLA included"
-  const colaToggleDetail = colaRemoved
-    ? `${formatCurrency(colaRemovedMonthlySavings)}/mo saved`
-    : `${(colaRate * 100).toFixed(1)}% growth`
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null
@@ -255,19 +255,19 @@ export function DisabilityOutputView({
           <div className={`disability-summary-rail${showColaRemovedCard ? " disability-summary-rail--cola" : ""}`}>
             <Card className="module-kpi-card">
               <CardContent className="p-3.5">
-                <div className="mb-2 text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase">Lifetime Coverage</div>
+                <div className="mb-2 whitespace-nowrap text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase">Lifetime Coverage</div>
                 <div className="divide-y divide-slate-800/80 text-xs">
-                  <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Group LTD</span>
-                    <span className="font-mono font-semibold text-blue-300">{formatCurrency(groupLTDDisplay)}</span>
+                  <div className={SUMMARY_ROW_CLASS}>
+                    <span className={SUMMARY_LABEL_CLASS}>Group LTD</span>
+                    <span className={`${SUMMARY_VALUE_CLASS} text-blue-300`}>{formatCurrency(groupLTDDisplay)}</span>
                   </div>
-                  <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Individual DI</span>
-                    <span className="font-mono font-semibold text-cyan-300">{formatCurrency(outputs.totalIndividualDICoverage)}</span>
+                  <div className={SUMMARY_ROW_CLASS}>
+                    <span className={SUMMARY_LABEL_CLASS}>Individual DI</span>
+                    <span className={`${SUMMARY_VALUE_CLASS} text-cyan-300`}>{formatCurrency(outputs.totalIndividualDICoverage)}</span>
                   </div>
-                  <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Total Income Replaced</span>
-                    <span className="font-mono font-semibold text-emerald-400">{formatCurrency(totalIncomeReplacedDisplay)}</span>
+                  <div className={SUMMARY_ROW_CLASS}>
+                    <span className={SUMMARY_LABEL_CLASS}>Total Replaced</span>
+                    <span className={`${SUMMARY_VALUE_CLASS} text-emerald-400`}>{formatCurrency(totalIncomeReplacedDisplay)}</span>
                   </div>
                 </div>
               </CardContent>
@@ -275,19 +275,19 @@ export function DisabilityOutputView({
 
             <Card className="module-kpi-card">
               <CardContent className="p-3.5">
-                <div className="mb-2 text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase">Lifetime Income</div>
+                <div className="mb-2 whitespace-nowrap text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase">Lifetime Income ({chartView === "gross" ? "Gross" : "Net"})</div>
                 <div className="divide-y divide-slate-800/80 text-xs">
-                  <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Projected Income ({chartView === "gross" ? "Gross" : "Net"})</span>
-                    <span className="font-mono font-semibold text-slate-200">{formatCurrency(projectedIncomeDisplay)}</span>
+                  <div className={SUMMARY_ROW_CLASS}>
+                    <span className={SUMMARY_LABEL_CLASS}>Projected Income</span>
+                    <span className={`${SUMMARY_VALUE_CLASS} text-slate-200`}>{formatCurrency(projectedIncomeDisplay)}</span>
                   </div>
-                  <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Income Gap #1</span>
-                    <span className="font-mono font-semibold text-red-400">{formatCurrency(incomeGap1Display)}</span>
+                  <div className={SUMMARY_ROW_CLASS}>
+                    <span className={SUMMARY_LABEL_CLASS}>Income Gap #1</span>
+                    <span className={`${SUMMARY_VALUE_CLASS} text-red-400`}>{formatCurrency(incomeGap1Display)}</span>
                   </div>
-                  <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Income Gap #2</span>
-                    <span className="font-mono font-semibold text-orange-400">{formatCurrency(incomeGap2Display)}</span>
+                  <div className={SUMMARY_ROW_CLASS}>
+                    <span className={SUMMARY_LABEL_CLASS}>Income Gap #2</span>
+                    <span className={`${SUMMARY_VALUE_CLASS} text-orange-400`}>{formatCurrency(incomeGap2Display)}</span>
                   </div>
                 </div>
               </CardContent>
@@ -295,22 +295,22 @@ export function DisabilityOutputView({
 
             <Card className="module-kpi-card">
               <CardContent className="p-3.5">
-                <div className="mb-2 text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase">Outcome</div>
+                <div className="mb-2 whitespace-nowrap text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase">Outcome</div>
                 <div className="divide-y divide-slate-800/80 text-xs">
-                  <div className="flex items-center justify-between py-1.5">
-                    <span className="text-slate-400">Gap Difference</span>
-                    <span className="font-mono font-semibold text-emerald-400">{formatCurrency(incomeGapDiffDisplay)}</span>
+                  <div className={SUMMARY_ROW_CLASS}>
+                    <span className={SUMMARY_LABEL_CLASS}>Gap Difference</span>
+                    <span className={`${SUMMARY_VALUE_CLASS} text-emerald-400`}>{formatCurrency(incomeGapDiffDisplay)}</span>
                   </div>
                   {outputs.lifetimeIDIExpense > 0 ? (
-                    <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">IDI Expense</span>
-                      <span className="font-mono font-semibold text-amber-400">{formatCurrency(outputs.lifetimeIDIExpense)}</span>
+                    <div className={SUMMARY_ROW_CLASS}>
+                      <span className={SUMMARY_LABEL_CLASS}>IDI Expense</span>
+                      <span className={`${SUMMARY_VALUE_CLASS} text-amber-400`}>{formatCurrency(outputs.lifetimeIDIExpense)}</span>
                     </div>
                   ) : null}
                   {enteredMonthlyPremium > 0 ? (
-                    <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">IDI Monthly Premium</span>
-                      <span className="font-mono font-semibold text-amber-300">{formatCurrency(currentPolicyMonthlyPremium)}/mo</span>
+                    <div className={SUMMARY_ROW_CLASS}>
+                      <span className={SUMMARY_LABEL_CLASS}>Monthly Premium</span>
+                      <span className={`${SUMMARY_VALUE_CLASS} text-amber-300`}>{formatCurrency(currentPolicyMonthlyPremium)}/mo</span>
                     </div>
                   ) : null}
                 </div>
@@ -321,19 +321,19 @@ export function DisabilityOutputView({
             {showColaRemovedCard ? (
               <Card className="module-kpi-card border-amber-900/50">
                 <CardContent className="p-3.5">
-                  <div className="mb-2 text-[10px] font-bold tracking-[0.18em] text-amber-500 uppercase">Without COLA</div>
+                  <div className="mb-2 whitespace-nowrap text-[10px] font-bold tracking-[0.18em] text-amber-500 uppercase">Without COLA</div>
                   <div className="divide-y divide-slate-800/80 text-xs">
-                    <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">Monthly Savings</span>
-                      <span className="font-mono font-semibold text-emerald-300">{formatCurrency(colaRemovedMonthlySavings)}/mo</span>
+                    <div className={SUMMARY_ROW_CLASS}>
+                      <span className={SUMMARY_LABEL_CLASS}>Monthly Savings</span>
+                      <span className={`${SUMMARY_VALUE_CLASS} text-emerald-300`}>{formatCurrency(colaRemovedMonthlySavings)}/mo</span>
                     </div>
-                    <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">Lifetime Savings</span>
-                      <span className="font-mono font-semibold text-emerald-300">{formatCurrency(colaRemovedLifetimeSavings)}</span>
+                    <div className={SUMMARY_ROW_CLASS}>
+                      <span className={SUMMARY_LABEL_CLASS}>Lifetime Savings</span>
+                      <span className={`${SUMMARY_VALUE_CLASS} text-emerald-300`}>{formatCurrency(colaRemovedLifetimeSavings)}</span>
                     </div>
-                    <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">Benefit Reduction</span>
-                      <span className="font-mono font-semibold text-red-300">{formatCurrency(colaBenefitGivenUp)}</span>
+                    <div className={SUMMARY_ROW_CLASS}>
+                      <span className={SUMMARY_LABEL_CLASS}>Benefit Reduction</span>
+                      <span className={`${SUMMARY_VALUE_CLASS} text-red-300`}>{formatCurrency(colaBenefitGivenUp)}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -344,40 +344,31 @@ export function DisabilityOutputView({
           <Card className="module-chart-card disability-chart-panel module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
             <CardHeader className="shrink-0 px-6 pt-5 pb-0">
               <div className="grid gap-3">
-                <div className={`relative flex items-start justify-end ${selectedAge !== null ? "min-h-14" : "min-h-8"}`}>
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 text-center">
-                    <CardTitle className="whitespace-nowrap text-xs font-bold tracking-[0.15em] text-slate-500 uppercase">
-                      Income vs. Disability Coverage — Annual Projection
-                    </CardTitle>
-                    {selectedAge !== null ? (
-                      <div className="mt-1.5 flex items-center gap-2">
-                        <span className="rounded-full border border-blue-700 bg-blue-900/40 px-3 py-1 text-xs font-semibold text-blue-300">Age {selectedAge}</span>
-                        <button onClick={() => setSelectedAge(null)} className="text-xs text-gray-400 transition-colors hover:text-gray-100" aria-label="Reset to current age">× Reset</button>
-                      </div>
-                    ) : null}
-                  </div>
+                <CardTitle className="whitespace-nowrap text-center text-xs font-bold tracking-[0.15em] text-slate-500 uppercase">
+                  Income vs. Disability Coverage — Annual Projection
+                </CardTitle>
 
+                <div className="flex min-h-8 items-center gap-3">
+                  {selectedAge !== null ? (
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full border border-blue-700 bg-blue-900/40 px-3 py-1 text-xs font-semibold text-blue-300">Age {selectedAge}</span>
+                      <button onClick={() => setSelectedAge(null)} className="text-xs text-gray-400 transition-colors hover:text-gray-100" aria-label="Reset to current age">× Reset</button>
+                    </div>
+                  ) : null}
                   {onAssumptionsChange ? (
                     <button
                       type="button"
                       onClick={toggleCola}
                       aria-pressed={colaRemoved}
                       title={colaRemoved ? "Restore COLA benefit growth" : "Remove COLA from this comparison"}
-                      className={`group flex shrink-0 items-center gap-2 rounded-full border py-1.5 pr-2 pl-2.5 text-left shadow-sm transition-all ${
-                        colaRemoved
-                          ? "border-amber-700/60 bg-amber-950/30 text-amber-100 hover:border-emerald-500/70 hover:bg-emerald-950/25 hover:text-emerald-100"
-                          : "border-emerald-800/60 bg-emerald-950/20 text-emerald-100 hover:border-amber-500/70 hover:bg-amber-950/25 hover:text-amber-100"
-                      }`}
+                      className="group ml-auto flex shrink-0 items-center gap-2.5 rounded-full border border-slate-700/80 bg-slate-900/70 py-1.5 pr-1.5 pl-3 text-left text-slate-200 shadow-sm transition-colors hover:border-slate-600 hover:bg-slate-900"
                     >
-                      <span className="flex min-w-0 items-baseline gap-1.5 whitespace-nowrap">
-                        <span className="text-xs font-bold">{colaCurrentMode}</span>
-                        <span className="text-[11px] opacity-70">{colaToggleDetail}</span>
-                      </span>
-                      <span className={`relative h-4.5 w-8 shrink-0 rounded-full transition-colors ${
-                        colaRemoved ? "bg-amber-500" : "bg-emerald-500"
+                      <span className="whitespace-nowrap text-xs font-semibold">{colaCurrentMode}</span>
+                      <span className={`relative h-5 w-9 shrink-0 rounded-full shadow-inner transition-colors ${
+                        colaRemoved ? "bg-amber-500/90" : "bg-emerald-500"
                       }`}>
-                        <span className={`absolute top-0.5 size-3.5 rounded-full bg-white shadow transition-transform ${
-                          colaRemoved ? "left-0.5" : "left-4"
+                        <span className={`absolute top-0.5 size-4 rounded-full bg-white shadow-sm transition-all ${
+                          colaRemoved ? "left-0.5" : "left-[1.125rem]"
                         }`} />
                       </span>
                     </button>

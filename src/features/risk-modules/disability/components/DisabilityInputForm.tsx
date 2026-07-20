@@ -33,10 +33,10 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
   }
 
   return (
-    <div className="space-y-3">
+    <div className="disability-input-form space-y-3">
       {/* ── Income Profile ────────────────────────────────────────────────── */}
-      <CollapsibleInputSection title="Income Profile" contentClassName="grid grid-cols-1 gap-2 px-5 pt-3 pb-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,0.8fr)_minmax(0,1.15fr)]">
-          <div className="flex min-w-0 flex-col gap-2">
+      <CollapsibleInputSection title="Income Profile" contentClassName="disability-input-grid disability-input-grid--income grid gap-2 px-4 pt-3 pb-4">
+          <div className="disability-input-grid__primary flex min-w-0 flex-col gap-2">
             <Label htmlFor="annualEarnedIncome" className="whitespace-nowrap">Annual Income</Label>
             <Input
               id="annualEarnedIncome"
@@ -74,7 +74,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
       </CollapsibleInputSection>
 
       {/* ── Group Long Term Disability ────────────────────────────────────── */}
-      <CollapsibleInputSection title="Group Long Term Disability (LTD)" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-3">
+      <CollapsibleInputSection title="Group Long Term Disability (LTD)" contentClassName="disability-input-grid disability-input-grid--ltd grid gap-3 px-4 pt-3 pb-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="ltdCoveragePercent" className="whitespace-nowrap">Coverage %</Label>
             <Input
@@ -101,15 +101,15 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
               onChange={(e) => handleNumber("ltdMonthlyCap", e.target.value)}
             />
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="disability-input-grid__last flex flex-col gap-2">
             <Label htmlFor="ltdTaxable">Taxable?</Label>
             <ThemedSelect id="ltdTaxable" ariaLabel="Taxable" value={inputs.ltdTaxable ? "true" : "false"} onValueChange={(value) => handleBoolean("ltdTaxable", value)} options={[{ value: "true", label: "Yes - 70% of gross" }, { value: "false", label: "No - full benefit" }]} />
           </div>
       </CollapsibleInputSection>
 
       {/* ── Individual Disability Insurance ──────────────────────────────── */}
-      <CollapsibleInputSection title="Individual Disability Insurance" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <CollapsibleInputSection title="Individual Disability Insurance" contentClassName="grid gap-3 px-4 pt-3 pb-4">
+          <div className="disability-input-grid disability-input-grid--pair grid gap-3">
           <div className="flex flex-col gap-2">
             <Label htmlFor="privateDiBenefitMonthly">Monthly Benefit</Label>
             <Input
@@ -135,7 +135,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
             />
           </div>
           </div>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)_minmax(0,1fr)]">
+          <div className="disability-input-grid disability-input-grid--details grid gap-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor="breakEvenRateOfReturn" className="whitespace-nowrap">Break-Even Rate</Label>
             <Input
@@ -162,7 +162,7 @@ export function DisabilityInputForm({ inputs, onChange }: DisabilityInputFormPro
               onChange={(e) => handleNumber("breakEvenMonthsWithoutIncome", e.target.value)}
             />
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="disability-input-grid__last flex flex-col gap-2">
             <Label htmlFor="privateDiBenefitPeriod" className="whitespace-nowrap">Benefit Period</Label>
             <ThemedSelect id="privateDiBenefitPeriod" ariaLabel="Benefit Period" value={inputs.privateDiBenefitPeriod} onValueChange={(value) => onChange({ ...inputs, privateDiBenefitPeriod: value as DiBenefitPeriod | "" })} options={BENEFIT_PERIOD_OPTIONS} />
           </div>

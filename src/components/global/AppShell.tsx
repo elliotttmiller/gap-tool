@@ -116,7 +116,7 @@ export function AppShell() {
       )}
 
       <main className="pt-14">
-        <div className={isInScenario ? "mx-auto max-w-400 px-8 py-4 sm:px-10" : "mx-auto max-w-400 px-8 py-8 sm:px-12"}>
+        <div className={isInScenario ? "mx-auto max-w-400 px-4 py-4 sm:px-6 2xl:px-8" : "mx-auto max-w-400 px-8 py-8 sm:px-12"}>
           <Outlet />
         </div>
       </main>

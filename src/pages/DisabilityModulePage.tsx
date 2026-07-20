@@ -39,6 +39,7 @@ export function DisabilityModulePage() {
     <RiskModulePage
       title="Disability Insurance Risk Analysis"
       subtitle="If I cannot work due to illness or injury, how does my financial plan change?"
+      compactForm
       formSlot={<DisabilityInputForm inputs={moduleState.inputs} onChange={(next) => updateInputs(scenarioId, next)} />}
       outputSlot={(inputsOpen, setInputsOpen) => (
         <DisabilityOutputView

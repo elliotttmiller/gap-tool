@@ -43,6 +43,7 @@ interface RiskModulePageProps {
   title: string
   subtitle: string
   headerActions?: React.ReactNode
+  compactForm?: boolean
   formSlot: React.ReactNode
   outputSlot: React.ReactNode | ((inputsOpen: boolean, setInputsOpen: (open: boolean) => void) => React.ReactNode)
 }
@@ -52,7 +53,7 @@ interface RiskModulePageProps {
  * Provides the header/save-button row, the input+output grid, and the
  * disclaimer block. Each module page supplies its own form and output slots.
  */
-export function RiskModulePage({ title, subtitle, headerActions, formSlot, outputSlot }: RiskModulePageProps) {
+export function RiskModulePage({ title, subtitle, headerActions, compactForm = false, formSlot, outputSlot }: RiskModulePageProps) {
   const { scenarioId } = useParams()
   const [inputsOpen, setInputsOpen] = React.useState(true)
   const scenario = useAppStore((state) =>
@@ -150,9 +151,11 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
 
       <div
         className={cx(
-          "relative grid w-full min-w-0 items-start gap-3 overflow-visible transition-[grid-template-columns,gap] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:gap-4",
+          "relative grid w-full min-w-0 items-start gap-3 overflow-visible transition-[grid-template-columns,gap] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
           inputsOpen
-            ? "xl:grid-cols-[24rem_minmax(0,1fr)]"
+            ? compactForm
+              ? "xl:grid-cols-[22rem_minmax(0,1fr)]"
+              : "xl:grid-cols-[24rem_minmax(0,1fr)]"
             : "xl:grid-cols-[0rem_minmax(0,1fr)] xl:gap-x-0",
         )}
       >
@@ -164,7 +167,8 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
         >
           <div
             className={cx(
-              "w-full min-w-[24rem] max-w-md overflow-hidden transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+              "w-full min-w-0 max-w-none overflow-hidden transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+              compactForm ? "xl:max-w-[22rem]" : "xl:max-w-md",
               inputsOpen ? "translate-x-0 opacity-100" : "pointer-events-none -translate-x-3 opacity-0",
             )}
             aria-hidden={!inputsOpen}

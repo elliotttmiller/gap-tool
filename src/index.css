@@ -371,6 +371,40 @@
     padding-block: 0.5rem;
   }
 
+  .disability-input-form {
+    container-type: inline-size;
+  }
+
+  .disability-input-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @container (min-width: 18rem) {
+    .disability-input-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .disability-input-grid--income .disability-input-grid__primary,
+    .disability-input-grid--ltd .disability-input-grid__last,
+    .disability-input-grid--details .disability-input-grid__last {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @container (min-width: 42rem) {
+    .disability-input-grid--income,
+    .disability-input-grid--ltd,
+    .disability-input-grid--details {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .disability-input-grid--income .disability-input-grid__primary,
+    .disability-input-grid--ltd .disability-input-grid__last,
+    .disability-input-grid--details .disability-input-grid__last {
+      grid-column: auto;
+    }
+  }
+
   @keyframes chart-reveal {
     from { clip-path: inset(0 100% 0 0 round 4px); opacity: 0.2; }
     to   { clip-path: inset(0 0%   0 0 round 4px); opacity: 1; }
