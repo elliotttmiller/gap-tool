@@ -38,8 +38,8 @@ export const advisorFormulaRegistry: FormulaDefinition[] = [
   {
     id: "disability-cola-removal",
     module: "disability",
-    label: "COLA Removed Comparison",
-    description: "Shows the tradeoff when COLA is removed: modeled premium is reduced by 20%, while projected individual DI benefit growth is removed.",
+    label: "Without COLA",
+    description: "Shows the tradeoff without COLA: modeled premium is reduced by 20%, while projected individual DI benefit growth is excluded.",
     formulaText: "noColaPremium = enteredPremium * 80%; premiumSavings = enteredPremium * 20%; benefitGivenUp = projectedIDIWithCOLA - projectedIDIWithoutCOLA",
     assumptions: ["colaRate", "privateDiMonthlyPremium", "privateDiBenefitMonthly"],
   },

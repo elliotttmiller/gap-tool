@@ -169,7 +169,7 @@ export function DisabilityOutputView({
   const incomeGap2Display = projectedIncomeDisplay - totalIncomeReplacedDisplay
   const incomeGapDiffDisplay = incomeGap1Display - incomeGap2Display
 
-  // ── COLA removed comparison metrics ────────────────────────────────────────
+  // ── Without-COLA comparison metrics ───────────────────────────────────────
   const enteredMonthlyPremium = inputs?.privateDiMonthlyPremium ?? 0
   const enteredMonthlyBenefit = inputs?.privateDiBenefitMonthly ?? 0
   const projectionMonths = outputs.incomeProjection.length * 12
@@ -188,7 +188,7 @@ export function DisabilityOutputView({
   const colaBenefitGivenUp = roundCurrencyValue(Math.max(0, withColaIndividualDICoverage - outputs.totalIndividualDICoverage))
   const showColaRemovedCard = !colaEnabled && (enteredMonthlyPremium > 0 || colaBenefitGivenUp > 0)
   const colaRemoved = !colaEnabled
-  const colaCurrentMode = colaRemoved ? "COLA removed" : "COLA included"
+  const colaCurrentMode = colaRemoved ? "Without COLA" : "COLA included"
   const colaToggleDetail = colaRemoved
     ? `${formatCurrency(colaRemovedMonthlySavings)}/mo saved`
     : `${(colaRate * 100).toFixed(1)}% growth`
@@ -317,22 +317,22 @@ export function DisabilityOutputView({
               </CardContent>
             </Card>
 
-            {/* ── COLA removed comparison card — visible only when COLA is removed ── */}
+            {/* ── Without-COLA comparison card ── */}
             {showColaRemovedCard ? (
               <Card className="module-kpi-card border-amber-900/50">
                 <CardContent className="p-3.5">
-                  <div className="mb-2 text-[10px] font-bold tracking-[0.18em] text-amber-500 uppercase">COLA Removed</div>
+                  <div className="mb-2 text-[10px] font-bold tracking-[0.18em] text-amber-500 uppercase">Without COLA</div>
                   <div className="divide-y divide-slate-800/80 text-xs">
                     <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">Premium Saved</span>
+                      <span className="text-slate-400">Monthly Savings</span>
                       <span className="font-mono font-semibold text-emerald-300">{formatCurrency(colaRemovedMonthlySavings)}/mo</span>
                     </div>
                     <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">Lifetime Premium Saved</span>
+                      <span className="text-slate-400">Lifetime Savings</span>
                       <span className="font-mono font-semibold text-emerald-300">{formatCurrency(colaRemovedLifetimeSavings)}</span>
                     </div>
                     <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">Growth Benefit Given Up</span>
+                      <span className="text-slate-400">Benefit Reduction</span>
                       <span className="font-mono font-semibold text-red-300">{formatCurrency(colaBenefitGivenUp)}</span>
                     </div>
                   </div>
@@ -344,12 +344,11 @@ export function DisabilityOutputView({
           <Card className="module-chart-card disability-chart-panel module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
             <CardHeader className="shrink-0 px-6 pt-5 pb-0">
               <div className="grid gap-3">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <CardTitle className="text-xs font-bold tracking-[0.15em] text-slate-500 uppercase">
+                <div className={`relative flex items-start justify-end ${selectedAge !== null ? "min-h-14" : "min-h-8"}`}>
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 text-center">
+                    <CardTitle className="whitespace-nowrap text-xs font-bold tracking-[0.15em] text-slate-500 uppercase">
                       Income vs. Disability Coverage — Annual Projection
                     </CardTitle>
-                    <p className="mt-1 text-sm leading-snug text-slate-400">LTD and individual DI benefits stacked against projected income need</p>
                     {selectedAge !== null ? (
                       <div className="mt-1.5 flex items-center gap-2">
                         <span className="rounded-full border border-blue-700 bg-blue-900/40 px-3 py-1 text-xs font-semibold text-blue-300">Age {selectedAge}</span>
