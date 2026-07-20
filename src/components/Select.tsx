@@ -20,11 +20,11 @@ SelectValue.displayName = "SelectValue"
 const selectTriggerStyles = [
   cx(
     "group/trigger flex w-full select-none items-center justify-between gap-2 truncate rounded-md border px-3 py-2 shadow-sm outline-none transition sm:text-sm",
-    "border-gray-700",
-    "text-gray-50",
+    "border-[#c8d7db] dark:border-gray-700",
+    "text-[#102a3a] dark:text-gray-50",
     "data-[placeholder]:text-gray-500 data-[placeholder]:dark:text-gray-500",
-    "bg-gray-900",
-    "hover:bg-gray-800",
+    "bg-[#f1f6f7] dark:bg-gray-900",
+    "hover:border-[#9ebbc2] hover:bg-white dark:hover:bg-gray-800",
     "data-[disabled]:bg-gray-800 data-[disabled]:text-gray-500",
     "data-[disabled]:dark:border-gray-700 data-[disabled]:dark:bg-gray-800 data-[disabled]:dark:text-gray-500",
     focusInput,
@@ -94,9 +94,10 @@ const SelectContent = React.forwardRef<
           "relative z-50 overflow-hidden rounded-md border shadow-xl shadow-black/2.5",
           "min-w-[calc(var(--radix-select-trigger-width)-2px)] max-w-[95vw]",
           "max-h-[--radix-select-content-available-height]",
-          "bg-gray-900",
-          "text-gray-50",
-          "border-gray-700",
+          "bg-white dark:bg-gray-900",
+          "text-[#10283b] dark:text-gray-50",
+          "border-[#c8d7db] dark:border-gray-700",
+          "shadow-[0_18px_45px_rgba(15,42,58,0.16)] dark:shadow-black/40",
           "will-change-[transform,opacity]",
           "data-[state=closed]:animate-hide",
           "data-[side=bottom]:animate-slideDownAndFade data-[side=left]:animate-slideLeftAndFade data-[side=right]:animate-slideRightAndFade data-[side=top]:animate-slideUpAndFade",
@@ -143,10 +144,10 @@ const SelectItem = React.forwardRef<
     ref={forwardedRef}
     className={cx(
       "grid cursor-pointer grid-cols-[1fr_20px] gap-x-2 rounded px-3 py-2 outline-none transition-colors data-[state=checked]:font-semibold sm:text-sm",
-      "text-gray-50",
+      "text-[#10283b] dark:text-gray-50",
       "data-disabled:pointer-events-none data-disabled:text-gray-500 data-disabled:hover:bg-none",
-      "focus-visible:bg-gray-800",
-      "hover:bg-gray-800",
+      "focus-visible:bg-[#e8f7f7] dark:focus-visible:bg-gray-800",
+      "hover:bg-[#f0f7f7] dark:hover:bg-gray-800",
       className,
     )}
     {...props}
@@ -167,10 +168,10 @@ const SelectItemPeriod = React.forwardRef<
     ref={forwardedRef}
     className={cx(
       "relative flex cursor-pointer items-center rounded py-2 pl-8 pr-3 outline-none transition-colors data-[state=checked]:font-semibold sm:text-sm",
-      "text-gray-50",
+      "text-[#10283b] dark:text-gray-50",
       "data-disabled:pointer-events-none data-disabled:text-gray-500",
-      "focus-visible:bg-gray-800",
-      "hover:bg-gray-800",
+      "focus-visible:bg-[#e8f7f7] dark:focus-visible:bg-gray-800",
+      "hover:bg-[#f0f7f7] dark:hover:bg-gray-800",
       className,
     )}
     {...props}

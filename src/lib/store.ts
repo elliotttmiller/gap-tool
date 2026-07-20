@@ -268,10 +268,10 @@ type SharedProjectionInputs = { annualIncome: number; currentAge: number; retire
 function syncSharedProjectionInputs(records: ScenarioModuleRecords, shared: SharedProjectionInputs, timestamp: string): ScenarioModuleRecords {
   const synced: ScenarioModuleRecords = { ...records }
   const incomeReplacementYears = Math.max(0, shared.retirementAge - shared.currentAge)
-  if (synced.life) synced.life = { ...synced.life, inputs: { ...synced.life.inputs, annualIncome: shared.annualIncome, currentAge: shared.currentAge, retirementAge: shared.retirementAge, incomeReplacementYears }, updatedAt: timestamp }
-  if (synced.disability) synced.disability = { ...synced.disability, inputs: { ...synced.disability.inputs, annualEarnedIncome: shared.annualIncome, currentAge: shared.currentAge, retirementAge: shared.retirementAge }, updatedAt: timestamp }
-  if (synced.unemployment) synced.unemployment = { ...synced.unemployment, inputs: { ...synced.unemployment.inputs, annualIncome: shared.annualIncome }, updatedAt: timestamp }
-  if (synced.liability) synced.liability = { ...synced.liability, inputs: { ...synced.liability.inputs, annualIncome: shared.annualIncome, currentAge: shared.currentAge, retirementAge: shared.retirementAge }, updatedAt: timestamp }
+  if (synced.life) synced.life = { ...synced.life, inputs: { ...synced.life.inputs, annualIncome: shared.annualIncome, currentAge: shared.currentAge, retirementAge: shared.retirementAge, incomeReplacementYears }, output: null, updatedAt: timestamp, lastCalculatedAt: undefined }
+  if (synced.disability) synced.disability = { ...synced.disability, inputs: { ...synced.disability.inputs, annualEarnedIncome: shared.annualIncome, currentAge: shared.currentAge, retirementAge: shared.retirementAge }, output: null, updatedAt: timestamp, lastCalculatedAt: undefined }
+  if (synced.unemployment) synced.unemployment = { ...synced.unemployment, inputs: { ...synced.unemployment.inputs, annualIncome: shared.annualIncome }, output: null, updatedAt: timestamp, lastCalculatedAt: undefined }
+  if (synced.liability) synced.liability = { ...synced.liability, inputs: { ...synced.liability.inputs, annualIncome: shared.annualIncome, currentAge: shared.currentAge, retirementAge: shared.retirementAge }, output: null, updatedAt: timestamp, lastCalculatedAt: undefined }
   return synced
 }
 
@@ -290,6 +290,24 @@ function syncModuleRecordsForClientUpdate(state: AppState, clientId: string, pro
     }
   }
   return updatedRecords
+}
+
+function normalizePersistedDisabilityCola(state: Record<string, unknown>) {
+  const globalAssumptions = state.globalDisabilityAssumptions as DisabilityAssumptions | undefined
+  if (globalAssumptions?.colaRate === 0) {
+    delete globalAssumptions.colaRate
+  }
+
+  const recordsByScenario = state.moduleRecordsByScenarioId as Record<string, ScenarioModuleRecords> | undefined
+  if (!recordsByScenario) return
+
+  for (const records of Object.values(recordsByScenario)) {
+    const disability = records.disability
+    if (!disability || disability.assumptions.colaRate !== 0) continue
+    delete disability.assumptions.colaRate
+    disability.output = null
+    disability.lastCalculatedAt = undefined
+  }
 }
 
 function updateScenarioForSave(scenario: ScenarioRecord, timestamp: string): ScenarioRecord {
@@ -340,7 +358,13 @@ export const useAppStore = create<AppState>()(
             ...state.moduleRecordsByScenarioId,
             [scenarioId]: {
               ...state.moduleRecordsByScenarioId[scenarioId],
-              disability: { ...record, assumptions: { ...record.assumptions, ...updates }, updatedAt: nowIso() },
+              disability: {
+                ...record,
+                assumptions: { ...record.assumptions, ...updates },
+                output: null,
+                updatedAt: nowIso(),
+                lastCalculatedAt: undefined,
+              },
             },
           },
         }
@@ -411,7 +435,7 @@ export const useAppStore = create<AppState>()(
         if (!scenarioRecords || !record) return state
         const timestamp = nowIso()
         const syncedLifeInputs = sanitizeLifeInputs(inputs)
-        const withLifeInputs: ScenarioModuleRecords = { ...scenarioRecords, life: { ...record, inputs: syncedLifeInputs, updatedAt: timestamp } }
+        const withLifeInputs: ScenarioModuleRecords = { ...scenarioRecords, life: { ...record, inputs: syncedLifeInputs, output: null, updatedAt: timestamp, lastCalculatedAt: undefined } }
         const synced = syncSharedProjectionInputs(withLifeInputs, { annualIncome: syncedLifeInputs.annualIncome, currentAge: syncedLifeInputs.currentAge, retirementAge: syncedLifeInputs.retirementAge }, timestamp)
         return { moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: synced } }
       }),
@@ -420,18 +444,18 @@ export const useAppStore = create<AppState>()(
         const record = scenarioRecords?.disability
         if (!scenarioRecords || !record) return state
         const timestamp = nowIso()
-        const synced = syncSharedProjectionInputs({ ...scenarioRecords, disability: { ...record, inputs, updatedAt: timestamp } }, { annualIncome: inputs.annualEarnedIncome, currentAge: inputs.currentAge, retirementAge: inputs.retirementAge }, timestamp)
+        const synced = syncSharedProjectionInputs({ ...scenarioRecords, disability: { ...record, inputs, output: null, updatedAt: timestamp, lastCalculatedAt: undefined } }, { annualIncome: inputs.annualEarnedIncome, currentAge: inputs.currentAge, retirementAge: inputs.retirementAge }, timestamp)
         return { moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: synced } }
       }),
       updateUnemploymentInputs: (scenarioId, inputs) => set((state) => {
         const record = state.moduleRecordsByScenarioId[scenarioId]?.unemployment
         if (!record) return state
-        return { moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: { ...state.moduleRecordsByScenarioId[scenarioId], unemployment: { ...record, inputs, updatedAt: nowIso() } } } }
+        return { moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: { ...state.moduleRecordsByScenarioId[scenarioId], unemployment: { ...record, inputs, output: null, updatedAt: nowIso(), lastCalculatedAt: undefined } } } }
       }),
       updateLiabilityInputs: (scenarioId, inputs) => set((state) => {
         const record = state.moduleRecordsByScenarioId[scenarioId]?.liability
         if (!record) return state
-        return { moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: { ...state.moduleRecordsByScenarioId[scenarioId], liability: { ...record, inputs, updatedAt: nowIso() } } } }
+        return { moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: { ...state.moduleRecordsByScenarioId[scenarioId], liability: { ...record, inputs, output: null, updatedAt: nowIso(), lastCalculatedAt: undefined } } } }
       }),
 
       saveLifeCalculation: (scenarioId, output) => {
@@ -467,12 +491,15 @@ export const useAppStore = create<AppState>()(
         })
       },
 
-      importAppData: (data) => set({ clients: data.clients ?? [], scenarios: data.scenarios ?? [], moduleRecordsByScenarioId: data.moduleRecordsByScenarioId ?? {}, globalLifeAssumptions: data.globalLifeAssumptions ?? { ...defaultLifeAssumptions }, globalDisabilityAssumptions: data.globalDisabilityAssumptions ?? { ...defaultDisabilityAssumptions } }),
+      importAppData: (data) => {
+        normalizePersistedDisabilityCola(data as unknown as Record<string, unknown>)
+        set({ clients: data.clients ?? [], scenarios: data.scenarios ?? [], moduleRecordsByScenarioId: data.moduleRecordsByScenarioId ?? {}, globalLifeAssumptions: data.globalLifeAssumptions ?? { ...defaultLifeAssumptions }, globalDisabilityAssumptions: data.globalDisabilityAssumptions ?? { ...defaultDisabilityAssumptions } })
+      },
     }),
     {
       name: "gap-tool-app-state-v1",
       storage: createJSONStorage(() => localStorage),
-      version: 5,
+      version: 6,
       migrate: (persistedState: unknown) => {
         if (persistedState === null || typeof persistedState !== "object") return undefined
         const state = persistedState as Record<string, unknown>
@@ -490,6 +517,7 @@ export const useAppStore = create<AppState>()(
             profile.expectedRetirementAge = profile.expectedRetirementAge ?? DEFAULT_RETIREMENT_AGE
           }
         }
+        normalizePersistedDisabilityCola(state)
         return state
       },
       partialize: (state) => ({ clients: state.clients, scenarios: state.scenarios, moduleRecordsByScenarioId: state.moduleRecordsByScenarioId, globalLifeAssumptions: state.globalLifeAssumptions, globalDisabilityAssumptions: state.globalDisabilityAssumptions }),

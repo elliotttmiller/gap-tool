@@ -44,7 +44,7 @@ export function UnemploymentInputForm({ inputs, onChange }: UnemploymentInputFor
             <Input id="spouseIncome" type="number" min={0} prefix="$" value={inputs.spouseIncome || ""} className="w-full" onChange={(e) => handleCurrency("spouseIncome", e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="monthlyExpenses">Monthly Burn Rate</Label>
+            <Label htmlFor="monthlyExpenses">Monthly Expenses</Label>
             <Input
               id="monthlyExpenses"
               type="number"

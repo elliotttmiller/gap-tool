@@ -49,7 +49,7 @@ interface RiskModulePageProps {
 
 /**
  * Shared layout shell for all four risk-module pages.
- * Provides the header/save-button row, the 5/7 input+output grid, and the
+ * Provides the header/save-button row, the input+output grid, and the
  * disclaimer block. Each module page supplies its own form and output slots.
  */
 export function RiskModulePage({ title, subtitle, headerActions, formSlot, outputSlot }: RiskModulePageProps) {
@@ -65,22 +65,22 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
   const includedTabs = scenario?.includedModules ?? []
 
   return (
-    <div className="w-full max-w-full space-y-5 overflow-x-hidden">
+    <div className="builder-mode w-full max-w-full space-y-3 overflow-x-hidden">
       {/* ── Module header ──────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-800 pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border border-gray-800 bg-white px-4 py-3 shadow-[0_1px_2px_rgba(15,42,58,0.04),0_12px_32px_rgba(15,42,58,0.06)] dark:bg-[#090E1A]">
         {/* Left: title + subtitle */}
         <div className="min-w-0">
-          <h2 className="text-base font-semibold text-gray-50">{title}</h2>
-          <p className="mt-0.5 text-xs text-gray-500">{subtitle}</p>
+          <h2 className="text-base font-semibold leading-tight text-gray-50">{title}</h2>
+          <p className="mt-0.5 text-xs leading-tight text-gray-500">{subtitle}</p>
         </div>
 
         {/* Centre: client name + updated */}
         {client && scenario ? (
           <div className="flex flex-col items-center gap-0.5 text-center">
-            <span className="text-xs font-semibold tracking-tight text-slate-300">
+            <span className="text-xs font-semibold leading-tight tracking-tight text-slate-300">
               {client.displayName} Household Review
             </span>
-            <span className="text-[10px] text-slate-600">
+            <span className="text-[10px] leading-tight text-slate-600">
               Updated: {new Date(scenario.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
             </span>
           </div>
@@ -89,7 +89,7 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
         {/* Right: module tabs + actions */}
         <div className="flex flex-wrap items-center gap-2">
           {includedTabs.length > 1 && scenarioId ? (
-            <div className="scrollbar-hide flex max-w-full items-center gap-1 overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/70 p-1">
+            <div className="scrollbar-hide flex max-w-full items-center gap-1 overflow-x-auto rounded-lg border border-slate-800 bg-slate-950/70 p-1">
               {includedTabs.map((module) => {
                 const tab = tabConfig[module]
                 if (!tab) return null
@@ -100,9 +100,9 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
                     onClick={() => setActiveModule(scenarioId, module)}
                     className={({ isActive }) =>
                       cx(
-                        "inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-semibold transition-all",
+                        "inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold transition-all",
                         isActive
-                          ? "bg-brand-950/70 text-white shadow-sm ring-1 ring-brand-700/70"
+                          ? "bg-brand-700 text-white shadow-sm ring-1 ring-brand-600 dark:bg-brand-950/70 dark:ring-brand-700/70"
                           : "text-slate-400 hover:bg-slate-900 hover:text-slate-100",
                       )
                     }
@@ -128,17 +128,17 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
         </div>
       </div>
 
-      {/* Toggle button — fixed to viewport, lives outside any containing-block ancestor */}
       <button
         type="button"
         aria-label={inputsOpen ? "Collapse input forms" : "Expand input forms"}
         aria-expanded={inputsOpen}
+        title={inputsOpen ? "Hide input panel" : "Show input panel"}
         onClick={() => setInputsOpen((open) => !open)}
         className={cx(
-          "fixed top-1/2 z-40 hidden h-9 w-6 -translate-y-1/2 items-center justify-center border border-slate-700/70 bg-slate-950/35 text-slate-400 shadow-lg shadow-black/20 backdrop-blur-md transition-[left,transform,background-color,border-color,color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-brand-500/80 hover:bg-brand-950/25 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-500 xl:flex",
+          "fixed top-1/2 z-40 hidden h-14 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-brand-600/40 bg-white text-brand-700 shadow-[0_8px_24px_rgba(15,42,58,0.16)] ring-4 ring-[#eaf1f3] transition-[left,transform,background-color,border-color,color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-brand-600 hover:bg-brand-50 hover:text-brand-800 hover:shadow-[0_10px_28px_rgba(0,153,168,0.18)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:ring-[#0d1b2a] dark:hover:border-brand-500 dark:hover:bg-brand-950 dark:hover:text-white xl:flex",
           inputsOpen
-            ? "left-[max(3rem,calc((100vw-100rem)/2+3rem))] -translate-x-1/2 rounded-full"
-            : "left-0 rounded-r-full border-l-0",
+            ? "left-[max(1rem,calc((100vw-100rem)/2+1rem))]"
+            : "left-4",
         )}
       >
         {inputsOpen ? (
@@ -150,9 +150,9 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
 
       <div
         className={cx(
-          "grid w-full min-w-0 items-start gap-5 overflow-visible transition-[grid-template-columns,gap] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:gap-6",
+          "relative grid w-full min-w-0 items-start gap-3 overflow-visible transition-[grid-template-columns,gap] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:gap-4",
           inputsOpen
-            ? "xl:grid-cols-[minmax(20rem,23rem)_minmax(0,1fr)]"
+            ? "xl:grid-cols-[24rem_minmax(0,1fr)]"
             : "xl:grid-cols-[0rem_minmax(0,1fr)] xl:gap-x-0",
         )}
       >
@@ -177,7 +177,7 @@ export function RiskModulePage({ title, subtitle, headerActions, formSlot, outpu
         </div>
       </div>
 
-      <div className="pt-8 sm:pt-10">
+      <div className="pt-6 sm:pt-8">
         <DisclaimerBlock />
       </div>
     </div>

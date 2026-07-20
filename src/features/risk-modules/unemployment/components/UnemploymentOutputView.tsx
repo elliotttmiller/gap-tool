@@ -2,9 +2,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
 import { advisorSafeCopy } from "@/domain/copy/advisorSafeCopy"
 import { UnemploymentOutputs } from "../types"
+import { useRef, useState } from "react"
+import { MoveVertical } from "lucide-react"
 
 interface UnemploymentOutputViewProps {
   outputs: UnemploymentOutputs
+  /**
+   * Interactive reserve marker callback.
+   * Dragging the month marker updates liquid emergency savings only:
+   * emergencySavings = selectedRunwayMonths × monthlyExpenseReplacement.
+   * Monthly gap remains driven by expenses minus remaining income.
+   */
+  onReserveLevelChange?: (value: number) => void
 }
 
 const compactCardClass = "unemployment-kpi-card"
@@ -28,104 +37,169 @@ function getReserveStatus(months: number, idealMonths: number): { label: string;
   return { label: "Target Met", tone: "text-emerald-300 border-emerald-800/60 bg-emerald-950/40" }
 }
 
-function ReservePositionPanel({ outputs }: { outputs: UnemploymentOutputs }) {
+function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOutputViewProps) {
   const reserveMonths = outputs.reserveMonthsCurrent
   const idealMonths = outputs.idealReserveMonths
-  const gaugeMaxMonths = Math.max(9, idealMonths + 3)
+  const naturalGaugeMax = Math.max(6, idealMonths, Math.ceil(reserveMonths))
+  const [dragScale, setDragScale] = useState<number | null>(null)
+  const gaugeMaxMonths = dragScale ?? naturalGaugeMax
+  const barRef = useRef<HTMLDivElement>(null)
+  const canAdjust = Boolean(onReserveLevelChange && outputs.monthlyGapAtDepletion > 0)
   const markerPct = Math.min(100, Math.max(0, (reserveMonths / gaugeMaxMonths) * 100))
   const dangerPct = Math.min(100, (1.5 / gaugeMaxMonths) * 100)
   const minimumPct = Math.min(100, (3 / gaugeMaxMonths) * 100)
   const idealPct = Math.min(100, (idealMonths / gaugeMaxMonths) * 100)
   const status = getReserveStatus(reserveMonths, idealMonths)
-  const targetCoveragePct = outputs.idealReserveTarget > 0 ? Math.min(100, (outputs.currentReserveLevel / outputs.idealReserveTarget) * 100) : 0
+  const ticks = Array.from(new Set([0, 1.5, 3, idealMonths, gaugeMaxMonths])).sort((a, b) => a - b)
+
+  function setMonthsFromClientY(clientY: number) {
+    const rect = barRef.current?.getBoundingClientRect()
+    if (!rect || !onReserveLevelChange || outputs.monthlyGapAtDepletion <= 0) return
+    const ratio = Math.max(0, Math.min(1, (rect.bottom - clientY) / rect.height))
+    const months = ratio * gaugeMaxMonths
+    onReserveLevelChange(Math.round(months * outputs.monthlyGapAtDepletion))
+  }
+
+  function nudgeMonths(delta: number) {
+    if (!onReserveLevelChange || outputs.monthlyGapAtDepletion <= 0) return
+    const months = Math.max(0, Math.min(gaugeMaxMonths, reserveMonths + delta))
+    onReserveLevelChange(Math.round(months * outputs.monthlyGapAtDepletion))
+  }
 
   return (
-    <Card className="unemployment-chart-panel border-slate-800/80 bg-slate-950/60">
+    <Card className="module-chart-card unemployment-chart-panel border-slate-800/80 bg-slate-950/60">
       <CardHeader className="px-5 pb-0 pt-4">
         <div className="flex items-start justify-between gap-4">
           <div>
             <CardTitle className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
-              Emergency Reserve Position
+              Emergency Reserve Target Visualization
             </CardTitle>
             <p className="mt-1 text-xs leading-snug text-slate-400">
-              Current emergency savings compared with the dynamic 3–6 month target
+              Current liquid emergency savings measured against the monthly-gap minimum and six-month ideal target
             </p>
           </div>
           <div className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold ${status.tone}`}>{status.label}</div>
         </div>
       </CardHeader>
 
-      <CardContent className="px-5 pb-4 pt-4">
-        <div className="grid gap-3 md:grid-cols-4">
-          <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 px-3 py-2">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Current Reserve</p>
-            <p className="mt-1 text-lg font-bold leading-none text-cyan-300">{formatCurrency(outputs.currentReserveLevel)}</p>
-          </div>
-          <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 px-3 py-2">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Current Runway</p>
-            <p className="mt-1 text-lg font-bold leading-none text-cyan-300">{formatMonths(reserveMonths)}</p>
-          </div>
-          <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 px-3 py-2">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Ideal Target</p>
-            <p className="mt-1 text-lg font-bold leading-none text-slate-100">{formatCurrency(outputs.idealReserveTarget)}</p>
-          </div>
-          <div className="rounded-lg border border-slate-800/80 bg-slate-900/40 px-3 py-2">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Target Covered</p>
-            <p className="mt-1 text-lg font-bold leading-none text-emerald-300">{Math.round(targetCoveragePct)}%</p>
-          </div>
-        </div>
+      <CardContent className="px-5 pb-5 pt-4">
+        <div className="unemployment-reserve-plot grid min-h-[25rem] gap-5 rounded-2xl border border-slate-800/70 bg-slate-950/70 p-5 lg:grid-cols-[13rem_minmax(20rem,1fr)_13rem] lg:items-center">
+          <aside className="grid grid-cols-2 gap-3 lg:flex lg:flex-col" aria-label="Reserve targets">
+            <div className="col-span-2 px-1 lg:col-span-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">Reserve Targets</p>
+              <p className="mt-1 text-[10px] leading-relaxed text-slate-600">
+                Calculated from Monthly Gap only.
+              </p>
+            </div>
+            <ModuleMetricCard className={compactCardClass} label="3 Month Target" value={formatCurrency(outputs.minimumReserveTarget)} description="Monthly gap × 3" accent="cyan" />
+            <ModuleMetricCard className={compactCardClass} label="6 Month Target" value={formatCurrency(outputs.idealReserveTarget)} description="Monthly gap × 6" accent="green" />
+          </aside>
 
-        <div className="mt-4 rounded-xl border border-slate-800/70 bg-slate-950/70 px-4 py-4">
-          <div className="relative h-5 overflow-hidden rounded-full bg-slate-900">
-            <div className="absolute inset-y-0 left-0 bg-rose-500/65" style={{ width: `${dangerPct}%` }} />
-            <div className="absolute inset-y-0 bg-amber-500/65" style={{ left: `${dangerPct}%`, width: `${Math.max(0, minimumPct - dangerPct)}%` }} />
-            <div className="absolute inset-y-0 bg-emerald-500/65" style={{ left: `${minimumPct}%`, width: `${Math.max(0, idealPct - minimumPct)}%` }} />
-            <div className="absolute inset-y-0 bg-cyan-500/40" style={{ left: `${idealPct}%`, width: `${Math.max(0, 100 - idealPct)}%` }} />
-            <div className="absolute inset-y-0 left-0 bg-sky-300/55" style={{ width: `${markerPct}%` }} />
-            <div className="absolute top-1/2 h-7 w-0.5 -translate-y-1/2 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.7)]" style={{ left: `${markerPct}%` }} />
+          <div className="flex min-w-0 items-center justify-center py-1">
+            <div className="relative h-[22rem] w-full max-w-[26rem]" role="img" aria-label={`Current liquid emergency savings cover ${reserveMonths.toFixed(1)} months; the minimum is 3 months and the ideal is ${idealMonths} months`}>
+              <div ref={barRef} className="absolute bottom-3 left-1/2 top-3 w-28 -translate-x-1/2 overflow-hidden rounded-[1.5rem] border border-slate-700/80 bg-slate-900 shadow-[inset_0_1px_2px_rgba(255,255,255,0.08),0_18px_38px_rgba(2,6,23,0.32)]">
+                <div className="absolute inset-x-0 bottom-0 bg-rose-500/80 transition-[height] duration-500 ease-out" style={{ height: `${dangerPct}%` }} />
+                <div className="absolute inset-x-0 bg-amber-500/75 transition-[bottom,height] duration-500 ease-out" style={{ bottom: `${dangerPct}%`, height: `${Math.max(0, minimumPct - dangerPct)}%` }} />
+                <div className="absolute inset-x-0 bg-emerald-500/70 transition-[bottom,height] duration-500 ease-out" style={{ bottom: `${minimumPct}%`, height: `${Math.max(0, idealPct - minimumPct)}%` }} />
+                <div className="absolute inset-x-0 top-0 bg-brand-700/65 transition-[height] duration-500 ease-out" style={{ height: `${Math.max(0, 100 - idealPct)}%` }} />
+                <div className="absolute inset-x-0 border-t border-dashed border-white/60" style={{ bottom: `${minimumPct}%` }} />
+                <div className="absolute inset-x-0 border-t border-dashed border-white/70" style={{ bottom: `${idealPct}%` }} />
+                <span className="absolute inset-x-0 bottom-[8%] text-center text-[9px] font-bold uppercase tracking-widest text-white/85">Danger</span>
+                {minimumPct - dangerPct > 12 ? <span className="absolute inset-x-0 text-center text-[9px] font-bold uppercase tracking-widest text-white/85" style={{ bottom: `${dangerPct + (minimumPct - dangerPct) / 2}%` }}>Below Minimum</span> : null}
+                {idealPct - minimumPct > 16 ? <span className="absolute inset-x-0 text-center text-[9px] font-bold uppercase tracking-widest text-white/85" style={{ bottom: `${minimumPct + Math.min(8, (idealPct - minimumPct) * 0.2)}%` }}>Target Range</span> : null}
+                {100 - idealPct > 12 ? <span className="absolute inset-x-0 top-[8%] text-center text-[9px] font-bold uppercase tracking-widest text-white/85">Ideal+</span> : null}
+              </div>
+
+              {canAdjust ? (
+                <div
+                  role="slider"
+                  tabIndex={0}
+                  aria-label="Liquid emergency savings coverage"
+                  aria-valuemin={0}
+                  aria-valuemax={gaugeMaxMonths}
+                  aria-valuenow={Number(reserveMonths.toFixed(2))}
+                  aria-valuetext={`${reserveMonths.toFixed(1)} months of runway, ${formatCurrency(outputs.currentReserveLevel)} liquid emergency savings`}
+                  title="Drag to model liquid emergency savings. Monthly gap is controlled by expenses and remaining income."
+                  className="peer absolute bottom-3 left-1/2 top-3 z-20 w-40 -translate-x-1/2 touch-none cursor-ns-resize rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                  onPointerDown={(event) => {
+                    event.currentTarget.setPointerCapture(event.pointerId)
+                    setDragScale(naturalGaugeMax)
+                    setMonthsFromClientY(event.clientY)
+                  }}
+                  onPointerMove={(event) => {
+                    if (event.currentTarget.hasPointerCapture(event.pointerId)) setMonthsFromClientY(event.clientY)
+                  }}
+                  onPointerUp={(event) => {
+                    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
+                    setDragScale(null)
+                  }}
+                  onPointerCancel={() => setDragScale(null)}
+                  onLostPointerCapture={() => setDragScale(null)}
+                  onKeyDown={(event) => {
+                    if (event.key === "ArrowUp" || event.key === "ArrowRight") { event.preventDefault(); nudgeMonths(event.shiftKey ? 1 : 0.25) }
+                    if (event.key === "ArrowDown" || event.key === "ArrowLeft") { event.preventDefault(); nudgeMonths(event.shiftKey ? -1 : -0.25) }
+                    if (event.key === "Home") { event.preventDefault(); nudgeMonths(-reserveMonths) }
+                    if (event.key === "End") { event.preventDefault(); nudgeMonths(gaugeMaxMonths - reserveMonths) }
+                  }}
+                />
+              ) : null}
+
+              {ticks.map((month) => (
+                <div key={month} className="pointer-events-none absolute bottom-3 left-0 right-[calc(50%+3.5rem)] top-3">
+                  <div className="absolute inset-x-0 flex -translate-y-1/2 items-center justify-end gap-1.5" style={{ bottom: `${(month / gaugeMaxMonths) * 100}%` }}>
+                    <span className="whitespace-nowrap text-[10px] font-medium tabular-nums text-slate-500">{month % 1 === 0 ? month : month.toFixed(1)} mo</span>
+                    <span className="h-px w-2 bg-slate-600" />
+                  </div>
+                </div>
+              ))}
+
+              <div className="pointer-events-none absolute bottom-3 left-[calc(50%-3.5rem)] right-0 top-3 z-10">
+                <div className="absolute inset-x-0 flex translate-y-1/2 items-center transition-[bottom] duration-500 ease-out" style={{ bottom: `${markerPct}%` }}>
+                  <span className={`h-[3px] w-28 rounded-full bg-gradient-to-r from-cyan-400/10 via-cyan-300/70 to-cyan-200 shadow-[0_0_10px_rgba(34,211,238,0.4)] transition-all duration-200 peer-hover:h-1 peer-hover:shadow-[0_0_16px_rgba(34,211,238,0.65)] ${dragScale !== null ? "h-1 shadow-[0_0_18px_rgba(34,211,238,0.8)]" : ""}`} />
+                  <span className={`relative -ml-2 flex size-5 items-center justify-center rounded-full border-2 border-cyan-100 bg-slate-950 shadow-[0_0_0_4px_rgba(34,211,238,0.12),0_0_16px_rgba(34,211,238,0.75)] transition-transform duration-200 peer-hover:scale-110 ${dragScale !== null ? "scale-110" : ""}`}>
+                    <span className={`size-2 rounded-full bg-cyan-300 ${dragScale !== null ? "animate-pulse" : ""}`} />
+                  </span>
+                  <span className={`ml-2 flex items-center gap-2 rounded-xl border border-cyan-700/60 bg-slate-950/95 px-2.5 py-1.5 whitespace-nowrap shadow-[0_8px_24px_rgba(2,6,23,0.45)] backdrop-blur transition-all duration-200 peer-hover:-translate-y-0.5 peer-hover:border-cyan-500/70 ${dragScale !== null ? "-translate-y-0.5 border-cyan-400/80 shadow-[0_10px_28px_rgba(8,145,178,0.22)]" : ""}`}>
+                    <span className="flex flex-col leading-none">
+                      <span className="text-[8px] font-bold uppercase tracking-[0.16em] text-slate-500">Savings Level</span>
+                      <span className="mt-1 text-[11px] font-bold tabular-nums text-cyan-200">{reserveMonths.toFixed(1)} mo · {formatCurrency(outputs.currentReserveLevel)}</span>
+                    </span>
+                    {canAdjust ? <MoveVertical className="size-3.5 text-cyan-400" aria-hidden="true" /> : null}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="relative mt-2 h-4 text-[10px] font-medium text-slate-500">
-            <span className="absolute left-0">0 mo</span>
-            <span className="absolute -translate-x-1/2" style={{ left: `${minimumPct}%` }}>3 mo min</span>
-            <span className="absolute -translate-x-1/2" style={{ left: `${idealPct}%` }}>{idealMonths} mo ideal</span>
-            <span className="absolute right-0">{gaugeMaxMonths} mo</span>
-          </div>
+          <div className="hidden lg:block" aria-hidden="true" />
+        </div>
+        <div className="mt-3 rounded-lg border border-slate-800/70 bg-slate-950/60 px-3 py-2 text-[10px] leading-relaxed text-slate-500">
+          <span className="font-semibold uppercase tracking-[0.14em] text-slate-400">Interaction note:</span>{" "}
+          Dragging the marker models liquid emergency savings only. Monthly Gap remains calculated from Monthly Expenses minus Remaining Income.
         </div>
       </CardContent>
     </Card>
   )
 }
 
-export function UnemploymentOutputView({ outputs }: UnemploymentOutputViewProps) {
-  const cfAccent: "green" | "cyan" | "red" = outputs.cashFlowStatus === "positive" ? "green" : outputs.cashFlowStatus === "breakeven" ? "cyan" : "red"
-  const runwayAccent: "green" | "cyan" | "red" = outputs.reserveMonthsCurrent < 3 ? "red" : outputs.reserveMonthsCurrent < outputs.idealReserveMonths ? "cyan" : "green"
-  const shortfallAccent: "green" | "red" = outputs.remainingShortfall > 0 ? "red" : "green"
-  const effectiveAccent: "green" | "cyan" | "red" = outputs.effectiveRunwayMonths >= outputs.timeline.length ? "green" : outputs.effectiveRunwayMonths >= outputs.timeline.length * 0.75 ? "cyan" : "red"
-  const gapAccent: "green" | "red" = outputs.excessReserve > 0 ? "green" : outputs.reserveGap > 0 ? "red" : "green"
-  const gapValue = outputs.excessReserve > 0
-    ? `+${formatCurrency(outputs.excessReserve)}`
-    : outputs.reserveGap > 0 ? `-${formatCurrency(outputs.reserveGap)}` : "$0"
-  const gapLabel = outputs.excessReserve > 0 ? "Excess Reserves" : "Reserve Gap"
+export function UnemploymentOutputView({ outputs, onReserveLevelChange }: UnemploymentOutputViewProps) {
+  const monthlyGap = Math.max(0, outputs.monthlyBurnRate - outputs.remainingIncome)
+  const currentRunway = monthlyGap > 0 ? outputs.currentReserveLevel / monthlyGap : 0
+  const runwayAccent: "green" | "cyan" | "red" = currentRunway < 3 ? "red" : currentRunway < 6 ? "cyan" : "green"
 
   return (
     <div className="unemployment-output-container">
-      <div className="unemployment-visual-dashboard">
-        <ReservePositionPanel outputs={outputs} />
+      <ReservePositionPanel outputs={outputs} onReserveLevelChange={onReserveLevelChange} />
 
-        <div className="unemployment-metric-grid">
-          <ModuleMetricCard className={compactCardClass} label="Monthly Cash Flow" value={formatCurrency(outputs.monthlyCashFlow)} description="Net income minus expenses" accent={cfAccent} />
-          <ModuleMetricCard className={compactCardClass} label="Income Coverage" value={`${Math.round(outputs.remainingIncomeCoveragePct * 100)}%`} description="Remaining income ÷ expenses" accent={outputs.remainingIncomeCoveragePct >= 0.67 ? "green" : outputs.remainingIncomeCoveragePct >= 0.33 ? "cyan" : "red"} />
-          <ModuleMetricCard className={compactCardClass} label="Remaining Income" value={`${formatCurrency(outputs.remainingIncome)}/mo`} description="If highest earner is lost" accent={outputs.remainingIncome > 0 ? "cyan" : "red"} />
-          <ModuleMetricCard className={compactCardClass} label="Reserve Runway" value={formatMonths(outputs.reserveMonthsCurrent)} description="Savings ÷ expenses" accent={runwayAccent} />
-          <ModuleMetricCard className={compactCardClass} label={gapLabel} value={gapValue} description="Versus ideal target" accent={gapAccent} />
-          <ModuleMetricCard className={compactCardClass} label="Ideal Target" value={formatCurrency(outputs.idealReserveTarget)} description={`${outputs.idealReserveMonths} months target`} accent="slate" />
-          <ModuleMetricCard className={compactCardClass} label="Search Runway" value={formatMonths(outputs.effectiveRunwayMonths)} description="Modeled search period" accent={effectiveAccent} />
-          <ModuleMetricCard className={compactCardClass} label="Search Shortfall" value={outputs.remainingShortfall > 0 ? formatCurrency(outputs.remainingShortfall) : "$0"} description="After offsets + savings" accent={shortfallAccent} />
-        </div>
+      {/* Advisor-approved result row: primary reserve metrics only. */}
+      <div className="mt-3 grid grid-cols-4 gap-3">
+        <ModuleMetricCard className={compactCardClass} label="Remaining Income" value={`${formatCurrency(outputs.remainingIncome)}/mo`} description="Net household income remaining" accent={outputs.remainingIncome > 0 ? "cyan" : "red"} />
+        <ModuleMetricCard className={compactCardClass} label="Monthly Gap" value={`${formatCurrency(monthlyGap)}/mo`} description="Expenses − remaining income" accent={monthlyGap > 0 ? "red" : "green"} />
+        <ModuleMetricCard className={compactCardClass} label="Liquid Emergency Savings" value={formatCurrency(outputs.currentReserveLevel)} description="Drag marker updates this value" accent={outputs.currentReserveLevel > 0 ? "cyan" : "red"} />
+        <ModuleMetricCard className={compactCardClass} label="Current Runway" value={formatMonths(currentRunway)} description="Savings ÷ monthly gap" accent={runwayAccent} />
       </div>
 
       <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
-        {advisorSafeCopy.unemployment.dynamicTarget} {advisorSafeCopy.unemployment.netIncomeProxy} {advisorSafeCopy.unemployment.reserveDisclosure}
+        {advisorSafeCopy.unemployment.netIncomeProxy} {advisorSafeCopy.unemployment.reserveDisclosure}
       </p>
     </div>
   )

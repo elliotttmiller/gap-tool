@@ -6,33 +6,35 @@
  *
  * Module 1 — Safe Income Coverage
  *   Advisor-adherence interpretation of the review notes:
- *   - The entered death benefit/resource pool is translated into a growing annual
- *     withdrawal stream using the asset return rate and the income-growth/COLA
- *     assumption.
- *   - The “Fully Covered” state, chart, cards, and narrative all use the same
- *     capital-required basis so a $5.0M resource pool cannot show as fully covered
- *     against a higher displayed capital requirement.
- *   - The Safe Income Coverage target defaults to 85% of modeled annual net
- *     income need, grown annually with income.
+ *   - The entered death benefit/resource pool should drive the displayed coverage
+ *     support rate.
+ *   - “Fully Covered” must use the SAME threshold as the displayed capital need.
+ *   - The Net Income Factor converts gross annual income to modeled net income.
+ *   - Capital Required Today is the present value of the growing annual income
+ *     support stream using the configured PV Reference Rate. This reproduces the
+ *     advisor example calculations using the configured net income factor,
+ *     return rate, growth rate, and projection horizon.
  *
  *   Target stream:
- *     targetIncomeNeed[year] = projectedNetIncomeNeed[year] × targetIncomeSupportPct
+ *     projectedNetIncomeNeed[year] = annualIncome × netIncomeFactor − spouseIncome
  *
- *   Required capital:
- *     capitalRequired = PV of targetIncomeNeed using assetReturnRate and incomeGrowthRate
+ *   Advisor-facing capital required:
+ *     targetDeathBenefitNeed = PV(targetIncomeNeed[year], incomeGapRoi)
  *
- *   Entered-resource support:
- *     startingAnnualWithdrawal = enteredResources ÷ growingAnnuityFactor
- *     safeWithdrawalRate = startingAnnualWithdrawal ÷ targetIncomeNeed[0]
+ *   Entered-resource support rate:
+ *     coverageSupportRate = enteredResources ÷ targetDeathBenefitNeed, capped at 100%
+ *
+ *   Annual gaps are derived from the same target stream and same support rate, so
+ *   the chart, cards, narrative, and “Fully Covered” state cannot contradict each other.
  *
  * Module 2 — Coverage Runway Scenario
- *   Existing coverage resources (group + private + non-qualified assets) are
- *   invested at maxCoverageRoi each year. The survivor draws the FULL projected
- *   net income need each year until the balance runs out.
- *   Covered years → green bars. Gap years → red bars.
+ *   Entered death benefits (group + private life coverage) are invested at
+ *   maxCoverageRoi. Each year attempts to fund the full projected net income
+ *   need from the grown balance. Covered income produces green bars; any amount
+ *   the remaining pool cannot fund produces red gap bars.
  *
  * Net income assumption: income figures use modeled net income need
- * (annualIncome × incomeReplacementRatio − spouseAnnualIncome offset).
+ * (annualIncome × netIncomeFactor − spouseAnnualIncome offset).
  * Death benefits are generally income-tax-free; no gross-to-net conversion is
  * applied to benefit amounts.
  */
@@ -118,7 +120,7 @@ export function calculateIncomeGapScenarios(
   );
   const existingPool = groupLifeCoverage + privateLifeCoverage + nonQualifiedAssets;
 
-  // Module 1 target: advisor-indicated safe income support defaults to 85%.
+  // Converts gross annual income to the modeled net income need.
   // `safeIncomeCoveragePct` is kept as a backward-compatible persisted-field alias.
   const targetIncomeSupportPct = clampRate(
     requireNonNegativeNumber(
@@ -128,7 +130,7 @@ export function calculateIncomeGapScenarios(
     1
   );
 
-  // maxCoverageRoi: asset return applied to the resource pool in both income-gap panels.
+  // maxCoverageRoi: annual return applied to existing death-benefit pool in Module 2 runway scenario.
   const maxCoverageRoi = nonNegative(
     requireNonNegativeNumber(
       inputs.maxCoverageRoi ?? 0.06,
@@ -136,38 +138,31 @@ export function calculateIncomeGapScenarios(
     )
   );
 
-  // Modeled annual net income need before the Safe Income target is applied.
+  const incomeReplacementRatio = clampRate(
+    requireNonNegativeNumber(inputs.incomeReplacementRatio, "inputs.incomeReplacementRatio")
+  );
+
+  // Income Replacement establishes the projected income basis. The separate
+  // Net Income Factor then determines the Safe Income target stream below.
   const annualNetIncomeNeed = Math.max(
     0,
     nonNegative(requireNonNegativeNumber(inputs.annualIncome, "inputs.annualIncome")) *
-      nonNegative(requireNonNegativeNumber(inputs.incomeReplacementRatio, "inputs.incomeReplacementRatio")) -
+      incomeReplacementRatio -
       nonNegative(requireNonNegativeNumber(inputs.spouseAnnualIncome, "inputs.spouseAnnualIncome"))
   );
 
   const projectedIncomeStream = Array.from({ length: yearsToRetirement }, (_, i) => {
     return annualNetIncomeNeed * Math.pow(1 + incomeGrowthRate, i);
   });
-  const targetIncomeStream = projectedIncomeStream.map((need) => need * targetIncomeSupportPct);
+  const targetIncomeStream = projectedIncomeStream.map((amount) => amount * targetIncomeSupportPct);
   const projectedNetIncomeTotal = projectedIncomeStream.reduce((sum, amount) => sum + amount, 0);
   const targetIncomeSupportTotal = targetIncomeStream.reduce((sum, amount) => sum + amount, 0);
-
-  const targetIncomeYear1 = targetIncomeStream[0] ?? 0;
-  const annuityFactor = growingAnnuityFactor(yearsToRetirement, maxCoverageRoi, incomeGrowthRate);
-
-  // Capital required today to fund the target stream using the same return/growth basis
-  // that drives the Safe Withdrawal Rate and yearly coverage schedule.
-  const targetDeathBenefitNeed = targetIncomeYear1 > 0
-    ? targetIncomeYear1 * annuityFactor
-    : 0;
-  const startingAnnualWithdrawal = startingWithdrawalFromCapital(
-    existingPool,
-    yearsToRetirement,
-    maxCoverageRoi,
-    incomeGrowthRate,
-  );
-  const safeWithdrawalRate = targetIncomeYear1 > 0 ? startingAnnualWithdrawal / targetIncomeYear1 : 1;
+  const targetDeathBenefitNeed = presentValueOfAnnualStream(targetIncomeStream, roi);
+  const coverageSupportRate = targetDeathBenefitNeed > 0
+    ? Math.min(1, existingPool / targetDeathBenefitNeed)
+    : 1;
   const additionalDeathBenefitNeeded = Math.max(0, targetDeathBenefitNeed - existingPool);
-  const pvOfTargetNeed = presentValueOfAnnualStream(targetIncomeStream, roi);
+  const pvOfTargetNeed = targetDeathBenefitNeed;
 
   // ── Build yearly data — a single schedule drives both modules ─────────────
   const yearlyData: IncomeGapYearlyPoint[] = [];
@@ -180,23 +175,28 @@ export function calculateIncomeGapScenarios(
   const m2GapStream: number[] = [];
 
   for (let i = 0; i < yearsToRetirement; i++) {
-    const age = currentAge + i;
+    // Label each annual period by the age attained at its end. A 40-to-65
+    // projection therefore remains 25 periods while the chart ends at age 65.
+    const age = currentAge + i + 1;
 
     const projectedNetIncome = projectedIncomeStream[i] ?? 0;
     const targetIncomeNeed = targetIncomeStream[i] ?? 0;
 
     // ── Module 1: Safe Income Coverage target ───────────────────────────────
-    // Each year: support the advisor-modeled target income stream using the
-    // annual withdrawal that the entered resource pool can sustain.
-    const annualWithdrawalCapacity = startingAnnualWithdrawal * Math.pow(1 + incomeGrowthRate, i);
-    const safeIncomeCoverage = Math.min(annualWithdrawalCapacity, targetIncomeNeed);
+    // The same capital-required threshold determines annual support, gap, cards,
+    // narrative, and fully-covered state.
+    const safeIncomeCoverage = Math.min(
+      targetIncomeNeed * coverageSupportRate,
+      targetIncomeNeed
+    );
     const incomeGap = Math.max(0, targetIncomeNeed - safeIncomeCoverage);
 
     m1TotalReplaced += safeIncomeCoverage;
     m1CumulativeGap += incomeGap;
 
     // ── Module 2: Coverage Runway Scenario ──────────────────────────────────
-    // Apply annual return to balance first, then draw full modeled income need.
+    // Apply annual return first, then attempt to fund the full projected net
+    // income need. This is a resource-runway model, not the Safe Income target.
     module2Balance *= 1 + maxCoverageRoi;
     const maxCovered = Math.min(module2Balance, projectedNetIncome);
     const isCoveredMax = maxCovered >= projectedNetIncome && projectedNetIncome > 0;
@@ -243,8 +243,8 @@ export function calculateIncomeGapScenarios(
 
   const coveredPoints = yearlyData.filter((p) => p.isCoveredMax);
   const yearsOfMaxWD = coveredPoints.length;
-  const startCoverageAge = coveredPoints[0]?.age ?? currentAge;
-  const endCoverageAge = coveredPoints[coveredPoints.length - 1]?.age ?? currentAge;
+  const startCoverageAge = coveredPoints[0]?.age ?? currentAge + 1;
+  const endCoverageAge = coveredPoints[coveredPoints.length - 1]?.age ?? currentAge + 1;
 
   return {
     module1: {
@@ -283,7 +283,7 @@ export function calculateIncomeGapScenarios(
       roi,
     },
     yearsToRetirement,
-    isM1FullyCovered: m1ScheduleSummary.isFullyCovered && additionalDeathBenefitNeeded <= 0,
+    isM1FullyCovered: additionalDeathBenefitNeeded <= 0 && m1ScheduleSummary.isFullyCovered,
     m1SurvivorGap,
   };
 }

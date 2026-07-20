@@ -1,5 +1,6 @@
 import { DisabilityInputs, DisabilityAssumptions, DisabilityOutputs, DisabilityIncomeProjectionPoint, DiBenefitPeriod } from "../types";
 import { nonNegative, clamp, roundCurrency, safeDivide, roundPercent } from "@/lib/math";
+import { disabilityColaFactor, resolveDisabilityColaRate } from "./disabilityCola";
 
 /**
  * Computes the gross monthly LTD benefit:
@@ -36,7 +37,7 @@ export function calculateDisabilityGap(
   const currentAge = inputs.currentAge || 40;
   const retirementAge = Math.max(currentAge + 1, inputs.retirementAge || 65);
   const growthRate = clamp(assumptions.incomeGrowthRateAnnual ?? 0.03, 0, 0.20);
-  const colaRate = clamp(assumptions.colaRate ?? 0, 0, 0.10);
+  const colaRate = resolveDisabilityColaRate(assumptions);
 
   // ── Current-year monthly summary ──────────────────────────────────────────
   const ltdMonthlyGross = computeLtdMonthlyGross(annualIncome, inputs.ltdCoveragePercent, inputs.ltdMonthlyCap);
@@ -52,7 +53,8 @@ export function calculateDisabilityGap(
   const yearsToRetirement = retirementAge - currentAge;
 
   for (let year = 0; year < yearsToRetirement; year++) {
-    const age = currentAge + year;
+    // Annual rows are labeled by attained age at the end of each period.
+    const age = currentAge + year + 1;
     const annualIncomeAtAge = roundCurrency(annualIncome * Math.pow(1 + growthRate, year));
     const annualIncomeNetAtAge = roundCurrency(annualIncomeAtAge * 0.70);
 
@@ -63,10 +65,12 @@ export function calculateDisabilityGap(
     const ltdAnnualBenefitGross = roundCurrency(ltdGrossAtAge * 12);
     const ltdAnnualBenefit = roundCurrency(ltdNetAtAge * 12);
 
-    // Individual DI: fixed base benefit, grown by COLA each projection year.
-    // Active until, but not including, the benefit-period end age.
-    const diIsActive = diEndAge === null ? privateDiMonthly > 0 : age < diEndAge;
-    const diMonthlyAtAge = privateDiMonthly * Math.pow(1 + colaRate, year);
+    // Individual DI: the entered policy benefit includes COLA by default.
+    // When COLA is removed, assumptions explicitly set colaRate to 0 and this
+    // stream stays level while the no-COLA premium is modeled 20% lower.
+    // Active until the benefit-period end age (or perpetual through retirement if none set).
+    const diIsActive = diEndAge === null ? privateDiMonthly > 0 : age <= diEndAge;
+    const diMonthlyAtAge = privateDiMonthly * disabilityColaFactor(year * 12, assumptions);
     const individualDIAnnualBenefit = diIsActive ? roundCurrency(diMonthlyAtAge * 12) : 0;
 
     const totalAnnualBenefit = roundCurrency(ltdAnnualBenefit + individualDIAnnualBenefit);
@@ -104,12 +108,11 @@ export function calculateDisabilityGap(
   const startingAnnualIncome = projection[0]?.annualIncome ?? annualIncome;
   const incomeLossNet = roundCurrency((startingAnnualIncome * 0.70 / 12) - totalNetMonthly);
 
-  // Lifetime IDI Expense: premium × months from current age to retirement.
-  // When a COLA rider is active, the premium carries a 20% load.
+  // Lifetime IDI Expense: the entered monthly premium is treated as the policy
+  // premium with COLA included. If COLA is removed, premium is modeled 20% lower.
   const projectionMonths = yearsToRetirement * 12;
-  const monthlyPremiumBase = nonNegative(inputs.privateDiMonthlyPremium ?? 0);
-  const colaPremiumMultiplier = colaRate > 0 ? 1.2 : 1;
-  const monthlyPremium = roundCurrency(monthlyPremiumBase * colaPremiumMultiplier);
+  const enteredMonthlyPremium = nonNegative(inputs.privateDiMonthlyPremium ?? 0);
+  const monthlyPremium = roundCurrency(colaRate > 0 ? enteredMonthlyPremium : enteredMonthlyPremium * 0.8);
   const lifetimeIDIExpense = roundCurrency(monthlyPremium * projectionMonths);
 
   return {

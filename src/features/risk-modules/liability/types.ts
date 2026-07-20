@@ -57,11 +57,15 @@ export interface LiabilityOutputs {
   householdTotalCoverage: number;
   householdLiabilityGap: number;
 
+  /** Additional umbrella coverage needed, rounded up to a $1M policy block. */
+  neededUmbrellaCoverage: number;
+
   /**
-   * Illustrative umbrella coverage level rounded UP to the nearest $1M block.
-   * This replaces the old "recommendedUmbrellaCoverage" label.
+   * Existing umbrella coverage plus neededUmbrellaCoverage.
+   * Retained for saved-output and export compatibility.
    */
   illustrativeUmbrellaCoverageLevel: number;
+  /** @deprecated Use neededUmbrellaCoverage. */
   umbrellaCoverageShortfall: number;
 
   assumptionGarnishmentRate: number;

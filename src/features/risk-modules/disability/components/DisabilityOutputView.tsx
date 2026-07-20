@@ -7,16 +7,15 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 import { getDisabilityNarrative } from "../constants/moduleCopy"
 import { AnimatedSection } from "@/components/ui/animated-section"
 import { transformDisabilityChartData } from "../transformers/transformDisabilityChartData"
+import { DEFAULT_DISABILITY_COLA_RATE, disabilityColaFactor, resolveDisabilityColaRate } from "../calculations/disabilityCola"
 import { PremiumVsSelfInsuredModule } from "../calculators/PremiumVsSelfInsuredModule"
 import { JobComparisonModule } from "../calculators/JobComparisonModule"
 import {
   ModuleMetricCard,
   MetricGroup,
-  MetricGroupDivider,
 } from "@/features/risk-modules/core/ModuleMetricCard"
 
-/** Default COLA rate applied when the rider is toggled on (mirrors SSA average). */
-const DEFAULT_COLA_RATE = 0.03
+const COLA_REMOVED_PREMIUM_FACTOR = 0.8
 
 interface DisabilityOutputViewProps {
   outputs: DisabilityOutputs
@@ -30,6 +29,10 @@ interface DisabilityOutputViewProps {
 }
 
 type DisabilityVisualization = "incomeGap" | "premiumVsSelfInsured" | "jobComparison"
+
+function roundCurrencyValue(value: number): number {
+  return Math.round(value * 100) / 100
+}
 
 function buildAgeTicks(data: { age: number }[], targetTickCount = 8): number[] {
   if (data.length === 0) return []
@@ -113,10 +116,15 @@ export function DisabilityOutputView({
   const [visualizationInternal, setVisualizationInternal] = useState<DisabilityVisualization>("incomeGap")
 
   // ── COLA toggle ─────────────────────────────────────────────────────────
-  const colaRate = assumptions?.colaRate ?? 0
+  // Advisor interpretation: entered Individual DI benefit and premium include
+  // COLA by default. The toggle removes/restores COLA for comparison.
+  const colaRate = resolveDisabilityColaRate(assumptions ?? {})
   const colaEnabled = colaRate > 0
   function toggleCola() {
-    onAssumptionsChange?.({ colaRate: colaEnabled ? 0 : DEFAULT_COLA_RATE })
+    onAssumptionsChange?.({
+      colaMethod: "fixed",
+      colaRate: colaEnabled ? 0 : DEFAULT_DISABILITY_COLA_RATE,
+    })
   }
 
   const visualization = visualizationProp ?? visualizationInternal
@@ -165,20 +173,29 @@ export function DisabilityOutputView({
   const incomeGap2Display = chartView === "gross" ? outputs.totalGapGross : outputs.totalGap
   const incomeGapDiffDisplay = Math.max(0, incomeGap1Display - incomeGap2Display)
 
-  // ── COLA Comparison card metrics ───────────────────────────────────────────
-  // Flat (no-COLA) IDI total = base monthly benefit × 12 × active projection years.
-  // Active years = number of projection points where individual DI was non-zero.
-  const baseDIMonthly = inputs?.privateDiMonthlyPremium ?? 0
-  const baseBenefitMonthly = inputs?.privateDiBenefitMonthly ?? 0
-  const colaDIActiveYears = outputs.incomeProjection.filter(p => p.individualDIAnnualBenefit > 0).length
-  const flatIDICoverage = baseBenefitMonthly * 12 * colaDIActiveYears
-  const colaBenefitDifference = outputs.totalIndividualDICoverage - flatIDICoverage
-  const colaMonthlyPremiumCost = Math.round(baseDIMonthly * 0.2 * 100) / 100   // 20% rider load
-  // IDI Expense Diff = lifetime premiums WITH COLA − lifetime premiums WITHOUT COLA
-  // outputs.lifetimeIDIExpense already uses the 1.2× multiplier when COLA is on.
+  // ── COLA removed comparison metrics ────────────────────────────────────────
+  const enteredMonthlyPremium = inputs?.privateDiMonthlyPremium ?? 0
+  const enteredMonthlyBenefit = inputs?.privateDiBenefitMonthly ?? 0
   const projectionMonths = outputs.incomeProjection.length * 12
-  const flatLifetimeIDIExpense = Math.round(baseDIMonthly * projectionMonths * 100) / 100
-  const colaIDIExpenseDiff = Math.round((outputs.lifetimeIDIExpense - flatLifetimeIDIExpense) * 100) / 100
+  const currentPolicyMonthlyPremium = colaEnabled
+    ? enteredMonthlyPremium
+    : enteredMonthlyPremium * COLA_REMOVED_PREMIUM_FACTOR
+  const colaRemovedMonthlySavings = roundCurrencyValue(enteredMonthlyPremium * (1 - COLA_REMOVED_PREMIUM_FACTOR))
+  const colaRemovedLifetimeSavings = roundCurrencyValue(colaRemovedMonthlySavings * projectionMonths)
+  const withColaIndividualDICoverage = outputs.incomeProjection.reduce((sum, point, yearIndex) => {
+    if (enteredMonthlyBenefit <= 0 || point.individualDIAnnualBenefit <= 0) return sum
+    return sum + enteredMonthlyBenefit * disabilityColaFactor(yearIndex * 12, {
+      colaMethod: "fixed",
+      colaRate: DEFAULT_DISABILITY_COLA_RATE,
+    }) * 12
+  }, 0)
+  const colaBenefitGivenUp = roundCurrencyValue(Math.max(0, withColaIndividualDICoverage - outputs.totalIndividualDICoverage))
+  const showColaRemovedCard = !colaEnabled && (enteredMonthlyPremium > 0 || colaBenefitGivenUp > 0)
+  const colaRemoved = !colaEnabled
+  const colaCurrentMode = colaRemoved ? "COLA removed" : "COLA included"
+  const colaToggleDetail = colaRemoved
+    ? `${formatCurrency(colaRemovedMonthlySavings)}/mo saved`
+    : `${(colaRate * 100).toFixed(1)}% growth`
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null
@@ -210,16 +227,15 @@ export function DisabilityOutputView({
 
   function renderVisualization() {
     if (visualization === "premiumVsSelfInsured") {
-      // When COLA rider is active the premium carries a 20% load — reflect that
-      // in the break-even module so the self-insurance comparison is accurate.
       const basePremium = inputs?.privateDiMonthlyPremium ?? 0
-      const colaPremiumMultiplier = colaEnabled ? 1.2 : 1
+      const policyPremium = colaEnabled ? basePremium : basePremium * COLA_REMOVED_PREMIUM_FACTOR
       return (
         <PremiumVsSelfInsuredModule
-          monthlyPremium={basePremium * colaPremiumMultiplier}
+          monthlyPremium={policyPremium}
           monthlyBenefit={inputs?.privateDiBenefitMonthly ?? 0}
           annualRateOfReturn={inputs?.breakEvenRateOfReturn ?? 0.06}
           monthsWithoutIncome={inputs?.breakEvenMonthsWithoutIncome ?? 12}
+          benefitColaRate={colaRate}
           mode={mode}
           inputs={inputs}
         />
@@ -233,7 +249,7 @@ export function DisabilityOutputView({
     return (
       <div className="module-output-container">
         <div className={`disability-coverage-grid${formOpen ? " disability-coverage-grid--form-open" : ""}`}>
-          <div className={`disability-summary-rail${colaEnabled ? " disability-summary-rail--cola" : ""}`}>
+          <div className={`disability-summary-rail${showColaRemovedCard ? " disability-summary-rail--cola" : ""}`}>
             <Card className="module-kpi-card">
               <CardContent className="p-3.5">
                 <div className="mb-2 text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase">Lifetime Coverage</div>
@@ -288,33 +304,33 @@ export function DisabilityOutputView({
                       <span className="font-mono font-semibold text-amber-400">{formatCurrency(outputs.lifetimeIDIExpense)}</span>
                     </div>
                   ) : null}
-                  {colaEnabled && baseDIMonthly > 0 ? (
+                  {enteredMonthlyPremium > 0 ? (
                     <div className="flex items-center justify-between py-1.5">
-                      <span className="text-emerald-400">COLA Monthly Premium</span>
-                      <span className="font-mono font-semibold text-emerald-300">{formatCurrency(baseDIMonthly * 1.2)}/mo</span>
+                      <span className="text-slate-400">IDI Monthly Premium</span>
+                      <span className="font-mono font-semibold text-amber-300">{formatCurrency(currentPolicyMonthlyPremium)}/mo</span>
                     </div>
                   ) : null}
                 </div>
               </CardContent>
             </Card>
 
-            {/* ── COLA Comparison card — only visible when rider is active ── */}
-            {colaEnabled ? (
-              <Card className="module-kpi-card border-emerald-900/50">
+            {/* ── COLA removed comparison card — visible only when COLA is removed ── */}
+            {showColaRemovedCard ? (
+              <Card className="module-kpi-card border-amber-900/50">
                 <CardContent className="p-3.5">
-                  <div className="mb-2 text-[10px] font-bold tracking-[0.18em] text-emerald-500 uppercase">COLA Comparison</div>
+                  <div className="mb-2 text-[10px] font-bold tracking-[0.18em] text-amber-500 uppercase">COLA Removed</div>
                   <div className="divide-y divide-slate-800/80 text-xs">
                     <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">Benefit Difference</span>
-                      <span className="font-mono font-semibold text-emerald-300">{formatCurrency(colaBenefitDifference)}</span>
+                      <span className="text-slate-400">Premium Saved</span>
+                      <span className="font-mono font-semibold text-emerald-300">{formatCurrency(colaRemovedMonthlySavings)}/mo</span>
                     </div>
                     <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">IDI Expense Diff.</span>
-                      <span className="font-mono font-semibold text-amber-300">{formatCurrency(colaIDIExpenseDiff)}</span>
+                      <span className="text-slate-400">Lifetime Premium Saved</span>
+                      <span className="font-mono font-semibold text-emerald-300">{formatCurrency(colaRemovedLifetimeSavings)}</span>
                     </div>
                     <div className="flex items-center justify-between py-1.5">
-                      <span className="text-slate-400">Monthly Premium Diff.</span>
-                      <span className="font-mono font-semibold text-amber-300">{formatCurrency(colaMonthlyPremiumCost)}/mo</span>
+                      <span className="text-slate-400">Growth Benefit Given Up</span>
+                      <span className="font-mono font-semibold text-red-300">{formatCurrency(colaBenefitGivenUp)}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -322,7 +338,7 @@ export function DisabilityOutputView({
             ) : null}
           </div>
 
-          <Card className="disability-chart-panel module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
+          <Card className="module-chart-card disability-chart-panel module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
             <CardHeader className="shrink-0 px-6 pt-5 pb-0">
               <div className="grid gap-3">
                 <div className="flex items-start justify-between gap-4">
@@ -339,35 +355,37 @@ export function DisabilityOutputView({
                     ) : null}
                   </div>
 
-                  {/* ── COLA toggle pill ───────────────────────────────── */}
                   {onAssumptionsChange ? (
                     <button
                       type="button"
                       onClick={toggleCola}
-                      aria-pressed={colaEnabled}
-                      title={colaEnabled ? `COLA active at ${(colaRate * 100).toFixed(1)}%` : "Enable COLA benefit growth"}
-                      className={`flex shrink-0 items-center gap-2 rounded-lg border px-2.5 py-1.5 text-[11px] transition-all ${
-                        colaEnabled
-                          ? "border-emerald-700/60 bg-emerald-950/50 text-emerald-300 hover:border-emerald-600"
-                          : "border-gray-700 bg-gray-900/60 text-gray-500 hover:border-gray-600 hover:text-gray-300"
+                      aria-pressed={colaRemoved}
+                      title={colaRemoved ? "Restore COLA benefit growth" : "Remove COLA from this comparison"}
+                      className={`group flex shrink-0 items-center gap-2 rounded-full border py-1.5 pr-2 pl-2.5 text-left shadow-sm transition-all ${
+                        colaRemoved
+                          ? "border-amber-700/60 bg-amber-950/30 text-amber-100 hover:border-emerald-500/70 hover:bg-emerald-950/25 hover:text-emerald-100"
+                          : "border-emerald-800/60 bg-emerald-950/20 text-emerald-100 hover:border-amber-500/70 hover:bg-amber-950/25 hover:text-amber-100"
                       }`}
                     >
-                      <span className="font-bold uppercase tracking-widest">COLA</span>
-                      {/* pill switch */}
-                      <span className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors ${colaEnabled ? "bg-emerald-500" : "bg-gray-700"}`}>
-                        <span className={`inline-block h-3 w-3 rounded-full bg-white shadow transition-transform ${colaEnabled ? "translate-x-3.5" : "translate-x-0.5"}`} />
+                      <span className="flex min-w-0 items-baseline gap-1.5 whitespace-nowrap">
+                        <span className="text-xs font-bold">{colaCurrentMode}</span>
+                        <span className="text-[11px] opacity-70">{colaToggleDetail}</span>
                       </span>
-                      {colaEnabled && (
-                        <span className="font-mono font-semibold">{(colaRate * 100).toFixed(1)}%</span>
-                      )}
+                      <span className={`relative h-4.5 w-8 shrink-0 rounded-full transition-colors ${
+                        colaRemoved ? "bg-amber-500" : "bg-emerald-500"
+                      }`}>
+                        <span className={`absolute top-0.5 size-3.5 rounded-full bg-white shadow transition-transform ${
+                          colaRemoved ? "left-0.5" : "left-4"
+                        }`} />
+                      </span>
                     </button>
                   ) : null}
                 </div>
 
                 <div className="flex justify-center sm:justify-end">
                   <div className="flex shrink-0 overflow-hidden rounded-md border border-gray-700 text-xs">
-                    <button onClick={() => setChartView("net")} className={`px-3 py-1 transition-colors ${chartView === "net" ? "bg-brand-600 text-white" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}>Net</button>
-                    <button onClick={() => setChartView("gross")} className={`px-3 py-1 transition-colors ${chartView === "gross" ? "bg-brand-600 text-white" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}>Gross</button>
+                    <button onClick={() => setChartView("net")} className={`px-3 py-1 transition-colors ${chartView === "net" ? "bg-brand-700 text-white shadow-sm ring-1 ring-inset ring-brand-600 dark:bg-brand-950/70 dark:ring-brand-700/70" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}>Net</button>
+                    <button onClick={() => setChartView("gross")} className={`px-3 py-1 transition-colors ${chartView === "gross" ? "bg-brand-700 text-white shadow-sm ring-1 ring-inset ring-brand-600 dark:bg-brand-950/70 dark:ring-brand-700/70" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}>Gross</button>
                   </div>
                 </div>
               </div>
@@ -425,10 +443,7 @@ export function DisabilityOutputView({
               <ModuleMetricCard label={ltdLabel} value={<>{formatCurrency(ltdDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description={chartView === "gross" ? "Gross monthly LTD benefit" : "Net after-tax LTD monthly benefit"} accent="blue" />
               <ModuleMetricCard label="Individual DI" value={<>{formatCurrency(monthly.individualDIMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description="Private disability insurance benefit" accent="cyan" />
               <ModuleMetricCard label={totalBenefitLabel} value={<>{formatCurrency(totalDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description="Combined LTD + individual DI monthly benefit" accent="slate" />
-            </MetricGroup>
-            <MetricGroupDivider />
-            <MetricGroup title="Gap">
-              <ModuleMetricCard label={incomeLossLabel} value={<>{formatCurrency(incomeLossDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description={incomeLossDescription} accent={incomeLossAccent} />
+              <ModuleMetricCard label={incomeLossLabel} value={<>{formatCurrency(incomeLossDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description={incomeLossDescription} accent="red" />
             </MetricGroup>
           </div>
         </div>
@@ -442,9 +457,9 @@ export function DisabilityOutputView({
         <div className="flex flex-wrap gap-1 mb-4">
           {(
             [
-              { value: "incomeGap", label: "Income Gap", active: "bg-blue-900/60 border border-blue-700 text-blue-200" },
-              { value: "premiumVsSelfInsured", label: "Premium vs Self-Insured", active: "bg-emerald-900/60 border border-emerald-700 text-emerald-200" },
-              { value: "jobComparison", label: "Job A vs Job B", active: "bg-violet-900/60 border border-violet-700 text-violet-200" },
+              { value: "incomeGap", label: "Income Gap", active: "border border-brand-700 bg-brand-700 text-white shadow-sm ring-1 ring-brand-600 dark:border-brand-950/70 dark:bg-brand-950/70 dark:text-white dark:ring-brand-700/70" },
+              { value: "premiumVsSelfInsured", label: "Premium vs Self-Insured", active: "border border-brand-700 bg-brand-700 text-white shadow-sm ring-1 ring-brand-600 dark:border-brand-950/70 dark:bg-brand-950/70 dark:text-white dark:ring-brand-700/70" },
+              { value: "jobComparison", label: "Job A vs Job B", active: "border border-brand-700 bg-brand-700 text-white shadow-sm ring-1 ring-brand-600 dark:border-brand-950/70 dark:bg-brand-950/70 dark:text-white dark:ring-brand-700/70" },
             ] as const
           ).map(({ value, label, active }) => (
             <button
@@ -465,7 +480,7 @@ export function DisabilityOutputView({
         {renderVisualization()}
       </AnimatedSection>
 
-      {visualization === "incomeGap" && (
+      {visualization === "incomeGap" && mode === "builder" && (
         <AnimatedSection delay={0.46}>
           <Card className="border border-gray-800 bg-[#090E1A] text-white">
             <CardContent className="p-6">

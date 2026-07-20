@@ -236,42 +236,28 @@ householdTotalCoverage = autoLiabilityLimit + umbrellaCoverage
 householdLiabilityGap = max(0, totalHouseholdLiabilityRisk − householdTotalCoverage)
 ```
 
-## 2.4 Illustrative umbrella coverage level
+## 2.4 Needed umbrella
 
 The UI should not use “Recommended Umbrella.” The advisor-safe label is:
 
 ```text
-Illustrative Umbrella Coverage Level
+Needed Umbrella
 ```
 
 Umbrella policies are modeled in $1M blocks.
 
 ```ts
-modeledExposureAfterAuto = max(
+coverageGap = max(
   0,
-  totalHouseholdLiabilityRisk − autoLiabilityLimit
+  totalHouseholdLiabilityRisk − autoLiabilityLimit − existingUmbrellaCoverage
 )
 
-incomeMultipleTarget = annualIncome × 5
-netWorthAtRisk = nonQualifiedAssetsAtRisk + homeEquity
-
-rawIllustrativeNeed = max(
-  modeledExposureAfterAuto,
-  netWorthAtRisk,
-  incomeMultipleTarget,
-  1_000_000
-)
-
-illustrativeUmbrellaCoverageLevel =
-  ceil(rawIllustrativeNeed / 1_000_000) × 1_000_000
-
-umbrellaNeeded = max(
-  0,
-  illustrativeUmbrellaCoverageLevel − existingUmbrellaCoverage
-)
+umbrellaNeeded = coverageGap > 0
+  ? ceil(coverageGap / 1_000_000) × 1_000_000
+  : 0
 ```
 
-The UI may label the shortfall as “Umbrella Needed” or “Umbrella Coverage Gap,” as long as the description keeps it illustrative.
+The four primary metrics are Total Exposure, Total Current Coverage, Coverage Gap, and Needed Umbrella. The description must keep the result illustrative.
 
 ---
 
@@ -327,8 +313,9 @@ else:
 Minimum reserve months always remains 3.
 
 ```ts
-minimumReserveTarget = monthlyExpenses × 3
-idealReserveTarget = monthlyExpenses × idealReserveMonths
+monthlyGap = max(0, monthlyExpenses − remainingIncome)
+minimumReserveTarget = monthlyGap × 3
+idealReserveTarget = monthlyGap × idealReserveMonths
 reserveGap = max(0, idealReserveTarget − emergencySavings)
 excessReserve = max(0, emergencySavings − idealReserveTarget)
 ```
@@ -344,7 +331,8 @@ netIncomeRatio = 0.65
 remainingIncome = $100,000 × 0.65 / 12 = $5,417
 remainingIncomeCoveragePct = $5,417 / $20,000 = 27%
 idealReserveMonths = 6
-idealReserveTarget = $20,000 × 6 = $120,000
+monthlyGap = $20,000 − $5,417 = $14,583
+idealReserveTarget = $14,583 × 6 = $87,500
 ```
 
 ## 3.4 Emergency reserve gauge
@@ -352,7 +340,7 @@ idealReserveTarget = $20,000 × 6 = $120,000
 The gauge is tied to actual emergency savings, not severance or unemployment pools.
 
 ```ts
-reserveMonthsCurrent = emergencySavings / monthlyExpenses
+reserveMonthsCurrent = emergencySavings / monthlyGap
 reserveGaugeCoveragePct = emergencySavings / idealReserveTarget
 ```
 
@@ -412,6 +400,6 @@ Required framing:
 
 - This is an illustrative gap-analysis tool.
 - Avoid “recommended” language for umbrella coverage.
-- Use “Illustrative Umbrella Coverage Level.”
+- Use “Needed Umbrella” for the rounded gap and avoid recommendation language.
 - Use “Additional Death Benefit Needed” where the module is showing a remaining shortfall after entered resources.
 - Explain disposable-income and net-income proxies as simplified assumptions.

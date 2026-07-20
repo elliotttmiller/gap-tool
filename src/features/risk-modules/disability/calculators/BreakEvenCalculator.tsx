@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { RiAlertLine } from "@remixicon/react"
 import { calculateBreakEven } from "./calculateBreakEven"
 import { Card, CardContent } from "@/components/ui/card"
+import { ThemedSelect } from "@/components/ThemedSelect"
 import { formatCurrency } from "@/lib/utils"
 import {
   CartesianGrid,
@@ -221,20 +222,7 @@ function BuilderBreakEvenCalculator({
                     </p>
                   </div>
                   <div className="absolute right-0 top-0 shrink-0">
-                    <div className="relative">
-                      <select
-                        value={chartRange}
-                        onChange={(e) => setChartRange(e.target.value as ChartRange)}
-                        className="appearance-none cursor-pointer rounded-md border border-gray-700/70 bg-gray-900/80 py-1 pl-2.5 pr-7 text-[11px] font-semibold text-gray-300 outline-none transition-colors hover:border-gray-600 hover:text-gray-100 focus:border-blue-600/70 focus:ring-0"
-                      >
-                        {CHART_RANGE_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        ))}
-                      </select>
-                      <svg className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
-                        <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                      </svg>
-                    </div>
+                    <ThemedSelect ariaLabel="Chart range" value={chartRange} onValueChange={(value) => setChartRange(value as ChartRange)} options={CHART_RANGE_OPTIONS} className="h-8 min-w-28 py-1 text-[11px] font-semibold" />
                   </div>
                 </div>
 

@@ -8,7 +8,13 @@
  * - Presentation!H48 = breakEvenMonths / 12
  */
 
-export interface BreakEvenInputs {
+import {
+  disabilityColaFactor,
+  resolveDisabilityColaRate,
+  type DisabilityColaTerms,
+} from "../calculations/disabilityCola"
+
+export interface BreakEvenInputs extends DisabilityColaTerms {
   /** Presentation!H39 */
   monthlyPremium: number
   /** Presentation!H40 */
@@ -66,14 +72,20 @@ function excelNper(rate: number, payment: number, presentValue: number, futureVa
   return Math.log((payment - futureValue * rate) / (payment + presentValue * rate)) / Math.log(1 + rate)
 }
 
-function lookupBenefitsReceived(monthlyBenefit: number, monthsWithoutIncome: number, colaRate = 0): number {
-  const lookupMonth = Math.min(monthsWithoutIncome, MAX_BENEFIT_LOOKUP_MONTH)
-  if (colaRate <= 0) return monthlyBenefit * lookupMonth
+function benefitForMonth(monthlyBenefit: number, month: number, colaTerms: DisabilityColaTerms): number {
+  return monthlyBenefit * disabilityColaFactor(month - 1, colaTerms)
+}
 
-  // Annual COLA step-up: benefit for month m = base × (1 + cola)^floor((m-1)/12)
+function lookupBenefitsReceived(
+  monthlyBenefit: number,
+  monthsWithoutIncome: number,
+  colaTerms: DisabilityColaTerms,
+): number {
+  const lookupMonth = Math.min(monthsWithoutIncome, MAX_BENEFIT_LOOKUP_MONTH)
+
   let total = 0
   for (let m = 1; m <= lookupMonth; m++) {
-    total += monthlyBenefit * Math.pow(1 + colaRate, Math.floor((m - 1) / 12))
+    total += benefitForMonth(monthlyBenefit, m, colaTerms)
   }
   return Math.round(total * 100) / 100
 }
@@ -83,20 +95,23 @@ function buildSchedule(inputs: {
   monthlyBenefit: number
   monthlyReturnFactor: number
   months: number
+  colaTerms: DisabilityColaTerms
 }): BreakEvenMonthRow[] {
-  const { monthlyPremium, monthlyBenefit, monthlyReturnFactor, months } = inputs
+  const { monthlyPremium, monthlyBenefit, monthlyReturnFactor, months, colaTerms } = inputs
   const rows: BreakEvenMonthRow[] = []
   let investmentBalance = 0
+  let cumulativeBenefits = 0
 
   for (let month = 1; month <= months; month += 1) {
     investmentBalance = (investmentBalance + monthlyPremium) * monthlyReturnFactor
+    cumulativeBenefits += benefitForMonth(monthlyBenefit, month, colaTerms)
 
     rows.push({
       month,
       monthlyPremium,
       monthlyReturnFactor,
       investmentBalance,
-      cumulativeBenefits: monthlyBenefit * month,
+      cumulativeBenefits,
     })
   }
 
@@ -140,8 +155,8 @@ export function calculateBreakEven(inputs: BreakEvenInputs): BreakEvenResult {
 
   const monthlyRateOfReturn = annualRateOfReturn / 12
   const monthlyReturnFactor = 1 + monthlyRateOfReturn
-  const colaRate = Math.max(0, Number(inputs.colaRate ?? 0))
-  const benefitsReceived = lookupBenefitsReceived(monthlyBenefit, monthsWithoutIncome, colaRate)
+  const colaRate = resolveDisabilityColaRate(inputs)
+  const benefitsReceived = lookupBenefitsReceived(monthlyBenefit, monthsWithoutIncome, inputs)
   const breakEvenMonths = excelNper(monthlyRateOfReturn, monthlyPremium, 0, -benefitsReceived)
 
   if (!Number.isFinite(breakEvenMonths) || breakEvenMonths <= 0) {
@@ -155,6 +170,7 @@ export function calculateBreakEven(inputs: BreakEvenInputs): BreakEvenResult {
     monthlyBenefit,
     monthlyReturnFactor,
     months: scheduleMonths,
+    colaTerms: inputs,
   })
   const investmentAtRoundedBreakEven =
     schedule[roundedBreakEvenMonths - 1]?.investmentBalance ??

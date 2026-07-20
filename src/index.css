@@ -71,12 +71,290 @@
 }
 
 @layer base {
+  :root {
+    color-scheme: light;
+    --light-canvas: #eaf1f3;
+    --light-surface: #f6f9fa;
+    --light-surface-raised: #ffffff;
+    --light-surface-muted: #eef4f5;
+    --light-border: #cbdadd;
+    --light-border-soft: #dce7e9;
+    --light-text: #102a3a;
+    --light-text-muted: #607583;
+    --light-accent-soft: #e8f7f7;
+    --light-accent-border: #b8e1e3;
+    --light-shadow-sm: 0 1px 2px rgb(15 42 58 / 0.05), 0 6px 18px rgb(15 42 58 / 0.06);
+    --light-shadow-lg: 0 18px 50px rgb(15 42 58 / 0.10), 0 2px 8px rgb(15 42 58 / 0.05);
+    background: var(--light-canvas);
+  }
+  :root.dark {
+    color-scheme: dark;
+    background: #0d1b2a;
+  }
   body {
-    @apply font-sans antialiased bg-gray-50 text-gray-900;
+    @apply min-h-screen font-sans antialiased;
+    background-color: var(--light-canvas);
+    color: var(--light-text);
   }
   .dark body {
     @apply bg-gray-950 text-gray-50;
   }
+}
+
+.app-shell-surface {
+  background:
+    radial-gradient(circle at 8% 0%, rgb(0 153 168 / 0.10), transparent 32rem),
+    radial-gradient(circle at 92% 16%, rgb(74 112 138 / 0.08), transparent 28rem),
+    linear-gradient(180deg, #f1f7f7 0%, #e8f0f2 100%);
+}
+
+.dark .app-shell-surface {
+  background: #0d1b2a;
+}
+
+/* Dark-first planning modules inherit this complete light surface system. */
+@layer utilities {
+  .light [class~="bg-[#090E1A]"],
+  .light [class~="bg-gray-950"],
+  .light [class~="bg-gray-950/95"],
+  .light [class~="bg-slate-950/70"],
+  .light [class~="bg-slate-950/60"] { background-color: var(--light-surface-raised) !important; }
+
+  .light [class~="bg-white"] { background-color: var(--light-surface-raised) !important; }
+  .light [class~="bg-gray-50"],
+  .light [class~="bg-slate-50"] { background-color: var(--light-surface) !important; }
+  .light [class~="bg-gray-100"] { background-color: #edf3f4 !important; }
+  .light [class~="bg-gray-200"] { background-color: #e3ecee !important; }
+
+  .light [class~="bg-gray-900"],
+  .light [class~="bg-gray-900/80"],
+  .light [class~="bg-gray-900/60"],
+  .light [class~="bg-gray-900/50"],
+  .light [class~="bg-gray-900/40"],
+  .light [class~="bg-gray-900/35"],
+  .light [class~="bg-gray-900/30"],
+  .light [class~="bg-gray-900/25"],
+  .light [class~="bg-slate-900"],
+  .light [class~="bg-slate-900/95"],
+  .light [class~="bg-slate-900/80"],
+  .light [class~="bg-slate-900/40"] { background-color: var(--light-surface) !important; }
+
+  .light [class~="bg-gray-800"],
+  .light [class~="bg-gray-800/80"],
+  .light [class~="bg-gray-800/40"],
+  .light [class~="bg-slate-800/60"] { background-color: #edf3f4 !important; }
+
+  .light [class~="text-gray-50"], .light [class~="text-gray-100"],
+  .light [class~="text-slate-50"], .light [class~="text-slate-100"] { color: var(--light-text) !important; }
+  .light [class~="text-gray-200"], .light [class~="text-gray-300"],
+  .light [class~="text-slate-200"], .light [class~="text-slate-300"] { color: #344d5d !important; }
+  .light [class~="text-gray-400"], .light [class~="text-slate-400"] { color: var(--light-text-muted) !important; }
+  .light [class~="text-gray-500"], .light [class~="text-slate-500"] { color: var(--light-text-muted) !important; }
+  .light [class~="text-gray-600"], .light [class~="text-slate-600"] { color: #415b6d !important; }
+  .light [class~="text-gray-700"], .light [class~="text-slate-700"] { color: rgb(51 65 85) !important; }
+  .light [class~="text-gray-800"], .light [class~="text-gray-900"] { color: var(--light-text) !important; }
+
+  .light [class~="border-gray-800"], .light [class~="border-gray-800/90"],
+  .light [class~="border-gray-800/80"], .light [class~="border-gray-800/60"],
+  .light [class~="border-gray-700"], .light [class~="border-gray-700/70"],
+  .light [class~="border-gray-700/50"], .light [class~="border-slate-800"],
+  .light [class~="border-slate-800/80"], .light [class~="border-slate-800/70"],
+  .light [class~="border-slate-800/60"], .light [class~="border-slate-800/50"],
+  .light [class~="border-slate-800/40"], .light [class~="border-slate-700/70"],
+  .light [class~="border-slate-700/60"] { border-color: var(--light-border) !important; }
+  .light [class~="border-gray-200"], .light [class~="border-gray-300"] { border-color: var(--light-border-soft) !important; }
+
+  .light [class*="shadow-black"] { --tw-shadow-color: rgb(15 42 58 / 0.08) !important; }
+
+  .light input:not([type="checkbox"]):not([type="radio"]),
+  .light textarea {
+    background-color: #f1f6f7 !important;
+    border-color: #c8d7db !important;
+    color: var(--light-text) !important;
+    box-shadow: 0 1px 2px rgb(15 42 58 / 0.04) !important;
+  }
+  .light input:not([type="checkbox"]):not([type="radio"]):hover,
+  .light textarea:hover {
+    background-color: #fff !important;
+    border-color: #9ebbc2 !important;
+  }
+  .light input:not([type="checkbox"]):not([type="radio"]):focus,
+  .light textarea:focus {
+    border-color: #0099a8 !important;
+    box-shadow: 0 0 0 3px rgb(0 153 168 / 0.12) !important;
+  }
+
+  .light .builder-mode [class~="rounded-xl"][class*="border"],
+  .light .presentation-mode [class~="rounded-xl"][class*="border"] {
+    box-shadow: var(--light-shadow-sm);
+  }
+
+  .light .module-chart-card {
+    border-color: var(--light-border-soft) !important;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdfd 100%) !important;
+    box-shadow: var(--light-shadow-sm) !important;
+  }
+
+  .light .module-kpi-card {
+    border-color: #d4e2e5 !important;
+    background: linear-gradient(145deg, #f8fbfb 0%, #eef5f6 100%) !important;
+    box-shadow: var(--light-shadow-sm);
+  }
+  .light .module-kpi-card [class~="text-slate-50"] { color: #102a3a !important; }
+  .light .module-kpi-card [class~="text-slate-500"] { color: #607583 !important; }
+  .light .module-kpi-card [class~="text-slate-600"],
+  .light .module-kpi-card [class~="text-slate-700"] { color: #718894 !important; }
+  .light .module-metric-card {
+    border-color: #d4e2e5 !important;
+    background: linear-gradient(145deg, #f8fbfb 0%, #eef5f6 100%) !important;
+    box-shadow: var(--light-shadow-sm);
+  }
+  .light .module-metric-card .module-metric-label { color: #607583 !important; }
+  .light .module-metric-card .module-metric-description { color: #718894 !important; }
+  .light .module-metric-card .module-metric-disclosure {
+    color: #718894 !important;
+    border-color: #d4e2e5 !important;
+  }
+  .light .module-metric-card .module-metric-value.text-slate-50 { color: #102a3a !important; }
+  .light .module-metric-card .module-metric-value [class~="text-gray-400"] { color: #607583 !important; }
+  .light .module-metric-card [class~="text-emerald-300"] { color: #047857 !important; }
+  .light .module-metric-card [class~="text-rose-300"] { color: #be123c !important; }
+  .light .module-metric-card [class~="text-cyan-300"] { color: #0e7490 !important; }
+  .light .module-metric-card [class~="text-amber-300"] { color: #a16207 !important; }
+  .light .module-metric-card [class~="text-blue-300"] { color: #1d4ed8 !important; }
+
+  .light .presentation-mode {
+    background:
+      radial-gradient(circle at 85% 5%, rgb(0 153 168 / 0.08), transparent 28rem),
+      linear-gradient(145deg, #edf4f5 0%, #e5eef0 100%) !important;
+  }
+  .light .presentation-mode .presentation-input-rail {
+    border-color: #244c61 !important;
+    background: linear-gradient(155deg, #173d51 0%, #0e293a 100%) !important;
+    box-shadow: 0 16px 36px rgb(15 42 58 / 0.18) !important;
+  }
+  .light .presentation-mode .presentation-input-rail > div:first-child {
+    border-color: rgb(176 229 233 / 0.2) !important;
+  }
+  .light .presentation-mode .presentation-input-title { color: #b0e5e9 !important; }
+  .light .presentation-mode .presentation-input-badge {
+    border-color: rgb(176 229 233 / 0.28) !important;
+    background: rgb(255 255 255 / 0.08) !important;
+    color: #d9f1f3 !important;
+  }
+  .light .presentation-mode .presentation-input-item {
+    border-color: rgb(176 229 233 / 0.16) !important;
+    background: rgb(255 255 255 / 0.07) !important;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04) !important;
+  }
+  .light .presentation-mode .presentation-input-label { color: #82cbd1 !important; }
+  .light .presentation-mode .presentation-input-value { color: #f8fcfc !important; }
+  .presentation-mode .presentation-input-control {
+    color-scheme: dark;
+    border-color: rgb(176 229 233 / 0.22);
+    background: rgb(5 24 36 / 0.52);
+    color: #f8fcfc;
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.16);
+    transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+  }
+  .presentation-mode .presentation-input-control:hover {
+    border-color: rgb(128 213 219 / 0.5);
+    background: rgb(5 24 36 / 0.7);
+  }
+  .presentation-mode .presentation-input-control:focus {
+    border-color: #40bec7;
+    box-shadow: 0 0 0 2px rgb(64 190 199 / 0.18);
+  }
+  .presentation-mode .presentation-input-control option {
+    background: #102d3f;
+    color: #f8fcfc;
+  }
+  .presentation-mode .presentation-input-affix { color: #82cbd1; }
+  .presentation-policy-menu {
+    color-scheme: dark;
+    border-color: #31586c !important;
+    background: linear-gradient(155deg, #173d51 0%, #0e293a 100%) !important;
+    color: #f8fcfc !important;
+    transform-origin: var(--radix-select-content-transform-origin);
+  }
+  .presentation-policy-menu [role="option"] {
+    color: #d9e8ec !important;
+  }
+  .presentation-policy-menu [role="option"]:hover,
+  .presentation-policy-menu [role="option"]:focus-visible {
+    background: rgb(0 153 168 / 0.2) !important;
+    color: #ffffff !important;
+  }
+  .presentation-policy-menu [role="option"][data-state="checked"] {
+    background: rgb(0 153 168 / 0.3) !important;
+    color: #ffffff !important;
+  }
+  .light .presentation-mode .presentation-input-rail .presentation-input-control {
+    border-color: rgb(176 229 233 / 0.22) !important;
+    background: rgb(5 24 36 / 0.52) !important;
+    color: #f8fcfc !important;
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.16) !important;
+  }
+  .light .presentation-mode .presentation-input-rail .presentation-input-control:hover {
+    border-color: rgb(128 213 219 / 0.5) !important;
+    background: rgb(5 24 36 / 0.7) !important;
+  }
+  .light .presentation-mode .presentation-input-rail .presentation-input-control:focus {
+    border-color: #40bec7 !important;
+    box-shadow: 0 0 0 2px rgb(64 190 199 / 0.18) !important;
+  }
+  .light .presentation-mode .presentation-module-tabs {
+    border: 1px solid #d4e2e5;
+    background: #f3f8f8 !important;
+    box-shadow: inset 0 1px 2px rgb(15 42 58 / 0.05);
+  }
+  .light .presentation-mode .module-metric-card,
+  .light .presentation-mode .module-kpi-card {
+    border-color: #d7e5e7 !important;
+    background: #ffffff !important;
+    box-shadow: 0 1px 2px rgb(15 42 58 / 0.04), 0 8px 22px rgb(15 42 58 / 0.07) !important;
+  }
+  .light .analysis-module-summary {
+    background: linear-gradient(135deg, #19384c 0%, #122d40 100%) !important;
+    border-color: #31586c !important;
+  }
+  .light .analysis-module-summary h3 { color: #f1f7f8 !important; }
+  .light .analysis-module-summary [class~="text-gray-500"] { color: #9fb8c4 !important; }
+  .light .analysis-module-summary [class~="text-gray-700"] { color: #c7d8df !important; }
+  .light .analysis-module-summary [class~="text-gray-400"] { color: #9fb8c4 !important; }
+}
+
+.theme-transitioning *,
+.theme-transitioning *::before,
+.theme-transitioning *::after {
+  transition-property: color, background-color, border-color, fill, stroke !important;
+  transition-duration: 200ms !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+::view-transition-old(root) {
+  animation: 180ms cubic-bezier(0.4, 0, 1, 1) both theme-fade-out;
+}
+
+::view-transition-new(root) {
+  animation: 220ms cubic-bezier(0, 0, 0.2, 1) both theme-fade-in;
+}
+
+@keyframes theme-fade-out {
+  to { opacity: 0; }
+}
+
+@keyframes theme-fade-in {
+  from { opacity: 0.82; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-transitioning *,
+  .theme-transitioning *::before,
+  .theme-transitioning *::after { transition-duration: 0ms !important; }
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation-duration: 0ms !important; }
 }
 
 @layer utilities {
@@ -191,13 +469,12 @@
   .liability-chart-panel-compact,
   .unemployment-chart-panel {
     min-width: 0;
-    max-height: 22rem;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .life-chart-area,
   .liability-chart-area {
-    height: clamp(14rem, 34vh, 17.5rem);
+    height: clamp(15rem, 36vh, 19rem);
     min-height: 14rem;
   }
 
@@ -259,7 +536,7 @@
     }
 
     .liability-metric-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     .unemployment-metric-grid {

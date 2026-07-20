@@ -23,6 +23,7 @@ interface PremiumVsSelfInsuredModuleProps {
   monthlyBenefit: number
   annualRateOfReturn: number
   monthsWithoutIncome: number
+  benefitColaRate?: number
   mode?: "builder" | "presentation"
   inputs?: DisabilityInputs
 }
@@ -90,13 +91,15 @@ function getInitialState({
   monthlyBenefit,
   annualRateOfReturn,
   monthsWithoutIncome,
+  benefitColaRate,
 }: PremiumVsSelfInsuredModuleProps): PremiumVsSelfInsuredState {
+  const normalizedColaRate = Number.isFinite(benefitColaRate) ? Math.max(0, benefitColaRate ?? 0) : 0
   return {
     monthlyPremium: Math.max(100, roundToStep(monthlyPremium > 0 ? monthlyPremium : 450, 50)),
     monthlyBenefit: Math.max(1000, roundToStep(monthlyBenefit > 0 ? monthlyBenefit : 10000, 500)),
     annualRateOfReturn: Number.isFinite(annualRateOfReturn) && annualRateOfReturn >= 0 ? annualRateOfReturn : 0.06,
     monthsWithoutIncome: Math.min(60, Math.max(3, Math.round(monthsWithoutIncome > 0 ? monthsWithoutIncome : 12))),
-    colaRate: 0,
+    colaRate: normalizedColaRate,
   }
 }
 
@@ -176,7 +179,7 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
 
   useEffect(() => {
     setValues(getInitialState(props))
-  }, [props.monthlyPremium, props.monthlyBenefit, props.annualRateOfReturn, props.monthsWithoutIncome])
+  }, [props.monthlyPremium, props.monthlyBenefit, props.annualRateOfReturn, props.monthsWithoutIncome, props.benefitColaRate])
 
   useEffect(() => {
     if (highlightMetric === "none") return

@@ -1,16 +1,34 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import { copyFileSync } from 'node:fs';
 import path from 'path';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 const base = process.env.GITHUB_ACTIONS === 'true' ? '/gap-tool/' : '/';
 
+/** GitHub Pages has no SPA rewrite support, so deep links are served this app shell. */
+function githubPagesSpaFallback() {
+  let outDir = 'dist';
+
+  return {
+    name: 'github-pages-spa-fallback',
+    apply: 'build' as const,
+    configResolved(config: { build: { outDir: string } }) {
+      outDir = config.build.outDir;
+    },
+    closeBundle() {
+      copyFileSync(path.resolve(outDir, 'index.html'), path.resolve(outDir, '404.html'));
+    },
+  };
+}
+
 export default defineConfig({
   base,
   plugins: [
     react(),
     tailwindcss(),
+    githubPagesSpaFallback(),
     VitePWA({
       // Inject the SW registration script automatically into index.html.
       registerType: 'prompt',

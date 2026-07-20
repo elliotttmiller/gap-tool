@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,8 +12,18 @@
     <!-- PWA manifest (desktop install) -->
     <link rel="manifest" href="manifest.json" />
 
-    <!-- Theme color matches app dark navy -->
     <meta name="theme-color" content="#0a1628" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      (() => {
+        const stored = localStorage.getItem('northstar-theme') || localStorage.getItem('theme') || 'system';
+        const dark = stored === 'dark' || (stored === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.add(dark ? 'dark' : 'light');
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+        document.querySelector('meta[name="theme-color"]').content = dark ? '#0d1b2a' : '#c8dae0';
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

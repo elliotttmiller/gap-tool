@@ -1,13 +1,16 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Link, useParams } from "react-router-dom"
-import { ArrowLeft, BriefcaseBusiness, HeartPulse, Printer, Scale, ShieldAlert } from "lucide-react"
+import { ArrowLeft, BriefcaseBusiness, HeartPulse, Scale, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ThemedSelect } from "@/components/ThemedSelect"
 import { LifeOutputView } from "@/features/risk-modules/life/components/LifeOutputView"
 import { calculateLifeInsuranceGap } from "@/features/risk-modules/life/calculations/calculateLifeInsuranceGap"
 import { calculateIncomeGapScenarios } from "@/features/risk-modules/life/calculations/calculateIncomeGapScenarios"
 import { sanitizeLifeInputs } from "@/features/risk-modules/life/utils/sanitizeLifeInputs"
+import type { LifePolicyType } from "@/features/risk-modules/life/types"
 import { DisabilityOutputView } from "@/features/risk-modules/disability/components/DisabilityOutputView"
 import { calculateDisabilityGap } from "@/features/risk-modules/disability/calculations/calculateDisabilityGap"
+import type { DiBenefitPeriod } from "@/features/risk-modules/disability/types"
 import { UnemploymentOutputView } from "@/features/risk-modules/unemployment/components/UnemploymentOutputView"
 import { calculateUnemploymentGap } from "@/features/risk-modules/unemployment/calculations/calculateUnemploymentGap"
 import { LiabilityOutputView } from "@/features/risk-modules/liability/components/LiabilityOutputView"
@@ -36,7 +39,15 @@ function formatModuleGap(module: RiskModuleType, record: ScenarioModuleRecords) 
   return formatGapCurrency(getModuleGapValue(module, record))
 }
 
-type InputSpec = { label: string; value: string }
+type InputSpec = {
+  label: string
+  value: string
+  field: string
+  editor: "currency" | "number" | "percent" | "select" | "policy"
+  rawValue: number | string | boolean
+  options?: Array<{ value: string; label: string }>
+  secondaryValue?: number
+}
 
 type InputSpecVariant = "block" | "rail"
 
@@ -44,17 +55,21 @@ function getPresentationInputSpecs(module: RiskModuleType, records: ScenarioModu
   if (module === "life" && records.life) {
     const inputs = records.life.inputs
     return [
-      { label: "Annual Income", value: formatCurrency(inputs.annualIncome) },
-      { label: "Current Age", value: String(inputs.currentAge) },
-      { label: "Retirement Age", value: String(inputs.retirementAge) },
-      { label: "Income Replacement Ratio", value: formatPercent(inputs.incomeReplacementRatio) },
-      { label: "Group Life Coverage", value: formatCurrency(inputs.groupLifeCoverage) },
-      { label: "Private Life Coverage", value: formatCurrency(inputs.privateLifeCoverage) },
+      { label: "Annual Income", value: formatCurrency(inputs.annualIncome), field: "annualIncome", editor: "currency", rawValue: inputs.annualIncome },
+      { label: "Current Age", value: String(inputs.currentAge), field: "currentAge", editor: "number", rawValue: inputs.currentAge },
+      { label: "Retirement Age", value: String(inputs.retirementAge), field: "retirementAge", editor: "number", rawValue: inputs.retirementAge },
+      { label: "Income Replacement Ratio", value: formatPercent(inputs.incomeReplacementRatio), field: "incomeReplacementRatio", editor: "percent", rawValue: inputs.incomeReplacementRatio },
+      { label: "Group Life Coverage", value: formatCurrency(inputs.groupLifeCoverage), field: "groupLifeCoverage", editor: "currency", rawValue: inputs.groupLifeCoverage },
+      { label: "Private Life Coverage", value: formatCurrency(inputs.privateLifeCoverage), field: "privateLifeCoverage", editor: "currency", rawValue: inputs.privateLifeCoverage },
       {
         label: "Private Policy",
         value: inputs.privateLifePolicyType === "term"
           ? `Term${inputs.privateLifeTermYears ? ` (${inputs.privateLifeTermYears} yrs)` : ""}`
           : "Permanent",
+        field: "privateLifePolicyType",
+        editor: "policy",
+        rawValue: inputs.privateLifePolicyType ?? "term",
+        secondaryValue: inputs.privateLifeTermYears ?? 20,
       },
     ]
   }
@@ -72,48 +87,162 @@ function getPresentationInputSpecs(module: RiskModuleType, records: ScenarioModu
         } as const)[inputs.privateDiBenefitPeriod]
       : "Until retirement"
     return [
-      { label: "Annual Income", value: formatCurrency(inputs.annualEarnedIncome) },
-      { label: "Current Age", value: String(inputs.currentAge) },
-      { label: "Retirement Age", value: String(inputs.retirementAge) },
-      { label: "LTD Coverage", value: formatPercent(inputs.ltdCoveragePercent) },
-      { label: "LTD Monthly Cap", value: formatCurrency(inputs.ltdMonthlyCap) },
-      { label: "LTD Taxable", value: inputs.ltdTaxable ? "Yes (70% net assumption)" : "No" },
-      { label: "Individual DI Benefit", value: `${formatCurrency(inputs.privateDiBenefitMonthly)}/mo` },
-      { label: "DI Benefit Period", value: periodLabel },
+      { label: "Annual Income", value: formatCurrency(inputs.annualEarnedIncome), field: "annualEarnedIncome", editor: "currency", rawValue: inputs.annualEarnedIncome },
+      { label: "Current Age", value: String(inputs.currentAge), field: "currentAge", editor: "number", rawValue: inputs.currentAge },
+      { label: "Retirement Age", value: String(inputs.retirementAge), field: "retirementAge", editor: "number", rawValue: inputs.retirementAge },
+      { label: "LTD Coverage", value: formatPercent(inputs.ltdCoveragePercent), field: "ltdCoveragePercent", editor: "percent", rawValue: inputs.ltdCoveragePercent },
+      { label: "LTD Monthly Cap", value: formatCurrency(inputs.ltdMonthlyCap), field: "ltdMonthlyCap", editor: "currency", rawValue: inputs.ltdMonthlyCap },
+      { label: "LTD Taxable", value: inputs.ltdTaxable ? "Yes (70% net assumption)" : "No", field: "ltdTaxable", editor: "select", rawValue: String(inputs.ltdTaxable), options: [{ value: "true", label: "Yes (70% net)" }, { value: "false", label: "No" }] },
+      { label: "Individual DI Benefit", value: `${formatCurrency(inputs.privateDiBenefitMonthly)}/mo`, field: "privateDiBenefitMonthly", editor: "currency", rawValue: inputs.privateDiBenefitMonthly },
+      { label: "DI Benefit Period", value: periodLabel, field: "privateDiBenefitPeriod", editor: "select", rawValue: inputs.privateDiBenefitPeriod, options: [{ value: "", label: "Until retirement" }, { value: "2y", label: "2 years" }, { value: "5y", label: "5 years" }, { value: "10y", label: "10 years" }, { value: "A65", label: "To age 65" }, { value: "A67", label: "To age 67" }, { value: "A70", label: "To age 70" }] },
+    ]
+  }
+
+  if (module === "unemployment" && records.unemployment) {
+    const inputs = records.unemployment.inputs
+    return [
+      { label: "Annual Income", value: formatCurrency(inputs.annualIncome), field: "annualIncome", editor: "currency", rawValue: inputs.annualIncome },
+      { label: "Spouse Income", value: formatCurrency(inputs.spouseIncome), field: "spouseIncome", editor: "currency", rawValue: inputs.spouseIncome },
+      { label: "Monthly Expenses", value: formatCurrency(inputs.monthlyExpenses), field: "monthlyExpenses", editor: "currency", rawValue: inputs.monthlyExpenses },
+      { label: "Emergency Savings", value: formatCurrency(inputs.emergencySavings), field: "emergencySavings", editor: "currency", rawValue: inputs.emergencySavings },
+      { label: "Net Income Proxy", value: formatPercent(inputs.netIncomeRatio ?? 0.65), field: "netIncomeRatio", editor: "percent", rawValue: inputs.netIncomeRatio ?? 0.65 },
+      { label: "Monthly Severance", value: formatCurrency(inputs.severanceMonthly), field: "severanceMonthly", editor: "currency", rawValue: inputs.severanceMonthly },
+      { label: "Severance Duration", value: `${inputs.severanceDurationMonths} months`, field: "severanceDurationMonths", editor: "number", rawValue: inputs.severanceDurationMonths },
+      { label: "Unemployment Benefit", value: formatCurrency(inputs.unemploymentBenefitMonthly), field: "unemploymentBenefitMonthly", editor: "currency", rawValue: inputs.unemploymentBenefitMonthly },
+      { label: "Benefit Duration", value: `${inputs.unemploymentBenefitDurationMonths} months`, field: "unemploymentBenefitDurationMonths", editor: "number", rawValue: inputs.unemploymentBenefitDurationMonths },
+      { label: "Search Duration", value: `${inputs.estimatedJobSearchMonths} months`, field: "estimatedJobSearchMonths", editor: "number", rawValue: inputs.estimatedJobSearchMonths },
+    ]
+  }
+
+  if (module === "liability" && records.liability) {
+    const inputs = records.liability.inputs
+    return [
+      { label: "Primary Annual Income", value: formatCurrency(inputs.annualIncome ?? 0), field: "annualIncome", editor: "currency", rawValue: inputs.annualIncome ?? 0 },
+      { label: "Primary Current Age", value: String(inputs.currentAge ?? 0), field: "currentAge", editor: "number", rawValue: inputs.currentAge ?? 0 },
+      { label: "Secondary Annual Income", value: formatCurrency(inputs.spouseAnnualIncome ?? 0), field: "spouseAnnualIncome", editor: "currency", rawValue: inputs.spouseAnnualIncome ?? 0 },
+      { label: "Secondary Current Age", value: String(inputs.spouseCurrentAge ?? 0), field: "spouseCurrentAge", editor: "number", rawValue: inputs.spouseCurrentAge ?? 0 },
+      { label: "Projection End Age", value: String(inputs.retirementAge ?? 0), field: "retirementAge", editor: "number", rawValue: inputs.retirementAge ?? 0 },
+      { label: "Garnishment Rate", value: formatPercent(inputs.garnishmentRate ?? 0), field: "garnishmentRate", editor: "percent", rawValue: inputs.garnishmentRate ?? 0 },
+      { label: "Income Growth Rate", value: formatPercent(inputs.incomeGrowthRate ?? 0), field: "incomeGrowthRate", editor: "percent", rawValue: inputs.incomeGrowthRate ?? 0 },
+      { label: "Auto Liability Limit", value: formatCurrency(inputs.autoLiabilityLimit), field: "autoLiabilityLimit", editor: "currency", rawValue: inputs.autoLiabilityLimit },
+      { label: "Existing Umbrella", value: formatCurrency(inputs.umbrellaCoverage), field: "umbrellaCoverage", editor: "currency", rawValue: inputs.umbrellaCoverage },
+      { label: "Home Equity", value: formatCurrency(inputs.homeEquity ?? 0), field: "homeEquity", editor: "currency", rawValue: inputs.homeEquity ?? 0 },
+      { label: "Investment / Taxable", value: formatCurrency(inputs.investmentAssets), field: "investmentAssets", editor: "currency", rawValue: inputs.investmentAssets },
+      { label: "Business Ownership", value: formatCurrency(inputs.businessOwnershipValue ?? 0), field: "businessOwnershipValue", editor: "currency", rawValue: inputs.businessOwnershipValue ?? 0 },
+      { label: "Liquid Savings", value: formatCurrency(inputs.savingsAssets), field: "savingsAssets", editor: "currency", rawValue: inputs.savingsAssets },
     ]
   }
 
   return []
 }
 
+function SnapshotNumberInput({ label, value, onCommit, percent = false, currency = false, compact = false, className = "mt-1" }: {
+  label: string
+  value: number
+  onCommit: (value: number) => void
+  percent?: boolean
+  currency?: boolean
+  compact?: boolean
+  className?: string
+}) {
+  const displayValue = percent ? value * 100 : value
+  const [draft, setDraft] = useState(String(displayValue))
+  const focused = useRef(false)
+
+  useEffect(() => {
+    if (!focused.current) setDraft(String(percent ? value * 100 : value))
+  }, [percent, value])
+
+  return (
+    <div className={`relative ${className}`}>
+      {currency ? <span className={`presentation-input-affix absolute left-2 top-1/2 -translate-y-1/2 ${compact ? "text-[10px]" : "text-xs"}`}>$</span> : null}
+      <input
+        aria-label={label}
+        type="number"
+        min={0}
+        step={percent ? 0.1 : 1}
+        value={draft}
+        onFocus={() => { focused.current = true }}
+        onChange={(event) => {
+          const next = event.target.value
+          setDraft(next)
+          if (next !== "" && Number.isFinite(Number(next))) onCommit(Math.max(0, Number(next)) / (percent ? 100 : 1))
+        }}
+        onBlur={() => {
+          focused.current = false
+          if (draft === "") {
+            setDraft("0")
+            onCommit(0)
+          } else {
+            setDraft(String(percent ? value * 100 : value))
+          }
+        }}
+        className={`presentation-input-control w-full rounded-md border px-2 font-semibold outline-none ${compact ? "h-6 text-xs" : "h-7 text-sm"} ${currency ? "pl-5" : ""} ${percent ? "pr-5" : ""}`}
+      />
+      {percent ? <span className={`presentation-input-affix absolute right-2 top-1/2 -translate-y-1/2 ${compact ? "text-[10px]" : "text-xs"}`}>%</span> : null}
+    </div>
+  )
+}
+
 function ModuleInputSpecs({
   module,
   records,
   variant = "block",
+  onInputChange,
 }: {
   module: RiskModuleType
   records: ScenarioModuleRecords
   variant?: InputSpecVariant
+  onInputChange?: (field: string, value: number | string | boolean) => void
 }) {
   const specs = getPresentationInputSpecs(module, records)
   if (!specs.length) return null
+  const denseRail = variant === "rail" && (module === "liability" || specs.length > 9)
 
   if (variant === "rail") {
     return (
-      <aside className="rounded-xl border border-gray-800 bg-gray-950/55 p-3.5 shadow-inner shadow-black/20 xl:sticky xl:top-0">
-        <div className="mb-3 flex items-center justify-between gap-3 border-b border-gray-800 pb-2.5">
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-gray-400">
+      <aside className={`presentation-input-rail rounded-xl border border-gray-800 bg-gray-950/55 shadow-inner shadow-black/20 xl:sticky xl:top-0 ${denseRail ? "p-2.5" : "p-3.5"}`}>
+        <div className={`border-b border-gray-800 ${denseRail ? "mb-2 pb-1.5" : "mb-3 pb-2.5"}`}>
+          <p className={`presentation-input-title font-bold uppercase text-gray-400 ${denseRail ? "text-[9px] tracking-[0.18em]" : "text-[10px] tracking-[0.22em]"}`}>
             Input Snapshot
           </p>
-          <span className="rounded-full border border-gray-800 bg-[#090E1A] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-gray-500">
-            Live Data
-          </span>
         </div>
-        <div className="grid gap-2">
+        <div className={denseRail ? "grid grid-cols-2 gap-1.5" : "grid gap-2"}>
           {specs.map((spec) => (
-            <div key={spec.label} className="rounded-lg border border-gray-800/90 bg-[#090E1A] px-3 py-2.5">
-              <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-gray-600">{spec.label}</p>
-              <p className="mt-1 truncate text-sm font-semibold leading-tight text-gray-100" title={spec.value}>{spec.value}</p>
+            <div key={spec.label} className={`presentation-input-item min-w-0 rounded-lg border border-gray-800/90 bg-[#090E1A] ${denseRail ? "px-2 py-1.5" : "px-3 py-2.5"}`}>
+              <p className={`presentation-input-label truncate font-semibold uppercase text-gray-600 ${denseRail ? "text-[7.5px] leading-tight tracking-[0.12em]" : "text-[9px] tracking-[0.15em]"}`} title={spec.label}>{spec.label}</p>
+              {onInputChange ? (
+                spec.editor === "currency" || spec.editor === "number" || spec.editor === "percent" ? (
+                  <SnapshotNumberInput compact={denseRail} className={denseRail ? "mt-0.5" : "mt-1"} label={spec.label} value={Number(spec.rawValue)} currency={spec.editor === "currency"} percent={spec.editor === "percent"} onCommit={(value) => onInputChange(spec.field, value)} />
+                ) : spec.editor === "policy" ? (
+                  <div className={`grid gap-1.5 transition-[grid-template-columns] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${denseRail ? "mt-0.5" : "mt-1"} ${spec.rawValue === "term" ? "grid-cols-[minmax(0,1fr)_4.25rem]" : "grid-cols-[minmax(0,1fr)_0rem]"}`}>
+                    <ThemedSelect
+                      ariaLabel="Private policy type"
+                      value={String(spec.rawValue)}
+                      onValueChange={(value) => onInputChange(spec.field, value)}
+                      options={[{ value: "term", label: "Term" }, { value: "permanent", label: "Permanent" }]}
+                      className={`presentation-input-control min-w-0 border px-2 py-0 text-xs font-semibold shadow-none ${denseRail ? "h-6" : "h-7"}`}
+                      contentClassName="presentation-policy-menu z-50 border-[#31586c] bg-[#102d3f] text-white shadow-[0_16px_36px_rgba(5,24,36,0.32)]"
+                    />
+                    <div className={`grid min-w-0 transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${spec.rawValue === "term" ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+                      <div className="min-h-0 overflow-hidden">
+                        <SnapshotNumberInput compact={denseRail} className="" label="Term length in years" value={spec.secondaryValue ?? 20} onCommit={(value) => onInputChange("privateLifeTermYears", value)} />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <ThemedSelect
+                    ariaLabel={spec.label}
+                    value={String(spec.rawValue)}
+                    onValueChange={(value) => onInputChange(spec.field, spec.field === "ltdTaxable" ? value === "true" : value)}
+                    options={spec.options ?? []}
+                    className={`presentation-input-control w-full min-w-0 border px-2 py-0 text-xs font-semibold shadow-none ${denseRail ? "mt-0.5 h-6" : "mt-1 h-7"}`}
+                    contentClassName="presentation-policy-menu z-50 border-[#31586c] bg-[#102d3f] text-white shadow-[0_16px_36px_rgba(5,24,36,0.32)]"
+                  />
+                )
+              ) : (
+                <p className={`presentation-input-value truncate font-semibold leading-tight text-gray-100 ${denseRail ? "mt-0.5 text-xs" : "mt-1 text-sm"}`} title={spec.value}>{spec.value}</p>
+              )}
             </div>
           ))}
         </div>
@@ -149,6 +278,11 @@ export function Presentation() {
   const records = useAppStore((state) =>
     scenarioId ? state.moduleRecordsByScenarioId[scenarioId] : undefined,
   )
+  const updateLifeInputs = useAppStore((state) => state.updateLifeInputs)
+  const updateDisabilityInputs = useAppStore((state) => state.updateDisabilityInputs)
+  const updateDisabilityAssumptions = useAppStore((state) => state.updateDisabilityAssumptions)
+  const updateUnemploymentInputs = useAppStore((state) => state.updateUnemploymentInputs)
+  const updateLiabilityInputs = useAppStore((state) => state.updateLiabilityInputs)
 
   const lifeOutputs = useMemo(
     () => records?.life ? (records.life.output ?? calculateLifeInsuranceGap(sanitizeLifeInputs(records.life.inputs), records.life.assumptions)) : null,
@@ -206,6 +340,68 @@ export function Presentation() {
       (selectedModule !== "disability" || disabilityVisualization === "incomeGap")
     : false
 
+  function updateSnapshotInput(module: RiskModuleType, field: string, value: number | string | boolean) {
+    if (!scenarioId || !records) return
+    if (module === "life" && records.life) {
+      const inputs = { ...records.life.inputs }
+      if (field === "annualIncome") inputs.annualIncome = Number(value)
+      else if (field === "currentAge") inputs.currentAge = Number(value)
+      else if (field === "retirementAge") inputs.retirementAge = Number(value)
+      else if (field === "incomeReplacementRatio") inputs.incomeReplacementRatio = Number(value)
+      else if (field === "groupLifeCoverage") inputs.groupLifeCoverage = Number(value)
+      else if (field === "privateLifeCoverage") inputs.privateLifeCoverage = Number(value)
+      else if (field === "privateLifePolicyType") inputs.privateLifePolicyType = value as LifePolicyType
+      else if (field === "privateLifeTermYears") inputs.privateLifeTermYears = Number(value)
+      updateLifeInputs(scenarioId, inputs)
+      return
+    }
+    if (module === "disability" && records.disability) {
+      const inputs = { ...records.disability.inputs }
+      if (field === "annualEarnedIncome") inputs.annualEarnedIncome = Number(value)
+      else if (field === "currentAge") inputs.currentAge = Number(value)
+      else if (field === "retirementAge") inputs.retirementAge = Number(value)
+      else if (field === "ltdCoveragePercent") inputs.ltdCoveragePercent = Number(value)
+      else if (field === "ltdMonthlyCap") inputs.ltdMonthlyCap = Number(value)
+      else if (field === "ltdTaxable") inputs.ltdTaxable = Boolean(value)
+      else if (field === "privateDiBenefitMonthly") inputs.privateDiBenefitMonthly = Number(value)
+      else if (field === "privateDiBenefitPeriod") inputs.privateDiBenefitPeriod = value as DiBenefitPeriod | ""
+      updateDisabilityInputs(scenarioId, inputs)
+      return
+    }
+    if (module === "unemployment" && records.unemployment) {
+      const inputs = { ...records.unemployment.inputs }
+      if (field === "annualIncome") inputs.annualIncome = Number(value)
+      else if (field === "spouseIncome") inputs.spouseIncome = Number(value)
+      else if (field === "monthlyExpenses") inputs.monthlyExpenses = Math.round(Number(value))
+      else if (field === "emergencySavings") inputs.emergencySavings = Number(value)
+      else if (field === "netIncomeRatio") inputs.netIncomeRatio = Math.min(1, Number(value))
+      else if (field === "severanceMonthly") inputs.severanceMonthly = Number(value)
+      else if (field === "severanceDurationMonths") inputs.severanceDurationMonths = Math.min(60, Math.floor(Number(value)))
+      else if (field === "unemploymentBenefitMonthly") inputs.unemploymentBenefitMonthly = Number(value)
+      else if (field === "unemploymentBenefitDurationMonths") inputs.unemploymentBenefitDurationMonths = Math.min(60, Math.floor(Number(value)))
+      else if (field === "estimatedJobSearchMonths") inputs.estimatedJobSearchMonths = Math.min(60, Math.floor(Number(value)))
+      updateUnemploymentInputs(scenarioId, inputs)
+      return
+    }
+    if (module === "liability" && records.liability) {
+      const inputs = { ...records.liability.inputs }
+      if (field === "annualIncome") inputs.annualIncome = Number(value)
+      else if (field === "currentAge") inputs.currentAge = Number(value)
+      else if (field === "spouseAnnualIncome") inputs.spouseAnnualIncome = Number(value)
+      else if (field === "spouseCurrentAge") inputs.spouseCurrentAge = Number(value)
+      else if (field === "retirementAge") inputs.retirementAge = Number(value)
+      else if (field === "garnishmentRate") inputs.garnishmentRate = Math.min(1, Number(value))
+      else if (field === "incomeGrowthRate") inputs.incomeGrowthRate = Math.min(1, Number(value))
+      else if (field === "autoLiabilityLimit") inputs.autoLiabilityLimit = Number(value)
+      else if (field === "umbrellaCoverage") inputs.umbrellaCoverage = Number(value)
+      else if (field === "homeEquity") inputs.homeEquity = Number(value)
+      else if (field === "investmentAssets") inputs.investmentAssets = Number(value)
+      else if (field === "businessOwnershipValue") inputs.businessOwnershipValue = Number(value)
+      else if (field === "savingsAssets") inputs.savingsAssets = Number(value)
+      updateLiabilityInputs(scenarioId, inputs)
+    }
+  }
+
   function renderModule(module: RiskModuleType) {
     if (module === "life" && lifeOutputs && lifeIncomeGapOutputs && records?.life) {
       return (
@@ -214,41 +410,56 @@ export function Presentation() {
           inputs={records.life.inputs}
           assumptions={records.life.assumptions}
           incomeGapOutputs={lifeIncomeGapOutputs}
+          mode="presentation"
         />
       )
     }
     if (module === "disability" && disabilityOutputs) {
-      return <DisabilityOutputView outputs={disabilityOutputs} inputs={records?.disability?.inputs} mode="presentation" visualization={disabilityVisualization} onVisualizationChange={setDisabilityVisualization} />
+      return (
+        <DisabilityOutputView
+          outputs={disabilityOutputs}
+          inputs={records?.disability?.inputs}
+          assumptions={records?.disability?.assumptions}
+          onAssumptionsChange={(updates) => updateDisabilityAssumptions(scenarioId, updates)}
+          mode="presentation"
+          visualization={disabilityVisualization}
+          onVisualizationChange={setDisabilityVisualization}
+        />
+      )
     }
-    if (module === "unemployment" && unemploymentOutputs) return <UnemploymentOutputView outputs={unemploymentOutputs} />
+    if (module === "unemployment" && unemploymentOutputs) {
+      return (
+        <UnemploymentOutputView
+          outputs={unemploymentOutputs}
+          onReserveLevelChange={(emergencySavings) =>
+            updateSnapshotInput("unemployment", "emergencySavings", emergencySavings)
+          }
+        />
+      )
+    }
     if (module === "liability" && liabilityOutputs) return <LiabilityOutputView outputs={liabilityOutputs} />
     return null
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-gray-950 p-4 text-gray-50 print:h-auto print:overflow-visible print:bg-white print:p-0">
-      <div className="mx-auto flex h-full max-w-7xl flex-col gap-4 print:hidden">
-        <div className="flex shrink-0 items-center justify-between rounded-lg border border-gray-800 bg-[#090E1A] px-4 py-3">
-          <Button variant="ghost" className="shadow-none" asChild>
-            <Link to={`/scenarios/${scenarioId}/${scenario.activeModule}`} className="gap-2">
-              <ArrowLeft className="h-4 w-4" /> Back to Builder
-            </Link>
-          </Button>
-          <Button variant="outline" className="gap-2" onClick={() => { window.focus(); setTimeout(() => window.print(), 150) }}>
-            <Printer className="h-4 w-4" /> Save as PDF
-          </Button>
-        </div>
+    <div className="presentation-mode relative h-screen overflow-hidden bg-gray-950 p-2 text-gray-50 print:h-auto print:overflow-visible print:bg-white print:p-0">
+      <Button variant="ghost" className="absolute left-3 top-3 z-20 h-8 px-2 shadow-none print:hidden" asChild>
+        <Link to={`/scenarios/${scenarioId}/${scenario.activeModule}`} className="gap-2">
+          <ArrowLeft className="h-4 w-4" /> Back to Builder
+        </Link>
+      </Button>
 
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#090E1A] shadow-lg">
-          <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-8 py-6">
+      <div className="mx-auto h-full max-w-400 print:hidden">
+        <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#090E1A] shadow-lg">
+          <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-4 py-3">
             {selectedModule ? (
               <div className="flex min-h-full flex-col">
-                <div className="mb-5 flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-gray-800 pb-4">
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-50">{moduleCopy[selectedModule].title}</h2>
-                    <p className="mt-1 text-sm text-gray-500">Visualization and metrics for the selected risk module.</p>
+                <div className="mb-2 grid shrink-0 items-center gap-2 border-b border-gray-800 pb-2 pl-24 lg:grid-cols-[minmax(0,1fr)_auto] 2xl:pl-0">
+                  <div className="min-w-0">
+                    <h2 className="truncate text-lg font-semibold leading-tight text-gray-50">{moduleCopy[selectedModule].title}</h2>
+                    <p className="mt-0.5 text-xs leading-tight text-gray-500">Visualization and metrics for the selected risk module.</p>
                   </div>
-                  <div className="scrollbar-hide flex max-w-full gap-2 overflow-x-auto rounded-lg bg-gray-950/40 p-1">
+                  <div className="presentation-module-tabs scrollbar-hide flex max-w-full gap-1 overflow-x-auto rounded-lg bg-gray-950/40 p-1 lg:justify-self-end">
                     {visibleModules.map((module) => {
                       const Icon = moduleIcons[module]
                       const selected = module === selectedModule
@@ -257,11 +468,11 @@ export function Presentation() {
                           key={module}
                           type="button"
                           onClick={() => setActiveModule(module)}
-                          className={`flex min-w-max items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-colors ${
-                            selected ? "bg-brand-600 text-white shadow-sm" : "text-gray-400 hover:bg-gray-900 hover:text-gray-100"
+                          className={`flex min-w-max items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
+                            selected ? "bg-brand-700 text-white shadow-sm ring-1 ring-brand-600 dark:bg-brand-950/70 dark:ring-brand-700/70" : "text-gray-400 hover:bg-gray-900 hover:text-gray-100"
                           }`}
                         >
-                          <Icon className="h-4 w-4" />
+                          <Icon className="h-3.5 w-3.5" />
                           {moduleCopy[module].tabLabel}
                         </button>
                       )
@@ -269,8 +480,8 @@ export function Presentation() {
                   </div>
                 </div>
                 {selectedModuleHasSnapshot ? (
-                  <div className="grid min-h-0 gap-5 xl:grid-cols-[17rem_minmax(0,1fr)] xl:items-start">
-                    <ModuleInputSpecs module={selectedModule} records={records} variant="rail" />
+                  <div className={selectedModule === "liability" ? "grid min-h-0 gap-3 xl:grid-cols-[22rem_minmax(0,1fr)] xl:items-start" : "grid min-h-0 gap-4 xl:grid-cols-[16rem_minmax(0,1fr)] xl:items-start"}>
+                    <ModuleInputSpecs module={selectedModule} records={records} variant="rail" onInputChange={(field, value) => updateSnapshotInput(selectedModule, field, value)} />
                     <div className="min-w-0">{renderModule(selectedModule)}</div>
                   </div>
                 ) : (

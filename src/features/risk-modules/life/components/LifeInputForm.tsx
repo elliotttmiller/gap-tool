@@ -2,8 +2,8 @@ import { LifeInputs, LifePolicyType } from "../types"
 import { Label } from "@/components/ui/label"
 import { Input, type InputProps } from "@/components/ui/input"
 import { CollapsibleInputSection } from "@/components/ui/collapsible-input-section"
+import { ThemedSelect } from "@/components/ThemedSelect"
 
-const selectClass = "flex h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-1 text-sm text-gray-50 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
 
 /** Convert a decimal rate (0.04) to a display percentage value (4). */
 function toPercent(rate: number): number {
@@ -99,15 +99,7 @@ export function LifeInputForm({ inputs, onChange, showMaxCoverageRoiInput = fals
           <div className={`grid grid-cols-1 gap-3 ${coverageDetailsGridCols}`}>
             <div className="flex flex-col gap-2">
               <Label htmlFor="privateLifePolicyType">Policy Type</Label>
-              <select
-                id="privateLifePolicyType"
-                value={policyType}
-                onChange={(e) => handlePolicyTypeChange(e.target.value as LifePolicyType)}
-                className={selectClass}
-              >
-                <option value="term">Term</option>
-                <option value="permanent">Permanent</option>
-              </select>
+              <ThemedSelect id="privateLifePolicyType" ariaLabel="Policy Type" value={policyType} onValueChange={(value) => handlePolicyTypeChange(value as LifePolicyType)} options={[{ value: "term", label: "Term" }, { value: "permanent", label: "Permanent" }]} />
             </div>
             {policyType === "term" ? (
               <div className="flex flex-col gap-2">
@@ -126,7 +118,7 @@ export function LifeInputForm({ inputs, onChange, showMaxCoverageRoiInput = fals
           <div className={`grid grid-cols-1 gap-3 ${incomeGapGridCols}`}>
             {!isMaxModule ? (
               <div className="flex flex-col gap-2">
-                <Label htmlFor="targetIncomeSupportPct">Target Income Support</Label>
+                <Label htmlFor="targetIncomeSupportPct">Net Income Factor</Label>
                 <AffixedInput
                   id="targetIncomeSupportPct"
                   type="number"
@@ -139,7 +131,12 @@ export function LifeInputForm({ inputs, onChange, showMaxCoverageRoiInput = fals
                   onChange={(e) => onChange({ ...inputs, targetIncomeSupportPct: fromPercent(e.target.value), safeIncomeCoveragePct: fromPercent(e.target.value) })}
                   placeholder="85"
                 />
-                <p className="text-[10px] leading-snug text-gray-500">Modeled percentage of projected income need.</p>
+                <p className="text-[10px] leading-snug text-gray-500">Percentage of gross annual income used to calculate projected net income. Coverage support is then calculated from entered death benefit/resources.</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="maxCoverageRoi">Asset Return Rate</Label>
+                <AffixedInput id="maxCoverageRoi" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.maxCoverageRoi ?? 0.06) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, maxCoverageRoi: fromPercent(e.target.value) })} placeholder="6" />
               </div>
             ) : null}
             <div className="flex flex-col gap-2">

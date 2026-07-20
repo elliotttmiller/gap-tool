@@ -32,7 +32,7 @@ export function InstallPWAButton() {
       onClick={handleInstall}
       disabled={loading}
       aria-label="Install NorthStar as a desktop app"
-      className="flex items-center gap-2 rounded-md px-3 py-2 text-gray-400 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-50"
+      className="flex items-center gap-2 rounded-md px-3 py-2 text-[#94a3b8] transition-colors hover:bg-white/5 hover:text-[#ffffff] disabled:opacity-50"
     >
       <MonitorDown className="h-5 w-5" />
       <span className="text-sm font-medium">{loading ? 'Installing…' : 'Install App'}</span>

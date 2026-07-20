@@ -1,6 +1,7 @@
 import { Button } from "@/components/Button"
 import { Card } from "@/components/Card"
 import { Input } from "@/components/Input"
+import { ThemedSelect } from "@/components/ThemedSelect"
 import type { DiBenefitPeriod } from "@/features/risk-modules/disability/types"
 import { useAppStore } from "@/lib/store"
 import { cx } from "@/lib/utils"
@@ -8,8 +9,6 @@ import { ClientFormState, formFromClient, formToPayload, isClientFormValid } fro
 import { RiArrowLeftLine, RiSave3Line } from "@remixicon/react"
 import { useMemo, useState } from "react"
 import { Link, useParams } from "react-router-dom"
-
-const selectClass = "h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 text-sm text-gray-50"
 
 const BENEFIT_PERIOD_OPTIONS: { value: DiBenefitPeriod | ""; label: string }[] = [
   { value: "", label: "Select a period…" },
@@ -75,7 +74,7 @@ export function ClientOverview() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-8 rounded-2xl border border-gray-800 bg-[#090E1A] px-8 py-6">
+      <div className="flex flex-col items-start justify-between gap-6 rounded-2xl border border-gray-800 bg-[#090E1A] px-5 py-6 sm:px-8 lg:flex-row lg:gap-8">
         <div>
           <Link to="/" className="inline-flex items-center gap-2 text-sm text-gray-500 transition hover:text-gray-200">
             <RiArrowLeftLine className="size-4" />
@@ -124,7 +123,7 @@ export function ClientOverview() {
 
         <div className="space-y-4">
           <SectionTitle title="Primary Earner" />
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <Field label="First name *"><Input value={form.firstName} onChange={(event) => setField("firstName", event.target.value)} /></Field>
             <Field label="Last name *"><Input value={form.lastName} onChange={(event) => setField("lastName", event.target.value)} /></Field>
             <Field label="Household / display name"><Input value={form.displayName} onChange={(event) => setField("displayName", event.target.value)} /></Field>
@@ -136,10 +135,10 @@ export function ClientOverview() {
 
         <div className="space-y-4">
           <SectionTitle title="Existing Coverage — Primary Earner" />
-          <div className="grid grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
             <Field label="Group Life death benefit ($)"><Input type="number" min={0} value={form.groupLifeCoverage} onChange={(event) => setField("groupLifeCoverage", event.target.value)} /></Field>
             <Field label="Private Life death benefit ($)"><Input type="number" min={0} value={form.privateLifeCoverage} onChange={(event) => setField("privateLifeCoverage", event.target.value)} /></Field>
-            <Field label="Policy Type"><select value={form.privateLifePolicyType} onChange={(event) => setField("privateLifePolicyType", event.target.value as "term" | "permanent")} className={selectClass}><option value="term">Term</option><option value="permanent">Permanent</option></select></Field>
+            <Field label="Policy Type"><ThemedSelect value={form.privateLifePolicyType} onValueChange={(value) => setField("privateLifePolicyType", value as "term" | "permanent")} options={[{ value: "term", label: "Term" }, { value: "permanent", label: "Permanent" }]} /></Field>
             <Field label="Term Length">{form.privateLifePolicyType === "term" ? <Input type="number" min={0} value={form.privateLifeTermYears} onChange={(event) => setField("privateLifeTermYears", event.target.value)} /> : <Input value="Permanent" disabled />}</Field>
             <Field label="Non-qualified assets ($)"><Input type="number" min={0} value={form.nonQualifiedAssets} onChange={(event) => setField("nonQualifiedAssets", event.target.value)} /></Field>
           </div>
@@ -147,19 +146,19 @@ export function ClientOverview() {
 
         <div className="space-y-4">
           <SectionTitle title="Group Long Term Disability (LTD)" description="These values prefill the Disability module when a risk review is generated or refreshed." />
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <Field label="Coverage of Income (%)"><Input type="number" min={0} max={100} step={1} value={form.ltdCoveragePercent} onChange={(event) => setField("ltdCoveragePercent", event.target.value)} /></Field>
             <Field label="Monthly Cap ($)"><Input type="number" min={0} value={form.ltdMonthlyCap} onChange={(event) => setField("ltdMonthlyCap", event.target.value)} /></Field>
-            <Field label="Taxable?"><select value={form.ltdTaxable ? "true" : "false"} onChange={(event) => setField("ltdTaxable", event.target.value === "true")} className={selectClass}><option value="true">Yes — 70% of gross</option><option value="false">No — full benefit</option></select></Field>
+            <Field label="Taxable?"><ThemedSelect value={form.ltdTaxable ? "true" : "false"} onValueChange={(value) => setField("ltdTaxable", value === "true")} options={[{ value: "true", label: "Yes - 70% of gross" }, { value: "false", label: "No - full benefit" }]} /></Field>
           </div>
         </div>
 
         <div className="space-y-4">
           <SectionTitle title="Individual Disability Insurance" description="Individual DI benefit, premium, benefit period, and break-even assumptions for income-gap analysis." />
-          <div className="grid grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
             <Field label="Monthly Benefit ($)"><Input type="number" min={0} value={form.privateDisabilityBenefitMonthly} onChange={(event) => setField("privateDisabilityBenefitMonthly", event.target.value)} /></Field>
             <Field label="Monthly Premium ($)"><Input type="number" min={0} value={form.privateDisabilityMonthlyPremium} onChange={(event) => setField("privateDisabilityMonthlyPremium", event.target.value)} /></Field>
-            <Field label="Benefit Period"><select value={form.privateDisabilityBenefitPeriod} onChange={(event) => setField("privateDisabilityBenefitPeriod", event.target.value as DiBenefitPeriod | "")} className={selectClass}>{BENEFIT_PERIOD_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></Field>
+            <Field label="Benefit Period"><ThemedSelect value={form.privateDisabilityBenefitPeriod} onValueChange={(value) => setField("privateDisabilityBenefitPeriod", value as DiBenefitPeriod | "")} options={BENEFIT_PERIOD_OPTIONS} /></Field>
             <Field label="Break-Even Rate of Return (%)"><Input type="number" min={0} max={30} step={0.1} value={form.disabilityBreakEvenRateOfReturn} onChange={(event) => setField("disabilityBreakEvenRateOfReturn", event.target.value)} /></Field>
             <Field label="Months Without Income"><Input type="number" min={1} step={1} value={form.disabilityBreakEvenMonthsWithoutIncome} onChange={(event) => setField("disabilityBreakEvenMonthsWithoutIncome", event.target.value)} /></Field>
           </div>
@@ -168,14 +167,14 @@ export function ClientOverview() {
         {isCouple ? (
           <div className="space-y-4">
             <SectionTitle title="Secondary Earner" description="Shown only when the client type is Couple." />
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <Field label="Full name"><Input value={form.spouseName} onChange={(event) => setField("spouseName", event.target.value)} /></Field>
               <Field label="Current age"><Input type="number" min={18} max={64} value={form.spouseAge} onChange={(event) => setField("spouseAge", event.target.value)} /></Field>
               <Field label="Annual income ($)"><Input type="number" min={0} value={form.spouseAnnualIncome} onChange={(event) => setField("spouseAnnualIncome", event.target.value)} /></Field>
               <Field label="Non-qualified assets ($)"><Input type="number" min={0} value={form.spouseNonQualifiedAssets} onChange={(event) => setField("spouseNonQualifiedAssets", event.target.value)} /></Field>
               <Field label="Group Life death benefit ($)"><Input type="number" min={0} value={form.spouseGroupLifeCoverage} onChange={(event) => setField("spouseGroupLifeCoverage", event.target.value)} /></Field>
               <Field label="Private Life death benefit ($)"><Input type="number" min={0} value={form.spousePrivateLifeCoverage} onChange={(event) => setField("spousePrivateLifeCoverage", event.target.value)} /></Field>
-              <Field label="Policy Type"><select value={form.spousePrivateLifePolicyType} onChange={(event) => setField("spousePrivateLifePolicyType", event.target.value as "term" | "permanent")} className={selectClass}><option value="term">Term</option><option value="permanent">Permanent</option></select></Field>
+              <Field label="Policy Type"><ThemedSelect value={form.spousePrivateLifePolicyType} onValueChange={(value) => setField("spousePrivateLifePolicyType", value as "term" | "permanent")} options={[{ value: "term", label: "Term" }, { value: "permanent", label: "Permanent" }]} /></Field>
               <Field label="Term Length">{form.spousePrivateLifePolicyType === "term" ? <Input type="number" min={0} value={form.spousePrivateLifeTermYears} onChange={(event) => setField("spousePrivateLifeTermYears", event.target.value)} /> : <Input value="Permanent" disabled />}</Field>
             </div>
           </div>
@@ -183,7 +182,7 @@ export function ClientOverview() {
 
         <div className="space-y-4">
           <SectionTitle title="Household Liability Coverage" />
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <Field label="Underlying Auto Liability Limit ($)"><Input type="number" min={0} value={form.autoLiabilityLimit} onChange={(event) => setField("autoLiabilityLimit", event.target.value)} /></Field>
           </div>
         </div>

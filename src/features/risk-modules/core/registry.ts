@@ -38,15 +38,17 @@ export const formulaRegistry = {
     }
   },
   unemployment: {
-    current: "unemployment-v1.0.0",
+    current: "unemployment-v1.1.0",
     versions: {
       "unemployment-v1.0.0": calculateUnemploymentGap,
+      "unemployment-v1.1.0": calculateUnemploymentGap,
     },
   },
   liability: {
-    current: "liability-v1.0.0",
+    current: "liability-v1.1.0",
     versions: {
       "liability-v1.0.0": calculateLiabilityGap,
+      "liability-v1.1.0": calculateLiabilityGap,
     },
   },
 } as const;

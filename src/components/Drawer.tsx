@@ -162,7 +162,7 @@ const DrawerContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTML
             ref={forwardedRef}
             className={cx(
               "fixed inset-y-2 mx-auto flex w-[95vw] flex-1 flex-col overflow-y-auto rounded-md border p-4 shadow-lg focus:outline-none max-sm:inset-x-2 sm:inset-y-2 sm:right-2 sm:max-w-lg sm:p-6",
-              "border-gray-800 bg-[#090E1A] animate-drawerSlideLeftAndFade",
+              "border-[#d5e2e5] bg-white animate-drawerSlideLeftAndFade dark:border-gray-800 dark:bg-[#090E1A]",
               focusRing,
               className,
             )}
@@ -182,7 +182,7 @@ DrawerContent.displayName = "DrawerContent"
 
 const DrawerHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ children, className, ...props }, ref) => (
-    <div ref={ref} className="flex items-start justify-between gap-x-4 border-b border-gray-800 pb-4" {...props}>
+    <div ref={ref} className="flex items-start justify-between gap-x-4 border-b border-gray-200 pb-4 dark:border-gray-800" {...props}>
       <div className={cx("mt-1 flex flex-col gap-y-1", className)}>{children}</div>
       <DrawerClose asChild>
         <Button variant="ghost" className="aspect-square p-1 hover:bg-gray-400/10">
@@ -196,7 +196,7 @@ DrawerHeader.displayName = "Drawer.Header"
 
 const DrawerTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, forwardedRef) => (
-    <h2 ref={forwardedRef} className={cx("text-base font-semibold text-gray-50", className)} {...props} />
+    <h2 ref={forwardedRef} className={cx("text-base font-semibold text-gray-950 dark:text-gray-50", className)} {...props} />
   ),
 )
 DrawerTitle.displayName = "DrawerTitle"
@@ -208,7 +208,7 @@ DrawerBody.displayName = "Drawer.Body"
 
 const DrawerFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cx("flex flex-col-reverse gap-2 border-t border-gray-800 pt-4 sm:flex-row sm:justify-end", className)} {...props} />
+    <div ref={ref} className={cx("flex flex-col-reverse gap-2 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end dark:border-gray-800", className)} {...props} />
   ),
 )
 DrawerFooter.displayName = "Drawer.Footer"

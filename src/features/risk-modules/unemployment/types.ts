@@ -23,6 +23,7 @@ export interface UnemploymentOutputs {
   secondaryNetMonthlyIncome: number;
   incomeAtRisk: number;
   remainingIncome: number;
+  monthlyExpenseReplacement: number;
   monthlyCashFlow: number;
   cashFlowStatus: "positive" | "negative" | "breakeven";
   dangerThreshold: number;
@@ -46,31 +47,25 @@ export interface UnemploymentOutputs {
   totalUncoveredShortfall: number;
   currentReserveLevel: number;
 
-  // ── Dynamic reserve targets ────────────────────────────────────────────────
-  /** Minimum reserve target: always 3 months of household expenses. */
+  // ── Reserve target outputs ────────────────────────────────────────────────
+  /** Minimum reserve target: 3 months of monthly expense replacement. */
   minimumReserveTarget: number;
-  /**
-   * Ideal reserve target months (3–6), determined by remaining income coverage %.
-   * Higher household income concentration = more months needed.
-   */
+  /** Tiered ideal reserve months based on remaining-income coverage: 6, 5, 4, or 3. */
   idealReserveMonths: number;
-  /** Ideal reserve target: monthlyExpenses × idealReserveMonths. */
+  /** Ideal reserve target: monthlyExpenseReplacement × idealReserveMonths. */
   idealReserveTarget: number;
-  /**
-   * Fraction of monthly expenses covered by remaining (secondary) net income
-   * if the highest earner loses income. Drives ideal reserve band selection.
-   */
+  /** Fraction of monthly expenses covered by remaining net income. */
   remainingIncomeCoveragePct: number;
   /** Gap = max(0, idealReserveTarget − currentReserveLevel). */
   reserveGap: number;
   /** Excess = max(0, currentReserveLevel − idealReserveTarget). */
   excessReserve: number;
 
-  /** Advisor-reference metric: current annual income exposed by job loss. */
+  /** Advisor-reference metric: current annual income exposed by transition. */
   annualIncomeAtRisk: number;
   /** Advisor-reference metric: reserve runway in months currently held. */
   reserveMonthsCurrent: number;
-  /** Advisor-reference metric: ongoing monthly gap after offsets are exhausted. */
+  /** Advisor-reference metric: ongoing monthly replacement need. */
   monthlyGapAtDepletion: number;
   timeline: Array<{
     month: number;

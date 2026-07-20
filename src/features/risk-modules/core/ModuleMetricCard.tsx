@@ -31,16 +31,16 @@ export function ModuleMetricCard({
   const tone = TONES[accent]
 
   return (
-    <div className={`rounded-lg border ${tone.border} bg-slate-950/60 px-3.5 py-3 ${className ?? ""}`}>
+    <div className={`module-metric-card rounded-lg border ${tone.border} bg-slate-950/60 px-3.5 py-3 ${className ?? ""}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold uppercase leading-snug tracking-[0.15em] text-slate-500">{label}</p>
-          <div className={`mt-1 text-xl font-bold leading-none tracking-tight ${tone.value}`}>{value}</div>
+          <p className="module-metric-label text-[10px] font-bold uppercase leading-snug tracking-[0.15em] text-slate-500">{label}</p>
+          <div className={`module-metric-value mt-1 text-xl font-bold leading-none tracking-tight ${tone.value}`}>{value}</div>
           {description && (
-            <p className="mt-1.5 text-[11px] leading-snug text-slate-600">{description}</p>
+            <p className="module-metric-description mt-1.5 text-[11px] leading-snug text-slate-600">{description}</p>
           )}
           {disclosure && (
-            <p className="mt-2 text-[10px] leading-snug text-slate-700 italic border-t border-slate-800/50 pt-1.5">{disclosure}</p>
+            <p className="module-metric-disclosure mt-2 border-t border-slate-800/50 pt-1.5 text-[10px] italic leading-snug text-slate-700">{disclosure}</p>
           )}
         </div>
         <div className={`mt-0.5 h-8 w-0.5 shrink-0 rounded-full ${tone.bar}`} />

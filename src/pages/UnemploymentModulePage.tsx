@@ -34,7 +34,14 @@ export function UnemploymentModulePage() {
       title="Unemployment & Liquidity Risk"
       subtitle="If I lose my job, how long can my reserves support my household?"
       formSlot={<UnemploymentInputForm inputs={moduleState.inputs} onChange={(next) => updateInputs(scenarioId, next)} />}
-      outputSlot={<UnemploymentOutputView outputs={outputs} />}
+      outputSlot={(
+        <UnemploymentOutputView
+          outputs={outputs}
+          onReserveLevelChange={(emergencySavings) =>
+            updateInputs(scenarioId, { ...moduleState.inputs, emergencySavings })
+          }
+        />
+      )}
     />
   )
 }
