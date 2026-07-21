@@ -52,6 +52,23 @@ export const advisorFormulaRegistry: FormulaDefinition[] = [
     assumptions: ["ltdCoveragePercent", "ltdMonthlyCap", "ltdTaxable"],
   },
   {
+    id: "disability-job-comparison",
+    module: "disability",
+    label: "Job A vs Job B",
+    description: "Compares current income and disability income for two job scenarios, including the annual cost and benefit of Individual DI.",
+    formulaText: "jobAIncome = jobAIncomeInput; jobBIncome = jobBIncomeInput - annualIDIPremium; jobAIncomeIfDisabled = groupLTD; jobBIncomeIfDisabled = groupLTD + annualIDIBenefit",
+    assumptions: ["annualEarnedIncome", "ltdCoveragePercent", "ltdMonthlyCap", "privateDiMonthlyPremium", "privateDiBenefitMonthly"],
+  },
+  {
+    id: "disability-asset-comparison",
+    module: "disability",
+    label: "Asset Comparison",
+    description: "Compares the annual amount paid to insure other assets with the annual premium paid to insure earned income through Individual DI.",
+    formulaText: "annualOtherAssetInsuranceCost = advisorInput; annualIncomeInsuranceCost = monthlyIDIPremium * 12; costDifference = annualOtherAssetInsuranceCost - annualIncomeInsuranceCost",
+    assumptions: ["annualOtherAssetInsuranceCost", "privateDiMonthlyPremium"],
+    disclosure: "Other asset insurance cost is an advisor-entered comparison amount and is not derived from household asset values.",
+  },
+  {
     id: "liability-disposable-income-garnishment",
     module: "liability",
     label: "Wage Garnishment Exposure",
