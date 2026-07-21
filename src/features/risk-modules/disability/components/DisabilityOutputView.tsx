@@ -10,6 +10,7 @@ import { transformDisabilityChartData } from "../transformers/transformDisabilit
 import { DEFAULT_DISABILITY_COLA_RATE, disabilityColaFactor, resolveDisabilityColaRate } from "../calculations/disabilityCola"
 import { PremiumVsSelfInsuredModule } from "../calculators/PremiumVsSelfInsuredModule"
 import { JobComparisonModule } from "../calculators/JobComparisonModule"
+import { AssetComparisonModule } from "../calculators/AssetComparisonModule"
 import {
   ModuleMetricCard,
   MetricGroup,
@@ -20,6 +21,8 @@ const SUMMARY_ROW_CLASS = "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-
 const SUMMARY_LABEL_CLASS = "min-w-0 whitespace-nowrap text-slate-400"
 const SUMMARY_VALUE_CLASS = "whitespace-nowrap text-right font-mono font-semibold"
 
+type DisabilityVisualization = "incomeGap" | "premiumVsSelfInsured" | "jobComparison" | "assetComparison"
+
 interface DisabilityOutputViewProps {
   outputs: DisabilityOutputs
   inputs?: DisabilityInputs
@@ -28,10 +31,8 @@ interface DisabilityOutputViewProps {
   formOpen?: boolean
   mode?: "builder" | "presentation"
   visualization?: DisabilityVisualization
-  onVisualizationChange?: (v: DisabilityVisualization) => void
+  onVisualizationChange?: (v: any) => void
 }
-
-type DisabilityVisualization = "incomeGap" | "premiumVsSelfInsured" | "jobComparison"
 
 function roundCurrencyValue(value: number): number {
   return Math.round(value * 100) / 100
@@ -45,7 +46,6 @@ function buildAgeTicks(data: { age: number }[], targetTickCount = 8): number[] {
 
   const span = lastAge - firstAge
   const rawStep = Math.max(1, Math.ceil(span / Math.max(1, targetTickCount - 1)))
-
   const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)))
   const normalized = rawStep / magnitude
   const snappedBase = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10
@@ -118,9 +118,6 @@ export function DisabilityOutputView({
   const [chartView, setChartView] = useState<"net" | "gross">("net")
   const [visualizationInternal, setVisualizationInternal] = useState<DisabilityVisualization>("incomeGap")
 
-  // ── COLA toggle ─────────────────────────────────────────────────────────
-  // Advisor interpretation: entered Individual DI benefit and premium include
-  // COLA by default. The toggle removes/restores COLA for comparison.
   const colaRate = resolveDisabilityColaRate(assumptions ?? {})
   const colaEnabled = colaRate > 0
   function toggleCola() {
@@ -154,31 +151,19 @@ export function DisabilityOutputView({
     : "Assumed net income minus total net monthly benefit"
 
   const totalProjectedIncomeGross = outputs.incomeProjection.reduce((sum, point) => sum + point.annualIncome, 0)
-  const totalGroupLTDCoverageGross = outputs.incomeProjection.reduce(
-    (sum, point) => sum + point.ltdAnnualBenefitGross,
-    0,
-  )
-  const totalCoverageGross = outputs.incomeProjection.reduce(
-    (sum, point) => sum + point.ltdAnnualBenefitGross + point.individualDIAnnualBenefit,
-    0,
-  )
-
+  const totalGroupLTDCoverageGross = outputs.incomeProjection.reduce((sum, point) => sum + point.ltdAnnualBenefitGross, 0)
+  const totalCoverageGross = outputs.incomeProjection.reduce((sum, point) => sum + point.ltdAnnualBenefitGross + point.individualDIAnnualBenefit, 0)
   const projectedIncomeDisplay = chartView === "gross" ? totalProjectedIncomeGross : outputs.totalProjectedIncome
-
-  // ── 3-card grid derived metrics ────────────────────────────────────────────
   const groupLTDDisplay = chartView === "gross" ? totalGroupLTDCoverageGross : outputs.totalGroupLTDCoverage
   const totalIncomeReplacedDisplay = chartView === "gross" ? totalCoverageGross : outputs.totalCoverage
   const incomeGap1Display = projectedIncomeDisplay - groupLTDDisplay
   const incomeGap2Display = projectedIncomeDisplay - totalIncomeReplacedDisplay
   const incomeGapDiffDisplay = incomeGap1Display - incomeGap2Display
 
-  // ── Without-COLA comparison metrics ───────────────────────────────────────
   const enteredMonthlyPremium = inputs?.privateDiMonthlyPremium ?? 0
   const enteredMonthlyBenefit = inputs?.privateDiBenefitMonthly ?? 0
   const projectionMonths = outputs.incomeProjection.length * 12
-  const currentPolicyMonthlyPremium = colaEnabled
-    ? enteredMonthlyPremium
-    : enteredMonthlyPremium * COLA_REMOVED_PREMIUM_FACTOR
+  const currentPolicyMonthlyPremium = colaEnabled ? enteredMonthlyPremium : enteredMonthlyPremium * COLA_REMOVED_PREMIUM_FACTOR
   const colaRemovedMonthlySavings = roundCurrencyValue(enteredMonthlyPremium * (1 - COLA_REMOVED_PREMIUM_FACTOR))
   const colaRemovedLifetimeSavings = roundCurrencyValue(colaRemovedMonthlySavings * projectionMonths)
   const withColaIndividualDICoverage = outputs.incomeProjection.reduce((sum, point, yearIndex) => {
@@ -202,25 +187,19 @@ export function DisabilityOutputView({
     const ltdGross = point?.["Group LTD (Gross)"] ?? 0
     const ltdNet = point?.["Group LTD (Net)"] ?? 0
     const idiAnnual = point?.["Individual DI"] ?? 0
-    const displayGap = chartView === "gross"
-      ? grossIncome - (ltdGross + idiAnnual)
-      : netIncome - (ltdNet + idiAnnual)
+    const displayGap = chartView === "gross" ? grossIncome - (ltdGross + idiAnnual) : netIncome - (ltdNet + idiAnnual)
     return (
       <div className="min-w-52 rounded-lg border border-gray-700 bg-gray-900 p-3 text-sm shadow-lg">
         <p className="mb-2 font-semibold text-gray-100">Age {label}</p>
         <div className="mb-1.5 flex justify-between gap-4">
           <span className="text-xs text-slate-300">{assumedIncomeLabel}:</span>
-          <span className="text-xs font-semibold text-slate-100">
-            {formatCurrency(assumedIncomeAnnual)}/yr · {formatCurrency(assumedIncomeAnnual / 12)}/mo
-          </span>
+          <span className="text-xs font-semibold text-slate-100">{formatCurrency(assumedIncomeAnnual)}/yr · {formatCurrency(assumedIncomeAnnual / 12)}/mo</span>
         </div>
         {payload.map((entry: any) => (
           <div key={entry.name} className="mb-1 flex justify-between gap-4">
             <span style={{ color: entry.color }} className="text-xs">{entry.name}:</span>
             <span className="text-xs font-semibold text-gray-100">
-              {entry.name === "Income Gap"
-                ? `${formatCurrency(displayGap)}/yr · ${formatCurrency(displayGap / 12)}/mo`
-                : `${formatCurrency(entry.value)}/yr · ${formatCurrency(entry.value / 12)}/mo`}
+              {entry.name === "Income Gap" ? `${formatCurrency(displayGap)}/yr · ${formatCurrency(displayGap / 12)}/mo` : `${formatCurrency(entry.value)}/yr · ${formatCurrency(entry.value / 12)}/mo`}
             </span>
           </div>
         ))}
@@ -245,9 +224,8 @@ export function DisabilityOutputView({
       )
     }
 
-    if (visualization === "jobComparison") {
-      return <JobComparisonModule inputs={inputs} />
-    }
+    if (visualization === "jobComparison") return <JobComparisonModule inputs={inputs} />
+    if (visualization === "assetComparison") return <AssetComparisonModule inputs={inputs} />
 
     return (
       <div className="module-output-container">
@@ -257,18 +235,9 @@ export function DisabilityOutputView({
               <CardContent className="p-3.5">
                 <div className="mb-2 whitespace-nowrap text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase">Lifetime Coverage</div>
                 <div className="divide-y divide-slate-800/80 text-xs">
-                  <div className={SUMMARY_ROW_CLASS}>
-                    <span className={SUMMARY_LABEL_CLASS}>Group LTD</span>
-                    <span className={`${SUMMARY_VALUE_CLASS} text-blue-300`}>{formatCurrency(groupLTDDisplay)}</span>
-                  </div>
-                  <div className={SUMMARY_ROW_CLASS}>
-                    <span className={SUMMARY_LABEL_CLASS}>Individual DI</span>
-                    <span className={`${SUMMARY_VALUE_CLASS} text-cyan-300`}>{formatCurrency(outputs.totalIndividualDICoverage)}</span>
-                  </div>
-                  <div className={SUMMARY_ROW_CLASS}>
-                    <span className={SUMMARY_LABEL_CLASS}>Total Replaced</span>
-                    <span className={`${SUMMARY_VALUE_CLASS} text-emerald-400`}>{formatCurrency(totalIncomeReplacedDisplay)}</span>
-                  </div>
+                  <div className={SUMMARY_ROW_CLASS}><span className={SUMMARY_LABEL_CLASS}>Group LTD</span><span className={`${SUMMARY_VALUE_CLASS} text-blue-300`}>{formatCurrency(groupLTDDisplay)}</span></div>
+                  <div className={SUMMARY_ROW_CLASS}><span className={SUMMARY_LABEL_CLASS}>Individual DI</span><span className={`${SUMMARY_VALUE_CLASS} text-cyan-300`}>{formatCurrency(outputs.totalIndividualDICoverage)}</span></div>
+                  <div className={SUMMARY_ROW_CLASS}><span className={SUMMARY_LABEL_CLASS}>Total Replaced</span><span className={`${SUMMARY_VALUE_CLASS} text-emerald-400`}>{formatCurrency(totalIncomeReplacedDisplay)}</span></div>
                 </div>
               </CardContent>
             </Card>
@@ -277,18 +246,9 @@ export function DisabilityOutputView({
               <CardContent className="p-3.5">
                 <div className="mb-2 whitespace-nowrap text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase">Lifetime Income ({chartView === "gross" ? "Gross" : "Net"})</div>
                 <div className="divide-y divide-slate-800/80 text-xs">
-                  <div className={SUMMARY_ROW_CLASS}>
-                    <span className={SUMMARY_LABEL_CLASS}>Projected Income</span>
-                    <span className={`${SUMMARY_VALUE_CLASS} text-slate-200`}>{formatCurrency(projectedIncomeDisplay)}</span>
-                  </div>
-                  <div className={SUMMARY_ROW_CLASS}>
-                    <span className={SUMMARY_LABEL_CLASS}>Income Gap #1</span>
-                    <span className={`${SUMMARY_VALUE_CLASS} text-red-400`}>{formatCurrency(incomeGap1Display)}</span>
-                  </div>
-                  <div className={SUMMARY_ROW_CLASS}>
-                    <span className={SUMMARY_LABEL_CLASS}>Income Gap #2</span>
-                    <span className={`${SUMMARY_VALUE_CLASS} text-orange-400`}>{formatCurrency(incomeGap2Display)}</span>
-                  </div>
+                  <div className={SUMMARY_ROW_CLASS}><span className={SUMMARY_LABEL_CLASS}>Projected Income</span><span className={`${SUMMARY_VALUE_CLASS} text-slate-200`}>{formatCurrency(projectedIncomeDisplay)}</span></div>
+                  <div className={SUMMARY_ROW_CLASS}><span className={SUMMARY_LABEL_CLASS}>Income Gap #1</span><span className={`${SUMMARY_VALUE_CLASS} text-red-400`}>{formatCurrency(incomeGap1Display)}</span></div>
+                  <div className={SUMMARY_ROW_CLASS}><span className={SUMMARY_LABEL_CLASS}>Income Gap #2</span><span className={`${SUMMARY_VALUE_CLASS} text-orange-400`}>{formatCurrency(incomeGap2Display)}</span></div>
                 </div>
               </CardContent>
             </Card>
@@ -297,44 +257,21 @@ export function DisabilityOutputView({
               <CardContent className="p-3.5">
                 <div className="mb-2 whitespace-nowrap text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase">Outcome</div>
                 <div className="divide-y divide-slate-800/80 text-xs">
-                  <div className={SUMMARY_ROW_CLASS}>
-                    <span className={SUMMARY_LABEL_CLASS}>Gap Difference</span>
-                    <span className={`${SUMMARY_VALUE_CLASS} text-emerald-400`}>{formatCurrency(incomeGapDiffDisplay)}</span>
-                  </div>
-                  {outputs.lifetimeIDIExpense > 0 ? (
-                    <div className={SUMMARY_ROW_CLASS}>
-                      <span className={SUMMARY_LABEL_CLASS}>IDI Expense</span>
-                      <span className={`${SUMMARY_VALUE_CLASS} text-amber-400`}>{formatCurrency(outputs.lifetimeIDIExpense)}</span>
-                    </div>
-                  ) : null}
-                  {enteredMonthlyPremium > 0 ? (
-                    <div className={SUMMARY_ROW_CLASS}>
-                      <span className={SUMMARY_LABEL_CLASS}>Monthly Premium</span>
-                      <span className={`${SUMMARY_VALUE_CLASS} text-amber-300`}>{formatCurrency(currentPolicyMonthlyPremium)}/mo</span>
-                    </div>
-                  ) : null}
+                  <div className={SUMMARY_ROW_CLASS}><span className={SUMMARY_LABEL_CLASS}>Gap Difference</span><span className={`${SUMMARY_VALUE_CLASS} text-emerald-400`}>{formatCurrency(incomeGapDiffDisplay)}</span></div>
+                  {outputs.lifetimeIDIExpense > 0 ? <div className={SUMMARY_ROW_CLASS}><span className={SUMMARY_LABEL_CLASS}>IDI Expense</span><span className={`${SUMMARY_VALUE_CLASS} text-amber-400`}>{formatCurrency(outputs.lifetimeIDIExpense)}</span></div> : null}
+                  {enteredMonthlyPremium > 0 ? <div className={SUMMARY_ROW_CLASS}><span className={SUMMARY_LABEL_CLASS}>Monthly Premium</span><span className={`${SUMMARY_VALUE_CLASS} text-amber-300`}>{formatCurrency(currentPolicyMonthlyPremium)}/mo</span></div> : null}
                 </div>
               </CardContent>
             </Card>
 
-            {/* ── Without-COLA comparison card ── */}
             {showColaRemovedCard ? (
               <Card className="module-kpi-card border-amber-900/50">
                 <CardContent className="p-3.5">
                   <div className="mb-2 whitespace-nowrap text-[10px] font-bold tracking-[0.18em] text-amber-500 uppercase">Without COLA</div>
                   <div className="divide-y divide-slate-800/80 text-xs">
-                    <div className={SUMMARY_ROW_CLASS}>
-                      <span className={SUMMARY_LABEL_CLASS}>Monthly Savings</span>
-                      <span className={`${SUMMARY_VALUE_CLASS} text-emerald-300`}>{formatCurrency(colaRemovedMonthlySavings)}/mo</span>
-                    </div>
-                    <div className={SUMMARY_ROW_CLASS}>
-                      <span className={SUMMARY_LABEL_CLASS}>Lifetime Savings</span>
-                      <span className={`${SUMMARY_VALUE_CLASS} text-emerald-300`}>{formatCurrency(colaRemovedLifetimeSavings)}</span>
-                    </div>
-                    <div className={SUMMARY_ROW_CLASS}>
-                      <span className={SUMMARY_LABEL_CLASS}>Benefit Reduction</span>
-                      <span className={`${SUMMARY_VALUE_CLASS} text-red-300`}>{formatCurrency(colaBenefitGivenUp)}</span>
-                    </div>
+                    <div className={SUMMARY_ROW_CLASS}><span className={SUMMARY_LABEL_CLASS}>Monthly Savings</span><span className={`${SUMMARY_VALUE_CLASS} text-emerald-300`}>{formatCurrency(colaRemovedMonthlySavings)}/mo</span></div>
+                    <div className={SUMMARY_ROW_CLASS}><span className={SUMMARY_LABEL_CLASS}>Lifetime Savings</span><span className={`${SUMMARY_VALUE_CLASS} text-emerald-300`}>{formatCurrency(colaRemovedLifetimeSavings)}</span></div>
+                    <div className={SUMMARY_ROW_CLASS}><span className={SUMMARY_LABEL_CLASS}>Benefit Reduction</span><span className={`${SUMMARY_VALUE_CLASS} text-red-300`}>{formatCurrency(colaBenefitGivenUp)}</span></div>
                   </div>
                 </CardContent>
               </Card>
@@ -344,37 +281,16 @@ export function DisabilityOutputView({
           <Card className="module-chart-card disability-chart-panel module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
             <CardHeader className="shrink-0 px-6 pt-5 pb-0">
               <div className="grid gap-3">
-                <CardTitle className="whitespace-nowrap text-center text-xs font-bold tracking-[0.15em] text-slate-500 uppercase">
-                  Income vs. Disability Coverage — Annual Projection
-                </CardTitle>
-
+                <CardTitle className="whitespace-nowrap text-center text-xs font-bold tracking-[0.15em] text-slate-500 uppercase">Income vs. Disability Coverage — Annual Projection</CardTitle>
                 <div className="flex min-h-8 items-center gap-3">
-                  {selectedAge !== null ? (
-                    <div className="flex items-center gap-2">
-                      <span className="rounded-full border border-blue-700 bg-blue-900/40 px-3 py-1 text-xs font-semibold text-blue-300">Age {selectedAge}</span>
-                      <button onClick={() => setSelectedAge(null)} className="text-xs text-gray-400 transition-colors hover:text-gray-100" aria-label="Reset to current age">× Reset</button>
-                    </div>
-                  ) : null}
+                  {selectedAge !== null ? <div className="flex items-center gap-2"><span className="rounded-full border border-blue-700 bg-blue-900/40 px-3 py-1 text-xs font-semibold text-blue-300">Age {selectedAge}</span><button onClick={() => setSelectedAge(null)} className="text-xs text-gray-400 transition-colors hover:text-gray-100" aria-label="Reset to current age">× Reset</button></div> : null}
                   {onAssumptionsChange ? (
-                    <button
-                      type="button"
-                      onClick={toggleCola}
-                      aria-pressed={colaRemoved}
-                      title={colaRemoved ? "Restore COLA benefit growth" : "Remove COLA from this comparison"}
-                      className="group ml-auto flex shrink-0 items-center gap-2.5 rounded-full border border-slate-700/80 bg-slate-900/70 py-1.5 pr-1.5 pl-3 text-left text-slate-200 shadow-sm transition-colors hover:border-slate-600 hover:bg-slate-900"
-                    >
+                    <button type="button" onClick={toggleCola} aria-pressed={colaRemoved} title={colaRemoved ? "Restore COLA benefit growth" : "Remove COLA from this comparison"} className="group ml-auto flex shrink-0 items-center gap-2.5 rounded-full border border-slate-700/80 bg-slate-900/70 py-1.5 pr-1.5 pl-3 text-left text-slate-200 shadow-sm transition-colors hover:border-slate-600 hover:bg-slate-900">
                       <span className="whitespace-nowrap text-xs font-semibold">{colaCurrentMode}</span>
-                      <span className={`relative h-5 w-9 shrink-0 rounded-full shadow-inner transition-colors ${
-                        colaRemoved ? "bg-amber-500/90" : "bg-emerald-500"
-                      }`}>
-                        <span className={`absolute top-0.5 size-4 rounded-full bg-white shadow-sm transition-all ${
-                          colaRemoved ? "left-0.5" : "left-[1.125rem]"
-                        }`} />
-                      </span>
+                      <span className={`relative h-5 w-9 shrink-0 rounded-full shadow-inner transition-colors ${colaRemoved ? "bg-amber-500/90" : "bg-emerald-500"}`}><span className={`absolute top-0.5 size-4 rounded-full bg-white shadow-sm transition-all ${colaRemoved ? "left-0.5" : "left-[1.125rem]"}`} /></span>
                     </button>
                   ) : null}
                 </div>
-
                 <div className="flex justify-center sm:justify-end">
                   <div className="flex shrink-0 overflow-hidden rounded-md border border-gray-700 text-xs">
                     <button onClick={() => setChartView("net")} className={`px-3 py-1 transition-colors ${chartView === "net" ? "bg-brand-700 text-white shadow-sm ring-1 ring-inset ring-brand-600 dark:bg-brand-950/70 dark:ring-brand-700/70" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}>Net</button>
@@ -385,27 +301,12 @@ export function DisabilityOutputView({
             </CardHeader>
             <CardContent className="flex min-h-0 flex-1 flex-col px-6 pt-4 pb-6">
               <div className="flex min-h-0 flex-1 items-stretch gap-1">
-                <div className="flex w-3.5 shrink-0 items-center justify-center">
-                  <span style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }} className="text-[10px] font-semibold tracking-wider whitespace-nowrap text-slate-500 uppercase">Annual Benefit ($)</span>
-                </div>
+                <div className="flex w-3.5 shrink-0 items-center justify-center"><span style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }} className="text-[10px] font-semibold tracking-wider whitespace-nowrap text-slate-500 uppercase">Annual Benefit ($)</span></div>
                 <div className="flex min-w-0 flex-1 flex-col">
                   <div className="chart-reveal min-h-52 w-full flex-1">
                     <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                      <BarChart
-                        data={chartData.projectionChartData}
-                        margin={{ top: 10, right: 16, left: 0, bottom: 4 }}
-                        barCategoryGap="8%"
-                        onClick={(data) => { if (data?.activePayload) setSelectedAge(Number(data.activeLabel)) }}
-                        style={{ cursor: "pointer" }}
-                      >
-                        <XAxis
-                          dataKey="age"
-                          ticks={ageTicks}
-                          interval={0}
-                          tick={{ fill: "#64748b", fontSize: 11 }}
-                          axisLine={false}
-                          tickLine={false}
-                        />
+                      <BarChart data={chartData.projectionChartData} margin={{ top: 10, right: 16, left: 0, bottom: 4 }} barCategoryGap="8%" onClick={(data) => { if (data?.activePayload) setSelectedAge(Number(data.activeLabel)) }} style={{ cursor: "pointer" }}>
+                        <XAxis dataKey="age" ticks={ageTicks} interval={0} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
                         <YAxis tickFormatter={(v) => `$${Math.round(v / 1000)}k`} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} width={48} />
                         <Tooltip content={CustomTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
                         <Bar dataKey={ltdLabel} stackId="a" fill="#3b82f6" isAnimationActive={false} />
@@ -427,12 +328,7 @@ export function DisabilityOutputView({
 
           <div className="module-metric-rail">
             <MetricGroup title="Monthly Benefits">
-              <ModuleMetricCard
-                label={assumedIncomeLabel}
-                value={<>{formatCurrency(assumedIncomeDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>}
-                description="Monthly income basis used for the selected view"
-                accent="slate"
-              />
+              <ModuleMetricCard label={assumedIncomeLabel} value={<>{formatCurrency(assumedIncomeDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description="Monthly income basis used for the selected view" accent="slate" />
               <ModuleMetricCard label={ltdLabel} value={<>{formatCurrency(ltdDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description={chartView === "gross" ? "Gross monthly LTD benefit" : "Net after-tax LTD monthly benefit"} accent="blue" />
               <ModuleMetricCard label="Individual DI" value={<>{formatCurrency(monthly.individualDIMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description="Private disability insurance benefit" accent="cyan" />
               <ModuleMetricCard label={totalBenefitLabel} value={<>{formatCurrency(totalDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description="Combined LTD + individual DI monthly benefit" accent="slate" />
@@ -448,22 +344,17 @@ export function DisabilityOutputView({
     <div className="flex h-full flex-col space-y-6">
       <AnimatedSection delay={0.3}>
         <div className="flex flex-wrap gap-1 mb-4">
-          {(
-            [
-              { value: "incomeGap", label: "Income Gap", active: "border border-brand-700 bg-brand-700 text-white shadow-sm ring-1 ring-brand-600 dark:border-brand-950/70 dark:bg-brand-950/70 dark:text-white dark:ring-brand-700/70" },
-              { value: "premiumVsSelfInsured", label: "Premium vs Self-Insured", active: "border border-brand-700 bg-brand-700 text-white shadow-sm ring-1 ring-brand-600 dark:border-brand-950/70 dark:bg-brand-950/70 dark:text-white dark:ring-brand-700/70" },
-              { value: "jobComparison", label: "Job A vs Job B", active: "border border-brand-700 bg-brand-700 text-white shadow-sm ring-1 ring-brand-600 dark:border-brand-950/70 dark:bg-brand-950/70 dark:text-white dark:ring-brand-700/70" },
-            ] as const
-          ).map(({ value, label, active }) => (
+          {([
+            { value: "incomeGap", label: "Income Gap" },
+            { value: "premiumVsSelfInsured", label: "Premium vs Self-Insured" },
+            { value: "jobComparison", label: "Job A vs Job B" },
+            { value: "assetComparison", label: "Asset Comparison" },
+          ] as const).map(({ value, label }) => (
             <button
               key={value}
               type="button"
               onClick={() => setVisualization(value)}
-              className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-colors ${
-                visualization === value
-                  ? active
-                  : "bg-slate-900/40 border border-slate-800 text-slate-400 hover:text-slate-200"
-              }`}
+              className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-colors ${visualization === value ? "border border-brand-700 bg-brand-700 text-white shadow-sm ring-1 ring-brand-600 dark:border-brand-950/70 dark:bg-brand-950/70 dark:text-white dark:ring-brand-700/70" : "bg-slate-900/40 border border-slate-800 text-slate-400 hover:text-slate-200"}`}
             >
               {label}
             </button>
