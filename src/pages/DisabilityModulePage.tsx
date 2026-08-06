@@ -47,6 +47,7 @@ export function DisabilityModulePage() {
           inputs={moduleState.inputs}
           assumptions={moduleState.assumptions}
           onAssumptionsChange={handleAssumptionsChange}
+          onInputsChange={(next) => updateInputs(scenarioId, next)}
           formOpen={inputsOpen}
           onVisualizationChange={(v) => {
             if (v === "premiumVsSelfInsured" || v === "jobComparison") {

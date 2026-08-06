@@ -28,6 +28,7 @@ interface DisabilityOutputViewProps {
   inputs?: DisabilityInputs
   assumptions?: DisabilityAssumptions
   onAssumptionsChange?: (updates: Partial<DisabilityAssumptions>) => void
+  onInputsChange?: (next: DisabilityInputs) => void
   formOpen?: boolean
   mode?: "builder" | "presentation"
   visualization?: DisabilityVisualization
@@ -107,6 +108,7 @@ export function DisabilityOutputView({
   inputs,
   assumptions,
   onAssumptionsChange,
+  onInputsChange,
   formOpen = false,
   mode = "builder",
   visualization: visualizationProp,
@@ -225,7 +227,7 @@ export function DisabilityOutputView({
     }
 
     if (visualization === "jobComparison") return <JobComparisonModule inputs={inputs} />
-    if (visualization === "assetComparison") return <AssetComparisonModule inputs={inputs} />
+    if (visualization === "assetComparison") return <AssetComparisonModule inputs={inputs} onInputsChange={onInputsChange} />
 
     return (
       <div className="module-output-container">

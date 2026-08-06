@@ -421,6 +421,7 @@ export function Presentation() {
           inputs={records?.disability?.inputs}
           assumptions={records?.disability?.assumptions}
           onAssumptionsChange={(updates) => updateDisabilityAssumptions(scenarioId, updates)}
+          onInputsChange={(next) => updateDisabilityInputs(scenarioId, next)}
           mode="presentation"
           visualization={disabilityVisualization}
           onVisualizationChange={setDisabilityVisualization}
