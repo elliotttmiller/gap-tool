@@ -289,7 +289,7 @@ export function DisabilityOutputView({
                   {onAssumptionsChange ? (
                     <button type="button" onClick={toggleCola} aria-pressed={colaRemoved} title={colaRemoved ? "Restore COLA benefit growth" : "Remove COLA from this comparison"} className="group ml-auto flex shrink-0 items-center gap-2.5 rounded-full border border-slate-700/80 bg-slate-900/70 py-1.5 pr-1.5 pl-3 text-left text-slate-200 shadow-sm transition-colors hover:border-slate-600 hover:bg-slate-900">
                       <span className="whitespace-nowrap text-xs font-semibold">{colaCurrentMode}</span>
-                      <span className={`relative h-5 w-9 shrink-0 rounded-full shadow-inner transition-colors ${colaRemoved ? "bg-amber-500/90" : "bg-emerald-500"}`}><span className={`absolute top-0.5 size-4 rounded-full bg-white shadow-sm transition-all ${colaRemoved ? "left-0.5" : "left-[1.125rem]"}`} /></span>
+                      <span className={`relative h-5 w-9 shrink-0 rounded-full shadow-inner transition-colors ${colaRemoved ? "bg-amber-500/90" : "bg-emerald-500"}`}><span className={`absolute top-0.5 size-4 rounded-full bg-white shadow-sm transition-all ${colaRemoved ? "left-0.5" : "left-4.5"}`} /></span>
                     </button>
                   ) : null}
                 </div>
