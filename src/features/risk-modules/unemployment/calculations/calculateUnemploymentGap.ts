@@ -3,6 +3,7 @@ import { defaultUnemploymentMethodologyAssumptions } from "@/domain/assumptions/
 
 const DANGER_RESERVE_MONTHS = 1.5;
 const IDEAL_RESERVE_MONTHS = 6;
+const REMAINING_INCOME_NET_RATIO = 0.7;
 
 export function calculateUnemploymentGap(inputs: UnemploymentInputs): UnemploymentOutputs {
   const annualIncome = Math.max(inputs.annualIncome ?? 0, 0);
@@ -26,15 +27,13 @@ export function calculateUnemploymentGap(inputs: UnemploymentInputs): Unemployme
     monthlyCashFlowRaw > 0 ? "positive" : monthlyCashFlowRaw < 0 ? "negative" : "breakeven";
 
   // Advisor-updated reserve method:
-  // If the highest income goes away, subtract the lower remaining net income from
-  // monthly expenses. The reserve target is held at six months so the output
-  // aligns with the advisor-facing 3-6 month reserve discussion.
-  const incomeAtRisk = Math.max(annualIncome, spouseIncome);
-  const hasTwoIncomes = annualIncome > 0 && spouseIncome > 0;
-  const lowestSpousalNetIncome = hasTwoIncomes
-    ? Math.min(primaryNetMonthlyIncome, secondaryNetMonthlyIncome)
-    : 0;
-  const remainingIncome = lowestSpousalNetIncome;
+  // The "Current Annual Income" earner is the one who loses their job, so the
+  // income that remains during the search is always the spouse's entered income
+  // (never the earner at risk), net at a flat 70% take-home ratio. The reserve
+  // target is held at six months so the output aligns with the advisor-facing
+  // 3-6 month reserve discussion.
+  const incomeAtRisk = annualIncome;
+  const remainingIncome = spouseMonthlyIncomeReference * REMAINING_INCOME_NET_RATIO;
   const monthlyExpenseReplacement = Math.max(0, monthlyBurnRate - remainingIncome);
   const remainingIncomeCoveragePct = monthlyBurnRate > 0 ? remainingIncome / monthlyBurnRate : 1;
 

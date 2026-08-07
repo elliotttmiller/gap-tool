@@ -122,12 +122,12 @@ const unemployment = calculateUnemploymentGap({
   netIncomeRatio: 0.65,
 })
 
-approximately(unemployment.remainingIncome, 5_416.67)
-approximately(unemployment.monthlyExpenseReplacement, 14_583.33)
-approximately(unemployment.minimumReserveTarget, 43_750)
-approximately(unemployment.idealReserveTarget, 87_500)
+approximately(unemployment.remainingIncome, 5_833.33)
+approximately(unemployment.monthlyExpenseReplacement, 14_166.67)
+approximately(unemployment.minimumReserveTarget, 42_500)
+approximately(unemployment.idealReserveTarget, 85_000)
 assert.equal(unemployment.idealReserveMonths, 6)
-approximately(unemployment.reserveMonthsCurrent, 60_000 / 14_583.333333333334)
+approximately(unemployment.reserveMonthsCurrent, 60_000 / 14_166.666666666666)
 
 const unemploymentWithOffsets = calculateUnemploymentGap({
   annualIncome: 300_000,
