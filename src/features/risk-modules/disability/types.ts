@@ -35,6 +35,17 @@ export type DisabilityInputs = {
   breakEvenRateOfReturn?: number;
   /** Number of months without income used in the break-even calculation. */
   breakEvenMonthsWithoutIncome?: number;
+
+  // ── Asset Comparison ──────────────────────────────────────────────────────
+  /** Advisor-entered non-income assets (e.g. home, auto) and their annual cost to insure, used in the Asset Comparison visualization. */
+  otherAssets?: DisabilityOtherAsset[];
+};
+
+export type DisabilityOtherAsset = {
+  id: string;
+  label: string;
+  assetValue: number;
+  annualPremium: number;
 };
 
 export type DisabilityAssumptions = DisabilityColaTerms & {

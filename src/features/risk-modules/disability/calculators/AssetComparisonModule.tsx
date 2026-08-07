@@ -3,25 +3,24 @@ import { Plus, Trash2 } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
-import type { DisabilityInputs } from "../types"
+import type { DisabilityInputs, DisabilityOtherAsset } from "../types"
 
 interface AssetComparisonModuleProps {
   inputs?: DisabilityInputs
   onInputsChange?: (next: DisabilityInputs) => void
 }
 
-interface AssetPremiumRow {
-  id: string
-  label: string
-  assetValue: number
-  annualPremium: number
+type AssetPremiumRow = DisabilityOtherAsset
+
+function nextRowId(): string {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `asset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
-let rowIdCounter = 0
-function nextRowId() {
-  rowIdCounter += 1
-  return `asset-${rowIdCounter}`
-}
+// Shown until the advisor enters real data; not written to inputs until edited.
+const DEFAULT_ASSET_ROWS: AssetPremiumRow[] = [
+  { id: "asset-default-home", label: "Home", assetValue: 0, annualPremium: 0 },
+  { id: "asset-default-auto", label: "Auto", assetValue: 0, annualPremium: 0 },
+]
 
 function niceMax(value: number): number {
   if (value <= 0) return 100
@@ -132,10 +131,12 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
   const projectionYears = Math.max(0, (inputs?.retirementAge ?? 0) - (inputs?.currentAge ?? 0))
   const netIncomeAsset = Math.max(0, inputs?.privateDiBenefitMonthly ?? 0) * 12 * projectionYears
 
-  const [assetRows, setAssetRows] = useState<AssetPremiumRow[]>([
-    { id: nextRowId(), label: "Home", assetValue: 0, annualPremium: 0 },
-    { id: nextRowId(), label: "Auto", assetValue: 0, annualPremium: 0 },
-  ])
+  // "Other assets" are persisted straight into DisabilityInputs.otherAssets so they
+  // survive tab switches, saves, and reloads instead of living in transient UI state.
+  // When there's no backing scenario to write into, fall back to local-only state.
+  const canEditAssets = Boolean(inputs && onInputsChange)
+  const [fallbackRows, setFallbackRows] = useState<AssetPremiumRow[]>(DEFAULT_ASSET_ROWS)
+  const assetRows = canEditAssets ? (inputs!.otherAssets ?? DEFAULT_ASSET_ROWS) : fallbackRows
 
   const annualOtherAssetInsuranceCost = useMemo(
     () => assetRows.reduce((sum, row) => sum + (row.annualPremium || 0), 0),
@@ -151,24 +152,32 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
     onInputsChange({ ...inputs, privateDiMonthlyPremium: Math.max(0, value) })
   }
 
+  const commitAssetRows = (next: AssetPremiumRow[]) => {
+    if (canEditAssets) {
+      onInputsChange!({ ...inputs!, otherAssets: next })
+    } else {
+      setFallbackRows(next)
+    }
+  }
+
   const addAssetRow = () => {
-    setAssetRows((rows) => [...rows, { id: nextRowId(), label: "", assetValue: 0, annualPremium: 0 }])
+    commitAssetRows([...assetRows, { id: nextRowId(), label: "", assetValue: 0, annualPremium: 0 }])
   }
 
   const removeAssetRow = (id: string) => {
-    setAssetRows((rows) => rows.filter((row) => row.id !== id))
+    commitAssetRows(assetRows.filter((row) => row.id !== id))
   }
 
   const updateAssetRowLabel = (id: string, label: string) => {
-    setAssetRows((rows) => rows.map((row) => (row.id === id ? { ...row, label } : row)))
+    commitAssetRows(assetRows.map((row) => (row.id === id ? { ...row, label } : row)))
   }
 
   const updateAssetRowValue = (id: string, assetValue: number) => {
-    setAssetRows((rows) => rows.map((row) => (row.id === id ? { ...row, assetValue } : row)))
+    commitAssetRows(assetRows.map((row) => (row.id === id ? { ...row, assetValue } : row)))
   }
 
   const updateAssetRowPremium = (id: string, annualPremium: number) => {
-    setAssetRows((rows) => rows.map((row) => (row.id === id ? { ...row, annualPremium } : row)))
+    commitAssetRows(assetRows.map((row) => (row.id === id ? { ...row, annualPremium } : row)))
   }
 
   const otherAssetsSharedDomainMax = useMemo(
@@ -208,7 +217,8 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
                 <button
                   type="button"
                   onClick={addAssetRow}
-                  className="inline-flex items-center gap-1 rounded-md border border-gray-700 px-2 py-1 text-[11px] font-semibold text-gray-400 transition hover:border-brand-600 hover:text-brand-300"
+                  disabled={!canEditAssets}
+                  className="inline-flex items-center gap-1 rounded-md border border-gray-700 px-2 py-1 text-[11px] font-semibold text-gray-400 transition hover:border-brand-600 hover:text-brand-300 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-gray-700 disabled:hover:text-gray-400"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Add Asset
@@ -238,8 +248,9 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
                       type="text"
                       value={row.label}
                       onChange={(event) => updateAssetRowLabel(row.id, event.target.value)}
+                      disabled={!canEditAssets}
                       placeholder="Asset name"
-                      className="h-8 w-full min-w-0 rounded-md border border-transparent bg-transparent px-2 text-sm text-gray-100 outline-none transition focus:border-gray-700 focus:bg-gray-950"
+                      className="h-8 w-full min-w-0 rounded-md border border-transparent bg-transparent px-2 text-sm text-gray-100 outline-none transition focus:border-gray-700 focus:bg-gray-950 disabled:opacity-60"
                     />
                     <div className="relative">
                       <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-gray-500">$</span>
@@ -249,8 +260,9 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
                         step={1000}
                         value={row.assetValue || ""}
                         onChange={(event) => updateAssetRowValue(row.id, Math.max(0, Number(event.target.value) || 0))}
+                        disabled={!canEditAssets}
                         placeholder="0"
-                        className="h-8 w-full rounded-md border border-gray-800 bg-gray-950 pl-4 pr-2 text-right text-sm text-gray-100 outline-none transition focus:border-brand-600"
+                        className="h-8 w-full rounded-md border border-gray-800 bg-gray-950 pl-4 pr-2 text-right text-sm text-gray-100 outline-none transition focus:border-brand-600 disabled:opacity-60"
                       />
                     </div>
                     <div className="relative">
@@ -261,15 +273,17 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
                         step={50}
                         value={row.annualPremium || ""}
                         onChange={(event) => updateAssetRowPremium(row.id, Math.max(0, Number(event.target.value) || 0))}
+                        disabled={!canEditAssets}
                         placeholder="0"
-                        className="h-8 w-full rounded-md border border-gray-800 bg-gray-950 pl-4 pr-2 text-right text-sm font-semibold text-gray-100 outline-none transition focus:border-brand-600"
+                        className="h-8 w-full rounded-md border border-gray-800 bg-gray-950 pl-4 pr-2 text-right text-sm font-semibold text-gray-100 outline-none transition focus:border-brand-600 disabled:opacity-60"
                       />
                     </div>
                     <button
                       type="button"
                       onClick={() => removeAssetRow(row.id)}
+                      disabled={!canEditAssets}
                       aria-label="Remove asset"
-                      className="flex h-8 w-7 items-center justify-center rounded text-gray-600 opacity-0 transition hover:bg-red-950/50 hover:text-red-400 group-hover:opacity-100"
+                      className="flex h-8 w-7 items-center justify-center rounded text-gray-600 opacity-0 transition hover:bg-red-950/50 hover:text-red-400 group-hover:opacity-100 disabled:pointer-events-none disabled:opacity-0"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
