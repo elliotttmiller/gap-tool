@@ -32,7 +32,7 @@ export function calculateUnemploymentGap(inputs: UnemploymentInputs): Unemployme
   // (never the earner at risk), net at a flat 70% take-home ratio. The reserve
   // target is held at six months so the output aligns with the advisor-facing
   // 3-6 month reserve discussion.
-  const incomeAtRisk = Math.max(annualIncome, spouseIncome);
+  const incomeAtRisk = annualIncome;
   const remainingIncome = spouseMonthlyIncomeReference * REMAINING_INCOME_NET_RATIO;
   const monthlyExpenseReplacement = Math.max(0, monthlyBurnRate - remainingIncome);
   const remainingIncomeCoveragePct = monthlyBurnRate > 0 ? remainingIncome / monthlyBurnRate : 1;

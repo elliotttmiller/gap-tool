@@ -57,18 +57,27 @@ function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOut
   const status = getReserveStatus(reserveMonths, idealMonths)
   const ticks = Array.from(new Set([0, 1.5, 3, idealMonths, gaugeMaxMonths])).sort((a, b) => a - b)
 
+  // Snapped to SAVINGS_DRAG_STEP and floored so a rounded value can never
+  // push reserveMonths past gaugeMaxMonths (keeps aria-valuenow <= aria-valuemax).
+  const maxSnappedDollars = Math.floor((gaugeMaxMonths * outputs.monthlyGapAtDepletion) / SAVINGS_DRAG_STEP) * SAVINGS_DRAG_STEP
+
   function setMonthsFromClientY(clientY: number) {
     const rect = barRef.current?.getBoundingClientRect()
     if (!rect || !onReserveLevelChange || outputs.monthlyGapAtDepletion <= 0) return
     const ratio = Math.max(0, Math.min(1, (rect.bottom - clientY) / rect.height))
     const months = ratio * gaugeMaxMonths
-    onReserveLevelChange(roundToStep(months * outputs.monthlyGapAtDepletion, SAVINGS_DRAG_STEP))
+    const snapped = roundToStep(months * outputs.monthlyGapAtDepletion, SAVINGS_DRAG_STEP)
+    onReserveLevelChange(Math.max(0, Math.min(maxSnappedDollars, snapped)))
   }
 
   function nudgeMonths(delta: number) {
     if (!onReserveLevelChange || outputs.monthlyGapAtDepletion <= 0) return
-    const months = Math.max(0, Math.min(gaugeMaxMonths, reserveMonths + delta))
-    onReserveLevelChange(roundToStep(months * outputs.monthlyGapAtDepletion, SAVINGS_DRAG_STEP))
+    // Anchor off the already-snapped current value so every keypress moves
+    // by a full step instead of rounding back to the same amount.
+    const currentSnappedDollars = roundToStep(outputs.currentReserveLevel, SAVINGS_DRAG_STEP)
+    const deltaDollars = roundToStep(delta * outputs.monthlyGapAtDepletion, SAVINGS_DRAG_STEP) || Math.sign(delta) * SAVINGS_DRAG_STEP
+    const nextDollars = currentSnappedDollars + deltaDollars
+    onReserveLevelChange(Math.max(0, Math.min(maxSnappedDollars, nextDollars)))
   }
 
   return (
