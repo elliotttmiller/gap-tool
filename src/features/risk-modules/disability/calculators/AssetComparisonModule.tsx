@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import { Plus, Trash2 } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import type { DisabilityInputs } from "../types"
 
@@ -32,78 +32,95 @@ function niceMax(value: number): number {
   return niceResidual * magnitude
 }
 
-function DualScaleTooltip({ active, payload, label }: any) {
+function PanelTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null
   const entry = payload.find((item: any) => Number(item.value) > 0) ?? payload[0]
   const value = Number(entry?.value ?? 0)
+  const suffix = entry?.payload?.[`${entry.dataKey}Unit`] ?? ""
   return (
-    <div className="rounded-xl border border-gray-700 bg-gray-950/95 p-3 text-xs shadow-2xl backdrop-blur">
-      <p className="font-semibold text-gray-100">{label}</p>
-      <p className="mt-1 font-mono text-gray-200">{formatCurrency(value)}/yr</p>
+    <div className="rounded-xl border border-slate-700/60 bg-slate-900/95 px-3 py-2.5 text-xs shadow-2xl backdrop-blur">
+      <p className="font-semibold text-slate-100">{label}</p>
+      <p className="mt-1 font-mono text-slate-200">{formatCurrency(value)}{suffix}</p>
     </div>
   )
 }
 
-function DualBarChart({
-  title,
-  leftName,
-  leftValue,
-  leftDomainMax,
-  leftFill,
-  rightName,
-  rightValue,
-  rightDomainMax,
-  rightFill,
-}: {
-  title: string
+interface ComparisonBarPanelProps {
+  category: string
   leftName: string
   leftValue: number
-  leftDomainMax: number
   leftFill: string
+  leftUnit?: string
   rightName: string
   rightValue: number
-  rightDomainMax: number
   rightFill: string
-}) {
+  rightUnit?: string
+  domainMax: number
+  rightDomainMax?: number
+}
+
+function ComparisonBarPanel({
+  category,
+  leftName,
+  leftValue,
+  leftFill,
+  leftUnit = "",
+  rightName,
+  rightValue,
+  rightFill,
+  rightUnit = "",
+  domainMax,
+  rightDomainMax,
+}: ComparisonBarPanelProps) {
+  const effectiveRightDomainMax = rightDomainMax ?? domainMax
   const data = useMemo(
     () => [
-      { name: leftName, left: leftValue, right: 0 },
-      { name: rightName, left: 0, right: rightValue },
+      { name: leftName, left: leftValue, right: 0, leftUnit, rightUnit },
+      { name: rightName, left: 0, right: rightValue, leftUnit, rightUnit },
     ],
-    [leftName, leftValue, rightName, rightValue],
+    [leftName, leftValue, leftUnit, rightName, rightValue, rightUnit],
   )
 
   return (
-    <div className="bg-gray-900/40 p-3">
-      <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">{title}</p>
-      <div className="mx-auto h-64 w-full max-w-sm">
+    <div className="flex flex-col gap-1.5 rounded-xl border border-slate-800/70 bg-slate-950/40 p-3">
+      <p className="text-center text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">{category}</p>
+      <div className="h-56 w-full">
         <ResponsiveContainer width="100%" height="100%" debounce={100}>
-          <BarChart data={data} margin={{ top: 28, right: 24, left: 24, bottom: 8 }} barCategoryGap="30%" barGap={0}>
-            <CartesianGrid stroke="rgba(148,163,184,0.06)" strokeDasharray="4 4" vertical={false} />
-            <XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 12, fontWeight: 600 }} tickLine={false} axisLine={false} dy={8} interval={0} />
-            <YAxis yAxisId="left" hide domain={[0, leftDomainMax]} />
-            <YAxis yAxisId="right" hide domain={[0, rightDomainMax]} />
-            <Tooltip content={<DualScaleTooltip />} cursor={{ fill: "rgba(255,255,255,0.025)" }} />
-            <Bar yAxisId="left" dataKey="left" name={leftName} fill={leftFill} radius={[6, 6, 0, 0]} maxBarSize={88}>
+          <BarChart data={data} margin={{ top: 26, right: 12, left: 12, bottom: 4 }} barCategoryGap="28%" barGap={0}>
+            <CartesianGrid stroke="rgba(148,163,184,0.08)" strokeDasharray="4 4" vertical={false} />
+            <XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 11, fontWeight: 600 }} tickLine={false} axisLine={false} dy={6} interval={0} />
+            <YAxis yAxisId="left" hide domain={[0, domainMax]} />
+            <YAxis yAxisId="right" hide domain={[0, effectiveRightDomainMax]} />
+            <Tooltip content={<PanelTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+            <Bar yAxisId="left" dataKey="left" name={leftName} fill={leftFill} radius={[6, 6, 0, 0]} maxBarSize={72} isAnimationActive={false}>
               <LabelList
                 dataKey="left"
                 position="top"
                 formatter={(value: number) => (value ? formatCurrency(value) : "")}
-                style={{ fill: "#e2e8f0", fontSize: 12, fontWeight: 700 }}
+                style={{ fill: "#e2e8f0", fontSize: 11, fontWeight: 700 }}
               />
             </Bar>
-            <Bar yAxisId="right" dataKey="right" name={rightName} fill={rightFill} radius={[6, 6, 0, 0]} maxBarSize={88}>
+            <Bar yAxisId="right" dataKey="right" name={rightName} fill={rightFill} radius={[6, 6, 0, 0]} maxBarSize={72} isAnimationActive={false}>
               <LabelList
                 dataKey="right"
                 position="top"
                 formatter={(value: number) => (value ? formatCurrency(value) : "")}
-                style={{ fill: "#e2e8f0", fontSize: 12, fontWeight: 700 }}
+                style={{ fill: "#e2e8f0", fontSize: 11, fontWeight: 700 }}
               />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
     </div>
+  )
+}
+
+function LegendSwatch({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400">
+      <span className="inline-block h-2.5 w-4 rounded-sm" style={{ backgroundColor: color }} />
+      {label}
+    </span>
   )
 }
 
@@ -167,6 +184,16 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
   )
 
   const costDifference = annualOtherAssetInsuranceCost - annualIncomeInsuranceCost
+
+  // "Difference" panel: the two other-asset and income-asset totals (value + its
+  // insurance cost) placed head-to-head on one shared scale for direct comparison.
+  const otherAssetsCombinedTotal = totalAssetValue + annualOtherAssetInsuranceCost
+  const incomeAssetCombinedTotal = netIncomeAsset + annualIncomeInsuranceCost
+  const combinedTotalsDomainMax = useMemo(
+    () => niceMax(Math.max(otherAssetsCombinedTotal, incomeAssetCombinedTotal, 1)),
+    [otherAssetsCombinedTotal, incomeAssetCombinedTotal],
+  )
+  const combinedTotalsDifference = incomeAssetCombinedTotal - otherAssetsCombinedTotal
 
   return (
     <div className="module-output-container space-y-4">
@@ -285,39 +312,64 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
         </CardContent>
       </Card>
 
-      <Card className="border-gray-800 bg-gray-900/25">
-        <CardContent className="p-4">
-          <div className="mb-3">
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-gray-400">Asset Insurance Cost Comparison</p>
-            <p className="mt-0.5 text-xs text-gray-500">What you pay annually to insure other assets compared with what you pay to insure earned income as an asset.</p>
-          </div>
+      <Card className="module-chart-card border-slate-800/80 bg-slate-950/60">
+        <CardHeader className="px-5 pb-0 pt-4">
+          <CardTitle className="text-center text-xs font-bold uppercase tracking-[0.15em] text-slate-500">
+            Asset Protection Comparison
+          </CardTitle>
+          <p className="mt-1 text-center text-xs leading-snug text-slate-400">
+            What it costs to insure other assets versus income as an asset, and the two combined totals head-to-head.
+          </p>
+        </CardHeader>
 
-          <div className="grid gap-px overflow-hidden rounded-lg border border-gray-800 bg-gray-800 md:grid-cols-2">
-            <DualBarChart
-              title="Other Assets"
+        <CardContent className="px-5 pb-5 pt-4">
+          <div className="grid gap-3 md:grid-cols-3">
+            <ComparisonBarPanel
+              category="Other Assets"
               leftName="Asset Value"
               leftValue={totalAssetValue}
-              leftDomainMax={otherAssetsSharedDomainMax}
               leftFill="#64748b"
               rightName="Insurance Cost"
               rightValue={annualOtherAssetInsuranceCost}
-              rightDomainMax={otherAssetsSharedDomainMax}
+              rightUnit="/yr"
               rightFill="#a855f7"
+              domainMax={otherAssetsSharedDomainMax}
             />
-            <DualBarChart
-              title="Income as an Asset"
+            <ComparisonBarPanel
+              category="Income Asset"
               leftName="Net Income Asset"
               leftValue={netIncomeAsset}
-              leftDomainMax={netIncomeAssetDomainMax}
               leftFill="#06b6d4"
               rightName="Coverage Premium"
               rightValue={annualIncomeInsuranceCost}
-              rightDomainMax={coveragePremiumDomainMax}
+              rightUnit="/yr"
               rightFill="#f59e0b"
+              domainMax={netIncomeAssetDomainMax}
+              rightDomainMax={coveragePremiumDomainMax}
+            />
+            <ComparisonBarPanel
+              category="Difference"
+              leftName="Other Assets Total"
+              leftValue={otherAssetsCombinedTotal}
+              leftFill="#64748b"
+              rightName="Income Asset Total"
+              rightValue={incomeAssetCombinedTotal}
+              rightFill="#06b6d4"
+              domainMax={combinedTotalsDomainMax}
             />
           </div>
-          <p className="mt-2 text-[10px] leading-relaxed text-gray-500">
-            Net income asset and coverage premium each use their own scale so the premium bar stays legible.
+
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 border-t border-slate-800/60 pt-3">
+            <LegendSwatch color="#64748b" label="Other Assets Value" />
+            <LegendSwatch color="#a855f7" label="Other Assets Insurance Cost" />
+            <LegendSwatch color="#06b6d4" label="Income Asset Value" />
+            <LegendSwatch color="#f59e0b" label="Income Asset Coverage Premium" />
+          </div>
+
+          <p className="mt-2 text-center text-[10px] leading-relaxed text-slate-500">
+            Other Assets and Income Asset each use their own value-vs-cost scale so the smaller premium bar stays legible.
+            Difference shares one scale so the two combined totals compare directly — {combinedTotalsDifference >= 0 ? "income" : "other assets"} lead
+            {" "}by {formatCurrency(Math.abs(combinedTotalsDifference))}.
           </p>
 
           <div className="mt-4 grid grid-cols-3 gap-3">
