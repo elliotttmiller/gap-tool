@@ -17,6 +17,11 @@ interface UnemploymentOutputViewProps {
 }
 
 const compactCardClass = "unemployment-kpi-card"
+const SAVINGS_DRAG_STEP = 250
+
+function roundToStep(value: number, step: number): number {
+  return Math.round(value / step) * step
+}
 
 function formatCurrency(value: number): string {
   const abs = Math.abs(value)
@@ -57,13 +62,13 @@ function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOut
     if (!rect || !onReserveLevelChange || outputs.monthlyGapAtDepletion <= 0) return
     const ratio = Math.max(0, Math.min(1, (rect.bottom - clientY) / rect.height))
     const months = ratio * gaugeMaxMonths
-    onReserveLevelChange(Math.round(months * outputs.monthlyGapAtDepletion))
+    onReserveLevelChange(roundToStep(months * outputs.monthlyGapAtDepletion, SAVINGS_DRAG_STEP))
   }
 
   function nudgeMonths(delta: number) {
     if (!onReserveLevelChange || outputs.monthlyGapAtDepletion <= 0) return
     const months = Math.max(0, Math.min(gaugeMaxMonths, reserveMonths + delta))
-    onReserveLevelChange(Math.round(months * outputs.monthlyGapAtDepletion))
+    onReserveLevelChange(roundToStep(months * outputs.monthlyGapAtDepletion, SAVINGS_DRAG_STEP))
   }
 
   return (
