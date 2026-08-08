@@ -482,7 +482,7 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
               />
               <ModuleMetricCard
                 label="Insurance wins if disabled before"
-                value={`Yr ${formatDecimal(insuranceWinsBeforeYear, 1)}`}
+                value={`Year ${formatDecimal(insuranceWinsBeforeYear, 1)}`}
                 description={`≈ Month ${result.roundedBreakEvenMonths} break-even point`}
                 accent="amber"
                 className={`${metricPulseClass} ${breakEvenPulseClass}`}
