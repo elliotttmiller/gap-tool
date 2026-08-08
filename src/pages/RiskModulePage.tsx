@@ -161,8 +161,8 @@ export function RiskModulePage({ title, subtitle, headerActions, compactForm = f
       >
         <div
           className={cx(
-            "relative min-w-0 overflow-visible transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
-            inputsOpen ? "opacity-100 translate-x-0" : "translate-x-0 opacity-100",
+            "relative min-w-0 transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+            inputsOpen ? "overflow-visible opacity-100 translate-x-0" : "h-0 overflow-hidden translate-x-0 opacity-100",
           )}
         >
           <div
