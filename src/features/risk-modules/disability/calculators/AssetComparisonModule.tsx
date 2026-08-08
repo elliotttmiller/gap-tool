@@ -176,15 +176,13 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
     [netIncomeAsset, annualIncomeInsuranceCost],
   )
 
-  // "Difference" panel: the two other-asset and income-asset totals (value + its
-  // insurance cost) placed head-to-head on one shared scale for direct comparison.
-  const otherAssetsCombinedTotal = totalAssetValue + annualOtherAssetInsuranceCost
-  const incomeAssetCombinedTotal = netIncomeAsset + annualIncomeInsuranceCost
-  const combinedTotalsDomainMax = useMemo(
-    () => niceMax(Math.max(otherAssetsCombinedTotal, incomeAssetCombinedTotal, 1)),
-    [otherAssetsCombinedTotal, incomeAssetCombinedTotal],
+  // "Difference" panel: how far apart the two sides are, on value and on cost.
+  const valueDifference = netIncomeAsset - totalAssetValue
+  const costDifference = annualOtherAssetInsuranceCost - annualIncomeInsuranceCost
+  const differenceDomainMax = useMemo(
+    () => niceMax(Math.max(Math.abs(valueDifference), Math.abs(costDifference), 1)),
+    [valueDifference, costDifference],
   )
-  const combinedTotalsDifference = incomeAssetCombinedTotal - otherAssetsCombinedTotal
 
   return (
     <div className="module-output-container space-y-4">
@@ -298,7 +296,7 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
               leftName="Value"
               leftValue={totalAssetValue}
               leftFill="#64748b"
-              rightName="Cost"
+              rightName="Premium"
               rightValue={annualOtherAssetInsuranceCost}
               rightUnit="/yr"
               rightFill="#a855f7"
@@ -306,7 +304,7 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
             />
             <ComparisonBarPanel
               category="Income Asset"
-              leftName="Asset"
+              leftName="Value"
               leftValue={netIncomeAsset}
               leftFill="#06b6d4"
               rightName="Premium"
@@ -317,13 +315,14 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
             />
             <ComparisonBarPanel
               category="Difference"
-              leftName="Other"
-              leftValue={otherAssetsCombinedTotal}
-              leftFill="#64748b"
-              rightName="Income"
-              rightValue={incomeAssetCombinedTotal}
-              rightFill="#06b6d4"
-              domainMax={combinedTotalsDomainMax}
+              leftName="Value"
+              leftValue={Math.abs(valueDifference)}
+              leftFill="#06b6d4"
+              rightName="Premium"
+              rightValue={Math.abs(costDifference)}
+              rightUnit="/yr"
+              rightFill="#f59e0b"
+              domainMax={differenceDomainMax}
             />
           </div>
 
@@ -335,9 +334,9 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
           </div>
 
           <p className="mt-2 text-center text-[10px] leading-relaxed text-slate-500">
-            Each panel's bars share one scale, so bar height is proportional to actual value —{" "}
-            {combinedTotalsDifference >= 0 ? "income" : "other assets"} lead
-            {" "}by {formatCurrency(Math.abs(combinedTotalsDifference))}.
+            Each panel's bars share one scale, so bar height is proportional to actual value — income asset
+            {" "}{valueDifference >= 0 ? "leads" : "trails"} by {formatCurrency(Math.abs(valueDifference))} in value, and
+            {" "}{costDifference >= 0 ? "costs less" : "costs more"} to insure by {formatCurrency(Math.abs(costDifference))}/yr.
           </p>
         </CardContent>
       </Card>
