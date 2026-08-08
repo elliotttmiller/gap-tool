@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { Plus, Trash2 } from "lucide-react"
-import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import type { DisabilityInputs, DisabilityOtherAsset } from "../types"
@@ -34,9 +34,9 @@ function niceMax(value: number): number {
 
 function PanelTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null
-  const entry = payload.find((item: any) => Number(item.value) > 0) ?? payload[0]
+  const entry = payload[0]
   const value = Number(entry?.value ?? 0)
-  const suffix = entry?.payload?.[`${entry.dataKey}Unit`] ?? ""
+  const suffix = entry?.payload?.unit ?? ""
   return (
     <div className="rounded-xl border border-slate-700/60 bg-slate-900/95 px-3 py-2.5 text-xs shadow-2xl backdrop-blur">
       <p className="font-semibold text-slate-100">{label}</p>
@@ -72,10 +72,10 @@ function ComparisonBarPanel({
 }: ComparisonBarPanelProps) {
   const data = useMemo(
     () => [
-      { name: leftName, left: leftValue, right: 0, leftUnit, rightUnit },
-      { name: rightName, left: 0, right: rightValue, leftUnit, rightUnit },
+      { name: leftName, value: leftValue, fill: leftFill, unit: leftUnit },
+      { name: rightName, value: rightValue, fill: rightFill, unit: rightUnit },
     ],
-    [leftName, leftValue, leftUnit, rightName, rightValue, rightUnit],
+    [leftName, leftValue, leftFill, leftUnit, rightName, rightValue, rightFill, rightUnit],
   )
 
   return (
@@ -83,22 +83,17 @@ function ComparisonBarPanel({
       <p className="text-center text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">{category}</p>
       <div className="mx-auto h-56 w-full max-w-55">
         <ResponsiveContainer width="100%" height="100%" debounce={100}>
-          <BarChart data={data} margin={{ top: 26, right: 12, left: 12, bottom: 0 }} barCategoryGap="0%" barGap={0}>
+          <BarChart data={data} margin={{ top: 26, right: 12, left: 12, bottom: 4 }} barCategoryGap="30%" barGap={0}>
             <CartesianGrid stroke="rgba(148,163,184,0.08)" strokeDasharray="4 4" vertical={false} />
-            <XAxis dataKey="name" tick={false} tickLine={false} axisLine={false} />
+            <XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 11, fontWeight: 600 }} tickLine={false} axisLine={false} dy={6} interval={0} />
             <YAxis hide domain={[0, domainMax]} />
             <Tooltip content={<PanelTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
-            <Bar dataKey="left" name={leftName} fill={leftFill} radius={[6, 6, 0, 0]} barSize={90} minPointSize={(value) => (value > 0 ? 4 : 0)}>
+            <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={90} minPointSize={(value) => (value > 0 ? 4 : 0)}>
+              {data.map((entry) => (
+                <Cell key={entry.name} fill={entry.fill} />
+              ))}
               <LabelList
-                dataKey="left"
-                position="top"
-                formatter={(value: number) => (value ? formatCurrency(value) : "")}
-                style={{ fill: "#e2e8f0", fontSize: 11, fontWeight: 700 }}
-              />
-            </Bar>
-            <Bar dataKey="right" name={rightName} fill={rightFill} radius={[6, 6, 0, 0]} barSize={90} minPointSize={(value) => (value > 0 ? 4 : 0)}>
-              <LabelList
-                dataKey="right"
+                dataKey="value"
                 position="top"
                 formatter={(value: number) => (value ? formatCurrency(value) : "")}
                 style={{ fill: "#e2e8f0", fontSize: 11, fontWeight: 700 }}
@@ -180,8 +175,6 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
     () => niceMax(Math.max(netIncomeAsset, annualIncomeInsuranceCost, 1)),
     [netIncomeAsset, annualIncomeInsuranceCost],
   )
-
-  const costDifference = annualOtherAssetInsuranceCost - annualIncomeInsuranceCost
 
   // "Difference" panel: the two other-asset and income-asset totals (value + its
   // insurance cost) placed head-to-head on one shared scale for direct comparison.
@@ -302,10 +295,10 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
           <div className="grid gap-3 md:grid-cols-3">
             <ComparisonBarPanel
               category="Other Assets"
-              leftName="Asset Value"
+              leftName="Value"
               leftValue={totalAssetValue}
               leftFill="#64748b"
-              rightName="Insurance Cost"
+              rightName="Cost"
               rightValue={annualOtherAssetInsuranceCost}
               rightUnit="/yr"
               rightFill="#a855f7"
@@ -313,10 +306,10 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
             />
             <ComparisonBarPanel
               category="Income Asset"
-              leftName="Income Asset"
+              leftName="Asset"
               leftValue={netIncomeAsset}
               leftFill="#06b6d4"
-              rightName="Coverage Premium"
+              rightName="Premium"
               rightValue={annualIncomeInsuranceCost}
               rightUnit="/yr"
               rightFill="#f59e0b"
@@ -324,10 +317,10 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
             />
             <ComparisonBarPanel
               category="Difference"
-              leftName="Other Assets"
+              leftName="Other"
               leftValue={otherAssetsCombinedTotal}
               leftFill="#64748b"
-              rightName="Income Asset"
+              rightName="Income"
               rightValue={incomeAssetCombinedTotal}
               rightFill="#06b6d4"
               domainMax={combinedTotalsDomainMax}
@@ -346,23 +339,6 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
             {combinedTotalsDifference >= 0 ? "income" : "other assets"} lead
             {" "}by {formatCurrency(Math.abs(combinedTotalsDifference))}.
           </p>
-
-          <div className="mt-4 grid grid-cols-3 gap-3">
-            <div className="rounded-lg border border-gray-800 bg-gray-950/40 px-3 py-2.5">
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">Other Asset Insurance</p>
-              <p className="mt-0.5 text-lg font-semibold text-gray-100">{formatCurrency(annualOtherAssetInsuranceCost)}/yr</p>
-            </div>
-            <div className="rounded-lg border border-gray-800 bg-gray-950/40 px-3 py-2.5">
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">Income Insurance</p>
-              <p className="mt-0.5 text-lg font-semibold text-cyan-300">{formatCurrency(annualIncomeInsuranceCost)}/yr</p>
-            </div>
-            <div className="rounded-lg border border-gray-800 bg-gray-950/40 px-3 py-2.5">
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">Cost Difference</p>
-              <p className={`mt-0.5 text-lg font-semibold ${costDifference >= 0 ? "text-emerald-300" : "text-amber-300"}`}>
-                {formatCurrency(Math.abs(costDifference))}/yr
-              </p>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
