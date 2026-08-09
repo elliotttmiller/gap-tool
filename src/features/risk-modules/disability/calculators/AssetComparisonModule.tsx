@@ -114,18 +114,20 @@ function ComparisonColumn({ datum, columnIndex, valueMax, premiumMax, minimumBar
       <div className="mt-4 grid h-52 grid-cols-2 items-end gap-4 border-b border-slate-700/80 px-4">
         <div className="flex h-full min-w-0 flex-col justify-end">
           <div className="mb-2 text-center">
-            <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">Value</p>
-            <p className="mt-1 text-xs font-bold tabular-nums text-slate-100">{formatCurrency(datum.value)}</p>
+            <p className="text-xs font-bold tabular-nums text-slate-100">{formatCurrency(datum.value)}</p>
           </div>
           <InteractiveBar category={datum.name} metric="Value" value={datum.value} max={valueMax} color={datum.valueColor} delay={columnIndex * 140} minimumPct={minimumBarPct} scaleMode={scaleMode} />
         </div>
         <div className="flex h-full min-w-0 flex-col justify-end">
           <div className="mb-2 text-center">
-            <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">Annual premium</p>
-            <p className="mt-1 text-xs font-bold tabular-nums text-slate-100">{formatCurrency(datum.premium)}</p>
+            <p className="text-xs font-bold tabular-nums text-slate-100">{formatCurrency(datum.premium)}</p>
           </div>
           <InteractiveBar category={datum.name} metric="Annual premium" value={datum.premium} max={premiumMax} color={datum.premiumColor} delay={columnIndex * 140 + 70} minimumPct={minimumBarPct} scaleMode={scaleMode} />
         </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4 px-4 pt-2 text-center">
+        <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">Value</p>
+        <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">Annual premium</p>
       </div>
     </section>
   )
