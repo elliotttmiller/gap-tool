@@ -251,14 +251,14 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
         </CardHeader>
 
         <CardContent className="px-5 pb-5 pt-4">
-          <div className="mx-auto h-72 w-full max-w-2xl">
+          <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%" debounce={100}>
-              <BarChart data={chartData} margin={{ top: 26, right: 12, left: 12, bottom: 4 }} barCategoryGap="28%" barGap={0}>
+              <BarChart data={chartData} margin={{ top: 26, right: 36, left: 36, bottom: 8 }} barCategoryGap="32%" barGap={4}>
                 <CartesianGrid stroke="rgba(148,163,184,0.08)" strokeDasharray="4 4" vertical={false} />
                 <XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 11, fontWeight: 600 }} tickLine={false} axisLine={false} dy={6} interval={0} />
                 <YAxis hide domain={[0, chartDomainMax]} />
                 <Tooltip content={<ClusterTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
-                <Bar dataKey="value" name="Value" fill="#3b82f6" radius={[6, 6, 0, 0]} maxBarSize={56} minPointSize={(value) => (value > 0 ? 4 : 0)}>
+                <Bar dataKey="value" name="Value" fill="#3b82f6" radius={[6, 6, 0, 0]} maxBarSize={76} minPointSize={(value) => (value > 0 ? 4 : 0)}>
                   <LabelList
                     dataKey="value"
                     position="top"
@@ -266,7 +266,7 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
                     style={{ fill: "#e2e8f0", fontSize: 10, fontWeight: 700 }}
                   />
                 </Bar>
-                <Bar dataKey="premium" name="Premium" fill="#ef4444" radius={[6, 6, 0, 0]} maxBarSize={56} minPointSize={(value) => (value > 0 ? 4 : 0)}>
+                <Bar dataKey="premium" name="Premium" fill="#ef4444" radius={[6, 6, 0, 0]} maxBarSize={76} minPointSize={(value) => (value > 0 ? 4 : 0)}>
                   <LabelList
                     dataKey="premium"
                     position="top"
