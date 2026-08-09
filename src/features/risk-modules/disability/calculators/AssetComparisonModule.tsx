@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react"
-import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import type { DisabilityInputs, DisabilityOtherAsset } from "../types"
@@ -48,10 +48,19 @@ function ClusterTooltip({ active, payload, label }: any) {
   )
 }
 
-function LegendSwatch({ color, label }: { color: string; label: string }) {
+const PAIR_COLORS = [
+  { value: "#06b6d4", premium: "#f97316" },
+  { value: "#06b6d4", premium: "#f97316" },
+  { value: "#22c55e", premium: "#ef4444" },
+]
+
+function PairLegend({ label, valueColor, premiumColor }: { label: string; valueColor: string; premiumColor: string }) {
   return (
     <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400">
-      <span className="inline-block h-2.5 w-4 rounded-sm" style={{ backgroundColor: color }} />
+      <span className="inline-flex items-end gap-0.5" aria-hidden="true">
+        <span className="inline-block h-3 w-2 rounded-sm" style={{ backgroundColor: valueColor }} />
+        <span className="inline-block h-2 w-2 rounded-sm" style={{ backgroundColor: premiumColor }} />
+      </span>
       {label}
     </span>
   )
@@ -251,14 +260,15 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
         </CardHeader>
 
         <CardContent className="px-5 pb-5 pt-4">
-          <div className="h-80 w-full">
+          <div className="mx-auto h-80 w-full max-w-[52rem]">
             <ResponsiveContainer width="100%" height="100%" debounce={100}>
-              <BarChart data={chartData} margin={{ top: 26, right: 36, left: 36, bottom: 8 }} barCategoryGap="32%" barGap={4}>
+              <BarChart data={chartData} margin={{ top: 26, right: 20, left: 20, bottom: 8 }} barCategoryGap="16%" barGap={2}>
                 <CartesianGrid stroke="rgba(148,163,184,0.08)" strokeDasharray="4 4" vertical={false} />
                 <XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 11, fontWeight: 600 }} tickLine={false} axisLine={false} dy={6} interval={0} />
                 <YAxis hide domain={[0, chartDomainMax]} />
                 <Tooltip content={<ClusterTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
-                <Bar dataKey="value" name="Value" fill="#3b82f6" radius={[6, 6, 0, 0]} maxBarSize={76} minPointSize={(value) => (value > 0 ? 4 : 0)}>
+                <Bar dataKey="value" name="Value" radius={[6, 6, 0, 0]} maxBarSize={76} minPointSize={(value) => (value > 0 ? 4 : 0)}>
+                  {chartData.map((row, index) => <Cell key={`value-${row.name}`} fill={PAIR_COLORS[index].value} />)}
                   <LabelList
                     dataKey="value"
                     position="top"
@@ -266,7 +276,8 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
                     style={{ fill: "#e2e8f0", fontSize: 10, fontWeight: 700 }}
                   />
                 </Bar>
-                <Bar dataKey="premium" name="Premium" fill="#ef4444" radius={[6, 6, 0, 0]} maxBarSize={76} minPointSize={(value) => (value > 0 ? 4 : 0)}>
+                <Bar dataKey="premium" name="Premium" radius={[6, 6, 0, 0]} maxBarSize={76} minPointSize={(value) => (value > 0 ? 4 : 0)}>
+                  {chartData.map((row, index) => <Cell key={`premium-${row.name}`} fill={PAIR_COLORS[index].premium} />)}
                   <LabelList
                     dataKey="premium"
                     position="top"
@@ -279,8 +290,15 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
           </div>
 
           <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 border-t border-slate-800/60 pt-3">
-            <LegendSwatch color="#3b82f6" label="Value" />
-            <LegendSwatch color="#ef4444" label="Premium" />
+            {chartData.map((row, index) => (
+              <PairLegend
+                key={row.name}
+                label={row.name}
+                valueColor={PAIR_COLORS[index].value}
+                premiumColor={PAIR_COLORS[index].premium}
+              />
+            ))}
+            <span className="text-[10px] text-slate-500">Swatches: Value / Premium</span>
           </div>
 
         </CardContent>
