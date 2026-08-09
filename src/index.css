@@ -422,6 +422,20 @@
     animation: chart-reveal 2.8s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
+  @keyframes asset-comparison-bar-grow {
+    from { transform: scaleY(0); opacity: 0.35; }
+    to   { transform: scaleY(1); opacity: 1; }
+  }
+
+  .asset-comparison-bar {
+    transform-origin: center bottom;
+    animation: asset-comparison-bar-grow 850ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .asset-comparison-bar { animation: none; }
+  }
+
   .module-visual-dashboard {
     display: grid;
     gap: 1rem;

@@ -51,12 +51,14 @@ function formatMultiplier(value: number | null): string {
   return `${value.toFixed(2)}×`
 }
 
-function barHeight(value: number, max: number): string {
+function barHeight(value: number, max: number, minimumPct = 8, scaleMode: "linear" | "sqrt" = "linear"): string {
   if (value <= 0 || max <= 0) return "0%"
-  return `${Math.max(8, (value / max) * 100)}%`
+  const ratio = value / max
+  const scaledRatio = scaleMode === "sqrt" ? Math.sqrt(ratio) : ratio
+  return `${Math.max(minimumPct, scaledRatio * 100)}%`
 }
 
-function InteractiveBar({ category, metric, value, max, color }: { category: string; metric: string; value: number; max: number; color: string }) {
+function InteractiveBar({ category, metric, value, max, color, delay, minimumPct, scaleMode }: { category: string; metric: string; value: number; max: number; color: string; delay: number; minimumPct?: number; scaleMode?: "linear" | "sqrt" }) {
   const formattedValue = formatCurrency(value)
   return (
     <div
@@ -64,8 +66,9 @@ function InteractiveBar({ category, metric, value, max, color }: { category: str
       tabIndex={0}
       aria-label={`${category} ${metric.toLowerCase()}: ${formattedValue}`}
       className="group/bar relative mx-auto w-full max-w-20 cursor-default rounded-t-md outline-none transition duration-200 hover:-translate-y-0.5 hover:brightness-110 focus-visible:-translate-y-0.5 focus-visible:brightness-110"
-      style={{ height: barHeight(value, max), backgroundColor: color }}
+      style={{ height: barHeight(value, max, minimumPct, scaleMode) }}
     >
+      <span className="asset-comparison-bar pointer-events-none absolute inset-0 rounded-t-md" style={{ backgroundColor: color, animationDelay: `${delay}ms` }} />
       <span className="pointer-events-none absolute inset-0 rounded-t-md opacity-0 shadow-[0_0_22px_currentColor] transition-opacity duration-200 group-hover/bar:opacity-30 group-focus-visible/bar:opacity-30" style={{ color }} />
       <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 w-max max-w-44 -translate-x-1/2 translate-y-1 rounded-lg border border-slate-700/80 bg-slate-950/95 px-2.5 py-2 text-center opacity-0 shadow-xl backdrop-blur-sm transition-all duration-150 group-hover/bar:translate-y-0 group-hover/bar:opacity-100 group-focus-visible/bar:translate-y-0 group-focus-visible/bar:opacity-100">
         <span className="block text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">{category} · {metric}</span>
@@ -98,7 +101,7 @@ function ComparisonCard({ ratio }: { ratio: number | null }) {
   return (
     <ModuleMetricCard
       className="mt-3"
-      label="Cost comparison"
+      label="Cost efficiency comparison"
       value={formatMultiplier(ratio)}
       description={description}
       accent="green"
@@ -106,7 +109,7 @@ function ComparisonCard({ ratio }: { ratio: number | null }) {
   )
 }
 
-function ComparisonColumn({ datum, valueMax, premiumMax, children }: { datum: ComparisonDatum; valueMax: number; premiumMax: number; children: React.ReactNode }) {
+function ComparisonColumn({ datum, columnIndex, valueMax, premiumMax, minimumBarPct, scaleMode, children }: { datum: ComparisonDatum; columnIndex: number; valueMax: number; premiumMax: number; minimumBarPct?: number; scaleMode?: "linear" | "sqrt"; children: React.ReactNode }) {
   return (
     <section className="min-w-0 px-3 py-1 first:pl-0 last:pr-0 lg:border-l lg:border-slate-800/80 lg:first:border-l-0 lg:first:pl-0 lg:last:pr-0">
       <h3 className="text-center text-[11px] font-bold uppercase tracking-[0.17em] text-slate-100">{datum.name}</h3>
@@ -116,14 +119,14 @@ function ComparisonColumn({ datum, valueMax, premiumMax, children }: { datum: Co
             <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">Value</p>
             <p className="mt-1 text-xs font-bold tabular-nums text-slate-100">{formatCurrency(datum.value)}</p>
           </div>
-          <InteractiveBar category={datum.name} metric="Value" value={datum.value} max={valueMax} color={datum.valueColor} />
+          <InteractiveBar category={datum.name} metric="Value" value={datum.value} max={valueMax} color={datum.valueColor} delay={columnIndex * 140} minimumPct={minimumBarPct} scaleMode={scaleMode} />
         </div>
         <div className="flex h-full min-w-0 flex-col justify-end">
           <div className="mb-2 text-center">
             <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">Annual premium</p>
             <p className="mt-1 text-xs font-bold tabular-nums text-slate-100">{formatCurrency(datum.premium)}</p>
           </div>
-          <InteractiveBar category={datum.name} metric="Annual premium" value={datum.premium} max={premiumMax} color={datum.premiumColor} />
+          <InteractiveBar category={datum.name} metric="Annual premium" value={datum.premium} max={premiumMax} color={datum.premiumColor} delay={columnIndex * 140 + 70} minimumPct={minimumBarPct} scaleMode={scaleMode} />
         </div>
       </div>
       {children}
@@ -159,6 +162,7 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
   ]
   const valueMax = Math.max(...chartData.map((row) => row.value), 1)
   const premiumMax = Math.max(...chartData.map((row) => row.premium), 1)
+  const sourceAssetScaleMax = Math.max(chartData[0].value, chartData[0].premium, chartData[1].value, chartData[1].premium, 1)
 
   const commitAssetRows = (next: AssetPremiumRow[]) => {
     if (canEditAssets) onInputsChange!({ ...inputs!, otherAssets: next })
@@ -213,13 +217,13 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
           </div>
 
           <div className="mt-5 grid gap-6 lg:grid-cols-3 lg:gap-0">
-            <ComparisonColumn datum={chartData[0]} valueMax={valueMax} premiumMax={premiumMax}>
-              <EfficiencyCard label="Other asset efficiency" rate={otherCostPerThousand} accent="blue" />
+            <ComparisonColumn datum={chartData[0]} columnIndex={0} valueMax={sourceAssetScaleMax} premiumMax={sourceAssetScaleMax} minimumBarPct={1} scaleMode="sqrt">
+              <EfficiencyCard label="Other Asset" rate={otherCostPerThousand} accent="blue" />
             </ComparisonColumn>
-            <ComparisonColumn datum={chartData[1]} valueMax={valueMax} premiumMax={premiumMax}>
-              <EfficiencyCard label="Income asset efficiency" rate={incomeCostPerThousand} accent="cyan" />
+            <ComparisonColumn datum={chartData[1]} columnIndex={1} valueMax={sourceAssetScaleMax} premiumMax={sourceAssetScaleMax} minimumBarPct={1} scaleMode="sqrt">
+              <EfficiencyCard label="Income Asset" rate={incomeCostPerThousand} accent="cyan" />
             </ComparisonColumn>
-            <ComparisonColumn datum={chartData[2]} valueMax={valueMax} premiumMax={premiumMax}>
+            <ComparisonColumn datum={chartData[2]} columnIndex={2} valueMax={valueMax} premiumMax={premiumMax}>
               <ComparisonCard ratio={costRatio} />
             </ComparisonColumn>
           </div>
