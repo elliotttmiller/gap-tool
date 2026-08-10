@@ -14,9 +14,8 @@ export const defaultGlobalPlanningAssumptions: GlobalPlanningAssumptions = {
 export const defaultLifeMethodologyAssumptions: LifeMethodologyAssumptions = {
   ...defaultGlobalPlanningAssumptions,
   incomeReplacementRatio: 0.7,
-  targetIncomeSupportPct: 0.85,
-  coverageRoi: 0.06,
-  deathBenefitDiscountRate: 0.05,
+  netIncomeFactor: 0.85,
+  pvReferenceRate: 0.05,
 }
 
 export const defaultLiabilityMethodologyAssumptions: LiabilityMethodologyAssumptions = {

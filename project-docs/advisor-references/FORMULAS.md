@@ -40,11 +40,11 @@ Primary files:
 ```ts
 annualNetIncomeNeed = max(
   0,
-  annualIncome × incomeReplacementRatio − spouseAnnualIncome
+  (annualIncome × incomeReplacementRatio + spouseAnnualIncome) × netIncomeFactor
 )
 ```
 
-This is the modeled annual net income need before annual growth is applied. Life insurance death benefits are generally income-tax-free, so the benefit amount is not grossed down for taxes.
+Spouse/partner income is an additional income stream to replace, not an offset. This is the modeled annual net income need before annual growth is applied. Life insurance death benefits are generally income-tax-free, so the benefit amount is not grossed down for taxes.
 
 ## 1.2 Projected annual net income need
 
@@ -64,16 +64,16 @@ Default:
 targetIncomeSupportPct = 0.85
 ```
 
-Annual target stream:
+Annual target stream (the projected net-income stream):
 
 ```ts
-targetIncomeNeed[year] = projectedNetIncomeNeed[year] × targetIncomeSupportPct
+targetIncomeNeed[year] = projectedNetIncomeNeed[year]
 ```
 
 Total advisor-facing target death benefit need:
 
 ```ts
-targetDeathBenefitNeed = Σ targetIncomeNeed[year]
+targetDeathBenefitNeed = PV(targetIncomeNeed, pvReferenceRate)
 ```
 
 This target is intentionally the main fully-covered threshold. It avoids the old behavior where a lower PV number could make the UI say “Fully Covered” while the advisor-facing death benefit need was still higher.
@@ -135,25 +135,25 @@ The module may still calculate a PV reference, but this does not drive the main 
 pvOfTargetNeed = Σ targetIncomeNeed[year] / (1 + roi)^(yearIndex + 1)
 ```
 
-## 1.10 Coverage Runway Scenario
+## 1.10 Covered Runway Scenario
 
-The previous Max W/D Rate language has been replaced with a Coverage Runway / Asset Return model.
+The previous Max W/D Rate language has been replaced with a Covered Runway model using the same PV Reference Rate as Safe Income Coverage.
 
 ```ts
 balance = coverageResources
 
 for each year:
-  balance = balance × (1 + maxCoverageRoi)
-  maxCovered = min(balance, projectedNetIncomeNeed[year])
-  annualGap = max(0, projectedNetIncomeNeed[year] − maxCovered)
-  balance = max(0, balance − maxCovered)
+  balance = balance × (1 + pvReferenceRate)
+  runwayIncomeCovered = min(balance, projectedNetIncomeNeed[year])
+  annualGap = max(0, projectedNetIncomeNeed[year] − runwayIncomeCovered)
+  balance = max(0, balance − runwayIncomeCovered)
 ```
 
 Outputs:
 
 ```ts
 yearsOfFullCoverage = count(years where annualGap == 0)
-totalIncomeReplaced = Σ maxCovered
+totalNetIncomeReplaced = Σ runwayIncomeCovered
 survivorGap = Σ annualGap
 deathBenefitNeeded = PV(annualGap stream)
 ```

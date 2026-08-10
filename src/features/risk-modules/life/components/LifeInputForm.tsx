@@ -1,8 +1,7 @@
-import { LifeInputs, LifePolicyType } from "../types"
+import { LifeInputs } from "../types"
 import { Label } from "@/components/ui/label"
 import { Input, type InputProps } from "@/components/ui/input"
 import { CollapsibleInputSection } from "@/components/ui/collapsible-input-section"
-import { ThemedSelect } from "@/components/ThemedSelect"
 
 
 /** Convert a decimal rate (0.04) to a display percentage value (4). */
@@ -26,7 +25,6 @@ function parseFiniteOrZero(value: string): number {
 interface LifeInputFormProps {
   inputs: LifeInputs
   onChange: (inputs: LifeInputs) => void
-  showMaxCoverageRoiInput?: boolean
 }
 
 function AffixedInput({
@@ -45,23 +43,11 @@ function AffixedInput({
   )
 }
 
-export function LifeInputForm({ inputs, onChange, showMaxCoverageRoiInput = false }: LifeInputFormProps) {
-  const isMaxModule = showMaxCoverageRoiInput
-
+export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
   const handleNumberChange = (field: keyof LifeInputs, value: string) => {
     const numericValue = parseFiniteOrZero(value)
     onChange({ ...inputs, [field]: numericValue })
   }
-
-  const handlePolicyTypeChange = (value: LifePolicyType) => {
-    onChange({ ...inputs, privateLifePolicyType: value })
-  }
-
-  const policyType = inputs.privateLifePolicyType ?? "term"
-  const coverageDetailsGridCols =
-    policyType === "term"
-      ? "sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.35fr)]"
-      : "sm:grid-cols-2"
 
   return (
     <div className="space-y-4">
@@ -95,17 +81,7 @@ export function LifeInputForm({ inputs, onChange, showMaxCoverageRoiInput = fals
               <AffixedInput id="privateLifeCoverage" type="number" prefix="$" value={inputs.privateLifeCoverage || ""} className="w-full" onChange={(e) => handleNumberChange("privateLifeCoverage", e.target.value)} />
             </div>
           </div>
-          <div className={`grid grid-cols-1 gap-3 ${coverageDetailsGridCols}`}>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="privateLifePolicyType">Policy Type</Label>
-              <ThemedSelect id="privateLifePolicyType" ariaLabel="Policy Type" value={policyType} onValueChange={(value) => handlePolicyTypeChange(value as LifePolicyType)} options={[{ value: "term", label: "Term" }, { value: "permanent", label: "Permanent" }]} />
-            </div>
-            {policyType === "term" ? (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="privateLifeTermYears">Term Length</Label>
-                <AffixedInput id="privateLifeTermYears" type="number" suffix="yr" value={inputs.privateLifeTermYears || ""} className="w-full" onChange={(e) => handleNumberChange("privateLifeTermYears", e.target.value)} />
-              </div>
-            ) : null}
+          <div className="grid grid-cols-1 gap-3">
             <div className="flex flex-col gap-2">
               <Label htmlFor="nonQualifiedAssets" className="whitespace-nowrap">Non-Qualified Assets</Label>
               <AffixedInput id="nonQualifiedAssets" type="number" prefix="$" value={inputs.nonQualifiedAssets || ""} className="w-full" onChange={(e) => handleNumberChange("nonQualifiedAssets", e.target.value)} />
@@ -115,33 +91,26 @@ export function LifeInputForm({ inputs, onChange, showMaxCoverageRoiInput = fals
 
       <CollapsibleInputSection title="Income Gap Analysis" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {!isMaxModule ? (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="targetIncomeSupportPct">Net Income Factor</Label>
+            <div className="flex flex-col gap-2">
+                <Label htmlFor="netIncomeFactor">Net Income Factor</Label>
                 <AffixedInput
-                  id="targetIncomeSupportPct"
+                  id="netIncomeFactor"
                   type="number"
                   min={0}
                   max={100}
                   step={5}
                   suffix="%"
-                  value={toPercent(inputs.targetIncomeSupportPct ?? inputs.safeIncomeCoveragePct ?? 0.85) || ""}
+                  value={toPercent(inputs.netIncomeFactor ?? inputs.targetIncomeSupportPct ?? inputs.safeIncomeCoveragePct ?? 0.85) || ""}
                   className="w-full"
-                  onChange={(e) => onChange({ ...inputs, targetIncomeSupportPct: fromPercent(e.target.value), safeIncomeCoveragePct: fromPercent(e.target.value) })}
+                  onChange={(e) => onChange({ ...inputs, netIncomeFactor: fromPercent(e.target.value) })}
                   placeholder="85"
                 />
                 <p className="text-[10px] leading-snug text-gray-500">Percentage of gross annual income used to calculate projected net income. Coverage support is then calculated from entered death benefit/resources.</p>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="maxCoverageRoi">Asset Return Rate</Label>
-                <AffixedInput id="maxCoverageRoi" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.maxCoverageRoi ?? 0.06) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, maxCoverageRoi: fromPercent(e.target.value) })} placeholder="6" />
-              </div>
-            )}
+            </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="incomeGapRoi">PV Reference Rate</Label>
               <AffixedInput id="incomeGapRoi" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.incomeGapRoi ?? 0.05) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, incomeGapRoi: fromPercent(e.target.value) })} placeholder="5" />
-              <p className="text-[10px] leading-snug text-gray-500">Used for present-value reference figures, not the main fully-covered threshold.</p>
+              <p className="text-[10px] leading-snug text-gray-500">Used by both Safe Income Coverage and the Covered Runway Scenario.</p>
             </div>
           </div>
       </CollapsibleInputSection>
@@ -160,8 +129,9 @@ export function LifeInputForm({ inputs, onChange, showMaxCoverageRoiInput = fals
             <AffixedInput id="finalExpenses" type="number" prefix="$" value={inputs.finalExpenses || ""} className="w-full" onChange={(e) => handleNumberChange("finalExpenses", e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="spouseAnnualIncome">Spouse / Partner Annual Income</Label>
+            <Label htmlFor="spouseAnnualIncome">Spouse / Partner Income to Replace</Label>
             <AffixedInput id="spouseAnnualIncome" type="number" prefix="$" value={inputs.spouseAnnualIncome || ""} className="w-full" onChange={(e) => handleNumberChange("spouseAnnualIncome", e.target.value)} />
+            <p className="text-[10px] leading-snug text-gray-500">Adds the spouse/partner's income to the modeled need when the plan should replace both incomes.</p>
           </div>
       </CollapsibleInputSection>
     </div>

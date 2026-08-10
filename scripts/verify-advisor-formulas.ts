@@ -84,14 +84,11 @@ const lifeBaseInputs = {
   incomeReplacementRatio: 0.7,
   groupLifeCoverage: 300_000,
   privateLifeCoverage: 500_000,
-  privateLifePolicyType: "term" as const,
-  privateLifeTermYears: 20,
   nonQualifiedAssets: 0,
   debtsTotal: 0,
   educationGoal: 0,
   finalExpenses: 0,
   targetIncomeSupportPct: 0.85,
-  maxCoverageRoi: 0.06,
   incomeGapRoi: 0.06,
 }
 const lifeAssumptions = {
@@ -106,8 +103,18 @@ const lifeAt70 = calculateIncomeGapScenarios(lifeBaseInputs, lifeAssumptions)
 const lifeAt80 = calculateIncomeGapScenarios({ ...lifeBaseInputs, incomeReplacementRatio: 0.8 }, lifeAssumptions)
 assert.ok(lifeAt80.module1.projectedNetIncomeTotal > lifeAt70.module1.projectedNetIncomeTotal)
 assert.ok(lifeAt80.module1.targetIncomeSupportTotal > lifeAt70.module1.targetIncomeSupportTotal)
-approximately(lifeAt70.module1.yearlyData[0].projectedIncome, 140_000)
+approximately(lifeAt70.module1.yearlyData[0].projectedIncome, 119_000)
 approximately(lifeAt70.module1.yearlyData[0].targetIncomeNeed, 119_000)
+
+// Life income modeling replaces, rather than offsets, a spouse/partner income.
+const lifeWithSpouseIncome = calculateIncomeGapScenarios(
+  { ...lifeBaseInputs, spouseAnnualIncome: 50_000 },
+  lifeAssumptions,
+)
+approximately(lifeWithSpouseIncome.module1.yearlyData[0].projectedIncome, 161_500)
+assert.ok(lifeWithSpouseIncome.module1.targetDeathBenefitNeed > lifeAt70.module1.targetDeathBenefitNeed)
+assert.ok(lifeWithSpouseIncome.module2.projectedNetIncomeTotal > lifeAt70.module2.projectedNetIncomeTotal)
+
 
 const unemployment = calculateUnemploymentGap({
   annualIncome: 300_000,

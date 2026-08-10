@@ -9,7 +9,7 @@ import { useParams } from "react-router-dom"
 import { RiskModulePage, ModuleNotIncluded } from "./RiskModulePage"
 
 export function LifeModulePage() {
-  const [incomeGapTab, setIncomeGapTab] = useState<"safe" | "max">("safe")
+  const [incomeGapTab, setIncomeGapTab] = useState<"safe" | "runway">("safe")
   const { scenarioId } = useParams()
   const moduleState = useAppStore((state) =>
     scenarioId ? state.moduleRecordsByScenarioId[scenarioId]?.life : undefined,
@@ -41,7 +41,7 @@ export function LifeModulePage() {
     <RiskModulePage
       title="Life Insurance Risk Analysis"
       subtitle="If I die prematurely, what financial support disappears for my family?"
-      formSlot={<LifeInputForm inputs={moduleState.inputs} onChange={(next) => updateInputs(scenarioId, next)} showMaxCoverageRoiInput={incomeGapTab === "max"} />}
+      formSlot={<LifeInputForm inputs={moduleState.inputs} onChange={(next) => updateInputs(scenarioId, next)} />}
       outputSlot={<LifeOutputView outputs={outputs} inputs={moduleState.inputs} assumptions={moduleState.assumptions} incomeGapOutputs={incomeGapOutputs} activeTab={incomeGapTab} onActiveTabChange={setIncomeGapTab} />}
     />
   )

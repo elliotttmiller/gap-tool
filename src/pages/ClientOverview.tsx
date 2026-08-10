@@ -135,11 +135,9 @@ export function ClientOverview() {
 
         <div className="space-y-4">
           <SectionTitle title="Existing Coverage — Primary Earner" />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             <Field label="Group Life death benefit ($)"><Input type="number" min={0} value={form.groupLifeCoverage} onChange={(event) => setField("groupLifeCoverage", event.target.value)} /></Field>
             <Field label="Private Life death benefit ($)"><Input type="number" min={0} value={form.privateLifeCoverage} onChange={(event) => setField("privateLifeCoverage", event.target.value)} /></Field>
-            <Field label="Policy Type"><ThemedSelect value={form.privateLifePolicyType} onValueChange={(value) => setField("privateLifePolicyType", value as "term" | "permanent")} options={[{ value: "term", label: "Term" }, { value: "permanent", label: "Permanent" }]} /></Field>
-            <Field label="Term Length">{form.privateLifePolicyType === "term" ? <Input type="number" min={0} value={form.privateLifeTermYears} onChange={(event) => setField("privateLifeTermYears", event.target.value)} /> : <Input value="Permanent" disabled />}</Field>
             <Field label="Non-qualified assets ($)"><Input type="number" min={0} value={form.nonQualifiedAssets} onChange={(event) => setField("nonQualifiedAssets", event.target.value)} /></Field>
           </div>
         </div>
@@ -166,16 +164,14 @@ export function ClientOverview() {
 
         {isCouple ? (
           <div className="space-y-4">
-            <SectionTitle title="Secondary Earner" description="Shown only when the client type is Couple." />
+            <SectionTitle title="Secondary Earner" description="Annual income is added to the Life need when both incomes should be replaced." />
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <Field label="Full name"><Input value={form.spouseName} onChange={(event) => setField("spouseName", event.target.value)} /></Field>
               <Field label="Current age"><Input type="number" min={18} max={64} value={form.spouseAge} onChange={(event) => setField("spouseAge", event.target.value)} /></Field>
-              <Field label="Annual income ($)"><Input type="number" min={0} value={form.spouseAnnualIncome} onChange={(event) => setField("spouseAnnualIncome", event.target.value)} /></Field>
+              <Field label="Annual income to replace ($)"><Input type="number" min={0} value={form.spouseAnnualIncome} onChange={(event) => setField("spouseAnnualIncome", event.target.value)} /></Field>
               <Field label="Non-qualified assets ($)"><Input type="number" min={0} value={form.spouseNonQualifiedAssets} onChange={(event) => setField("spouseNonQualifiedAssets", event.target.value)} /></Field>
               <Field label="Group Life death benefit ($)"><Input type="number" min={0} value={form.spouseGroupLifeCoverage} onChange={(event) => setField("spouseGroupLifeCoverage", event.target.value)} /></Field>
               <Field label="Private Life death benefit ($)"><Input type="number" min={0} value={form.spousePrivateLifeCoverage} onChange={(event) => setField("spousePrivateLifeCoverage", event.target.value)} /></Field>
-              <Field label="Policy Type"><ThemedSelect value={form.spousePrivateLifePolicyType} onValueChange={(value) => setField("spousePrivateLifePolicyType", value as "term" | "permanent")} options={[{ value: "term", label: "Term" }, { value: "permanent", label: "Permanent" }]} /></Field>
-              <Field label="Term Length">{form.spousePrivateLifePolicyType === "term" ? <Input type="number" min={0} value={form.spousePrivateLifeTermYears} onChange={(event) => setField("spousePrivateLifeTermYears", event.target.value)} /> : <Input value="Permanent" disabled />}</Field>
             </div>
           </div>
         ) : null}

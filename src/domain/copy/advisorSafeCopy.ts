@@ -18,7 +18,7 @@ export const advisorSafeCopy = {
     deathBenefitNeeded:
       "Additional Death Benefit Needed is the modeled target death benefit need minus entered resources. Present-value figures may be shown as reference items, but they do not drive the main fully-covered status.",
     netIncomeNote:
-      "Income figures reflect modeled net income need after applying the income replacement ratio and any spouse income offset. Life insurance death benefits are generally income-tax-free; no gross-to-net conversion is applied to benefit amounts.",
+      "Income figures reflect modeled net income need after applying the income replacement ratio and adding any spouse or partner income selected for replacement. Life insurance death benefits are generally income-tax-free; no gross-to-net conversion is applied to benefit amounts.",
     fullyCoveredNote:
       "Entered coverage resources appear sufficient to fund the modeled target income support stream. Review whenever income, coverage, or family circumstances change.",
   },

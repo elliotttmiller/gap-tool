@@ -1,4 +1,4 @@
-import type { LifeInputs, LifeAssumptions, LifeOutputs, LifePolicyType } from "@/features/risk-modules/life/types"
+import type { LifeInputs, LifeAssumptions, LifeOutputs } from "@/features/risk-modules/life/types"
 import type { DisabilityInputs, DisabilityAssumptions, DisabilityOutputs, DiBenefitPeriod } from "@/features/risk-modules/disability/types"
 import type { UnemploymentInputs, UnemploymentOutputs } from "@/features/risk-modules/unemployment/types"
 import type { LiabilityInputs, LiabilityOutputs } from "@/features/risk-modules/liability/types"
@@ -34,12 +34,8 @@ export interface ClientFinancialProfile {
   finalExpenses?: number
   groupLifeCoverage?: number
   privateLifeCoverage?: number
-  privateLifePolicyType?: LifePolicyType
-  privateLifeTermYears?: number
   spouseGroupLifeCoverage?: number
   spousePrivateLifeCoverage?: number
-  spousePrivateLifePolicyType?: LifePolicyType
-  spousePrivateLifeTermYears?: number
   nonQualifiedAssets?: number
   spouseNonQualifiedAssets?: number
   employerStdBenefitMonthly?: number
@@ -148,8 +144,6 @@ export interface CreateClientPayload {
   emergencySavings?: number
   groupLifeCoverage?: number
   privateLifeCoverage?: number
-  privateLifePolicyType?: LifePolicyType
-  privateLifeTermYears?: number
   nonQualifiedAssets?: number
   ltdCoveragePercent?: number
   ltdMonthlyCap?: number
@@ -164,8 +158,6 @@ export interface CreateClientPayload {
   spouseAnnualIncome?: number
   spouseGroupLifeCoverage?: number
   spousePrivateLifeCoverage?: number
-  spousePrivateLifePolicyType?: LifePolicyType
-  spousePrivateLifeTermYears?: number
   spouseNonQualifiedAssets?: number
   homeEquity?: number
   autoLiabilityLimit?: number
