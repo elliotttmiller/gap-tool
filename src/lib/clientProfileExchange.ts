@@ -129,19 +129,12 @@ export function parseClientProfileFile(contents: string): ClientProfileImportRes
     }
   }
 
-  const clients: CreateClientPayload[] = result.data.clients.map((client) => ({
-    ...client,
-    firstName: client.firstName,
-    lastName: client.lastName,
-    age: client.age,
-    expectedRetirementAge: client.expectedRetirementAge,
-    annualIncome: client.annualIncome,
-  }))
+  const clients = result.data.clients as CreateClientPayload[]
   return { ok: true, clients }
 }
 
-function safeFileName(value: string): string {
-  const normalized = value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+function safeFileName(value?: string): string {
+  const normalized = (value ?? "client").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
   return normalized || "client"
 }
 

@@ -124,9 +124,12 @@ export function ExportAllClientsButton({ clients }: { clients: ClientRecord[] })
   return <Button variant="secondary" disabled={!clients.length} onClick={() => downloadClientProfileFile(clients, "all-clients")}><RiDownload2Line className="size-4" />Export All</Button>
 }
 
-export function ExportClientButton({ client, compact = false }: { client: ClientRecord; compact?: boolean }) {
+export function ExportClientButton({ client, compact = false, disabled = false }: { client: ClientRecord; compact?: boolean; disabled?: boolean }) {
+  const clientName = client.displayName?.trim() || `${client.firstName} ${client.lastName}`.trim() || "client"
+  const title = disabled ? "Save changes before exporting this client profile" : "Export client profile"
+
   if (compact) {
-    return <button type="button" aria-label={`Export ${client.displayName}`} title="Export client profile" className="rounded-md p-1.5 text-[#80d5db] transition-colors hover:bg-brand-500/15 hover:text-[#b0e5e9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400" onClick={() => downloadClientProfileFile([client], client.displayName)}><RiDownload2Line className="size-4" aria-hidden="true" /></button>
+    return <button type="button" disabled={disabled} aria-label={`Export ${clientName}`} title={title} className="rounded-md p-1.5 text-[#80d5db] transition-colors hover:bg-brand-500/15 hover:text-[#b0e5e9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 disabled:cursor-not-allowed disabled:text-gray-600 disabled:hover:bg-transparent" onClick={() => downloadClientProfileFile([client], clientName)}><RiDownload2Line className="size-4" aria-hidden="true" /></button>
   }
-  return <Button variant="secondary" onClick={() => downloadClientProfileFile([client], client.displayName)}><RiDownload2Line className="size-4" />Export Profile</Button>
+  return <Button variant="secondary" disabled={disabled} title={title} onClick={() => downloadClientProfileFile([client], clientName)}><RiDownload2Line className="size-4" />Export Profile</Button>
 }

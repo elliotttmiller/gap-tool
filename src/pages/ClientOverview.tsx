@@ -48,6 +48,7 @@ export function ClientOverview() {
   const [form, setForm] = useState<ClientFormState | null>(() => client ? formFromClient(client) : null)
 
   const scenarioCount = useMemo(() => scenarios.filter((scenario) => scenario.clientId === clientId && scenario.status !== "archived").length, [clientId, scenarios])
+  const isDirty = useMemo(() => client && form ? JSON.stringify(form) !== JSON.stringify(formFromClient(client)) : false, [client, form])
 
   if (!client || !form || client.status === "archived") {
     return (
@@ -95,7 +96,7 @@ export function ClientOverview() {
         </div>
         <div className="flex shrink-0 items-center gap-3">
           {savedAt ? <span className="text-sm text-emerald-400">Saved {savedAt}</span> : null}
-          <ExportClientButton client={client} />
+          <ExportClientButton client={client} disabled={isDirty} />
           <Button disabled={!canSave} onClick={saveChanges}>
             <RiSave3Line className="size-4" />
             Save Changes
