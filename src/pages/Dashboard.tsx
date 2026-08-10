@@ -11,6 +11,7 @@ import {
 } from "@/components/Drawer"
 import { Input } from "@/components/Input"
 import { ThemedSelect } from "@/components/ThemedSelect"
+import { ExportAllClientsButton, ExportClientButton, ImportClientsDrawer } from "@/features/client-profiles/ClientProfileActions"
 import type { DiBenefitPeriod } from "@/features/risk-modules/disability/types"
 import { ClientRecord, RiskModuleType, useAppStore } from "@/lib/store"
 import { cx, formatDate } from "@/lib/utils"
@@ -173,12 +174,16 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <div>
           <h1 className="text-2xl font-semibold text-gray-50">Client Setup</h1>
           <p className="mt-1 text-sm text-gray-400">Enter client information to generate a personalized gap analysis across all advisor modules.</p>
         </div>
-        <AddClientDrawer />
+        <div className="flex flex-wrap items-center gap-2">
+          <ImportClientsDrawer />
+          <ExportAllClientsButton clients={clients} />
+          <AddClientDrawer />
+        </div>
       </div>
 
       {clients.length ? (
@@ -220,6 +225,7 @@ export function Dashboard() {
                     </div>
                     <div className="flex items-center gap-1.5">
                       {firstScenario ? <Link to={`/scenarios/${firstScenario.id}/${firstScenario.activeModule}`} className="rounded-lg border border-brand-400/25 bg-brand-500/10 px-3 py-1.5 text-sm font-semibold text-[#80d5db] transition-colors hover:border-brand-300/50 hover:bg-brand-500/20 hover:text-[#e6f7f8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400">Open Review</Link> : null}
+                      <ExportClientButton client={client} compact />
                       {hasGeneratedReview ? <RiskReviewDrawer client={client} mode="regenerate" /> : <RiskReviewDrawer client={client} mode="generate" />}
                       <RemoveClientDrawer client={client} scenarioCount={scenarioCount} />
                     </div>

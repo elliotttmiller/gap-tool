@@ -2,6 +2,7 @@ import { Button } from "@/components/Button"
 import { Card } from "@/components/Card"
 import { Input } from "@/components/Input"
 import { ThemedSelect } from "@/components/ThemedSelect"
+import { ExportClientButton } from "@/features/client-profiles/ClientProfileActions"
 import type { DiBenefitPeriod } from "@/features/risk-modules/disability/types"
 import { useAppStore } from "@/lib/store"
 import { cx } from "@/lib/utils"
@@ -94,6 +95,7 @@ export function ClientOverview() {
         </div>
         <div className="flex shrink-0 items-center gap-3">
           {savedAt ? <span className="text-sm text-emerald-400">Saved {savedAt}</span> : null}
+          <ExportClientButton client={client} />
           <Button disabled={!canSave} onClick={saveChanges}>
             <RiSave3Line className="size-4" />
             Save Changes
