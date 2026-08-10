@@ -65,8 +65,6 @@ export interface LiabilityOutputs {
    * Retained for saved-output and export compatibility.
    */
   illustrativeUmbrellaCoverageLevel: number;
-  /** @deprecated Use neededUmbrellaCoverage. */
-  umbrellaCoverageShortfall: number;
 
   assumptionGarnishmentRate: number;
   assumptionIncomeGrowthRate: number;

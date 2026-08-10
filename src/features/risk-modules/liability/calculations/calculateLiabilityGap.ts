@@ -94,7 +94,6 @@ export function calculateLiabilityGap(inputs: LiabilityInputs): LiabilityOutputs
     ? Math.ceil(householdLiabilityGap / umbrellaBlockSize) * umbrellaBlockSize
     : 0;
   const illustrativeUmbrellaCoverageLevel = householdUmbrellaCoverage + neededUmbrellaCoverage;
-  const umbrellaCoverageShortfall = neededUmbrellaCoverage;
 
   return {
     exposureSchedule,
@@ -114,7 +113,6 @@ export function calculateLiabilityGap(inputs: LiabilityInputs): LiabilityOutputs
     householdLiabilityGap,
     neededUmbrellaCoverage,
     illustrativeUmbrellaCoverageLevel,
-    umbrellaCoverageShortfall,
     assumptionGarnishmentRate: garnishmentRate,
     assumptionIncomeGrowthRate: incomeGrowthRate,
     assumptionDisposableIncomeRatio: disposableIncomeRatio,
