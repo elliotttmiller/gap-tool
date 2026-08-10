@@ -87,7 +87,7 @@ function RunwayMetricBoxes({ m2, projectionEndAge, selectedAge }: { m2: IncomeGa
     const status = getRunwayCoverageStatus(selected.runwayIncomeCovered, selected.projectedIncome)
     return (
       <div className="life-metric-grid life-metric-grid--runway">
-        <ModuleMetricCard className={compactCardClass} label={`Projected Net Income at Age ${selected.age}`} value={formatCurrency(selected.projectedIncome)} description="Annual projected need" accent="slate" />
+        <ModuleMetricCard className={compactCardClass} label={`Proj. Net Income at Age ${selected.age}`} value={formatCurrency(selected.projectedIncome)} description="Annual projected need" accent="slate" />
         <ModuleMetricCard className={compactCardClass} label={`Coverage at Age ${selected.age}`} value={status.label} description={`${formatRatePctOneDecimal(status.coverageRate)} covered. ${status.description}`} accent={status.accent} />
         <ModuleMetricCard className={compactCardClass} label={`Net Income Replaced at Age ${selected.age}`} value={formatCurrency(selected.runwayIncomeCovered)} description="Covered by resource pool" accent="cyan" />
         <ModuleMetricCard className={compactCardClass} label={`Income Gap at Age ${selected.age}`} value={formatCurrency(selected.runwayIncomeGap)} description="Projected net need minus amount covered" accent={selected.runwayIncomeGap > 0 ? "red" : "green"} />
@@ -97,7 +97,7 @@ function RunwayMetricBoxes({ m2, projectionEndAge, selectedAge }: { m2: IncomeGa
   }
   return (
     <div className="life-metric-grid life-metric-grid--runway">
-      <ModuleMetricCard className={compactCardClass} label={`Projected Net Income to Age ${projectionEndAge}`} value={formatCurrency(m2.projectedNetIncomeTotal)} description="Total projected net income need" accent="slate" />
+      <ModuleMetricCard className={compactCardClass} label={`Proj. Net Income to Age ${projectionEndAge}`} value={formatCurrency(m2.projectedNetIncomeTotal)} description="Total projected net income need" accent="slate" />
       <ModuleMetricCard className={compactCardClass} label="Years of Full Coverage" value={<>{Math.floor(m2.yearsOfFullCoverage)}<span className="text-sm font-normal text-gray-400"> Years</span></>} description={m2.yearsOfFullCoverage > 0 ? `Ages ${m2.startCoverageAge}–${m2.endCoverageAge}` : "No full coverage years"} accent={m2.yearsOfFullCoverage > 0 ? "green" : "red"} />
       <ModuleMetricCard className={compactCardClass} label="Total Net Income Replaced" value={formatCurrency(m2.totalIncomeReplaced)} description="Covered by resource pool" accent="cyan" />
       <ModuleMetricCard className={compactCardClass} label="Survivor Gap" value={formatCurrency(m2.survivorGap)} description="Projected minus replaced" accent={hasGap ? "red" : "green"} />
@@ -117,7 +117,7 @@ function SafeIncomeMetricBoxes({ m1, projectionEndAge, selectedAge }: { m1: Inco
     const selectedCoveragePct = selected.projectedIncome > 0 ? selected.safeIncomeCoverage / selected.projectedIncome : 0
     return (
       <div className="life-metric-grid life-metric-grid--runway">
-        <ModuleMetricCard className={compactCardClass} label={`Projected Net Income at Age ${selected.age}`} value={formatCurrency(selected.projectedIncome)} description="Annual projected net income need" accent="slate" />
+        <ModuleMetricCard className={compactCardClass} label={`Proj. Net Income at Age ${selected.age}`} value={formatCurrency(selected.projectedIncome)} description="Annual projected net income need" accent="slate" />
         <ModuleMetricCard className={compactCardClass} label="Income Support Rate" value={formatRatePctOneDecimal(selectedCoveragePct)} description="Constant support ratio applied across the projection schedule" accent={selectedCoveragePct > 0 ? "green" : "red"} />
         <ModuleMetricCard className={compactCardClass} label={`Income Supported at Age ${selected.age}`} value={formatCurrency(selected.safeIncomeCoverage)} description="Annual income backed by resources" accent="green" />
         <ModuleMetricCard className={compactCardClass} label={`Income Gap at Age ${selected.age}`} value={formatCurrency(selected.incomeGap)} description="Target support minus supported income" accent={selected.incomeGap > 0 ? "red" : "green"} />
@@ -128,7 +128,7 @@ function SafeIncomeMetricBoxes({ m1, projectionEndAge, selectedAge }: { m1: Inco
 
   return (
     <div className="life-metric-grid life-metric-grid--runway">
-      <ModuleMetricCard className={compactCardClass} label={`Projected Net Income to Age ${projectionEndAge}`} value={formatCurrency(m1.projectedNetIncomeTotal)} description="Full projected net income need" accent="slate" />
+      <ModuleMetricCard className={compactCardClass} label={`Proj. Net Income to Age ${projectionEndAge}`} value={formatCurrency(m1.projectedNetIncomeTotal)} description="Full projected net income need" accent="slate" />
       <ModuleMetricCard className={compactCardClass} label="Income Support Rate" value={formatRatePctOneDecimal(annualIncomeReplacementPct)} disclosure="Total safe income supported ÷ total projected income need; constant across projected years" accent={annualIncomeReplacementPct > 0 ? "green" : "red"} />
       <ModuleMetricCard className={compactCardClass} label="Total Income Supported" value={formatCurrency(m1.totalIncomeReplaced)} description="Supported target income stream" accent="green" />
       <ModuleMetricCard className={compactCardClass} label="Survivor Gap" value={formatCurrency(survivorGap)} description="Target support minus supported income" accent={hasGap ? "red" : "green"} />
