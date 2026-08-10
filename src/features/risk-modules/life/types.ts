@@ -1,5 +1,3 @@
-export type LifePolicyType = "term" | "permanent";
-
 export interface LifeInputs {
   advisorId?: string;
   clientId?: string;
@@ -9,7 +7,7 @@ export interface LifeInputs {
   currentAge: number;
   retirementAge: number;
   annualIncome: number;
-  /** Annual income of surviving spouse/partner. Reduces the income replacement need in advanced mode. */
+  /** Annual spouse/partner income to replace in addition to the primary earner's income. */
   spouseAnnualIncome: number;
 
   incomeReplacementYears: number;
@@ -18,8 +16,6 @@ export interface LifeInputs {
 
   groupLifeCoverage: number;
   privateLifeCoverage: number;
-  privateLifePolicyType?: LifePolicyType;
-  privateLifeTermYears?: number;
   nonQualifiedAssets?: number;
 
   debtsTotal: number;
@@ -33,15 +29,11 @@ export interface LifeInputs {
    * Net income factor for the income-gap scenarios.
    * Example: 0.85 models net income as 85% of gross annual income.
    */
+  netIncomeFactor?: number;
+  /** @deprecated Use netIncomeFactor. Kept for persisted local-storage compatibility. */
   targetIncomeSupportPct?: number;
-  /** @deprecated Use targetIncomeSupportPct. Kept for persisted local-storage compatibility. */
+  /** @deprecated Use netIncomeFactor. Kept for persisted local-storage compatibility. */
   safeIncomeCoveragePct?: number;
-  /**
-   * Annual asset return rate used in Module 2 (Coverage Runway Scenario).
-   * Models entered resources invested at this rate while taking a 3%-growing
-   * withdrawal that exhausts the pool at the end age. Default: 0.06 (6%).
-   */
-  maxCoverageRoi?: number;
   /**
    * PV reference rate used for Module 1 capital-required math and Module 2
    * annual-gap capital-needs math. Default: 0.05 (5%).
@@ -86,8 +78,6 @@ export interface LifeOutputs {
   groupLifeBenefit: number;
   groupLifeAnnualIncome: number;
   privateLifeAnnualIncome: number;
-  privateLifeCoverageYears: number;
-  privateLifePolicyType: LifePolicyType;
   privateLifeBenefit: number;
   totalDeathBenefit: number;
   cumulativeSurvivorGap: number;
@@ -115,13 +105,13 @@ export interface IncomeGapYearlyPoint {
   /** Running total of Module 1 income gaps. */
   cumulativeIncomeGap: number;
   /** Module 2: scheduled annual withdrawal from the invested resource pool. */
-  maxCovered: number;
+  runwayIncomeCovered: number;
   /** Module 2: annual income gap after the existing resource pool is depleted. */
-  maxCoverageGap: number;
+  runwayIncomeGap: number;
   /** Running total of Module 2 income gaps. */
-  cumulativeMaxCoverageGap: number;
+  cumulativeRunwayIncomeGap: number;
   /** Module 2: whether this year has full income coverage. */
-  isCoveredMax: boolean;
+  isFullyCoveredByRunway: boolean;
 }
 
 /** Results for Module 1 — Safe Income Coverage scenario. */
@@ -130,15 +120,13 @@ export interface IncomeGapModule1 {
   /** Box 1 — Sum of all projected annual net income from current age to retirement age (undiscounted). */
   projectedNetIncomeTotal: number;
   /** Net income factor, e.g. 0.85 converts gross income to an 85% net-income need. */
-  targetIncomeSupportPct: number;
+  netIncomeFactor: number;
   /** Sum of annual target income support amounts, undiscounted. */
   targetIncomeSupportTotal: number;
   /** Capital required today: PV of the growing target income support stream. */
   targetDeathBenefitNeed: number;
   /** Entered resources divided by capital required today, capped at 100%. */
   coverageSupportRate: number;
-  /** @deprecated Backward-compatible alias of coverageSupportRate for existing chart copy. */
-  safeIncomeCoveragePct: number;
   /** Box 2b — Year-1 covered amount (for display reference; each subsequent year grows with income). */
   annualCoverageYear1: number;
   /** Box 3 — Total income covered = sum of safeIncomeCoverage across all years (undiscounted). */
@@ -158,24 +146,23 @@ export interface IncomeGapModule1 {
   roi: number;
 }
 
-/** Results for Module 2 — Coverage Runway Scenario (resource drawdown). */
+/** Results for Module 2 — Covered Runway Scenario (resource drawdown). */
 export interface IncomeGapModule2 {
   yearlyData: IncomeGapYearlyPoint[];
   /** Box 1 — Same total projected net income as Module 1. */
   projectedNetIncomeTotal: number;
   /** Box 2 — Number of years the existing-coverage resource pool fully covers net income at the selected ROI. */
-  yearsOfMaxWD: number;
+  yearsOfFullCoverage: number;
   /** First age with full coverage (used for sub-label). */
   startCoverageAge: number;
   /** Last age with full coverage (used for sub-label). */
   endCoverageAge: number;
-  /** Box 3 — Sum of income during fully covered (green) years only. */
+  /** Box 3 — Sum of net income replaced by the resource pool. */
   totalIncomeReplaced: number;
   /** Box 4 — Survivor gap = Box 1 − Box 3. */
   survivorGap: number;
   /** Box 5 — Capital required using annual-gap PV logic. */
   deathBenefitNeeded: number;
-  maxCoverageRoi: number;
   roi: number;
 }
 

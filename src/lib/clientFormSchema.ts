@@ -1,5 +1,4 @@
 import { z } from "zod"
-import type { LifePolicyType } from "@/features/risk-modules/life/types"
 import type { DiBenefitPeriod } from "@/features/risk-modules/disability/types"
 import type { ClientRecord, CreateClientPayload } from "@/lib/store-types"
 import { toNumber, numberToInput } from "@/lib/utils"
@@ -18,8 +17,6 @@ export type ClientFormState = {
   emergencySavings: string
   groupLifeCoverage: string
   privateLifeCoverage: string
-  privateLifePolicyType: LifePolicyType
-  privateLifeTermYears: string
   nonQualifiedAssets: string
   ltdCoveragePercent: string
   ltdMonthlyCap: string
@@ -34,8 +31,6 @@ export type ClientFormState = {
   spouseAnnualIncome: string
   spouseGroupLifeCoverage: string
   spousePrivateLifeCoverage: string
-  spousePrivateLifePolicyType: LifePolicyType
-  spousePrivateLifeTermYears: string
   spouseNonQualifiedAssets: string
   homeEquity: string
   autoLiabilityLimit: string
@@ -56,8 +51,6 @@ export const emptyClientForm: ClientFormState = {
   emergencySavings: "",
   groupLifeCoverage: "",
   privateLifeCoverage: "",
-  privateLifePolicyType: "term",
-  privateLifeTermYears: "20",
   nonQualifiedAssets: "",
   ltdCoveragePercent: "60",
   ltdMonthlyCap: "",
@@ -72,8 +65,6 @@ export const emptyClientForm: ClientFormState = {
   spouseAnnualIncome: "",
   spouseGroupLifeCoverage: "",
   spousePrivateLifeCoverage: "",
-  spousePrivateLifePolicyType: "term",
-  spousePrivateLifeTermYears: "15",
   spouseNonQualifiedAssets: "",
   homeEquity: "",
   autoLiabilityLimit: "",
@@ -96,8 +87,6 @@ export function formFromClient(client: ClientRecord): ClientFormState {
     emergencySavings: numberToInput(client.profile.emergencySavings),
     groupLifeCoverage: numberToInput(client.profile.groupLifeCoverage),
     privateLifeCoverage: numberToInput(client.profile.privateLifeCoverage),
-    privateLifePolicyType: client.profile.privateLifePolicyType ?? "term",
-    privateLifeTermYears: numberToInput(client.profile.privateLifeTermYears),
     nonQualifiedAssets: numberToInput(client.profile.nonQualifiedAssets),
     ltdCoveragePercent: numberToInput((client.profile.ltdCoveragePercent ?? 0.60) * 100),
     ltdMonthlyCap: numberToInput(client.profile.ltdMonthlyCap),
@@ -112,8 +101,6 @@ export function formFromClient(client: ClientRecord): ClientFormState {
     spouseAnnualIncome: numberToInput(client.profile.spouseAnnualIncome),
     spouseGroupLifeCoverage: numberToInput(client.profile.spouseGroupLifeCoverage),
     spousePrivateLifeCoverage: numberToInput(client.profile.spousePrivateLifeCoverage),
-    spousePrivateLifePolicyType: client.profile.spousePrivateLifePolicyType ?? "term",
-    spousePrivateLifeTermYears: numberToInput(client.profile.spousePrivateLifeTermYears),
     spouseNonQualifiedAssets: numberToInput(client.profile.spouseNonQualifiedAssets),
     homeEquity: numberToInput(client.profile.homeEquity ?? legacyHomeEquity),
     autoLiabilityLimit: numberToInput(client.profile.autoLiabilityLimit),
@@ -141,8 +128,6 @@ export function formToPayload(form: ClientFormState): CreateClientPayload {
     emergencySavings: toNumber(form.emergencySavings),
     groupLifeCoverage: toNumber(form.groupLifeCoverage),
     privateLifeCoverage: toNumber(form.privateLifeCoverage),
-    privateLifePolicyType: form.privateLifePolicyType,
-    privateLifeTermYears: toNumber(form.privateLifeTermYears),
     nonQualifiedAssets: toNumber(form.nonQualifiedAssets),
     ltdCoveragePercent: toPercentNumber(form.ltdCoveragePercent),
     ltdMonthlyCap: toNumber(form.ltdMonthlyCap),
@@ -157,8 +142,6 @@ export function formToPayload(form: ClientFormState): CreateClientPayload {
     spouseAnnualIncome: toNumber(form.spouseAnnualIncome),
     spouseGroupLifeCoverage: toNumber(form.spouseGroupLifeCoverage),
     spousePrivateLifeCoverage: toNumber(form.spousePrivateLifeCoverage),
-    spousePrivateLifePolicyType: form.spousePrivateLifePolicyType,
-    spousePrivateLifeTermYears: toNumber(form.spousePrivateLifeTermYears),
     spouseNonQualifiedAssets: toNumber(form.spouseNonQualifiedAssets),
     homeEquity: toNumber(form.homeEquity),
     autoLiabilityLimit: toNumber(form.autoLiabilityLimit),

@@ -21,10 +21,10 @@ export const advisorFormulaRegistry: FormulaDefinition[] = [
   {
     id: "life-coverage-runway-withdrawal",
     module: "life",
-    label: "Coverage Runway Withdrawal",
-    description: "Grows the entered resource pool at the selected return, then attempts to fund each year's full projected net income need.",
-    formulaText: "balance = balance * (1 + returnRate); annualWithdrawal = min(balance, projectedIncomeNeed); annualGap = max(0, projectedIncomeNeed - annualWithdrawal)",
-    assumptions: ["coverageResources", "assetReturnRate", "projectionEndAge", "incomeGrowthRate"],
+    label: "Covered Runway Withdrawal",
+    description: "Grows the entered resource pool at the shared PV reference rate, then attempts to fund each year's full projected net income need.",
+    formulaText: "balance = balance * (1 + pvReferenceRate); annualWithdrawal = min(balance, projectedNetIncomeNeed); annualGap = max(0, projectedNetIncomeNeed - annualWithdrawal)",
+    assumptions: ["coverageResources", "pvReferenceRate", "projectionEndAge", "incomeGrowthRate"],
     disclosure: "This is an illustrative resource drawdown scenario; actual returns and available withdrawals will vary.",
   },
   {

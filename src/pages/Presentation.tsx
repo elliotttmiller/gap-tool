@@ -7,7 +7,6 @@ import { LifeOutputView } from "@/features/risk-modules/life/components/LifeOutp
 import { calculateLifeInsuranceGap } from "@/features/risk-modules/life/calculations/calculateLifeInsuranceGap"
 import { calculateIncomeGapScenarios } from "@/features/risk-modules/life/calculations/calculateIncomeGapScenarios"
 import { sanitizeLifeInputs } from "@/features/risk-modules/life/utils/sanitizeLifeInputs"
-import type { LifePolicyType } from "@/features/risk-modules/life/types"
 import { DisabilityOutputView } from "@/features/risk-modules/disability/components/DisabilityOutputView"
 import { calculateDisabilityGap } from "@/features/risk-modules/disability/calculations/calculateDisabilityGap"
 import type { DiBenefitPeriod } from "@/features/risk-modules/disability/types"
@@ -43,10 +42,9 @@ type InputSpec = {
   label: string
   value: string
   field: string
-  editor: "currency" | "number" | "percent" | "select" | "policy"
+  editor: "currency" | "number" | "percent" | "select"
   rawValue: number | string | boolean
   options?: Array<{ value: string; label: string }>
-  secondaryValue?: number
 }
 
 type InputSpecVariant = "block" | "rail"
@@ -61,16 +59,6 @@ function getPresentationInputSpecs(module: RiskModuleType, records: ScenarioModu
       { label: "Income Replacement Ratio", value: formatPercent(inputs.incomeReplacementRatio), field: "incomeReplacementRatio", editor: "percent", rawValue: inputs.incomeReplacementRatio },
       { label: "Group Life Coverage", value: formatCurrency(inputs.groupLifeCoverage), field: "groupLifeCoverage", editor: "currency", rawValue: inputs.groupLifeCoverage },
       { label: "Private Life Coverage", value: formatCurrency(inputs.privateLifeCoverage), field: "privateLifeCoverage", editor: "currency", rawValue: inputs.privateLifeCoverage },
-      {
-        label: "Private Policy",
-        value: inputs.privateLifePolicyType === "term"
-          ? `Term${inputs.privateLifeTermYears ? ` (${inputs.privateLifeTermYears} yrs)` : ""}`
-          : "Permanent",
-        field: "privateLifePolicyType",
-        editor: "policy",
-        rawValue: inputs.privateLifePolicyType ?? "term",
-        secondaryValue: inputs.privateLifeTermYears ?? 20,
-      },
     ]
   }
 
@@ -214,22 +202,6 @@ function ModuleInputSpecs({
               {onInputChange ? (
                 spec.editor === "currency" || spec.editor === "number" || spec.editor === "percent" ? (
                   <SnapshotNumberInput compact={denseRail} className={denseRail ? "mt-0.5" : "mt-1"} label={spec.label} value={Number(spec.rawValue)} currency={spec.editor === "currency"} percent={spec.editor === "percent"} onCommit={(value) => onInputChange(spec.field, value)} />
-                ) : spec.editor === "policy" ? (
-                  <div className={`grid gap-1.5 transition-[grid-template-columns] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${denseRail ? "mt-0.5" : "mt-1"} ${spec.rawValue === "term" ? "grid-cols-[minmax(0,1fr)_4.25rem]" : "grid-cols-[minmax(0,1fr)_0rem]"}`}>
-                    <ThemedSelect
-                      ariaLabel="Private policy type"
-                      value={String(spec.rawValue)}
-                      onValueChange={(value) => onInputChange(spec.field, value)}
-                      options={[{ value: "term", label: "Term" }, { value: "permanent", label: "Permanent" }]}
-                      className={`presentation-input-control min-w-0 border px-2 py-0 text-xs font-semibold shadow-none ${denseRail ? "h-6" : "h-7"}`}
-                      contentClassName="presentation-policy-menu z-50 border-[#31586c] bg-[#102d3f] text-white shadow-[0_16px_36px_rgba(5,24,36,0.32)]"
-                    />
-                    <div className={`grid min-w-0 transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${spec.rawValue === "term" ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
-                      <div className="min-h-0 overflow-hidden">
-                        <SnapshotNumberInput compact={denseRail} className="" label="Term length in years" value={spec.secondaryValue ?? 20} onCommit={(value) => onInputChange("privateLifeTermYears", value)} />
-                      </div>
-                    </div>
-                  </div>
                 ) : (
                   <ThemedSelect
                     ariaLabel={spec.label}
@@ -350,8 +322,6 @@ export function Presentation() {
       else if (field === "incomeReplacementRatio") inputs.incomeReplacementRatio = Number(value)
       else if (field === "groupLifeCoverage") inputs.groupLifeCoverage = Number(value)
       else if (field === "privateLifeCoverage") inputs.privateLifeCoverage = Number(value)
-      else if (field === "privateLifePolicyType") inputs.privateLifePolicyType = value as LifePolicyType
-      else if (field === "privateLifeTermYears") inputs.privateLifeTermYears = Number(value)
       updateLifeInputs(scenarioId, inputs)
       return
     }

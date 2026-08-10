@@ -31,13 +31,13 @@ A risk review is stored as a scenario. Scenarios track the client, included modu
 
 ### Life Insurance Risk Analysis
 
-The Life module models premature-death income support and coverage gaps. It uses current age, retirement age, income, spouse income offset, income replacement ratio, existing group/private life coverage, non-qualified assets, debts, education funding, and final expenses.
+The Life module models premature-death income support and coverage gaps. It uses current age, retirement age, primary income, any spouse/partner income selected for replacement, income replacement ratio, existing group/private life coverage, non-qualified assets, debts, education funding, and final expenses.
 
 The active Life methodology includes:
 
 - A base life-insurance summary calculator.
 - A Safe Income Coverage scenario that models a target percentage of projected net income need, defaulting to 85%.
-- A Coverage Runway scenario that models the entered coverage/resource pool growing at a selected return while funding projected income need.
+- A Covered Runway scenario that models the entered coverage/resource pool at the shared PV reference rate while funding projected net income need.
 - Annual schedule data used to keep cards, charts, and fully-covered status aligned.
 - Advisor-safe copy that frames death-benefit numbers as modeled illustrative gap analysis.
 

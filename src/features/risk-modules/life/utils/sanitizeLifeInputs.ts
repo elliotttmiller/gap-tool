@@ -9,8 +9,8 @@ function nonNegativeFinite(value: unknown, fallback: number): number {
 }
 
 export function sanitizeLifeInputs(inputs: LifeInputs): LifeInputs {
-  const targetIncomeSupportPct = nonNegativeFinite(
-    inputs.targetIncomeSupportPct ?? inputs.safeIncomeCoveragePct ?? 0.85,
+  const netIncomeFactor = nonNegativeFinite(
+    inputs.netIncomeFactor ?? inputs.targetIncomeSupportPct ?? inputs.safeIncomeCoveragePct ?? 0.85,
     0.85,
   )
 
@@ -24,15 +24,12 @@ export function sanitizeLifeInputs(inputs: LifeInputs): LifeInputs {
     incomeReplacementRatio: nonNegativeFinite(inputs.incomeReplacementRatio, 0.7),
     groupLifeCoverage: nonNegativeFinite(inputs.groupLifeCoverage, 0),
     privateLifeCoverage: nonNegativeFinite(inputs.privateLifeCoverage, 0),
-    privateLifeTermYears: nonNegativeFinite(inputs.privateLifeTermYears ?? 0, 0),
     nonQualifiedAssets: nonNegativeFinite(inputs.nonQualifiedAssets ?? 0, 0),
     debtsTotal: nonNegativeFinite(inputs.debtsTotal, 0),
     educationGoal: nonNegativeFinite(inputs.educationGoal, 0),
     finalExpenses: nonNegativeFinite(inputs.finalExpenses, 0),
     liquidAssetsAllocated: nonNegativeFinite(inputs.liquidAssetsAllocated ?? 0, 0),
-    targetIncomeSupportPct,
-    safeIncomeCoveragePct: targetIncomeSupportPct,
-    maxCoverageRoi: nonNegativeFinite(inputs.maxCoverageRoi ?? 0.06, 0.06),
+    netIncomeFactor,
     incomeGapRoi: nonNegativeFinite(inputs.incomeGapRoi ?? 0.05, 0.05),
   }
 }

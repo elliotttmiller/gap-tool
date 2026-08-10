@@ -1,5 +1,6 @@
 import { LifeInputs, LifeAssumptions, LifeOutputs, LifeYearlyBreakdown } from "../types";
 import { clamp, nonNegative, safeDivide, roundCurrency, roundPercent } from "@/lib/math";
+import { presentValueOfAnnualStream } from "@/domain/financial/presentValue";
 
 /**
  * Core Life summary calculator.
@@ -21,23 +22,25 @@ export function calculateLifeInsuranceGap(
   );
 
   const incomeReplacementRatio = clamp(inputs.incomeReplacementRatio, 0, 1.25);
-  const targetIncomeSupportPct = clamp(inputs.targetIncomeSupportPct ?? inputs.safeIncomeCoveragePct ?? 0.85, 0, 1);
+  const netIncomeFactor = clamp(inputs.netIncomeFactor ?? inputs.targetIncomeSupportPct ?? inputs.safeIncomeCoveragePct ?? 0.85, 0, 1);
   const annualClientNeed = nonNegative(inputs.annualIncome) * incomeReplacementRatio;
-  const annualSpouseOffset = nonNegative(inputs.spouseAnnualIncome ?? 0);
-  const annualReplacementNeed = Math.max(0, annualClientNeed - annualSpouseOffset);
+  const annualSpouseNeed = nonNegative(inputs.spouseAnnualIncome ?? 0);
+  const annualReplacementNeed = Math.max(0, (annualClientNeed + annualSpouseNeed) * netIncomeFactor);
   const incomeGrowth = assumptions.incomeGrowthRateAnnual ?? 0.03;
 
   const yearlyBreakdown: LifeYearlyBreakdown[] = [];
   let projectedIncomeToRetirement = 0;
   let targetIncomeSupportTotal = 0;
+  const targetIncomeStream: number[] = [];
 
   for (let yearIndex = 0; yearIndex < yearsToRetirement; yearIndex++) {
     // Annual rows are labeled by attained age at the end of each period.
     const age = currentAge + yearIndex + 1;
     const projectedIncome = annualReplacementNeed * Math.pow(1 + incomeGrowth, yearIndex);
-    const targetNeed = projectedIncome * targetIncomeSupportPct;
+    const targetNeed = projectedIncome;
     projectedIncomeToRetirement += projectedIncome;
     targetIncomeSupportTotal += targetNeed;
+    targetIncomeStream.push(targetNeed);
 
     yearlyBreakdown.push({
       age,
@@ -53,8 +56,12 @@ export function calculateLifeInsuranceGap(
   const liquidAssetOffset = assumptions.includeLiquidAssetsOffset ? nonNegative(inputs.liquidAssetsAllocated) : 0;
   const availableResources = existingCoverageTotal + nonQualifiedAssets + liquidAssetOffset;
 
+  const incomeCapitalNeed = presentValueOfAnnualStream(
+    targetIncomeStream,
+    nonNegative(inputs.incomeGapRoi ?? 0.05),
+  );
   const baseProtectionNeed =
-    targetIncomeSupportTotal +
+    incomeCapitalNeed +
     nonNegative(inputs.debtsTotal) +
     nonNegative(inputs.educationGoal) +
     nonNegative(inputs.finalExpenses);
@@ -99,8 +106,6 @@ export function calculateLifeInsuranceGap(
     groupLifeAnnualIncome: roundCurrency(allocatedBreakdown[0]?.gliCovered ?? 0),
     privateLifeAnnualIncome: roundCurrency(allocatedBreakdown[0]?.privateCovered ?? 0),
     privateLifeBenefit: roundCurrency(nonNegative(inputs.privateLifeCoverage)),
-    privateLifePolicyType: inputs.privateLifePolicyType ?? "term",
-    privateLifeCoverageYears: Math.round(inputs.privateLifePolicyType === "permanent" ? yearsToRetirement : Math.min(nonNegative(inputs.privateLifeTermYears ?? yearsToRetirement), yearsToRetirement)),
     totalDeathBenefit: roundCurrency(existingCoverageTotal),
     cumulativeSurvivorGap: roundCurrency(cumulativeSurvivorGap || remainingGap),
     lifetimeIncomeUncoveredPercentage: roundPercent(safeDivide(cumulativeSurvivorGap || remainingGap, targetIncomeSupportTotal)),

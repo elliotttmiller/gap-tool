@@ -51,13 +51,11 @@ Editing Unemployment or Liability does **not** synchronize changes back to the o
 | `currentAge` | Visible input; profile prefill | Projection length and yearly ages in both formulas | **E2E** |
 | `retirementAge` | Visible input; profile prefill | Projection end and replacement duration | **E2E** |
 | `annualIncome` | Visible input; profile prefill | Gross income basis | **E2E** |
-| `spouseAnnualIncome` | Visible input; profile prefill | Reduces annual survivor income need | **E2E** |
+| `spouseAnnualIncome` | Visible input; profile prefill | Adds spouse/partner income selected for replacement to the modeled need | **E2E** |
 | `incomeReplacementYears` | No direct control; initialized/synchronized from ages | Caps main life replacement schedule | **CALC** |
-| `incomeReplacementRatio` | Visible percentage input; default 70% | Multiplies client income before spouse offset | **E2E** |
+| `incomeReplacementRatio` | Visible percentage input; default 70% | Establishes the primary-earner replacement basis before spouse income and the net factor are applied | **E2E** |
 | `groupLifeCoverage` | Visible input; profile prefill | Existing resource pool and GLI allocation | **E2E** |
 | `privateLifeCoverage` | Visible input; profile prefill | Existing resource pool and private allocation | **E2E** |
-| `privateLifePolicyType` | Visible term/permanent selector | Reported output and private coverage duration | **E2E** |
-| `privateLifeTermYears` | Visible only for term policy | Caps private coverage years output | **E2E** |
 | `nonQualifiedAssets` | Visible input; household profile total | Added to available coverage resources | **E2E** |
 | `debtsTotal` | Visible input | Added to base protection need | **E2E** in main life gap; not used by income-gap scenarios |
 | `educationGoal` | Visible input | Added to base protection need | **E2E** in main life gap; not used by income-gap scenarios |
@@ -65,8 +63,7 @@ Editing Unemployment or Liability does **not** synchronize changes back to the o
 | `liquidAssetsAllocated` | Profile prefill; no current Life form control | Offset only when `includeLiquidAssetsOffset` is true | **CALC**, normally disabled by default |
 | `targetIncomeSupportPct` | Visible on Safe Income tab; default 85% | Target stream for both life formulas/module 1 | **E2E** |
 | `safeIncomeCoveragePct` | No separate control; mirrors target percentage | Fallback alias only | **LEGACY** |
-| `maxCoverageRoi` | Visible only on Coverage Runway tab; default 6% | Return on the module 2 resource pool | **E2E** |
-| `incomeGapRoi` | Visible PV reference input; default 5% | PV references and module 2 annual-gap capital need | **E2E** |
+| `incomeGapRoi` | Visible PV reference input; default 5% | Shared assumed rate for Safe Income capital need, Covered Runway resource growth, and runway gap PV | **E2E** |
 | `inflationRateAnnual` assumption | Persisted global/scenario assumption; no current Life page control | Not referenced by either current life calculation | **STORED**, currently unused |
 | `discountRateAnnual` assumption | Persisted global/scenario assumption; no current Life page control | Main formula applies it only when `usePresentValue` is true | **CALC** |
 | `incomeGrowthRateAnnual` assumption | Persisted global/scenario assumption; default 3% | Grows yearly projected income in both formulas | **E2E** via default, not page-editable |
@@ -100,7 +97,6 @@ Editing Unemployment or Liability does **not** synchronize changes back to the o
 | `groupLifeAnnualIncome` | First-year group allocation | **STORED** |
 | `privateLifeAnnualIncome` | First-year private allocation | **STORED** |
 | `privateLifeCoverageYears` | Term/permanent modeled duration | **STORED** |
-| `privateLifePolicyType` | Selected policy type | **STORED** |
 | `privateLifeBenefit` | Entered private death benefit | **STORED** |
 | `totalDeathBenefit` | Group plus private benefit | **STORED** |
 | `cumulativeSurvivorGap` | Sum of yearly survivor gaps | **STORED** |
@@ -132,15 +128,14 @@ These outputs are calculated and displayed live but are not written to the scena
 | `module1.additionalDeathBenefitNeeded` | Alias used by output UI; **DISPLAY** |
 | `module1.roi` | Calculation/reference only; **CALC** |
 | `module2.projectedNetIncomeTotal` | Metric card; **DISPLAY** |
-| `module2.yearsOfMaxWD` | Years of full coverage metric; **DISPLAY** |
+| `module2.yearsOfFullCoverage` | Years of full coverage metric; **DISPLAY** |
 | `module2.startCoverageAge`, `endCoverageAge` | Metric description; **DISPLAY** |
 | `module2.totalIncomeReplaced` | Metric card/chart; **DISPLAY** |
 | `module2.survivorGap` | Metric card; **DISPLAY** |
 | `module2.deathBenefitNeeded` | Runway capital gap metric; **DISPLAY** |
-| `module2.maxCoverageRoi` | Calculation only; **CALC** |
 | `module2.roi` | Runway metric description; **DISPLAY** |
 | `module1.yearlyData[]`, `module2.yearlyData[]` | Scenario charts; **DISPLAY** |
-| Yearly `yearIndex`, `age`, `projectedIncome`, `targetIncomeNeed`, `safeIncomeCoverage`, `incomeGap`, `cumulativeIncomeGap`, `maxCovered`, `maxCoverageGap`, `cumulativeMaxCoverageGap`, `isCoveredMax` | Chart/schedule data; **DISPLAY** (some fields only affect chart series/tooltips) |
+| Yearly `yearIndex`, `age`, `projectedIncome`, `targetIncomeNeed`, `safeIncomeCoverage`, `incomeGap`, `cumulativeIncomeGap`, `runwayIncomeCovered`, `runwayIncomeGap`, `cumulativeRunwayIncomeGap`, `isFullyCoveredByRunway` | Chart/schedule data; **DISPLAY** (some fields only affect chart series/tooltips) |
 
 ## 2. Disability Insurance
 
@@ -333,18 +328,18 @@ Visible metrics | Output components transform the selected result into cards, ch
 ### Life tab: Safe Income Coverage
 
 :::flow Safe Income Coverage calculation
-Income basis | `annualNetIncomeNeed = max(0, annualIncome × incomeReplacementRatio − spouseAnnualIncome)`.
+Income basis | `annualNetIncomeNeed = max(0, (annualIncome × incomeReplacementRatio + spouseAnnualIncome) × netIncomeFactor)`.
 Annual projection | Grow the income basis by `incomeGrowthRateAnnual` for every age through the projection end age.
-Target stream | `targetIncomeNeed[year] = projectedIncome[year] × targetIncomeSupportPct`.
+Target stream | The projected stream is already net income; `targetIncomeNeed[year] = projectedNetIncome[year]`.
 Resource pool | `groupLifeCoverage + privateLifeCoverage + nonQualifiedAssets`.
-Support rate | `min(1, resourcePool ÷ sum(targetIncomeNeed))`.
+Support rate | `min(1, resourcePool ÷ PV(targetIncomeNeed, incomeGapRoi))`.
 Annual coverage and gap | Covered = annual target × support rate. Gap = annual target − covered.
 Visible output | Stacked green/red annual chart, eight metric cards, and planning narrative.
 :::
 
 | Visible metric/visual | Exact source or formula | What changes it |
 |---|---|---|
-| Projected Net Income | Sum of projected income before target percentage | Income, replacement ratio, spouse income, ages, income growth |
+| Projected Net Income | Sum of the modeled net-income stream | Income, replacement ratio, spouse income selected for replacement, net factor, ages, income growth |
 | Target Income Support | Target percentage plus sum of target stream | Target percentage and all projected-income inputs |
 | Coverage Resources | Group life + private life + non-qualified assets | Coverage/resource inputs |
 | Coverage Support Rate | Resources divided by target need, capped at 100% | Resources or target stream |
@@ -358,29 +353,29 @@ Visible output | Stacked green/red annual chart, eight metric cards, and plannin
 
 **What impacts correctness:** this tab is internally consistent because the chart, cards, “Fully Covered” state, and narrative use the same target schedule. However, these outputs are not persisted. They are recomputed live in the Life page and Presentation.
 
-### Life tab: Coverage Runway Scenario
+### Life tab: Covered Runway Scenario
 
-:::flow Coverage Runway calculation
-Income basis | Use the same projected net income stream as Safe Income, but do not apply the target-support percentage.
+:::flow Covered Runway calculation
+Income basis | Use the exact same projected net-income stream as Safe Income Coverage.
 Starting capital | Group life + private life + non-qualified assets.
-Annual return | At the start of each modeled year, multiply the remaining pool by `1 + maxCoverageRoi`.
+Assumed rate | At the start of each modeled year, multiply the remaining pool by `1 + incomeGapRoi`, the shared PV Reference Rate.
 Annual withdrawal | Withdraw up to the full projected income need for that year.
 Annual gap | `max(0, projectedIncome − amountCovered)` after the pool is insufficient.
-Capital gap | Discount the annual gap stream at `incomeGapRoi` to produce Runway Capital Gap.
+Capital gap | Discount the annual gap stream at `incomeGapRoi` to produce Death Benefit Gap.
 Visible output | Green/red runway chart, five metric cards, and planning narrative.
 :::
 
 | Visible metric/visual | Exact source or formula | What changes it |
 |---|---|---|
 | Projected Net Income | Full projected income stream | Income, ratio, spouse income, ages, growth |
-| Years of Full Coverage | Count of years where the pool funds the complete annual need | Starting pool and asset return |
-| Total Income Replaced | Sum of annual withdrawals | Starting pool, return, projected need |
-| Survivor Gap | Sum of annual uncovered income | Starting pool, return, projected need |
-| Runway Capital Gap | Present value of annual gaps | Annual gaps and PV reference rate |
+| Years of Full Coverage | Count of years where the pool funds the complete annual net need | Starting pool and PV reference rate |
+| Total Net Income Replaced | Sum of annual net-income withdrawals | Starting pool, PV reference rate, projected net need |
+| Survivor Gap | Sum of annual uncovered net income | Starting pool, PV reference rate, projected net need |
+| Death Benefit Gap | Present value of annual gaps | Annual gaps and PV reference rate |
 | Green chart bars | Amount withdrawn from resources | Pool balance and annual need |
 | Red chart bars | Annual uncovered amount | Pool depletion and annual need |
 
-**What impacts correctness:** the selected asset return materially changes how long resources last. This is intentionally a scenario view, not the canonical saved Life gap.
+**What impacts correctness:** the shared PV Reference Rate changes how long resources last and discounts the remaining annual gaps. This is intentionally a scenario view, not a separate asset-return assumption.
 
 ### Life hidden/persisted summary path
 
