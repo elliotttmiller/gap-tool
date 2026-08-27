@@ -1,12 +1,12 @@
 {
-  "name": "NorthStar Gap Analysis",
-  "short_name": "NorthStar",
+  "name": "North Star Resource Group Gap Analysis",
+  "short_name": "North Star",
   "description": "Deterministic risk gap analysis for life, disability, unemployment, and liability coverage.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#090E1A",
-  "theme_color": "#0a1628",
+  "background_color": "#f7f7f7",
+  "theme_color": "#4f4f54",
   "lang": "en-US",
   "dir": "ltr",
   "icons": [
