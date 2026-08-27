@@ -132,18 +132,27 @@ export function ClientOverview() {
             <Field label="First name *"><Input value={form.firstName} onChange={(event) => setField("firstName", event.target.value)} /></Field>
             <Field label="Last name *"><Input value={form.lastName} onChange={(event) => setField("lastName", event.target.value)} /></Field>
             <Field label="Household / display name"><Input value={form.displayName} onChange={(event) => setField("displayName", event.target.value)} /></Field>
-            <Field label="Current age *"><Input type="number" min={18} max={64} value={form.age} onChange={(event) => setField("age", event.target.value)} /></Field>
+            <Field label="Current age *"><Input type="number" min={18} max={100} value={form.age} onChange={(event) => setField("age", event.target.value)} /></Field>
+            <Field label="Projection end age *"><Input type="number" min={18} max={100} value={form.expectedRetirementAge} onChange={(event) => setField("expectedRetirementAge", event.target.value)} /></Field>
             <Field label="Annual income ($) *"><Input type="number" min={0} groupThousands value={form.annualIncome} onChange={(event) => setField("annualIncome", event.target.value)} /></Field>
             <Field label="Monthly expenses ($)"><Input type="number" min={0} groupThousands value={form.monthlyExpenses} onChange={(event) => setField("monthlyExpenses", event.target.value)} /></Field>
           </div>
         </div>
 
         <div className="space-y-4">
-          <SectionTitle title="Existing Coverage — Primary Earner" />
+          <SectionTitle title="Household Cash / Assets" description="These values feed Life Insurance, Unemployment, and Liability assumptions." />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <Field label="Emergency savings ($)"><Input type="number" min={0} groupThousands value={form.emergencySavings} onChange={(event) => setField("emergencySavings", event.target.value)} /></Field>
+            <Field label="Non-qualified assets ($)"><Input type="number" min={0} groupThousands value={form.nonQualifiedAssets} onChange={(event) => setField("nonQualifiedAssets", event.target.value)} /></Field>
+            <Field label="Home equity ($)"><Input type="number" min={0} groupThousands value={form.homeEquity} onChange={(event) => setField("homeEquity", event.target.value)} /></Field>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <SectionTitle title="Existing Life Coverage — Primary Earner" />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             <Field label="Group Life death benefit ($)"><Input type="number" min={0} groupThousands value={form.groupLifeCoverage} onChange={(event) => setField("groupLifeCoverage", event.target.value)} /></Field>
             <Field label="Private Life death benefit ($)"><Input type="number" min={0} groupThousands value={form.privateLifeCoverage} onChange={(event) => setField("privateLifeCoverage", event.target.value)} /></Field>
-            <Field label="Non-qualified assets ($)"><Input type="number" min={0} groupThousands value={form.nonQualifiedAssets} onChange={(event) => setField("nonQualifiedAssets", event.target.value)} /></Field>
           </div>
         </div>
 
@@ -172,7 +181,7 @@ export function ClientOverview() {
             <SectionTitle title="Secondary Earner" description="Annual income is added to the Life need when both incomes should be replaced." />
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <Field label="Full name"><Input value={form.spouseName} onChange={(event) => setField("spouseName", event.target.value)} /></Field>
-              <Field label="Current age"><Input type="number" min={18} max={64} value={form.spouseAge} onChange={(event) => setField("spouseAge", event.target.value)} /></Field>
+              <Field label="Current age"><Input type="number" min={18} max={100} value={form.spouseAge} onChange={(event) => setField("spouseAge", event.target.value)} /></Field>
               <Field label="Annual income to replace ($)"><Input type="number" min={0} groupThousands value={form.spouseAnnualIncome} onChange={(event) => setField("spouseAnnualIncome", event.target.value)} /></Field>
               <Field label="Non-qualified assets ($)"><Input type="number" min={0} groupThousands value={form.spouseNonQualifiedAssets} onChange={(event) => setField("spouseNonQualifiedAssets", event.target.value)} /></Field>
               <Field label="Group Life death benefit ($)"><Input type="number" min={0} groupThousands value={form.spouseGroupLifeCoverage} onChange={(event) => setField("spouseGroupLifeCoverage", event.target.value)} /></Field>
@@ -182,7 +191,7 @@ export function ClientOverview() {
         ) : null}
 
         <div className="space-y-4">
-          <SectionTitle title="Household Liability Coverage" description="Umbrella coverage remains editable after client setup and continues to prefill the Liability module." />
+          <SectionTitle title="Household Liability Coverage" description="Umbrella values are shown in $1M blocks inside the Liability module." />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <Field label="Underlying Auto Liability Limit ($)"><Input type="number" min={0} groupThousands value={form.autoLiabilityLimit} onChange={(event) => setField("autoLiabilityLimit", event.target.value)} /></Field>
             <Field label="Existing Umbrella Coverage ($)"><Input type="number" min={0} step={1_000_000} groupThousands value={form.umbrellaCoverage} onChange={(event) => setField("umbrellaCoverage", event.target.value)} /></Field>
