@@ -123,3 +123,20 @@
   border-color: var(--ns-sirius) !important;
   box-shadow: 0 0 0 3px rgb(24 138 137 / 0.16) !important;
 }
+
+/* Analysis Center used an isolated pre-brand navy header gradient. Keep the
+ * audit workflow intact while bringing its chrome into the same branded dark
+ * field as the application shell. */
+[data-analysis-center] > header {
+  background: var(--ns-header) !important;
+  border-color: rgb(255 255 255 / 0.18) !important;
+  color: #ffffff !important;
+}
+
+[data-analysis-center] > header [class~="text-[#94a3b8]"] {
+  color: rgb(255 255 255 / 0.68) !important;
+}
+
+.dark [data-analysis-center] {
+  background: var(--ns-header) !important;
+}
