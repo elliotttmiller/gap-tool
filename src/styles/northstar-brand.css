@@ -1,0 +1,351 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Raleway:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap');
+
+/*
+ * North Star Resource Group — 2020 Brand Manual implementation
+ * Source of truth: docs/NorthStar Official/2020 Brand Manual.pdf
+ * Imagery guidance is intentionally excluded because the Gap Tool contains no
+ * hero/marketing imagery. This stylesheet governs the application UI system.
+ */
+
+:root {
+  /* Official primary/secondary brand colors. */
+  --ns-sirius: #188a89;
+  --ns-sirius-lite: #1db8b9;
+  --ns-nebula: #148f45;
+  --ns-nebula-lite: #44b649;
+  --ns-pegasi: #1b75bc;
+  --ns-pegasi-lite: #27aae1;
+  --ns-polaris: #f15a29;
+  --ns-polaris-lite: #fbb040;
+  --ns-header: #4f4f54;
+  --ns-subheader: #a7a9ac;
+
+  /* UI derivatives use only official colors mixed with white/black. */
+  --ns-canvas: #f7f7f7;
+  --ns-surface: #ffffff;
+  --ns-text: var(--ns-header);
+  --ns-muted: rgb(79 79 84 / 0.72);
+  --ns-border: rgb(79 79 84 / 0.18);
+  --ns-border-strong: rgb(79 79 84 / 0.3);
+  --ns-sirius-soft: rgb(24 138 137 / 0.1);
+  --ns-sirius-border: rgb(24 138 137 / 0.28);
+  --ns-shadow-sm: 0 1px 2px rgb(79 79 84 / 0.05), 0 8px 24px rgb(79 79 84 / 0.06);
+  --ns-shadow-lg: 0 18px 48px rgb(79 79 84 / 0.14), 0 2px 8px rgb(79 79 84 / 0.06);
+
+  /* Tailwind brand utilities are redirected to the official Sirius family. */
+  --color-brand-50: #eef8f8;
+  --color-brand-100: #d8eeee;
+  --color-brand-200: #b5dede;
+  --color-brand-300: #7ec8c8;
+  --color-brand-400: #1db8b9;
+  --color-brand-500: #188a89;
+  --color-brand-600: #147776;
+  --color-brand-700: #106261;
+  --color-brand-800: #0d4f4e;
+  --color-brand-900: #0a3d3c;
+  --color-brand-950: #062a29;
+
+  /* Existing semantic/chart utility families are normalized to the manual. */
+  --color-teal-300: #63cecf;
+  --color-teal-400: #1db8b9;
+  --color-teal-500: #188a89;
+  --color-teal-600: #147776;
+  --color-cyan-300: #63cecf;
+  --color-cyan-400: #1db8b9;
+  --color-cyan-500: #188a89;
+  --color-cyan-600: #147776;
+
+  --color-emerald-300: #77ca7b;
+  --color-emerald-400: #44b649;
+  --color-emerald-500: #148f45;
+  --color-emerald-600: #11783a;
+  --color-emerald-700: #0e6230;
+  --color-green-300: #77ca7b;
+  --color-green-400: #44b649;
+  --color-green-500: #148f45;
+  --color-green-600: #11783a;
+  --color-green-700: #0e6230;
+
+  --color-blue-300: #6bc6e8;
+  --color-blue-400: #27aae1;
+  --color-blue-500: #1b75bc;
+  --color-blue-600: #1765a2;
+  --color-blue-700: #135486;
+  --color-indigo-300: #6bc6e8;
+  --color-indigo-400: #27aae1;
+  --color-indigo-500: #1b75bc;
+  --color-indigo-600: #1765a2;
+  --color-indigo-700: #135486;
+  --color-violet-300: #6bc6e8;
+  --color-violet-400: #27aae1;
+  --color-violet-500: #1b75bc;
+  --color-violet-600: #1765a2;
+
+  --color-red-300: #f79a7a;
+  --color-red-400: #f47950;
+  --color-red-500: #f15a29;
+  --color-red-600: #d7491d;
+  --color-red-700: #b93d18;
+  --color-rose-300: #f79a7a;
+  --color-rose-400: #f47950;
+  --color-rose-500: #f15a29;
+  --color-rose-600: #d7491d;
+  --color-pink-300: #f79a7a;
+  --color-pink-400: #f47950;
+  --color-pink-500: #f15a29;
+
+  --color-amber-300: #ffd17f;
+  --color-amber-400: #fbb040;
+  --color-amber-500: #e49a2c;
+  --color-yellow-300: #ffd17f;
+  --color-yellow-400: #fbb040;
+  --color-yellow-500: #e49a2c;
+
+  --font-sans: "Raleway", "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --font-disclosure: "Myriad Pro Condensed", "Arial Narrow", "Roboto Condensed", "Montserrat", sans-serif;
+}
+
+html,
+body,
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-sans);
+}
+
+body {
+  background: var(--ns-canvas);
+  color: var(--ns-text);
+}
+
+/* Brand-manual title/subheader hierarchy. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--ns-header);
+  font-family: var(--font-sans);
+}
+
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
+  color: #ffffff;
+}
+
+/* Light UI: white space, restrained gray structure, Sirius interaction color. */
+.light .app-shell-surface {
+  background: var(--ns-canvas) !important;
+}
+
+.light [class~="bg-white"],
+.light [class~="bg-gray-950"],
+.light [class~="bg-[#090E1A]"],
+.light [class~="bg-gray-950/95"],
+.light [class~="bg-slate-950/70"],
+.light [class~="bg-slate-950/60"] {
+  background-color: var(--ns-surface) !important;
+}
+
+.light [class~="bg-gray-900"],
+.light [class~="bg-gray-900/80"],
+.light [class~="bg-gray-900/60"],
+.light [class~="bg-gray-900/50"],
+.light [class~="bg-gray-900/40"],
+.light [class~="bg-gray-900/35"],
+.light [class~="bg-gray-900/30"],
+.light [class~="bg-gray-900/25"],
+.light [class~="bg-slate-900"],
+.light [class~="bg-slate-900/95"],
+.light [class~="bg-slate-900/80"],
+.light [class~="bg-slate-900/40"] {
+  background-color: #f4f4f4 !important;
+}
+
+.light [class~="bg-gray-800"],
+.light [class~="bg-gray-800/80"],
+.light [class~="bg-gray-800/40"] {
+  background-color: #ededed !important;
+}
+
+.light [class~="text-gray-50"],
+.light [class~="text-gray-100"],
+.light [class~="text-slate-50"],
+.light [class~="text-slate-100"],
+.light [class~="text-gray-900"] {
+  color: var(--ns-header) !important;
+}
+
+.light [class~="text-gray-200"],
+.light [class~="text-gray-300"],
+.light [class~="text-slate-200"],
+.light [class~="text-slate-300"] {
+  color: rgb(79 79 84 / 0.88) !important;
+}
+
+.light [class~="text-gray-400"],
+.light [class~="text-gray-500"],
+.light [class~="text-gray-600"],
+.light [class~="text-slate-400"],
+.light [class~="text-slate-500"],
+.light [class~="text-slate-600"] {
+  color: var(--ns-muted) !important;
+}
+
+.light [class*="border-gray-"],
+.light [class*="border-slate-"] {
+  border-color: var(--ns-border) !important;
+}
+
+.light input:not([type="checkbox"]):not([type="radio"]),
+.light textarea,
+.light [role="combobox"] {
+  background-color: #ffffff !important;
+  border-color: var(--ns-border-strong) !important;
+  color: var(--ns-header) !important;
+}
+
+.light input::placeholder,
+.light textarea::placeholder {
+  color: rgb(79 79 84 / 0.55) !important;
+}
+
+.light input:not([type="checkbox"]):not([type="radio"]):focus,
+.light textarea:focus,
+.light [role="combobox"]:focus-visible {
+  border-color: var(--ns-sirius) !important;
+  box-shadow: 0 0 0 3px rgb(24 138 137 / 0.16) !important;
+}
+
+/* Dark UI uses the manual's approved Header gray as the branded dark field. */
+.dark,
+.dark body,
+.dark .app-shell-surface,
+.dark .presentation-mode {
+  background-color: var(--ns-header) !important;
+}
+
+.dark [class~="bg-[#090E1A]"],
+.dark [class~="bg-gray-950"],
+.dark [class~="bg-gray-950/95"],
+.dark [class~="bg-slate-950/70"],
+.dark [class~="bg-slate-950/60"] {
+  background-color: #444448 !important;
+}
+
+.dark [class~="bg-gray-900"],
+.dark [class~="bg-gray-900/80"],
+.dark [class~="bg-gray-900/60"],
+.dark [class~="bg-gray-900/50"],
+.dark [class~="bg-gray-900/40"],
+.dark [class~="bg-slate-900"],
+.dark [class~="bg-slate-900/80"] {
+  background-color: #59595e !important;
+}
+
+.dark [class*="border-gray-"],
+.dark [class*="border-slate-"] {
+  border-color: rgb(255 255 255 / 0.16) !important;
+}
+
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark textarea,
+.dark [role="combobox"] {
+  background-color: rgb(255 255 255 / 0.08) !important;
+  border-color: rgb(255 255 255 / 0.2) !important;
+  color: #ffffff !important;
+}
+
+.dark input:not([type="checkbox"]):not([type="radio"]):focus,
+.dark textarea:focus,
+.dark [role="combobox"]:focus-visible {
+  border-color: var(--ns-sirius-lite) !important;
+  box-shadow: 0 0 0 3px rgb(29 184 185 / 0.2) !important;
+}
+
+/* Remove legacy non-brand navy surfaces from major application shells. */
+.light [class~="bg-[#24475d]"],
+.light [class~="bg-[#2c566e]"] {
+  background-color: var(--ns-surface) !important;
+}
+.light [class~="border-[#41677b]"],
+.light [class~="divide-[#41677b]"] {
+  border-color: var(--ns-border) !important;
+}
+.dark [class~="bg-[#24475d]"],
+.dark [class~="bg-[#2c566e]"],
+.dark [class~="bg-[#0d1b2a]"] {
+  background-color: var(--ns-header) !important;
+}
+
+/* Reusable card families. */
+.light .module-chart-card,
+.light .module-kpi-card,
+.light .module-metric-card,
+.light .builder-mode [class~="rounded-xl"][class*="border"],
+.light .presentation-mode [class~="rounded-xl"][class*="border"] {
+  background: #ffffff !important;
+  border-color: var(--ns-border) !important;
+  box-shadow: var(--ns-shadow-sm) !important;
+}
+
+/* Sirius is the primary interaction state; no unrelated blue/indigo focus color. */
+:where(button, a, input, textarea, [role="button"], [role="tab"], [role="combobox"]):focus-visible {
+  outline-color: var(--ns-sirius) !important;
+}
+
+/* Presentation input rail remains dark but moves to the official brand field. */
+.presentation-mode .presentation-input-rail,
+.light .presentation-mode .presentation-input-rail,
+.presentation-policy-menu {
+  background: var(--ns-header) !important;
+  border-color: rgb(255 255 255 / 0.18) !important;
+  box-shadow: var(--ns-shadow-lg) !important;
+}
+
+.presentation-mode .presentation-input-title,
+.presentation-mode .presentation-input-label,
+.presentation-mode .presentation-input-affix {
+  color: #ffffff !important;
+}
+
+.presentation-mode .presentation-input-item,
+.presentation-mode .presentation-input-control,
+.light .presentation-mode .presentation-input-rail .presentation-input-control {
+  background: rgb(255 255 255 / 0.08) !important;
+  border-color: rgb(255 255 255 / 0.2) !important;
+  color: #ffffff !important;
+}
+
+.presentation-mode .presentation-input-control:focus,
+.light .presentation-mode .presentation-input-rail .presentation-input-control:focus {
+  border-color: var(--ns-sirius-lite) !important;
+  box-shadow: 0 0 0 2px rgb(29 184 185 / 0.22) !important;
+}
+
+/* Disclosure typography is explicitly governed by the manual. */
+.disclaimer-block,
+[data-disclosure="true"] {
+  font-family: var(--font-disclosure);
+  letter-spacing: 0;
+}
+
+/* Print/PDF also uses the official brand typeface and palette. */
+@media print {
+  html,
+  body {
+    font-family: "Raleway", "Montserrat", sans-serif !important;
+    color: var(--ns-header) !important;
+  }
+
+  .disclaimer-block,
+  [data-disclosure="true"] {
+    font-family: var(--font-disclosure) !important;
+  }
+}
