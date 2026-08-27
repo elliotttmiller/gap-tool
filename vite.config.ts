@@ -2,10 +2,13 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { copyFileSync } from 'node:fs';
 import path from 'path';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-const base = process.env.GITHUB_ACTIONS === 'true' ? '/gap-tool/' : '/';
+function normalizeBasePath(value: string) {
+  const withLeadingSlash = value.startsWith('/') ? value : `/${value}`;
+  return withLeadingSlash.endsWith('/') ? withLeadingSlash : `${withLeadingSlash}/`;
+}
 
 /** GitHub Pages has no SPA rewrite support, so deep links are served this app shell. */
 function githubPagesSpaFallback() {
@@ -23,13 +26,19 @@ function githubPagesSpaFallback() {
   };
 }
 
-export default defineConfig({
-  base,
-  plugins: [
-    react(),
-    tailwindcss(),
-    githubPagesSpaFallback(),
-    VitePWA({
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  const base = normalizeBasePath(
+    env.VITE_APP_BASE_PATH || (env.GITHUB_ACTIONS === 'true' ? '/gap-tool/' : '/'),
+  );
+
+  return {
+    base,
+    plugins: [
+      react(),
+      tailwindcss(),
+      githubPagesSpaFallback(),
+      VitePWA({
       // Inject the SW registration script automatically into index.html.
       registerType: 'prompt',
 
@@ -73,25 +82,26 @@ export default defineConfig({
         // Enabling it generates dev-dist/ and can interfere with HMR.
         enabled: false,
       },
-    }),
-  ],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
+      }),
+    ],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
     },
-  },
-  server: {
-    hmr: process.env.DISABLE_HMR !== 'true',
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-charts': ['recharts'],
-          'vendor-ui': ['lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select', '@radix-ui/react-tabs', '@radix-ui/react-tooltip'],
+    server: {
+      hmr: process.env.DISABLE_HMR !== 'true',
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-charts': ['recharts'],
+            'vendor-ui': ['lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+          },
         },
       },
     },
-  },
+  };
 });

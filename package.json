@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "tsc --noEmit && vite build",
+    "build:northstar": "tsc --noEmit && vite build --mode northstar",
     "test:formulas": "tsx scripts/verify-advisor-formulas.ts",
     "test:client-exchange": "node --import tsx scripts/verify-client-profile-exchange.ts",
     "docs:module-wiring": "node scripts/generate-module-wiring-html.mjs",
