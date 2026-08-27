@@ -60,6 +60,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className={cx("relative w-full", className)}>
         <input
+          {...props}
           ref={forwardedRef}
           type={shouldGroupThousands ? "text" : isPassword ? typeState : type}
           inputMode={shouldGroupThousands ? "decimal" : props.inputMode}
@@ -71,7 +72,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           value={displayValue}
           onChange={handleChange}
           placeholder={placeholder}
-          {...props}
         />
         {isSearch && (
           <div className={cx("pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center", "text-gray-500 dark:text-white/50")}>
