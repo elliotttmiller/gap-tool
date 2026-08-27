@@ -39,24 +39,104 @@ interface InputProps
   inputClassName?: string
 }
 
+function normalizeNumericInput(value: string) {
+  const compact = value.replaceAll(",", "").replace(/\s/g, "")
+  const negative = compact.startsWith("-")
+  const unsigned = compact.replaceAll("-", "")
+  const decimalIndex = unsigned.indexOf(".")
+  const integerPart = (decimalIndex >= 0 ? unsigned.slice(0, decimalIndex) : unsigned).replace(/\D/g, "")
+  const fractionalPart = (decimalIndex >= 0 ? unsigned.slice(decimalIndex + 1) : "").replace(/\D/g, "")
+  const decimal = decimalIndex >= 0
+  const sign = negative ? "-" : ""
+
+  if (!integerPart && !decimal) return sign
+  return `${sign}${integerPart}${decimal ? `.${fractionalPart}` : ""}`
+}
+
+function formatNumericInput(value: React.InputHTMLAttributes<HTMLInputElement>["value"]) {
+  if (value === undefined || value === null || Array.isArray(value)) return value
+  const normalized = normalizeNumericInput(String(value))
+  if (!normalized || normalized === "-") return normalized
+
+  const negative = normalized.startsWith("-")
+  const unsigned = negative ? normalized.slice(1) : normalized
+  const [integerPart, fractionalPart] = unsigned.split(".")
+  const groupedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+  const decimal = unsigned.includes(".")
+
+  return `${negative ? "-" : ""}${groupedInteger}${decimal ? `.${fractionalPart ?? ""}` : ""}`
+}
+
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, inputClassName, hasError, enableStepper = true, type, ...props }, forwardedRef) => {
+  (
+    {
+      className,
+      inputClassName,
+      hasError,
+      enableStepper = true,
+      type,
+      value,
+      defaultValue,
+      onChange,
+      inputMode,
+      placeholder,
+      max,
+      ...props
+    },
+    forwardedRef,
+  ) => {
     const [typeState, setTypeState] = React.useState(type)
     const isPassword = type === "password"
     const isSearch = type === "search"
+    const isNumeric = type === "number"
+    const usesGroupedNumberDisplay = isNumeric && max === undefined
+    const formattedValue = usesGroupedNumberDisplay ? formatNumericInput(value) : value
+    const formattedDefaultValue = usesGroupedNumberDisplay ? formatNumericInput(defaultValue) : defaultValue
+    const showPersistentNumericLabel = Boolean(isNumeric && placeholder && value !== undefined && String(value).length > 0)
+
+    function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+      if (!usesGroupedNumberDisplay) {
+        onChange?.(event)
+        return
+      }
+
+      const input = event.currentTarget
+      const normalized = normalizeNumericInput(input.value)
+      input.value = normalized
+      onChange?.(event)
+
+      if (value === undefined) {
+        input.value = String(formatNumericInput(normalized) ?? "")
+      }
+    }
 
     return (
       <div className={cx("relative w-full", className)}>
         <input
           ref={forwardedRef}
-          type={isPassword ? typeState : type}
+          type={isPassword ? typeState : usesGroupedNumberDisplay ? "text" : type}
+          inputMode={inputMode ?? (usesGroupedNumberDisplay ? "decimal" : undefined)}
+          value={formattedValue}
+          defaultValue={formattedDefaultValue}
+          placeholder={placeholder}
+          max={max}
+          onChange={handleChange}
           className={cx(
             inputStyles({ hasError, enableStepper }),
-            { "pl-8": isSearch, "pr-10": isPassword },
+            {
+              "pl-8": isSearch,
+              "pr-10": isPassword,
+              "pb-1 pt-5": showPersistentNumericLabel,
+            },
             inputClassName,
           )}
           {...props}
         />
+        {showPersistentNumericLabel ? (
+          <span className="pointer-events-none absolute left-2.5 top-1 text-[9px] font-semibold leading-none text-[#4f4f54]/60 dark:text-white/55">
+            {placeholder}
+          </span>
+        ) : null}
         {isSearch && (
           <div className={cx("pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center", "text-gray-500 dark:text-white/50")}>
             <RiSearchLine className="size-4.5 shrink-0" aria-hidden="true" />
