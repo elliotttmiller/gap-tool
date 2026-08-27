@@ -39,13 +39,20 @@ interface InputProps
     VariantProps<typeof inputStyles> {
   inputClassName?: string
   groupThousands?: boolean
+  persistentLabel?: string
 }
 
+const AUTO_PERSISTENT_LABELS = new Set([
+  "Break-Even Rate of Return (%)",
+  "Months Without Income",
+])
+
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, inputClassName, hasError, enableStepper = true, type, groupThousands, value, onChange, placeholder, ...props }, forwardedRef) => {
+  ({ className, inputClassName, hasError, enableStepper = true, type, groupThousands, persistentLabel, value, onChange, placeholder, ...props }, forwardedRef) => {
     const [typeState, setTypeState] = React.useState(type)
     const isPassword = type === "password"
     const isSearch = type === "search"
+    const resolvedPersistentLabel = persistentLabel ?? (placeholder && AUTO_PERSISTENT_LABELS.has(placeholder) ? placeholder : undefined)
     const shouldGroupThousands = groupThousands ?? (type === "number" && placeholder?.includes("($)"))
     const displayValue = shouldGroupThousands ? formatGroupedNumberInput(value) : value
 
@@ -59,6 +66,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
     return (
       <div className={cx("relative w-full", className)}>
+        {resolvedPersistentLabel ? (
+          <span className="mb-1.5 block text-xs font-medium text-gray-600 dark:text-white/70">
+            {resolvedPersistentLabel}
+          </span>
+        ) : null}
         <input
           {...props}
           ref={forwardedRef}
@@ -71,15 +83,16 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
           value={displayValue}
           onChange={handleChange}
-          placeholder={placeholder}
+          placeholder={resolvedPersistentLabel ? undefined : placeholder}
+          aria-label={props["aria-label"] ?? resolvedPersistentLabel}
         />
         {isSearch && (
-          <div className={cx("pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center", "text-gray-500 dark:text-white/50")}>
+          <div className={cx("pointer-events-none absolute bottom-0 left-2 flex h-10 items-center justify-center", "text-gray-500 dark:text-white/50")}>
             <RiSearchLine className="size-4.5 shrink-0" aria-hidden="true" />
           </div>
         )}
         {isPassword && (
-          <div className={cx("absolute bottom-0 right-0 flex h-full items-center justify-center px-3")}>
+          <div className={cx("absolute bottom-0 right-0 flex h-10 items-center justify-center px-3")}>
             <button
               aria-label="Change password visibility"
               className={cx("h-fit w-fit rounded-sm outline-none transition-all", "text-gray-500 dark:text-white/50", "hover:text-brand-700 hover:dark:text-brand-300", focusRing)}
