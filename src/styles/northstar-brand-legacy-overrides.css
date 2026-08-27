@@ -70,6 +70,15 @@
   border-color: var(--ns-border) !important;
 }
 
+/* Client type buttons historically used white selected text because the
+ * original application was dark-first. Keep the Sirius selection treatment in
+ * light mode while restoring readable Header-gray text. */
+.light button[class~="border-cyan-500"][class~="bg-cyan-500/15"][class~="text-white"] {
+  border-color: var(--ns-sirius) !important;
+  background: rgb(24 138 137 / 0.12) !important;
+  color: var(--ns-header) !important;
+}
+
 /* The original light presentation rail used a navy gradient and teal-tinted
  * type. Force the manual-approved Header gray field and dark-background logo/
  * text treatment with Sirius interactions. */
