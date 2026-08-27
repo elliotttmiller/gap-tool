@@ -115,7 +115,9 @@ export function ClientOverview() {
                 onClick={() => setField("clientType", type)}
                 className={cx(
                   "rounded-xl border px-5 py-3 text-sm font-semibold capitalize transition",
-                  form.clientType === type ? "border-cyan-500 bg-cyan-500/15 text-white" : "border-gray-700 bg-gray-900/60 text-gray-400 hover:text-gray-200",
+                  form.clientType === type
+                    ? "border-cyan-500 bg-cyan-50 text-cyan-800 dark:bg-cyan-500/15 dark:text-white"
+                    : "border-gray-300 bg-white text-gray-700 hover:border-cyan-400 hover:text-cyan-700 dark:border-gray-700 dark:bg-gray-900/60 dark:text-gray-400 dark:hover:text-gray-200",
                 )}
               >
                 {type === "individual" ? "Individual" : "Couple"}
@@ -131,17 +133,17 @@ export function ClientOverview() {
             <Field label="Last name *"><Input value={form.lastName} onChange={(event) => setField("lastName", event.target.value)} /></Field>
             <Field label="Household / display name"><Input value={form.displayName} onChange={(event) => setField("displayName", event.target.value)} /></Field>
             <Field label="Current age *"><Input type="number" min={18} max={64} value={form.age} onChange={(event) => setField("age", event.target.value)} /></Field>
-            <Field label="Annual income ($) *"><Input type="number" min={0} value={form.annualIncome} onChange={(event) => setField("annualIncome", event.target.value)} /></Field>
-            <Field label="Monthly expenses ($)"><Input type="number" min={0} value={form.monthlyExpenses} onChange={(event) => setField("monthlyExpenses", event.target.value)} /></Field>
+            <Field label="Annual income ($) *"><Input type="number" min={0} groupThousands value={form.annualIncome} onChange={(event) => setField("annualIncome", event.target.value)} /></Field>
+            <Field label="Monthly expenses ($)"><Input type="number" min={0} groupThousands value={form.monthlyExpenses} onChange={(event) => setField("monthlyExpenses", event.target.value)} /></Field>
           </div>
         </div>
 
         <div className="space-y-4">
           <SectionTitle title="Existing Coverage — Primary Earner" />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            <Field label="Group Life death benefit ($)"><Input type="number" min={0} value={form.groupLifeCoverage} onChange={(event) => setField("groupLifeCoverage", event.target.value)} /></Field>
-            <Field label="Private Life death benefit ($)"><Input type="number" min={0} value={form.privateLifeCoverage} onChange={(event) => setField("privateLifeCoverage", event.target.value)} /></Field>
-            <Field label="Non-qualified assets ($)"><Input type="number" min={0} value={form.nonQualifiedAssets} onChange={(event) => setField("nonQualifiedAssets", event.target.value)} /></Field>
+            <Field label="Group Life death benefit ($)"><Input type="number" min={0} groupThousands value={form.groupLifeCoverage} onChange={(event) => setField("groupLifeCoverage", event.target.value)} /></Field>
+            <Field label="Private Life death benefit ($)"><Input type="number" min={0} groupThousands value={form.privateLifeCoverage} onChange={(event) => setField("privateLifeCoverage", event.target.value)} /></Field>
+            <Field label="Non-qualified assets ($)"><Input type="number" min={0} groupThousands value={form.nonQualifiedAssets} onChange={(event) => setField("nonQualifiedAssets", event.target.value)} /></Field>
           </div>
         </div>
 
@@ -149,7 +151,7 @@ export function ClientOverview() {
           <SectionTitle title="Group Long Term Disability (LTD)" description="These values prefill the Disability module when a risk review is generated or refreshed." />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <Field label="Coverage of Income (%)"><Input type="number" min={0} max={100} step={1} value={form.ltdCoveragePercent} onChange={(event) => setField("ltdCoveragePercent", event.target.value)} /></Field>
-            <Field label="Monthly Cap ($)"><Input type="number" min={0} value={form.ltdMonthlyCap} onChange={(event) => setField("ltdMonthlyCap", event.target.value)} /></Field>
+            <Field label="Monthly Cap ($)"><Input type="number" min={0} groupThousands value={form.ltdMonthlyCap} onChange={(event) => setField("ltdMonthlyCap", event.target.value)} /></Field>
             <Field label="Taxable?"><ThemedSelect value={form.ltdTaxable ? "true" : "false"} onValueChange={(value) => setField("ltdTaxable", value === "true")} options={[{ value: "true", label: "Yes - 70% of gross" }, { value: "false", label: "No - full benefit" }]} /></Field>
           </div>
         </div>
@@ -157,8 +159,8 @@ export function ClientOverview() {
         <div className="space-y-4">
           <SectionTitle title="Individual Disability Insurance" description="Individual DI benefit, premium, benefit period, and break-even assumptions for income-gap analysis." />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-            <Field label="Monthly Benefit ($)"><Input type="number" min={0} value={form.privateDisabilityBenefitMonthly} onChange={(event) => setField("privateDisabilityBenefitMonthly", event.target.value)} /></Field>
-            <Field label="Monthly Premium ($)"><Input type="number" min={0} value={form.privateDisabilityMonthlyPremium} onChange={(event) => setField("privateDisabilityMonthlyPremium", event.target.value)} /></Field>
+            <Field label="Monthly Benefit ($)"><Input type="number" min={0} groupThousands value={form.privateDisabilityBenefitMonthly} onChange={(event) => setField("privateDisabilityBenefitMonthly", event.target.value)} /></Field>
+            <Field label="Monthly Premium ($)"><Input type="number" min={0} groupThousands value={form.privateDisabilityMonthlyPremium} onChange={(event) => setField("privateDisabilityMonthlyPremium", event.target.value)} /></Field>
             <Field label="Benefit Period"><ThemedSelect value={form.privateDisabilityBenefitPeriod} onValueChange={(value) => setField("privateDisabilityBenefitPeriod", value as DiBenefitPeriod | "")} options={BENEFIT_PERIOD_OPTIONS} /></Field>
             <Field label="Break-Even Rate of Return (%)"><Input type="number" min={0} max={30} step={0.1} value={form.disabilityBreakEvenRateOfReturn} onChange={(event) => setField("disabilityBreakEvenRateOfReturn", event.target.value)} /></Field>
             <Field label="Months Without Income"><Input type="number" min={1} step={1} value={form.disabilityBreakEvenMonthsWithoutIncome} onChange={(event) => setField("disabilityBreakEvenMonthsWithoutIncome", event.target.value)} /></Field>
@@ -171,18 +173,19 @@ export function ClientOverview() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <Field label="Full name"><Input value={form.spouseName} onChange={(event) => setField("spouseName", event.target.value)} /></Field>
               <Field label="Current age"><Input type="number" min={18} max={64} value={form.spouseAge} onChange={(event) => setField("spouseAge", event.target.value)} /></Field>
-              <Field label="Annual income to replace ($)"><Input type="number" min={0} value={form.spouseAnnualIncome} onChange={(event) => setField("spouseAnnualIncome", event.target.value)} /></Field>
-              <Field label="Non-qualified assets ($)"><Input type="number" min={0} value={form.spouseNonQualifiedAssets} onChange={(event) => setField("spouseNonQualifiedAssets", event.target.value)} /></Field>
-              <Field label="Group Life death benefit ($)"><Input type="number" min={0} value={form.spouseGroupLifeCoverage} onChange={(event) => setField("spouseGroupLifeCoverage", event.target.value)} /></Field>
-              <Field label="Private Life death benefit ($)"><Input type="number" min={0} value={form.spousePrivateLifeCoverage} onChange={(event) => setField("spousePrivateLifeCoverage", event.target.value)} /></Field>
+              <Field label="Annual income to replace ($)"><Input type="number" min={0} groupThousands value={form.spouseAnnualIncome} onChange={(event) => setField("spouseAnnualIncome", event.target.value)} /></Field>
+              <Field label="Non-qualified assets ($)"><Input type="number" min={0} groupThousands value={form.spouseNonQualifiedAssets} onChange={(event) => setField("spouseNonQualifiedAssets", event.target.value)} /></Field>
+              <Field label="Group Life death benefit ($)"><Input type="number" min={0} groupThousands value={form.spouseGroupLifeCoverage} onChange={(event) => setField("spouseGroupLifeCoverage", event.target.value)} /></Field>
+              <Field label="Private Life death benefit ($)"><Input type="number" min={0} groupThousands value={form.spousePrivateLifeCoverage} onChange={(event) => setField("spousePrivateLifeCoverage", event.target.value)} /></Field>
             </div>
           </div>
         ) : null}
 
         <div className="space-y-4">
-          <SectionTitle title="Household Liability Coverage" />
+          <SectionTitle title="Household Liability Coverage" description="Umbrella coverage remains editable after client setup and continues to prefill the Liability module." />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <Field label="Underlying Auto Liability Limit ($)"><Input type="number" min={0} value={form.autoLiabilityLimit} onChange={(event) => setField("autoLiabilityLimit", event.target.value)} /></Field>
+            <Field label="Underlying Auto Liability Limit ($)"><Input type="number" min={0} groupThousands value={form.autoLiabilityLimit} onChange={(event) => setField("autoLiabilityLimit", event.target.value)} /></Field>
+            <Field label="Existing Umbrella Coverage ($)"><Input type="number" min={0} step={1_000_000} groupThousands value={form.umbrellaCoverage} onChange={(event) => setField("umbrellaCoverage", event.target.value)} /></Field>
           </div>
         </div>
       </Card>
