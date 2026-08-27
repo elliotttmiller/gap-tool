@@ -5,6 +5,7 @@ import React from "react"
 import { tv, type VariantProps } from "tailwind-variants"
 
 import { cx, focusInput, focusRing, hasErrorInput } from "@/lib/utils"
+import { formatGroupedNumberInput, normalizeGroupedNumberInput } from "@/lib/numberInput"
 
 const inputStyles = tv({
   base: [
@@ -37,24 +38,39 @@ interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement>,
     VariantProps<typeof inputStyles> {
   inputClassName?: string
+  groupThousands?: boolean
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, inputClassName, hasError, enableStepper = true, type, ...props }, forwardedRef) => {
+  ({ className, inputClassName, hasError, enableStepper = true, type, groupThousands, value, onChange, placeholder, ...props }, forwardedRef) => {
     const [typeState, setTypeState] = React.useState(type)
     const isPassword = type === "password"
     const isSearch = type === "search"
+    const shouldGroupThousands = groupThousands ?? (type === "number" && placeholder?.includes("($)"))
+    const displayValue = shouldGroupThousands ? formatGroupedNumberInput(value) : value
+
+    function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+      if (!onChange) return
+      if (shouldGroupThousands) {
+        event.currentTarget.value = normalizeGroupedNumberInput(event.currentTarget.value)
+      }
+      onChange(event)
+    }
 
     return (
       <div className={cx("relative w-full", className)}>
         <input
           ref={forwardedRef}
-          type={isPassword ? typeState : type}
+          type={shouldGroupThousands ? "text" : isPassword ? typeState : type}
+          inputMode={shouldGroupThousands ? "decimal" : props.inputMode}
           className={cx(
             inputStyles({ hasError, enableStepper }),
             { "pl-8": isSearch, "pr-10": isPassword },
             inputClassName,
           )}
+          value={displayValue}
+          onChange={handleChange}
+          placeholder={placeholder}
           {...props}
         />
         {isSearch && (
