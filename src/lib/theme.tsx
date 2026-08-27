@@ -32,7 +32,7 @@ function applyTheme(theme: ResolvedTheme) {
   root.dataset.theme = theme
   document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute(
     "content",
-    theme === "dark" ? "#0d1b2a" : "#eaf1f3",
+    theme === "dark" ? "#4f4f54" : "#f7f7f7",
   )
 }
 
