@@ -124,6 +124,13 @@
   box-shadow: 0 0 0 3px rgb(24 138 137 / 0.16) !important;
 }
 
+/* Client-type selection previously paired a very light selected fill with
+ * white text. Preserve the selected Sirius cue while keeping light mode legible. */
+.light button[class~="border-cyan-500"][class~="bg-cyan-500/15"][class~="text-white"] {
+  background-color: rgb(24 138 137 / 0.1) !important;
+  color: var(--ns-sirius) !important;
+}
+
 /* Analysis Center used an isolated pre-brand navy header gradient. Keep the
  * audit workflow intact while bringing its chrome into the same branded dark
  * field as the application shell. */
