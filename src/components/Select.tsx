@@ -20,13 +20,13 @@ SelectValue.displayName = "SelectValue"
 const selectTriggerStyles = [
   cx(
     "group/trigger flex w-full select-none items-center justify-between gap-2 truncate rounded-md border px-3 py-2 shadow-sm outline-none transition sm:text-sm",
-    "border-[#c8d7db] dark:border-gray-700",
-    "text-[#102a3a] dark:text-gray-50",
-    "data-[placeholder]:text-gray-500 data-[placeholder]:dark:text-gray-500",
-    "bg-[#f1f6f7] dark:bg-gray-900",
-    "hover:border-[#9ebbc2] hover:bg-white dark:hover:bg-gray-800",
-    "data-[disabled]:bg-gray-800 data-[disabled]:text-gray-500",
-    "data-[disabled]:dark:border-gray-700 data-[disabled]:dark:bg-gray-800 data-[disabled]:dark:text-gray-500",
+    "border-[#4f4f54]/25 dark:border-white/20",
+    "text-[#4f4f54] dark:text-white",
+    "data-[placeholder]:text-[#4f4f54]/55 data-[placeholder]:dark:text-white/50",
+    "bg-white dark:bg-white/8",
+    "hover:border-brand-500/55 hover:bg-brand-50 dark:hover:bg-white/12",
+    "data-[disabled]:bg-gray-100 data-[disabled]:text-gray-500",
+    "data-[disabled]:dark:border-white/10 data-[disabled]:dark:bg-white/5 data-[disabled]:dark:text-white/40",
     focusInput,
   ),
 ]
@@ -45,8 +45,8 @@ const SelectTrigger = React.forwardRef<
       <RiArrowDownSLine
         className={cx(
           "-mr-1 size-5 shrink-0",
-          "text-gray-400 dark:text-gray-600",
-          "group-data-disabled/trigger:text-gray-300 group-data-disabled/trigger:dark:text-gray-600",
+          "text-[#4f4f54]/55 dark:text-white/55",
+          "group-data-disabled/trigger:text-gray-400 group-data-disabled/trigger:dark:text-white/35",
         )}
       />
     </SelectPrimitives.Icon>
@@ -91,13 +91,13 @@ const SelectContent = React.forwardRef<
       <SelectPrimitives.Content
         ref={forwardedRef}
         className={cx(
-          "relative z-50 overflow-hidden rounded-md border shadow-xl shadow-black/2.5",
+          "relative z-50 overflow-hidden rounded-md border",
           "min-w-[calc(var(--radix-select-trigger-width)-2px)] max-w-[95vw]",
           "max-h-[--radix-select-content-available-height]",
-          "bg-white dark:bg-gray-900",
-          "text-[#10283b] dark:text-gray-50",
-          "border-[#c8d7db] dark:border-gray-700",
-          "shadow-[0_18px_45px_rgba(15,42,58,0.16)] dark:shadow-black/40",
+          "bg-white dark:bg-[#4f4f54]",
+          "text-[#4f4f54] dark:text-white",
+          "border-[#4f4f54]/20 dark:border-white/20",
+          "shadow-[0_18px_45px_rgba(79,79,84,0.16)]",
           "will-change-[transform,opacity]",
           "data-[state=closed]:animate-hide",
           "data-[side=bottom]:animate-slideDownAndFade data-[side=left]:animate-slideLeftAndFade data-[side=right]:animate-slideRightAndFade data-[side=top]:animate-slideUpAndFade",
@@ -130,7 +130,7 @@ const SelectGroupLabel = React.forwardRef<
 >(({ className, ...props }, forwardedRef) => (
   <SelectPrimitives.Label
     ref={forwardedRef}
-    className={cx("px-3 py-2 text-xs font-medium tracking-wide", "text-gray-500 dark:text-gray-500", className)}
+    className={cx("px-3 py-2 text-xs font-medium tracking-wide", "text-[#4f4f54]/60 dark:text-white/55", className)}
     {...props}
   />
 ))
@@ -144,17 +144,17 @@ const SelectItem = React.forwardRef<
     ref={forwardedRef}
     className={cx(
       "grid cursor-pointer grid-cols-[1fr_20px] gap-x-2 rounded px-3 py-2 outline-none transition-colors data-[state=checked]:font-semibold sm:text-sm",
-      "text-[#10283b] dark:text-gray-50",
+      "text-[#4f4f54] dark:text-white",
       "data-disabled:pointer-events-none data-disabled:text-gray-500 data-disabled:hover:bg-none",
-      "focus-visible:bg-[#e8f7f7] dark:focus-visible:bg-gray-800",
-      "hover:bg-[#f0f7f7] dark:hover:bg-gray-800",
+      "focus-visible:bg-brand-50 focus-visible:text-brand-800 dark:focus-visible:bg-brand-500/25 dark:focus-visible:text-white",
+      "hover:bg-brand-50 hover:text-brand-800 dark:hover:bg-white/10 dark:hover:text-white",
       className,
     )}
     {...props}
   >
     <SelectPrimitives.ItemText className="flex-1 truncate">{children}</SelectPrimitives.ItemText>
     <SelectPrimitives.ItemIndicator>
-      <RiCheckLine className="size-5 shrink-0 text-gray-800 dark:text-gray-200" aria-hidden="true" />
+      <RiCheckLine className="size-5 shrink-0 text-brand-600 dark:text-brand-300" aria-hidden="true" />
     </SelectPrimitives.ItemIndicator>
   </SelectPrimitives.Item>
 ))
@@ -168,17 +168,17 @@ const SelectItemPeriod = React.forwardRef<
     ref={forwardedRef}
     className={cx(
       "relative flex cursor-pointer items-center rounded py-2 pl-8 pr-3 outline-none transition-colors data-[state=checked]:font-semibold sm:text-sm",
-      "text-[#10283b] dark:text-gray-50",
+      "text-[#4f4f54] dark:text-white",
       "data-disabled:pointer-events-none data-disabled:text-gray-500",
-      "focus-visible:bg-[#e8f7f7] dark:focus-visible:bg-gray-800",
-      "hover:bg-[#f0f7f7] dark:hover:bg-gray-800",
+      "focus-visible:bg-brand-50 focus-visible:text-brand-800 dark:focus-visible:bg-brand-500/25 dark:focus-visible:text-white",
+      "hover:bg-brand-50 hover:text-brand-800 dark:hover:bg-white/10 dark:hover:text-white",
       className,
     )}
     {...props}
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitives.ItemIndicator>
-        <RiCheckLine className="size-5 shrink-0 text-gray-800 dark:text-gray-200" aria-hidden="true" />
+        <RiCheckLine className="size-5 shrink-0 text-brand-600 dark:text-brand-300" aria-hidden="true" />
       </SelectPrimitives.ItemIndicator>
     </span>
     <div className="flex w-full items-center">
@@ -187,7 +187,7 @@ const SelectItemPeriod = React.forwardRef<
       </span>
       <span>
         {period?.from && period?.to && (
-          <span className="whitespace-nowrap font-normal text-gray-400">
+          <span className="whitespace-nowrap font-normal text-[#4f4f54]/60 dark:text-white/55">
             {format(period.from, "MMM d, yyyy")} – {format(period.to, "MMM d, yyyy")}
           </span>
         )}
@@ -203,7 +203,7 @@ const SelectSeparator = React.forwardRef<
 >(({ className, ...props }, forwardedRef) => (
   <SelectPrimitives.Separator
     ref={forwardedRef}
-    className={cx("-mx-1 my-1 h-px", "bg-gray-300 dark:bg-gray-700", className)}
+    className={cx("-mx-1 my-1 h-px", "bg-[#4f4f54]/15 dark:bg-white/15", className)}
     {...props}
   />
 ))

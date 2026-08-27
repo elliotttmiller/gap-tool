@@ -1,0 +1,142 @@
+/*
+ * North Star 2020 Brand Manual — legacy compatibility layer
+ *
+ * The original application stylesheet contains a small number of highly
+ * specific light-mode selectors from the pre-brand design system. They remain
+ * in index.css to avoid a broad unrelated stylesheet rewrite, but this file is
+ * loaded last and guarantees that those selectors resolve to the authoritative
+ * North Star palette. New UI should use shared primitives/design tokens instead
+ * of adding rules here.
+ */
+
+/* Legacy metric-card semantic colors had selector specificity higher than the
+ * Tailwind token layer. Normalize them explicitly to the official palette. */
+.light .module-metric-card [class~="text-emerald-300"],
+.light .module-kpi-card [class~="text-emerald-300"] {
+  color: var(--ns-nebula) !important;
+}
+
+.light .module-metric-card [class~="text-green-300"],
+.light .module-kpi-card [class~="text-green-300"] {
+  color: var(--ns-nebula) !important;
+}
+
+.light .module-metric-card [class~="text-rose-300"],
+.light .module-metric-card [class~="text-red-300"],
+.light .module-kpi-card [class~="text-rose-300"],
+.light .module-kpi-card [class~="text-red-300"] {
+  color: var(--ns-polaris) !important;
+}
+
+.light .module-metric-card [class~="text-cyan-300"],
+.light .module-metric-card [class~="text-teal-300"],
+.light .module-kpi-card [class~="text-cyan-300"],
+.light .module-kpi-card [class~="text-teal-300"] {
+  color: var(--ns-sirius) !important;
+}
+
+.light .module-metric-card [class~="text-blue-300"],
+.light .module-metric-card [class~="text-indigo-300"],
+.light .module-kpi-card [class~="text-blue-300"],
+.light .module-kpi-card [class~="text-indigo-300"] {
+  color: var(--ns-pegasi) !important;
+}
+
+.light .module-metric-card [class~="text-amber-300"],
+.light .module-metric-card [class~="text-yellow-300"],
+.light .module-kpi-card [class~="text-amber-300"],
+.light .module-kpi-card [class~="text-yellow-300"] {
+  color: var(--ns-polaris-lite) !important;
+}
+
+/* Legacy module card neutrals used blue-gray values that are not part of the
+ * Brand Manual. Constrain label/description/disclosure text to Header gray. */
+.light .module-kpi-card [class~="text-slate-50"],
+.light .module-metric-card .module-metric-value.text-slate-50 {
+  color: var(--ns-header) !important;
+}
+
+.light .module-kpi-card [class~="text-slate-500"],
+.light .module-kpi-card [class~="text-slate-600"],
+.light .module-kpi-card [class~="text-slate-700"],
+.light .module-metric-card .module-metric-label,
+.light .module-metric-card .module-metric-description,
+.light .module-metric-card .module-metric-disclosure,
+.light .module-metric-card .module-metric-value [class~="text-gray-400"] {
+  color: var(--ns-muted) !important;
+}
+
+.light .module-metric-card .module-metric-disclosure {
+  border-color: var(--ns-border) !important;
+}
+
+/* The original light presentation rail used a navy gradient and teal-tinted
+ * type. Force the manual-approved Header gray field and dark-background logo/
+ * text treatment with Sirius interactions. */
+.light .presentation-mode .presentation-input-rail,
+.light .presentation-mode .presentation-policy-menu,
+.light .presentation-policy-menu {
+  background: var(--ns-header) !important;
+  border-color: rgb(255 255 255 / 0.18) !important;
+  box-shadow: var(--ns-shadow-lg) !important;
+}
+
+.light .presentation-mode .presentation-input-rail > div:first-child {
+  border-color: rgb(255 255 255 / 0.18) !important;
+}
+
+.light .presentation-mode .presentation-input-title,
+.light .presentation-mode .presentation-input-label,
+.light .presentation-mode .presentation-input-affix {
+  color: #ffffff !important;
+}
+
+.light .presentation-mode .presentation-input-item,
+.light .presentation-mode .presentation-input-control,
+.light .presentation-mode .presentation-policy-menu button {
+  background: rgb(255 255 255 / 0.08) !important;
+  border-color: rgb(255 255 255 / 0.2) !important;
+  color: #ffffff !important;
+}
+
+.light .presentation-mode .presentation-input-control:focus,
+.light .presentation-mode .presentation-input-control:focus-visible {
+  border-color: var(--ns-sirius-lite) !important;
+  box-shadow: 0 0 0 2px rgb(29 184 185 / 0.22) !important;
+}
+
+/* Keep builder/presentation card chrome neutral even where old gradient rules
+ * use higher-specificity selectors. */
+.light .module-chart-card,
+.light .module-kpi-card,
+.light .module-metric-card {
+  border-color: var(--ns-border) !important;
+  background: #ffffff !important;
+  box-shadow: var(--ns-shadow-sm) !important;
+}
+
+/* Old light-mode input rules use explicit teal literals. This final layer keeps
+ * their focused state tied to Sirius even if the earlier stylesheet evolves. */
+.light input:not([type="checkbox"]):not([type="radio"]):focus,
+.light textarea:focus,
+.light [role="combobox"]:focus-visible {
+  border-color: var(--ns-sirius) !important;
+  box-shadow: 0 0 0 3px rgb(24 138 137 / 0.16) !important;
+}
+
+/* Analysis Center used an isolated pre-brand navy header gradient. Keep the
+ * audit workflow intact while bringing its chrome into the same branded dark
+ * field as the application shell. */
+[data-analysis-center] > header {
+  background: var(--ns-header) !important;
+  border-color: rgb(255 255 255 / 0.18) !important;
+  color: #ffffff !important;
+}
+
+[data-analysis-center] > header [class~="text-[#94a3b8]"] {
+  color: rgb(255 255 255 / 0.68) !important;
+}
+
+.dark [data-analysis-center] {
+  background: var(--ns-header) !important;
+}
