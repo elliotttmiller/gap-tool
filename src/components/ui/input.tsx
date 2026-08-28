@@ -1,27 +1,45 @@
 import * as React from "react"
+import { formatGroupedNumberInput, normalizeGroupedNumberInput } from "@/lib/numberInput"
 import { cn, formatNumberInputValue } from "@/lib/utils"
 
 export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "prefix"> {
   prefix?: React.ReactNode
   suffix?: React.ReactNode
   inputClassName?: string
+  groupThousands?: boolean
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, inputClassName, prefix, suffix, type, value, onFocus, onBlur, inputMode, ...props }, ref) => {
+  ({ className, inputClassName, prefix, suffix, type, value, onChange, onFocus, onBlur, inputMode, groupThousands, ...props }, ref) => {
     const [isEditingNumber, setIsEditingNumber] = React.useState(false)
     const isNumber = type === "number"
+    const shouldGroupThousands = groupThousands ?? (isNumber && prefix === "$")
+    const renderedType = shouldGroupThousands ? "text" : isNumber && !isEditingNumber ? "text" : type
+    const renderedValue = shouldGroupThousands
+      ? formatGroupedNumberInput(value)
+      : isNumber && !isEditingNumber
+        ? formatNumberInputValue(value)
+        : value
+
+    function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+      if (shouldGroupThousands) {
+        event.currentTarget.value = normalizeGroupedNumberInput(event.currentTarget.value)
+      }
+      onChange?.(event)
+    }
+
     const input = (
       <input
-        type={isNumber && !isEditingNumber ? "text" : type}
+        type={renderedType}
         inputMode={isNumber ? (inputMode ?? "decimal") : inputMode}
-        value={isNumber && !isEditingNumber ? formatNumberInputValue(value) : value}
+        value={renderedValue}
+        onChange={handleChange}
         onFocus={(event) => {
-          if (isNumber) setIsEditingNumber(true)
+          if (isNumber && !shouldGroupThousands) setIsEditingNumber(true)
           onFocus?.(event)
         }}
         onBlur={(event) => {
-          if (isNumber) setIsEditingNumber(false)
+          if (isNumber && !shouldGroupThousands) setIsEditingNumber(false)
           onBlur?.(event)
         }}
         className={cn(
