@@ -5,6 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { transformLiabilityChartData } from "../transformers/transformLiabilityChartData"
 import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
 import { advisorSafeCopy } from "@/domain/copy/advisorSafeCopy"
+import { financialBarChartTheme } from "@/components/charts/financialBarChartTheme"
 
 interface LiabilityOutputViewProps {
   outputs: LiabilityOutputs
@@ -78,18 +79,18 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
                 <span style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }} className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider text-slate-500">Exposure and Coverage ($)</span>
               </div>
               <div className="min-w-0 flex-1">
-                <div className="liability-chart-area chart-reveal">
+                <div className="liability-chart-area chart-reveal financial-bar-chart">
                   <ResponsiveContainer width="100%" height="100%" debounce={100}>
                     <BarChart
                       data={chartData.protectionStackData}
                       margin={{ top: 8, right: 24, left: 2, bottom: 12 }}
-                      barSize={92}
-                      barCategoryGap="48%"
+                      barSize={financialBarChartTheme.geometry.comparisonBarSize}
+                      barCategoryGap={financialBarChartTheme.geometry.comparisonCategoryGap}
                     >
-                      <CartesianGrid stroke="rgba(100,116,139,0.16)" strokeDasharray="3 5" vertical={false} />
-                      <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 11, fontWeight: 600 }} axisLine={{ stroke: "#64748b", strokeOpacity: 0.45 }} tickLine={{ stroke: "#64748b", strokeOpacity: 0.45 }} tickMargin={10} />
-                      <YAxis tickFormatter={(val) => `$${Math.round(Number(val) / 1000)}k`} tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} width={50} />
-                      <Tooltip content={CustomTooltip} cursor={{ fill: "rgba(255,255,255,0.025)" }} />
+                      <CartesianGrid stroke={financialBarChartTheme.grid.stroke} strokeDasharray={financialBarChartTheme.grid.strokeDasharray} vertical={false} />
+                      <XAxis dataKey="name" tick={{ fill: financialBarChartTheme.axis.tickFill, fontSize: 11, fontWeight: 600 }} axisLine={{ stroke: financialBarChartTheme.axis.lineStroke, strokeOpacity: financialBarChartTheme.axis.lineOpacity }} tickLine={{ stroke: financialBarChartTheme.axis.lineStroke, strokeOpacity: financialBarChartTheme.axis.lineOpacity }} tickMargin={10} />
+                      <YAxis tickFormatter={(val) => `$${Math.round(Number(val) / 1000)}k`} tick={{ fill: financialBarChartTheme.axis.tickFill, fontSize: 10 }} axisLine={false} tickLine={false} width={50} />
+                      <Tooltip content={CustomTooltip} cursor={{ fill: financialBarChartTheme.cursor.fill }} />
                       {outputs.householdAutoLiabilityCoverage > 0 ? (
                         <ReferenceLine
                           y={outputs.householdAutoLiabilityCoverage}
@@ -99,9 +100,9 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
                           label={{ value: `Auto limit ${formatLiabilityMetric(outputs.householdAutoLiabilityCoverage)}`, position: "insideBottomLeft", fill: "#148f45", fontSize: 10 }}
                         />
                       ) : null}
-                      <Bar dataKey="AutoCoverage" name="Auto Liability Coverage" stackId="a" fill="#44b649" minPointSize={6} radius={[0, 0, 0, 0]} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
-                      <Bar dataKey="UmbrellaCoverage" name="Umbrella Coverage" stackId="a" fill="#27aae1" radius={[0, 0, 0, 0]} isAnimationActive={true} animationBegin={100} animationDuration={1200} animationEasing="ease-out" />
-                      <Bar dataKey="ExposureGap" name="Unprotected Liability Gap" stackId="a" fill="#f15a29" radius={[5, 5, 0, 0]} isAnimationActive={true} animationBegin={160} animationDuration={1200} animationEasing="ease-out" />
+                      <Bar dataKey="AutoCoverage" name="Auto Liability Coverage" stackId="a" fill="#44b649" minPointSize={6} radius={[0, 0, 0, 0]} shapeRendering="geometricPrecision" isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
+                      <Bar dataKey="UmbrellaCoverage" name="Umbrella Coverage" stackId="a" fill="#27aae1" radius={[0, 0, 0, 0]} shapeRendering="geometricPrecision" isAnimationActive={true} animationBegin={100} animationDuration={1200} animationEasing="ease-out" />
+                      <Bar dataKey="ExposureGap" name="Unprotected Liability Gap" stackId="a" fill="#f15a29" radius={[financialBarChartTheme.geometry.stackRadius, financialBarChartTheme.geometry.stackRadius, 0, 0]} shapeRendering="geometricPrecision" isAnimationActive={true} animationBegin={160} animationDuration={1200} animationEasing="ease-out" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

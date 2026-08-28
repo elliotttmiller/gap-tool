@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { Card, CardContent } from "@/components/ui/card"
 import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
+import { financialBarChartTheme, topStackRadius } from "@/components/charts/financialBarChartTheme"
 import { formatCurrency } from "@/lib/utils"
 import type { DisabilityInputs } from "../types"
 
@@ -36,9 +37,7 @@ function roundedStackCells(
   return data.map((row) => (
     <Cell
       key={`${row.name}-${dataKey}`}
-      // Cell inherits the SVG radius type, but Recharts forwards Bar's
-      // documented four-corner tuple to its Rectangle renderer.
-      radius={(isTopSegment(row) ? [8, 8, 0, 0] : [0, 0, 0, 0]) as unknown as number}
+      radius={topStackRadius(isTopSegment(row)) as unknown as number}
     />
   ))
 }
@@ -277,20 +276,25 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
               </div>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                  <BarChart data={chartData} margin={{ top: 16, right: 40, left: 0, bottom: 12 }} barSize={96} barCategoryGap="50%">
-                    <CartesianGrid stroke="rgba(148,163,184,0.06)" strokeDasharray="4 4" vertical={false} />
-                    <XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 12, fontWeight: 600 }} tickLine={false} axisLine={false} dy={6} />
-                    <YAxis tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} axisLine={false} width={54} domain={[0, (dataMax: number) => Math.max(1, Math.ceil((dataMax * 1.15) / 1000) * 1000)]} tickFormatter={(value) => `$${Math.round(Number(value) / 1000)}k`} />
-                    <Tooltip content={<ComparisonTooltip />} cursor={{ fill: "rgba(255,255,255,0.025)" }} />
-                    <Bar dataKey="Group LTD" stackId="stack" fill="#3b82f6">
+                  <BarChart
+                    data={chartData}
+                    margin={{ top: 16, right: 40, left: 0, bottom: 12 }}
+                    barSize={financialBarChartTheme.geometry.comparisonBarSize}
+                    barCategoryGap={financialBarChartTheme.geometry.comparisonCategoryGap}
+                  >
+                    <CartesianGrid stroke={financialBarChartTheme.grid.stroke} strokeDasharray={financialBarChartTheme.grid.strokeDasharray} vertical={false} />
+                    <XAxis dataKey="name" tick={{ fill: financialBarChartTheme.axis.tickFill, fontSize: 12, fontWeight: 600 }} tickLine={false} axisLine={false} dy={6} />
+                    <YAxis tick={{ fill: financialBarChartTheme.axis.tickFill, fontSize: 11 }} tickLine={false} axisLine={false} width={54} domain={[0, (dataMax: number) => Math.max(1, Math.ceil((dataMax * 1.15) / 1000) * 1000)]} tickFormatter={(value) => `$${Math.round(Number(value) / 1000)}k`} />
+                    <Tooltip content={<ComparisonTooltip />} cursor={{ fill: financialBarChartTheme.cursor.fill }} />
+                    <Bar dataKey="Group LTD" stackId="stack" fill="#3b82f6" shapeRendering="geometricPrecision">
                       {roundedStackCells(chartData, "Group LTD", (row) => row["IDI Benefit"] <= 0 && row["Income Gap"] <= 0)}
                       <LabelList dataKey="Group LTD" position="center" formatter={(value: number) => value > 0 ? formatCurrency(value) : ""} style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }} />
                     </Bar>
-                    <Bar dataKey="IDI Benefit" stackId="stack" fill="#06b6d4">
+                    <Bar dataKey="IDI Benefit" stackId="stack" fill="#06b6d4" shapeRendering="geometricPrecision">
                       {roundedStackCells(chartData, "IDI Benefit", (row) => row["Income Gap"] <= 0)}
                       <LabelList dataKey="IDI Benefit" position="center" formatter={(value: number) => value > 0 ? formatCurrency(value) : ""} style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }} />
                     </Bar>
-                    <Bar dataKey="Income Gap" stackId="stack" fill="#ef4444">
+                    <Bar dataKey="Income Gap" stackId="stack" fill="#ef4444" shapeRendering="geometricPrecision">
                       {roundedStackCells(chartData, "Income Gap", (row) => row["Income Gap"] > 0)}
                       <LabelList dataKey="Income Gap" position="center" formatter={(value: number) => value > 0 ? formatCurrency(value) : ""} style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }} />
                     </Bar>
