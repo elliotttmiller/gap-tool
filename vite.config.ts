@@ -6,16 +6,19 @@ import { defineConfig, loadEnv } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 function normalizeBasePath(value: string) {
-  const withLeadingSlash = value.startsWith('/') ? value : `/${value}`;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === '/') return '/';
+
+  const withLeadingSlash = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
   return withLeadingSlash.endsWith('/') ? withLeadingSlash : `${withLeadingSlash}/`;
 }
 
-/** GitHub Pages has no SPA rewrite support, so deep links are served this app shell. */
-function githubPagesSpaFallback() {
+/** Static hosts such as GitHub Pages have no SPA rewrite support, so deep links can use this app shell. */
+function spaFallback() {
   let outDir = 'dist';
 
   return {
-    name: 'github-pages-spa-fallback',
+    name: 'spa-fallback',
     apply: 'build' as const,
     configResolved(config: { build: { outDir: string } }) {
       outDir = config.build.outDir;
@@ -28,60 +31,53 @@ function githubPagesSpaFallback() {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const base = normalizeBasePath(
-    env.VITE_APP_BASE_PATH || (env.GITHUB_ACTIONS === 'true' ? '/gap-tool/' : '/'),
-  );
+  const base = normalizeBasePath(env.VITE_APP_BASE_PATH || '/');
 
   return {
     base,
     plugins: [
       react(),
       tailwindcss(),
-      githubPagesSpaFallback(),
+      spaFallback(),
       VitePWA({
-      // Inject the SW registration script automatically into index.html.
-      registerType: 'prompt',
+        // Inject the SW registration script automatically into index.html.
+        registerType: 'prompt',
 
-      // Only include assets that actually exist in /public.
-      includeAssets: ['favicon.svg', 'favicon.png', 'pwa-icon.png', 'northstar-logo.svg'],
+        // Only include assets that actually exist in /public.
+        includeAssets: ['favicon.svg', 'favicon.png', 'pwa-icon.png', 'northstar-logo.svg'],
 
-      // Vite base path must be forwarded so SW scope is correct on GitHub Pages.
-      base,
+        // Forward the active deployment base so service-worker scope follows
+        // the same subdirectory as Vite assets and React Router.
+        base,
 
-      manifest: false, // We manage manifest.json ourselves in /public.
+        manifest: false, // We manage manifest.json ourselves in /public.
 
-      workbox: {
-        // The app shell (index.html) always comes from the network first so
-        // that navigating to any route loads the latest shell, then the cached
-        // precached assets load instantly.
-        navigateFallback: 'index.html',
+        workbox: {
+          // The app shell always comes from the network first so navigating to
+          // any route loads the latest shell, then precached assets load quickly.
+          navigateFallback: 'index.html',
 
-        // Precache everything emitted by the build: JS chunks, CSS, fonts, SVGs.
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+          // Precache everything emitted by the build: JS chunks, CSS, fonts, SVGs.
+          globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
 
-        // Runtime cache strategies ─────────────────────────────────────────────
-        runtimeCaching: [
-          {
-            // Fonts from Google or self-hosted: cache-first, long TTL.
-            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts',
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] },
+          runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'google-fonts',
+                expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+                cacheableResponse: { statuses: [0, 200] },
+              },
             },
-          },
-        ],
+          ],
 
-        // Skip Vite dev-server URLs so local HMR is unaffected.
-        navigateFallbackDenylist: [/^\/api\//],
-      },
+          navigateFallbackDenylist: [/^\/api\//],
+        },
 
-      devOptions: {
-        // Disabled in dev — no need to run a real SW locally.
-        // Enabling it generates dev-dist/ and can interfere with HMR.
-        enabled: false,
-      },
+        devOptions: {
+          enabled: false,
+        },
       }),
     ],
     resolve: {
