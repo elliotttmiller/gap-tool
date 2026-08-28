@@ -32,6 +32,18 @@
   --ns-shadow-sm: 0 1px 2px rgb(79 79 84 / 0.05), 0 8px 24px rgb(79 79 84 / 0.06);
   --ns-shadow-lg: 0 18px 48px rgb(79 79 84 / 0.14), 0 2px 8px rgb(79 79 84 / 0.06);
 
+  /* The Brand Manual's middle dark logo-background treatment uses Header gray.
+   * Keep that exact field for the shell, then use tonal derivatives to create
+   * panel depth instead of repeating one flat gray across the entire UI. */
+  --ns-dark-canvas: #4f4f54;
+  --ns-dark-surface: #3f3f43;
+  --ns-dark-surface-raised: #343438;
+  --ns-dark-surface-muted: #5e5e63;
+  --ns-dark-border: rgb(255 255 255 / 0.22);
+  --ns-dark-text: #ffffff;
+  --ns-dark-text-secondary: #f1f1f2;
+  --ns-dark-text-muted: #d0d0d4;
+
   /* Tailwind brand utilities are redirected to the official Sirius family. */
   --color-brand-50: #eef8f8;
   --color-brand-100: #d8eeee;
@@ -223,12 +235,14 @@ h6 {
   box-shadow: 0 0 0 3px rgb(24 138 137 / 0.16) !important;
 }
 
-/* Dark UI uses the manual's approved Header gray as the branded dark field. */
+/* Dark UI uses the manual's Header-gray field with a layered surface system.
+ * The former implementation repeated similar grays and left muted content
+ * unreadable; these tokens restore separation and contrast. */
 .dark,
 .dark body,
 .dark .app-shell-surface,
 .dark .presentation-mode {
-  background-color: var(--ns-header) !important;
+  background-color: var(--ns-dark-canvas) !important;
 }
 
 .dark [class~="bg-[#090E1A]"],
@@ -236,7 +250,7 @@ h6 {
 .dark [class~="bg-gray-950/95"],
 .dark [class~="bg-slate-950/70"],
 .dark [class~="bg-slate-950/60"] {
-  background-color: #444448 !important;
+  background-color: var(--ns-dark-surface) !important;
 }
 
 .dark [class~="bg-gray-900"],
@@ -246,20 +260,57 @@ h6 {
 .dark [class~="bg-gray-900/40"],
 .dark [class~="bg-slate-900"],
 .dark [class~="bg-slate-900/80"] {
-  background-color: #59595e !important;
+  background-color: var(--ns-dark-surface-raised) !important;
+}
+
+.dark [class~="bg-gray-800"],
+.dark [class~="bg-gray-800/80"],
+.dark [class~="bg-gray-800/40"],
+.dark [class~="bg-slate-800"],
+.dark [class~="bg-slate-800/60"] {
+  background-color: var(--ns-dark-surface-muted) !important;
 }
 
 .dark [class*="border-gray-"],
 .dark [class*="border-slate-"] {
-  border-color: rgb(255 255 255 / 0.16) !important;
+  border-color: var(--ns-dark-border) !important;
+}
+
+.dark [class~="text-gray-50"],
+.dark [class~="text-gray-100"],
+.dark [class~="text-slate-50"],
+.dark [class~="text-slate-100"] {
+  color: var(--ns-dark-text) !important;
+}
+
+.dark [class~="text-gray-200"],
+.dark [class~="text-gray-300"],
+.dark [class~="text-slate-200"],
+.dark [class~="text-slate-300"] {
+  color: var(--ns-dark-text-secondary) !important;
+}
+
+.dark [class~="text-gray-400"],
+.dark [class~="text-gray-500"],
+.dark [class~="text-gray-600"],
+.dark [class~="text-slate-400"],
+.dark [class~="text-slate-500"],
+.dark [class~="text-slate-600"] {
+  color: var(--ns-dark-text-muted) !important;
 }
 
 .dark input:not([type="checkbox"]):not([type="radio"]),
 .dark textarea,
 .dark [role="combobox"] {
-  background-color: rgb(255 255 255 / 0.08) !important;
-  border-color: rgb(255 255 255 / 0.2) !important;
-  color: #ffffff !important;
+  background-color: var(--ns-dark-surface-raised) !important;
+  border-color: var(--ns-dark-border) !important;
+  color: var(--ns-dark-text) !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--ns-dark-text-muted) !important;
+  opacity: 1;
 }
 
 .dark input:not([type="checkbox"]):not([type="radio"]):focus,
@@ -280,8 +331,36 @@ h6 {
 }
 .dark [class~="bg-[#24475d]"],
 .dark [class~="bg-[#2c566e]"],
-.dark [class~="bg-[#0d1b2a]"] {
-  background-color: var(--ns-header) !important;
+.dark [class~="bg-[#0d1b2a]"],
+.dark [class~="bg-[#4f4f54]"] {
+  background-color: var(--ns-dark-surface-raised) !important;
+}
+
+/* Recharts writes its neutral palette as SVG presentation attributes, so the
+ * normal utility remap cannot reach axes, legends, or grid lines. */
+.dark .recharts-cartesian-axis-tick-value,
+.dark .recharts-polar-angle-axis-tick-value,
+.dark .recharts-polar-radius-axis-tick-value,
+.dark .recharts-legend-item-text {
+  fill: var(--ns-dark-text-muted) !important;
+  color: var(--ns-dark-text-muted) !important;
+}
+
+.dark .recharts-cartesian-grid line,
+.dark .recharts-polar-grid-concentric-polygon,
+.dark .recharts-polar-grid-angle line {
+  stroke: rgb(255 255 255 / 0.16) !important;
+}
+
+/* Shell and portaled workflow headers use the approved dark-background logo
+ * treatment over the same manual-approved dark field as the application. */
+.dark .app-header,
+.dark [data-analysis-center] > header,
+.dark [data-analysis-center],
+.dark .presentation-mode .presentation-input-rail,
+.dark .presentation-policy-menu {
+  background: var(--ns-dark-canvas) !important;
+  border-color: var(--ns-dark-border) !important;
 }
 
 /* Reusable card families. */

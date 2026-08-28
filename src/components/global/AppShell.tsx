@@ -2,8 +2,6 @@ import { useState, useRef, useEffect } from "react"
 import { Link, Outlet, useLocation } from "react-router-dom"
 import { ArrowLeft, Settings, X } from "lucide-react"
 import { AssumptionsPage } from "@/pages/Assumptions"
-import { InstallPWAButton } from "./InstallPWAButton"
-import { PWAUpdateToast } from "./PWAUpdateToast"
 import { ThemePicker, ThemeToggle } from "./ThemeControl"
 
 export function AppShell() {
@@ -45,8 +43,7 @@ export function AppShell() {
 
   return (
     <div className="app-shell-surface min-h-screen min-w-7xl text-[#4f4f54] transition-colors dark:text-white">
-      <PWAUpdateToast />
-      <header className="fixed inset-x-0 top-0 z-50 h-20 border-b border-white/15 bg-[#4f4f54]/98 shadow-[0_4px_18px_rgba(79,79,84,0.22)] backdrop-blur-xl">
+      <header className="app-header fixed inset-x-0 top-0 z-50 h-20 border-b border-white/15 bg-[#4f4f54]/98 shadow-[0_4px_18px_rgba(79,79,84,0.22)] backdrop-blur-xl">
         <div className="mx-auto flex h-full max-w-400 items-center px-8">
           <div className="flex flex-1 justify-start">
             {isInScenario ? (
@@ -70,13 +67,12 @@ export function AppShell() {
               <img
                 src={`${import.meta.env.BASE_URL}northstar-logo.svg`}
                 alt="North Star Resource Group"
-                className="h-7 w-auto object-contain"
+                className="h-12 w-auto object-contain"
               />
             </Link>
           </div>
 
           <div className="flex flex-1 justify-end gap-1">
-            <InstallPWAButton />
             <button
               ref={buttonRef}
               aria-label="Settings"

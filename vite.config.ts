@@ -3,7 +3,6 @@ import react from '@vitejs/plugin-react';
 import { copyFileSync } from 'node:fs';
 import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
-import { VitePWA } from 'vite-plugin-pwa';
 
 function normalizeBasePath(value: string) {
   const trimmed = value.trim();
@@ -39,46 +38,6 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss(),
       spaFallback(),
-      VitePWA({
-        // Inject the SW registration script automatically into index.html.
-        registerType: 'prompt',
-
-        // Only include assets that actually exist in /public.
-        includeAssets: ['favicon.svg', 'favicon.png', 'pwa-icon.png', 'northstar-logo.svg'],
-
-        // Forward the active deployment base so service-worker scope follows
-        // the same subdirectory as Vite assets and React Router.
-        base,
-
-        manifest: false, // We manage manifest.json ourselves in /public.
-
-        workbox: {
-          // The app shell always comes from the network first so navigating to
-          // any route loads the latest shell, then precached assets load quickly.
-          navigateFallback: 'index.html',
-
-          // Precache everything emitted by the build: JS chunks, CSS, fonts, SVGs.
-          globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
-
-          runtimeCaching: [
-            {
-              urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'google-fonts',
-                expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
-                cacheableResponse: { statuses: [0, 200] },
-              },
-            },
-          ],
-
-          navigateFallbackDenylist: [/^\/api\//],
-        },
-
-        devOptions: {
-          enabled: false,
-        },
-      }),
     ],
     resolve: {
       alias: {

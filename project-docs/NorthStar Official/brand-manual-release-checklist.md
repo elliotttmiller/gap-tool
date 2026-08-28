@@ -37,19 +37,19 @@ Use this checklist for the 2020 Brand Manual compliance release and future brand
 - [x] Select controls and option menus use the same brand system.
 - [x] Theme controls use the same interaction system.
 - [x] Light mode selected states retain readable contrast.
-- [x] Dark mode is constrained to Header gray and approved brand accents.
+- [x] Dark mode uses the manual's Header gray with differentiated tonal surfaces and approved brand accents.
 
 ## Presentation and print
 
 - [x] Presentation mode uses the same brand tokens as builder mode.
-- [x] Presentation input rail uses Header gray rather than legacy navy.
+- [x] Presentation input rail uses the manual's Header gray in dark mode rather than legacy navy.
 - [x] Print/PDF headings, rules, status colors, and disclosure typography are brand-normalized.
 - [x] Financial values/formulas are not modified by print or branding changes.
 
-## Browser / PWA metadata
+## Browser metadata
 
 - [x] Theme/background metadata uses the official neutral brand field.
-- [x] PWA name identifies North Star Resource Group.
+- [x] No PWA manifest, install prompt, service-worker generation, or offline-app integration is present.
 - [x] Existing application icon assets are retained; this revision does not invent a new corporate mark.
 
 ## Imagery
