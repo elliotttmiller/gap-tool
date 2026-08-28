@@ -1,0 +1,83 @@
+/*
+ * Dark-theme readability and chart interaction polish.
+ *
+ * This file intentionally contains presentation-only overrides. It does not
+ * change chart data, calculations, domains, inputs, assumptions, or behavior.
+ */
+
+/* Raise neutral/context copy contrast only in dark mode. Light mode is left
+   completely untouched. Existing utility mappings in index.css consume these
+   variables, so gray/slate context copy follows one consistent dark schema. */
+.dark {
+  --dark-text-secondary: #eef3f5;
+  --dark-text-muted: #d9e1e5;
+  --dark-text-subtle: #c3cdd2;
+}
+
+/* Recharts axis labels are frequently supplied as inline SVG fill values rather
+   than Tailwind text utilities, so normalize those separately in dark mode. */
+.dark .module-output-container .recharts-cartesian-axis-tick-value,
+.dark .life-visual-dashboard .recharts-cartesian-axis-tick-value,
+.dark .liability-visual-dashboard .recharts-cartesian-axis-tick-value {
+  fill: var(--dark-text-muted) !important;
+}
+
+/* Financial projection bars: favor geometric SVG precision over crispEdges.
+   This avoids jagged/fuzzy vertical edges at responsive fractional positions. */
+.life-chart-area .recharts-rectangle,
+.disability-chart-panel .recharts-rectangle,
+.liability-visual-dashboard .recharts-rectangle,
+.module-output-container .recharts-rectangle {
+  shape-rendering: geometricPrecision;
+}
+
+/* Match the Disability Asset Comparison hover language: slight lift,
+   brightness increase, and a restrained halo. These selectors are scoped to
+   the two requested income-gap visualizations only. */
+.life-chart-area .recharts-bar-rectangle .recharts-rectangle,
+.disability-chart-panel .recharts-bar-rectangle .recharts-rectangle {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  transition:
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 200ms ease,
+    opacity 220ms ease;
+}
+
+.life-chart-area .recharts-bar-rectangle .recharts-rectangle:hover,
+.disability-chart-panel .recharts-bar-rectangle .recharts-rectangle:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1) drop-shadow(0 0 7px rgb(255 255 255 / 0.30));
+}
+
+/* Life already persists the selected age with per-cell opacity. Convert that
+   existing state into the requested focus treatment without changing its
+   state, click handler, values, or tooltip behavior. */
+.life-chart-area .recharts-rectangle[opacity="0.3"] {
+  opacity: 0.28 !important;
+  filter: blur(0.65px) brightness(0.78) !important;
+}
+
+.life-chart-area .recharts-rectangle[opacity="0.3"]:hover {
+  opacity: 0.62 !important;
+  filter: blur(0.2px) brightness(1.06) drop-shadow(0 0 7px rgb(255 255 255 / 0.24)) !important;
+}
+
+/* Disability uses the same persisted-selection cell treatment added in its
+   output view. Keep the visual contract shared with Life. */
+.disability-chart-panel .recharts-rectangle[opacity="0.28"] {
+  filter: blur(0.65px) brightness(0.78) !important;
+}
+
+.disability-chart-panel .recharts-rectangle[opacity="0.28"]:hover {
+  opacity: 0.62 !important;
+  filter: blur(0.2px) brightness(1.06) drop-shadow(0 0 7px rgb(255 255 255 / 0.24)) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .life-chart-area .recharts-bar-rectangle .recharts-rectangle,
+  .disability-chart-panel .recharts-bar-rectangle .recharts-rectangle {
+    transition: opacity 120ms linear;
+    transform: none !important;
+  }
+}
