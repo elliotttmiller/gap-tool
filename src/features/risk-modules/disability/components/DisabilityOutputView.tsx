@@ -2,8 +2,9 @@ import { useState } from "react"
 import { DisabilityOutputs } from "../types"
 import type { DisabilityInputs, DisabilityAssumptions } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { financialBarChartTheme } from "@/components/charts/financialBarChartTheme"
 import { formatCurrency } from "@/lib/utils"
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
+import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import { getDisabilityNarrative } from "../constants/moduleCopy"
 import { AnimatedSection } from "@/components/ui/animated-section"
 import { transformDisabilityChartData } from "../transformers/transformDisabilityChartData"
@@ -60,6 +61,19 @@ function buildAgeTicks(data: { age: number }[], targetTickCount = 8): number[] {
   }
   ticks.push(lastAge)
   return ticks
+}
+
+function projectionCellVisualState(selectedAge: number | null, age: number, glowColor: string) {
+  const isSelected = selectedAge === age
+  const isDimmed = selectedAge !== null && !isSelected
+
+  return {
+    opacity: isDimmed ? 0.28 : 1,
+    style: {
+      transition: "opacity 220ms ease, filter 220ms ease",
+      filter: isSelected ? `drop-shadow(0 0 6px ${glowColor})` : isDimmed ? "blur(0.65px) brightness(0.78)" : "none",
+    },
+  }
 }
 
 function getMonthlyStatsAtAge(outputs: DisabilityOutputs, age: number) {
@@ -307,13 +321,28 @@ export function DisabilityOutputView({
                 <div className="flex min-w-0 flex-1 flex-col">
                   <div className="chart-reveal min-h-52 w-full flex-1">
                     <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                      <BarChart data={chartData.projectionChartData} margin={{ top: 10, right: 16, left: 0, bottom: 4 }} barGap={0} barCategoryGap="8%" onClick={(data) => { if (data?.activePayload) setSelectedAge(Number(data.activeLabel)) }} style={{ cursor: "pointer" }}>
+                      <BarChart data={chartData.projectionChartData} margin={{ top: 10, right: 16, left: 0, bottom: 4 }} barGap={0} barCategoryGap={financialBarChartTheme.geometry.projectionCategoryGap} onClick={(data) => { if (data?.activePayload) setSelectedAge(Number(data.activeLabel)) }} style={{ cursor: "pointer" }}>
                         <XAxis dataKey="age" ticks={ageTicks} interval={0} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
                         <YAxis tickFormatter={(v) => `$${Math.round(v / 1000)}k`} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} width={48} />
-                        <Tooltip content={CustomTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-                        <Bar dataKey={ltdLabel} stackId="a" barSize={28} fill="#1b75bc" shapeRendering="crispEdges" isAnimationActive={false} />
-                        <Bar dataKey="Individual DI" stackId="a" barSize={28} fill="#1db8b9" shapeRendering="crispEdges" isAnimationActive={false} />
-                        <Bar dataKey="Income Gap" stackId="a" barSize={28} fill="#f15a29" radius={[2, 2, 0, 0]} shapeRendering="crispEdges" isAnimationActive={false} />
+                        <Tooltip content={CustomTooltip} cursor={{ fill: financialBarChartTheme.cursor.fill }} />
+                        <Bar dataKey={ltdLabel} stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill="#1b75bc" isAnimationActive={false}>
+                          {chartData.projectionChartData.map((point) => {
+                            const visual = projectionCellVisualState(selectedAge, point.age, "rgba(27,117,188,0.72)")
+                            return <Cell key={`ltd-${point.age}`} opacity={visual.opacity} style={visual.style} />
+                          })}
+                        </Bar>
+                        <Bar dataKey="Individual DI" stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill="#1db8b9" isAnimationActive={false}>
+                          {chartData.projectionChartData.map((point) => {
+                            const visual = projectionCellVisualState(selectedAge, point.age, "rgba(29,184,185,0.72)")
+                            return <Cell key={`idi-${point.age}`} opacity={visual.opacity} style={visual.style} />
+                          })}
+                        </Bar>
+                        <Bar dataKey="Income Gap" stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill="#f15a29" radius={[financialBarChartTheme.geometry.stackRadius, financialBarChartTheme.geometry.stackRadius, 0, 0]} isAnimationActive={false}>
+                          {chartData.projectionChartData.map((point) => {
+                            const visual = projectionCellVisualState(selectedAge, point.age, "rgba(241,90,41,0.72)")
+                            return <Cell key={`gap-${point.age}`} opacity={visual.opacity} style={visual.style} />
+                          })}
+                        </Bar>
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
