@@ -4,7 +4,7 @@ import { RiEyeFill, RiEyeOffFill, RiSearchLine } from "@remixicon/react"
 import React from "react"
 import { tv, type VariantProps } from "tailwind-variants"
 
-import { cx, focusInput, focusRing, hasErrorInput } from "@/lib/utils"
+import { cx, focusInput, focusRing, formatNumberInputValue, hasErrorInput } from "@/lib/utils"
 
 const inputStyles = tv({
   base: [
@@ -41,16 +41,30 @@ interface InputProps
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, inputClassName, hasError, enableStepper = true, type, ...props }, forwardedRef) => {
+  ({ className, inputClassName, hasError, enableStepper = true, type, value, onFocus, onBlur, inputMode, ...props }, forwardedRef) => {
     const [typeState, setTypeState] = React.useState(type)
+    const [isEditingNumber, setIsEditingNumber] = React.useState(false)
     const isPassword = type === "password"
     const isSearch = type === "search"
+    const isNumber = type === "number"
+    const renderedType = isNumber && !isEditingNumber ? "text" : (isPassword ? typeState : type)
+    const renderedValue = isNumber && !isEditingNumber ? formatNumberInputValue(value) : value
 
     return (
       <div className={cx("relative w-full", className)}>
         <input
           ref={forwardedRef}
-          type={isPassword ? typeState : type}
+          type={renderedType}
+          inputMode={isNumber ? (inputMode ?? "decimal") : inputMode}
+          value={renderedValue}
+          onFocus={(event) => {
+            if (isNumber) setIsEditingNumber(true)
+            onFocus?.(event)
+          }}
+          onBlur={(event) => {
+            if (isNumber) setIsEditingNumber(false)
+            onBlur?.(event)
+          }}
           className={cx(
             inputStyles({ hasError, enableStepper }),
             { "pl-8": isSearch, "pr-10": isPassword },

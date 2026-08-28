@@ -97,7 +97,7 @@ function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOut
       </CardHeader>
 
       <CardContent className="px-5 pb-5 pt-4">
-        <div className="unemployment-reserve-plot grid min-h-[25rem] gap-5 rounded-2xl border border-slate-800/70 bg-slate-950/70 p-5 lg:grid-cols-[13rem_minmax(20rem,1fr)_13rem] lg:items-center">
+        <div className="unemployment-reserve-plot grid min-h-[25rem] gap-5 rounded-2xl bg-slate-950/70 p-5 lg:grid-cols-[13rem_minmax(20rem,1fr)_13rem] lg:items-center">
           <aside className="grid grid-cols-2 gap-3 lg:flex lg:flex-col" aria-label="Reserve targets">
             <div className="col-span-2 px-1 lg:col-span-1">
               <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">Reserve Targets</p>
@@ -175,8 +175,8 @@ function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOut
                   </span>
                   <span className={`ml-2 flex items-center gap-2 rounded-xl border border-cyan-700/60 bg-slate-950/95 px-2.5 py-1.5 whitespace-nowrap shadow-[0_8px_24px_rgba(2,6,23,0.45)] backdrop-blur transition-all duration-200 peer-hover:-translate-y-0.5 peer-hover:border-cyan-500/70 ${dragScale !== null ? "-translate-y-0.5 border-cyan-400/80 shadow-[0_10px_28px_rgba(8,145,178,0.22)]" : ""}`}>
                     <span className="flex flex-col leading-none">
-                      <span className="text-[8px] font-bold uppercase tracking-[0.16em] text-slate-500">Savings Level</span>
-                      <span className="mt-1 text-[11px] font-bold tabular-nums text-cyan-200">{reserveMonths.toFixed(1)} mo · {formatCurrency(outputs.currentReserveLevel)}</span>
+                      <span className="savings-level-label text-[8px] font-bold uppercase tracking-[0.16em] text-slate-500">Savings Level</span>
+                      <span className="savings-level-value mt-1 text-[11px] font-bold tabular-nums text-cyan-200">{reserveMonths.toFixed(1)} mo · {formatCurrency(outputs.currentReserveLevel)}</span>
                     </span>
                     {canAdjust ? <MoveVertical className="size-3.5 text-cyan-400" aria-hidden="true" /> : null}
                   </span>

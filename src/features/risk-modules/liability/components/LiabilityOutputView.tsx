@@ -44,9 +44,9 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
   const neededUmbrellaCoverage = outputs.neededUmbrellaCoverage
     ?? (outputs.householdLiabilityGap > 0 ? Math.ceil(outputs.householdLiabilityGap / 1_000_000) * 1_000_000 : 0)
   const coverageLayers = [
-    { label: "Auto Liability", value: outputs.householdAutoLiabilityCoverage, tone: "bg-emerald-500", text: "text-emerald-300" },
-    { label: "Existing Umbrella", value: outputs.householdUmbrellaCoverage, tone: "bg-cyan-500", text: "text-cyan-300" },
-    { label: "Unprotected Gap", value: outputs.householdLiabilityGap, tone: "bg-rose-500", text: "text-rose-300" },
+    { label: "Auto Liability", value: outputs.householdAutoLiabilityCoverage, tone: "bg-[#44b649]", text: "text-[#148f45] dark:text-[#44b649]" },
+    { label: "Existing Umbrella", value: outputs.householdUmbrellaCoverage, tone: "bg-[#27aae1]", text: "text-[#1b75bc] dark:text-[#27aae1]" },
+    { label: "Unprotected Gap", value: outputs.householdLiabilityGap, tone: "bg-[#f15a29]", text: "text-[#c13f17] dark:text-[#f15a29]" },
   ]
 
   return (
@@ -93,15 +93,15 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
                       {outputs.householdAutoLiabilityCoverage > 0 ? (
                         <ReferenceLine
                           y={outputs.householdAutoLiabilityCoverage}
-                          stroke="#34d399"
+                          stroke="#44b649"
                           strokeDasharray="4 4"
                           strokeOpacity={0.75}
-                          label={{ value: `Auto limit ${formatLiabilityMetric(outputs.householdAutoLiabilityCoverage)}`, position: "insideBottomLeft", fill: "#6ee7b7", fontSize: 10 }}
+                          label={{ value: `Auto limit ${formatLiabilityMetric(outputs.householdAutoLiabilityCoverage)}`, position: "insideBottomLeft", fill: "#148f45", fontSize: 10 }}
                         />
                       ) : null}
-                      <Bar dataKey="AutoCoverage" name="Auto Liability Coverage" stackId="a" fill="#22c55e" minPointSize={6} radius={[0, 0, 0, 0]} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
-                      <Bar dataKey="UmbrellaCoverage" name="Umbrella Coverage" stackId="a" fill="#06b6d4" radius={[0, 0, 0, 0]} isAnimationActive={true} animationBegin={100} animationDuration={1200} animationEasing="ease-out" />
-                      <Bar dataKey="ExposureGap" name="Unprotected Liability Gap" stackId="a" fill="#f43f5e" radius={[5, 5, 0, 0]} isAnimationActive={true} animationBegin={160} animationDuration={1200} animationEasing="ease-out" />
+                      <Bar dataKey="AutoCoverage" name="Auto Liability Coverage" stackId="a" fill="#44b649" minPointSize={6} radius={[0, 0, 0, 0]} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
+                      <Bar dataKey="UmbrellaCoverage" name="Umbrella Coverage" stackId="a" fill="#27aae1" radius={[0, 0, 0, 0]} isAnimationActive={true} animationBegin={100} animationDuration={1200} animationEasing="ease-out" />
+                      <Bar dataKey="ExposureGap" name="Unprotected Liability Gap" stackId="a" fill="#f15a29" radius={[5, 5, 0, 0]} isAnimationActive={true} animationBegin={160} animationDuration={1200} animationEasing="ease-out" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -119,7 +119,6 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
                 </div>
               ))}
             </div>
-            <p className="mt-1.5 text-center text-[9px] leading-snug text-slate-600">The chart uses a 6px minimum display thickness for non-zero coverage layers; labels, axis, and tooltips retain actual dollar values.</p>
           </CardContent>
         </Card>
 

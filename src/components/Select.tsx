@@ -24,7 +24,7 @@ const selectTriggerStyles = [
     "text-[#102a3a] dark:text-gray-50",
     "data-[placeholder]:text-gray-500 data-[placeholder]:dark:text-gray-500",
     "bg-[#f1f6f7] dark:bg-gray-900",
-    "hover:border-[#9ebbc2] hover:bg-white dark:hover:bg-gray-800",
+    "hover:border-[#188a89] hover:bg-[#188a89]/10 dark:hover:bg-[#188a89]/15",
     "data-[disabled]:bg-gray-800 data-[disabled]:text-gray-500",
     "data-[disabled]:dark:border-gray-700 data-[disabled]:dark:bg-gray-800 data-[disabled]:dark:text-gray-500",
     focusInput,
@@ -147,7 +147,7 @@ const SelectItem = React.forwardRef<
       "text-[#10283b] dark:text-gray-50",
       "data-disabled:pointer-events-none data-disabled:text-gray-500 data-disabled:hover:bg-none",
       "focus-visible:bg-[#e8f7f7] dark:focus-visible:bg-gray-800",
-      "hover:bg-[#f0f7f7] dark:hover:bg-gray-800",
+      "hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white",
       className,
     )}
     {...props}
@@ -171,7 +171,7 @@ const SelectItemPeriod = React.forwardRef<
       "text-[#10283b] dark:text-gray-50",
       "data-disabled:pointer-events-none data-disabled:text-gray-500",
       "focus-visible:bg-[#e8f7f7] dark:focus-visible:bg-gray-800",
-      "hover:bg-[#f0f7f7] dark:hover:bg-gray-800",
+      "hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white",
       className,
     )}
     {...props}

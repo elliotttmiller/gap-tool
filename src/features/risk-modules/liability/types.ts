@@ -60,6 +60,9 @@ export interface LiabilityOutputs {
   /** Additional umbrella coverage needed, rounded up to a $1M policy block. */
   neededUmbrellaCoverage: number;
 
+  /** Legacy saved-output alias retained for client profile and report compatibility. */
+  umbrellaCoverageShortfall: number;
+
   /**
    * Existing umbrella coverage plus neededUmbrellaCoverage.
    * Retained for saved-output and export compatibility.

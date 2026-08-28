@@ -128,7 +128,7 @@ export function ExportClientButton({ client, compact = false, disabled = false }
   const title = disabled ? "Save changes before exporting this client profile" : "Export client profile"
 
   if (compact) {
-    return <button type="button" disabled={disabled} aria-label={`Export ${clientName}`} title={title} className="rounded-md p-1.5 text-brand-200 transition-colors hover:bg-brand-500/15 hover:text-brand-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 disabled:cursor-not-allowed disabled:text-gray-600 disabled:hover:bg-transparent" onClick={() => downloadClientProfileFile([client], clientName)}><RiDownload2Line className="size-4" aria-hidden="true" /></button>
+    return <button type="button" disabled={disabled} aria-label={`Export ${clientName}`} title={title} className="rounded-md p-1.5 text-brand-600 transition-colors hover:bg-[#188a89]/15 hover:text-[#188a89] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#188a89] disabled:cursor-not-allowed disabled:text-gray-600 disabled:hover:bg-transparent group-hover:text-white/80 dark:text-brand-300 dark:hover:text-white" onClick={() => downloadClientProfileFile([client], clientName)}><RiDownload2Line className="size-4" aria-hidden="true" /></button>
   }
   return <Button variant="secondary" disabled={disabled} title={title} onClick={() => downloadClientProfileFile([client], clientName)}><RiDownload2Line className="size-4" />Export Profile</Button>
 }

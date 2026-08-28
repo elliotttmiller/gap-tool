@@ -263,7 +263,7 @@ export function AnalysisCenter() {
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>
-        <button className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:bg-brand-500 dark:hover:bg-brand-600">
+        <button className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#188a89] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#188a89] dark:bg-brand-500 dark:hover:bg-[#188a89]">
           <FileSearch className="size-4" aria-hidden="true" /> Open Analysis Center
         </button>
       </Dialog.Trigger>
@@ -275,7 +275,7 @@ export function AnalysisCenter() {
               <div className="flex items-center gap-3"><div className="flex size-9 items-center justify-center rounded-xl bg-brand-500/15 text-brand-300 ring-1 ring-brand-500/30"><ShieldCheck className="size-5" /></div><div><Dialog.Title className="text-lg font-semibold text-white">Calculation Analysis Center</Dialog.Title><Dialog.Description className="mt-0.5 text-xs text-[#94a3b8]">Structured evidence for methodology, source data, results, and schedules.</Dialog.Description></div></div>
             </div>
             <label className="w-full sm:w-96 lg:w-128"><span className="mb-1 block text-[9px] font-bold uppercase tracking-widest text-[#94a3b8]">Review scenario</span><ThemedSelect ariaLabel="Review scenario" value={scenarioId} onValueChange={(value) => { if (value === scenarioId) return; setScenarioId(value); setModuleFilter("all") }} options={scenarioOptions} disabled={selectableScenarios.length === 0} contentClassName="z-[100]" className="border-white/15 bg-white/5 text-white hover:bg-white/10 dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10" /></label>
-            <button onClick={downloadSnapshot} disabled={!snapshot} className="inline-flex items-center gap-2 self-end rounded-lg border border-white/15 bg-white/5 px-3 py-2.5 text-xs font-semibold text-[#cbd5e1] transition hover:border-brand-500/50 hover:bg-brand-500/10 hover:text-white disabled:opacity-40"><Download className="size-4" /> Export evidence</button>
+            <button onClick={downloadSnapshot} disabled={!snapshot} className="inline-flex items-center gap-2 self-end rounded-lg border border-white/15 bg-white/5 px-3 py-2.5 text-xs font-semibold text-[#cbd5e1] transition hover:border-[#188a89] hover:bg-[#188a89]/20 hover:text-white disabled:opacity-40"><Download className="size-4" /> Export evidence</button>
             <Dialog.Close asChild><button aria-label="Close analysis center" className="self-end rounded-full p-2.5 text-[#94a3b8] transition hover:bg-white/10 hover:text-white"><X className="size-5" /></button></Dialog.Close>
           </header>
 
@@ -286,7 +286,7 @@ export function AnalysisCenter() {
               <div className="border-b border-gray-200 bg-white px-5 py-3 dark:border-gray-800 dark:bg-gray-950/40">
                 <div className="flex flex-wrap items-center gap-2"><span className="mr-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">Review scope</span>
                   {(["all", ...snapshot.modules.map((item) => item.module)] as const).map((module) => (
-                    <button key={module} onClick={() => setModuleFilter(module)} className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${moduleFilter === module ? "bg-brand-50 text-brand-800 ring-1 ring-brand-200 dark:bg-brand-500/15 dark:text-brand-300 dark:ring-brand-500/30" : "text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-100"}`}>{module === "all" ? "All modules" : moduleLabels[module]}</button>
+                    <button key={module} onClick={() => setModuleFilter(module)} className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${moduleFilter === module ? "bg-[#188a89] text-white ring-1 ring-[#188a89]" : "text-gray-500 hover:bg-[#188a89]/15 hover:text-[#188a89] dark:text-gray-400 dark:hover:text-white"}`}>{module === "all" ? "All modules" : moduleLabels[module]}</button>
                   ))}
                   <span className="ml-auto hidden text-[10px] text-gray-500 sm:block">Evidence generated {new Date(snapshot.generatedAt).toLocaleString()}</span>
                 </div>

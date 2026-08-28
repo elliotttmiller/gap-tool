@@ -37,7 +37,7 @@ const DropdownMenuSubMenuTrigger = React.forwardRef<
       "text-[#10283b] dark:text-gray-50",
       "data-disabled:pointer-events-none data-disabled:text-gray-400 data-disabled:hover:bg-none dark:data-disabled:text-gray-600",
       "focus-visible:bg-gray-100 data-[state=open]:bg-gray-100 focus-visible:dark:bg-gray-900 data-[state=open]:dark:bg-gray-900",
-      "hover:bg-[#d2e1e5] dark:hover:bg-gray-800",
+      "hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white",
       className,
     )}
     {...props}
@@ -124,7 +124,7 @@ const DropdownMenuItem = React.forwardRef<
       "text-[#10283b] dark:text-gray-50",
       "data-disabled:pointer-events-none data-disabled:text-gray-400 data-disabled:hover:bg-none dark:data-disabled:text-gray-600",
       "focus-visible:bg-[#c4d9df] dark:focus-visible:bg-gray-800",
-      "hover:bg-[#d2e1e5] dark:hover:bg-gray-800",
+      "hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white",
       className,
     )}
     {...props}
@@ -154,7 +154,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<
       "text-[#10283b] dark:text-gray-50",
       "data-disabled:pointer-events-none data-disabled:text-gray-400 data-disabled:hover:bg-none dark:data-disabled:text-gray-600",
       "focus-visible:bg-[#c4d9df] dark:focus-visible:bg-gray-800",
-      "hover:bg-[#d2e1e5] dark:hover:bg-gray-800",
+      "hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white",
       className,
     )}
     checked={checked}
@@ -191,7 +191,7 @@ const DropdownMenuRadioItem = React.forwardRef<
       "text-[#10283b] dark:text-gray-50",
       "data-disabled:pointer-events-none data-disabled:text-gray-400 data-disabled:hover:bg-none dark:data-disabled:text-gray-600",
       "focus-visible:bg-[#c4d9df] dark:focus-visible:bg-gray-800",
-      "hover:bg-[#d2e1e5] dark:hover:bg-gray-800",
+      "hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white",
       className,
     )}
     {...props}

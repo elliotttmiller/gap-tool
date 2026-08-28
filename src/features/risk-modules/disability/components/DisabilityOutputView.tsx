@@ -287,16 +287,16 @@ export function DisabilityOutputView({
                 <div className="flex min-h-8 items-center gap-3">
                   {selectedAge !== null ? <div className="flex items-center gap-2"><span className="rounded-full border border-blue-700 bg-blue-900/40 px-3 py-1 text-xs font-semibold text-blue-300">Age {selectedAge}</span><button onClick={() => setSelectedAge(null)} className="text-xs text-gray-400 transition-colors hover:text-gray-100" aria-label="Reset to current age">× Reset</button></div> : null}
                   {onAssumptionsChange ? (
-                    <button type="button" onClick={toggleCola} aria-pressed={colaRemoved} title={colaRemoved ? "Restore COLA benefit growth" : "Remove COLA from this comparison"} className="group ml-auto flex shrink-0 items-center gap-2.5 rounded-full border border-slate-700/80 bg-slate-900/70 py-1.5 pr-1.5 pl-3 text-left text-slate-200 shadow-sm transition-colors hover:border-slate-600 hover:bg-slate-900">
+                    <button type="button" onClick={toggleCola} aria-pressed={colaRemoved} title={colaRemoved ? "Restore COLA benefit growth" : "Remove COLA from this comparison"} className="group ml-auto flex shrink-0 items-center gap-2.5 rounded-full border border-slate-700/80 bg-slate-900/70 py-1.5 pr-1.5 pl-3 text-left text-slate-200 shadow-sm transition-colors hover:border-[#188a89] hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white">
                       <span className="whitespace-nowrap text-xs font-semibold">{colaCurrentMode}</span>
-                      <span className={`relative h-5 w-9 shrink-0 rounded-full shadow-inner transition-colors ${colaRemoved ? "bg-amber-500/90" : "bg-emerald-500"}`}><span className={`absolute top-0.5 size-4 rounded-full bg-white shadow-sm transition-all ${colaRemoved ? "left-0.5" : "left-4.5"}`} /></span>
+                      <span className={`relative h-5 w-9 shrink-0 rounded-full shadow-inner transition-colors ${colaRemoved ? "bg-[#fbb040]" : "bg-[#188a89]"}`}><span className={`absolute top-0.5 size-4 rounded-full bg-white shadow-sm transition-all ${colaRemoved ? "left-0.5" : "left-4.5"}`} /></span>
                     </button>
                   ) : null}
                 </div>
                 <div className="flex justify-center sm:justify-end">
                   <div className="flex shrink-0 overflow-hidden rounded-md border border-gray-700 text-xs">
-                    <button onClick={() => setChartView("net")} className={`px-3 py-1 transition-colors ${chartView === "net" ? "bg-brand-700 text-white shadow-sm ring-1 ring-inset ring-brand-600 dark:bg-brand-950/70 dark:ring-brand-700/70" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}>Net</button>
-                    <button onClick={() => setChartView("gross")} className={`px-3 py-1 transition-colors ${chartView === "gross" ? "bg-brand-700 text-white shadow-sm ring-1 ring-inset ring-brand-600 dark:bg-brand-950/70 dark:ring-brand-700/70" : "bg-gray-900 text-gray-400 hover:text-gray-100"}`}>Gross</button>
+                    <button onClick={() => setChartView("net")} className={`px-3 py-1 transition-colors ${chartView === "net" ? "bg-[#188a89] text-white shadow-sm ring-1 ring-inset ring-[#188a89]" : "bg-gray-900 text-gray-400 hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"}`}>Net</button>
+                    <button onClick={() => setChartView("gross")} className={`px-3 py-1 transition-colors ${chartView === "gross" ? "bg-[#188a89] text-white shadow-sm ring-1 ring-inset ring-[#188a89]" : "bg-gray-900 text-gray-400 hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"}`}>Gross</button>
                   </div>
                 </div>
               </div>
@@ -311,17 +311,17 @@ export function DisabilityOutputView({
                         <XAxis dataKey="age" ticks={ageTicks} interval={0} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
                         <YAxis tickFormatter={(v) => `$${Math.round(v / 1000)}k`} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} width={48} />
                         <Tooltip content={CustomTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-                        <Bar dataKey={ltdLabel} stackId="a" fill="#3b82f6" isAnimationActive={false} />
-                        <Bar dataKey="Individual DI" stackId="a" fill="#06b6d4" isAnimationActive={false} />
-                        <Bar dataKey="Income Gap" stackId="a" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={false} />
+                        <Bar dataKey={ltdLabel} stackId="a" fill="#1b75bc" isAnimationActive={false} />
+                        <Bar dataKey="Individual DI" stackId="a" fill="#1db8b9" isAnimationActive={false} />
+                        <Bar dataKey="Income Gap" stackId="a" fill="#f15a29" radius={[2, 2, 0, 0]} isAnimationActive={false} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
                   <div className="mt-1 text-center"><span className="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">Age</span></div>
                   <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
-                    <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400"><span className="inline-block h-2.5 w-4 rounded-sm bg-[#3b82f6]" />{ltdLabel}</span>
-                    <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400"><span className="inline-block h-2.5 w-4 rounded-sm bg-[#06b6d4]" />Individual DI</span>
-                    <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400"><span className="inline-block h-2.5 w-4 rounded-sm bg-[#ef4444]" />Income Gap</span>
+                    <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400"><span className="inline-block h-2.5 w-4 rounded-sm bg-[#1b75bc]" />{ltdLabel}</span>
+                    <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400"><span className="inline-block h-2.5 w-4 rounded-sm bg-[#1db8b9]" />Individual DI</span>
+                    <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400"><span className="inline-block h-2.5 w-4 rounded-sm bg-[#f15a29]" />Income Gap</span>
                   </div>
                 </div>
               </div>
@@ -356,7 +356,7 @@ export function DisabilityOutputView({
               key={value}
               type="button"
               onClick={() => setVisualization(value)}
-              className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-colors ${visualization === value ? "border border-brand-700 bg-brand-700 text-white shadow-sm ring-1 ring-brand-600 dark:border-brand-950/70 dark:bg-brand-950/70 dark:text-white dark:ring-brand-700/70" : "bg-slate-900/40 border border-slate-800 text-slate-400 hover:text-slate-200"}`}
+              className={`px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-colors ${visualization === value ? "border border-[#188a89] bg-[#188a89] text-white shadow-sm ring-1 ring-[#188a89]" : "bg-slate-900/40 border border-slate-800 text-slate-400 hover:border-[#188a89] hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"}`}
             >
               {label}
             </button>
@@ -370,7 +370,7 @@ export function DisabilityOutputView({
         <AnimatedSection delay={0.46}>
           <Card className="border border-gray-800 bg-[#090E1A] text-white">
             <CardContent className="p-6">
-              <h4 className="mb-2 text-xs font-semibold tracking-wider text-blue-400 uppercase">Planning Narrative</h4>
+              <h4 className="mb-2 text-xs font-semibold tracking-wider text-[#27aae1] uppercase">Planning Narrative</h4>
               <p className="text-sm leading-relaxed text-gray-300">{getDisabilityNarrative(outputs)}</p>
             </CardContent>
           </Card>

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { cn } from "@/lib/utils"
+import { cn, formatNumberInputValue } from "@/lib/utils"
 
 export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "prefix"> {
   prefix?: React.ReactNode
@@ -8,10 +8,22 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, inputClassName, prefix, suffix, type, ...props }, ref) => {
+  ({ className, inputClassName, prefix, suffix, type, value, onFocus, onBlur, inputMode, ...props }, ref) => {
+    const [isEditingNumber, setIsEditingNumber] = React.useState(false)
+    const isNumber = type === "number"
     const input = (
       <input
-        type={type}
+        type={isNumber && !isEditingNumber ? "text" : type}
+        inputMode={isNumber ? (inputMode ?? "decimal") : inputMode}
+        value={isNumber && !isEditingNumber ? formatNumberInputValue(value) : value}
+        onFocus={(event) => {
+          if (isNumber) setIsEditingNumber(true)
+          onFocus?.(event)
+        }}
+        onBlur={(event) => {
+          if (isNumber) setIsEditingNumber(false)
+          onBlur?.(event)
+        }}
         className={cn(
           "flex h-9 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-1 text-sm leading-none text-gray-100 shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600 disabled:cursor-not-allowed disabled:opacity-50",
           prefix && "pl-7",

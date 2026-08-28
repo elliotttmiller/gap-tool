@@ -46,7 +46,7 @@ export function AppShell() {
   return (
     <div className="app-shell-surface min-h-screen min-w-7xl text-[#13283a] transition-colors dark:text-gray-50">
       <PWAUpdateToast />
-      <header className="fixed inset-x-0 top-0 z-50 h-14 border-b border-brand-500/30 bg-linear-to-br from-[#0d1b2a]/95 to-[#1e3248]/95 shadow-[0_4px_24px_rgba(0,0,0,0.4)] backdrop-blur-xl">
+      <header className="app-shell-header fixed inset-x-0 top-0 z-50 h-14 border-b border-brand-500/30 bg-linear-to-br from-[#0d1b2a]/95 to-[#1e3248]/95 shadow-[0_4px_24px_rgba(0,0,0,0.4)] backdrop-blur-xl">
         <div className="mx-auto flex h-full max-w-400 items-center px-8">
           <div className="flex flex-1 justify-start">
             {isInScenario ? (
@@ -62,11 +62,11 @@ export function AppShell() {
           </div>
 
           <div className="flex flex-1 justify-center">
-            <Link to="/" aria-label="Home">
+            <Link to="/" aria-label="Home" className="flex h-14 items-center">
               <img
                 src={`${import.meta.env.BASE_URL}northstar-logo.svg`}
                 alt="North Star Resource Group"
-                className="h-14 w-auto object-contain"
+                className="h-11 w-auto object-contain"
               />
             </Link>
           </div>
@@ -102,7 +102,7 @@ export function AppShell() {
               <button
                 onClick={() => setSettingsOpen(false)}
                 aria-label="Close settings"
-                className="rounded-md p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-950 dark:hover:bg-white/5 dark:hover:text-white"
+                className="rounded-md p-1.5 text-gray-500 transition-colors hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"
               >
                 <X className="h-5 w-5" />
               </button>

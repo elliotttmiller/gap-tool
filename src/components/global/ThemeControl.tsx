@@ -18,7 +18,7 @@ export function ThemeToggle() {
       onClick={toggleTheme}
       aria-label={`Switch to ${destination} theme`}
       title={`Switch to ${destination} theme`}
-      className="flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[#cbd5e1] transition hover:border-brand-500/50 hover:bg-brand-500/10 hover:text-brand-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+      className="flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[#cbd5e1] transition hover:border-[#188a89] hover:bg-[#188a89]/20 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#188a89]"
     >
       <Icon className="size-4" aria-hidden="true" />
     </button>
@@ -40,7 +40,7 @@ export function ThemePicker() {
               type="button"
               onClick={() => setTheme(value)}
               aria-pressed={active}
-              className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition ${active ? "bg-white text-brand-700 shadow-sm ring-1 ring-black/5 dark:bg-gray-800 dark:text-brand-300 dark:ring-white/10" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"}`}
+              className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition ${active ? "bg-[#188a89] text-white shadow-sm ring-1 ring-[#188a89]" : "text-gray-500 hover:bg-[#188a89]/15 hover:text-[#188a89] dark:text-gray-400 dark:hover:text-white"}`}
             >
               <Icon className="size-4" aria-hidden="true" />
               {label}

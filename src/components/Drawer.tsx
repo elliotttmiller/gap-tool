@@ -185,7 +185,7 @@ const DrawerHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLD
     <div ref={ref} className="flex items-start justify-between gap-x-4 border-b border-gray-200 pb-4 dark:border-gray-800" {...props}>
       <div className={cx("mt-1 flex flex-col gap-y-1", className)}>{children}</div>
       <DrawerClose asChild>
-        <Button variant="ghost" className="aspect-square p-1 hover:bg-gray-400/10">
+        <Button variant="ghost" className="aspect-square p-1 hover:bg-[#188a89]/15">
           <RiCloseLine className="size-6" aria-hidden="true" />
         </Button>
       </DrawerClose>

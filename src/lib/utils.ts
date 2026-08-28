@@ -85,9 +85,20 @@ export function formatPercent(value: number): string {
 
 /** Parse a form string value to a number. Returns undefined for empty or non-finite strings. */
 export function toNumber(value: string): number | undefined {
-  if (value.trim() === "") return undefined
-  const parsed = Number(value)
+  const normalized = value.replaceAll(",", "").trim()
+  if (normalized === "") return undefined
+  const parsed = Number(normalized)
   return Number.isFinite(parsed) ? parsed : undefined
+}
+
+/** Add US digit grouping to a controlled numeric input while it is not being edited. */
+export function formatNumberInputValue(value: string | number | readonly string[] | undefined): string | number | readonly string[] | undefined {
+  if (value === undefined || Array.isArray(value)) return value
+  const raw = String(value).replaceAll(",", "").trim()
+  if (raw === "") return ""
+  const parsed = Number(raw)
+  if (!Number.isFinite(parsed)) return value
+  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 20 }).format(parsed)
 }
 
 /** Format a number (or undefined) as a form string value. */

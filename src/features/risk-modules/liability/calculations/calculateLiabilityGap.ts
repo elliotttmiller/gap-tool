@@ -112,6 +112,7 @@ export function calculateLiabilityGap(inputs: LiabilityInputs): LiabilityOutputs
     householdTotalCoverage,
     householdLiabilityGap,
     neededUmbrellaCoverage,
+    umbrellaCoverageShortfall: neededUmbrellaCoverage,
     illustrativeUmbrellaCoverageLevel,
     assumptionGarnishmentRate: garnishmentRate,
     assumptionIncomeGrowthRate: incomeGrowthRate,

@@ -26,7 +26,7 @@
     background: #ffffff !important;
     color: #111827 !important;
     font-size: 11pt !important;
-    font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif !important;
+    font-family: "Montserrat", ui-sans-serif, system-ui, sans-serif !important;
   }
 
   /* ── Hide non-print elements ── */
@@ -59,7 +59,7 @@
   .print-cover-header {
     background: #0d1b2a !important;
     color: #ffffff !important;
-    border-bottom: 3px solid #0099a8 !important;
+    border-bottom: 3px solid #27aae1 !important;
     padding: 0.6in 0.5in 0.45in !important;
     margin-bottom: 0.35in !important;
     page-break-after: avoid;
@@ -94,7 +94,7 @@
     font-size: 14pt !important;
     font-weight: 700 !important;
     color: #0d1b2a !important;
-    border-bottom: 2px solid #0099a8 !important;
+    border-bottom: 2px solid #27aae1 !important;
     padding-bottom: 6pt !important;
     margin-bottom: 8pt !important;
     page-break-after: avoid !important;
@@ -178,7 +178,7 @@
   [class*="text-brand-"],
   [class*="text-cyan-"],
   [class*="text-teal-"] {
-    color: #0099a8 !important;
+    color: #1b75bc !important;
   }
 
   /* ── Charts (canvas) ── */
@@ -191,7 +191,7 @@
   [class*="bg-brand-"],
   [class*="bg-teal-"],
   [class*="bg-cyan-"] {
-    background-color: #0099a8 !important;
+    background-color: #27aae1 !important;
   }
 
   [class*="bg-red-"] {
@@ -222,7 +222,7 @@
       content: "NorthStar Income Gap Tool  ·  Confidential  ·  " counter(page) " of " counter(pages);
       font-size: 7.5pt;
       color: #9ca3af;
-      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-family: "Montserrat", ui-sans-serif, system-ui, sans-serif;
     }
   }
 }

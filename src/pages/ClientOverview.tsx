@@ -115,7 +115,7 @@ export function ClientOverview() {
                 onClick={() => setField("clientType", type)}
                 className={cx(
                   "rounded-xl border px-5 py-3 text-sm font-semibold capitalize transition",
-                  form.clientType === type ? "border-cyan-500 bg-cyan-500/15 text-white" : "border-gray-700 bg-gray-900/60 text-gray-400 hover:text-gray-200",
+                  form.clientType === type ? "border-[#188a89] bg-[#188a89] text-white shadow-sm" : "border-gray-700 bg-gray-900/60 text-gray-400 hover:border-[#188a89] hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white",
                 )}
               >
                 {type === "individual" ? "Individual" : "Couple"}
@@ -183,6 +183,7 @@ export function ClientOverview() {
           <SectionTitle title="Household Liability Coverage" />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <Field label="Underlying Auto Liability Limit ($)"><Input type="number" min={0} value={form.autoLiabilityLimit} onChange={(event) => setField("autoLiabilityLimit", event.target.value)} /></Field>
+            <Field label="Existing Umbrella Coverage ($)"><Input type="number" min={0} step={1_000_000} value={form.umbrellaCoverage} onChange={(event) => setField("umbrellaCoverage", event.target.value)} /></Field>
           </div>
         </div>
       </Card>

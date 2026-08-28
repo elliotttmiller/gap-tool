@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link, useParams } from "react-router-dom"
-import { ArrowLeft, BriefcaseBusiness, HeartPulse, Scale, ShieldAlert } from "lucide-react"
+import { ArrowLeft, BriefcaseBusiness, FileDown, HeartPulse, Scale, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemedSelect } from "@/components/ThemedSelect"
 import { LifeOutputView } from "@/features/risk-modules/life/components/LifeOutputView"
@@ -419,6 +419,16 @@ export function Presentation() {
           <ArrowLeft className="h-4 w-4" /> Back to Builder
         </Link>
       </Button>
+      <Button
+        type="button"
+        variant="secondary"
+        className="absolute right-3 top-3 z-20 h-8 gap-2 px-3 shadow-sm print:hidden"
+        onClick={() => window.print()}
+        title="Open the print dialog to save this report as a PDF for AdviceWorks"
+      >
+        <FileDown className="h-4 w-4" aria-hidden="true" />
+        Export PDF
+      </Button>
 
       <div className="mx-auto h-full max-w-400 print:hidden">
         <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#090E1A] shadow-lg">
@@ -440,7 +450,7 @@ export function Presentation() {
                           type="button"
                           onClick={() => setActiveModule(module)}
                           className={`flex min-w-max items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
-                            selected ? "bg-brand-700 text-white shadow-sm ring-1 ring-brand-600 dark:bg-brand-950/70 dark:ring-brand-700/70" : "text-gray-400 hover:bg-gray-900 hover:text-gray-100"
+                            selected ? "bg-[#188a89] text-white shadow-sm ring-1 ring-[#188a89]" : "text-gray-400 hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"
                           }`}
                         >
                           <Icon className="h-3.5 w-3.5" />

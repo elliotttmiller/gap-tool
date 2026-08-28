@@ -54,6 +54,16 @@ function SectionTitle({ children, description }: { children: React.ReactNode; de
   )
 }
 
+function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <label className="space-y-1.5">
+      <span className="block text-xs font-medium text-gray-300">{label}</span>
+      {children}
+      {hint ? <span className="block text-[11px] leading-4 text-gray-500">{hint}</span> : null}
+    </label>
+  )
+}
+
 function AddClientDrawer() {
   const createClient = useAppStore((state) => state.createClient)
   const [open, setOpen] = useState(false)
@@ -70,7 +80,7 @@ function AddClientDrawer() {
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button className="bg-brand-500 hover:bg-brand-600 dark:bg-brand-500 dark:hover:bg-brand-600 dark:text-white">
+        <Button className="bg-brand-500 hover:bg-[#188a89] dark:bg-brand-500 dark:hover:bg-[#188a89] dark:text-white">
           <RiAddLine className="size-4" aria-hidden="true" />
           Add Client
         </Button>
@@ -83,7 +93,7 @@ function AddClientDrawer() {
           <SectionTitle>Client Type</SectionTitle>
           <div className="grid gap-2 sm:grid-cols-2">
             {(["individual", "couple"] as const).map((type) => (
-              <button key={type} type="button" onClick={() => setField("clientType", type)} className={cx("rounded-lg border px-4 py-2 text-sm font-semibold capitalize transition", form.clientType === type ? "border-cyan-500 bg-cyan-500/15 text-white" : "border-gray-700 bg-gray-900/60 text-gray-400 hover:text-gray-200")}>{type === "individual" ? "Individual" : "Couple"}</button>
+              <button key={type} type="button" onClick={() => setField("clientType", type)} className={cx("rounded-lg border px-4 py-2 text-sm font-semibold capitalize transition", form.clientType === type ? "border-[#188a89] bg-[#188a89] text-white shadow-sm" : "border-gray-700 bg-gray-900/60 text-gray-400 hover:border-[#188a89] hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white")}>{type === "individual" ? "Individual" : "Couple"}</button>
             ))}
           </div>
 
@@ -123,8 +133,12 @@ function AddClientDrawer() {
             <Input type="number" min={0} placeholder="Monthly Benefit ($)" value={form.privateDisabilityBenefitMonthly} onChange={(event) => setField("privateDisabilityBenefitMonthly", event.target.value)} />
             <Input type="number" min={0} placeholder="Monthly Premium ($)" value={form.privateDisabilityMonthlyPremium} onChange={(event) => setField("privateDisabilityMonthlyPremium", event.target.value)} />
             <ThemedSelect value={form.privateDisabilityBenefitPeriod} onValueChange={(value) => setField("privateDisabilityBenefitPeriod", value as DiBenefitPeriod | "")} options={BENEFIT_PERIOD_OPTIONS} />
-            <Input type="number" min={0} max={30} step={0.1} placeholder="Break-Even Rate of Return (%)" value={form.disabilityBreakEvenRateOfReturn} onChange={(event) => setField("disabilityBreakEvenRateOfReturn", event.target.value)} />
-            <Input type="number" min={1} step={1} placeholder="Months Without Income" value={form.disabilityBreakEvenMonthsWithoutIncome} onChange={(event) => setField("disabilityBreakEvenMonthsWithoutIncome", event.target.value)} />
+            <Field label="Break-Even Rate of Return (%)" hint="Default assumption: 6% annual return.">
+              <Input type="number" min={0} max={30} step={0.1} aria-label="Break-Even Rate of Return (%)" value={form.disabilityBreakEvenRateOfReturn} onChange={(event) => setField("disabilityBreakEvenRateOfReturn", event.target.value)} />
+            </Field>
+            <Field label="Months Without Income" hint="Default scenario: 12 months without earned income.">
+              <Input type="number" min={1} step={1} aria-label="Months Without Income" value={form.disabilityBreakEvenMonthsWithoutIncome} onChange={(event) => setField("disabilityBreakEvenMonthsWithoutIncome", event.target.value)} />
+            </Field>
           </div>
 
           {isCouple ? <><SectionTitle description="Secondary income feeds the Life income-replacement need, unemployment reserve logic, and household liability exposure modeling.">Secondary Earner</SectionTitle><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"><Input placeholder="Secondary earner full name" value={form.spouseName} onChange={(event) => setField("spouseName", event.target.value)} /><Input type="number" min={18} max={100} placeholder="Secondary current age" value={form.spouseAge} onChange={(event) => setField("spouseAge", event.target.value)} /><Input type="number" min={0} placeholder="Secondary annual income to replace ($)" value={form.spouseAnnualIncome} onChange={(event) => setField("spouseAnnualIncome", event.target.value)} /><Input type="number" min={0} placeholder="Secondary Group Life ($)" value={form.spouseGroupLifeCoverage} onChange={(event) => setField("spouseGroupLifeCoverage", event.target.value)} /><Input type="number" min={0} placeholder="Secondary Private Life ($)" value={form.spousePrivateLifeCoverage} onChange={(event) => setField("spousePrivateLifeCoverage", event.target.value)} /><Input type="number" min={0} placeholder="Secondary non-qualified assets ($)" value={form.spouseNonQualifiedAssets} onChange={(event) => setField("spouseNonQualifiedAssets", event.target.value)} /></div></> : null}
@@ -153,7 +167,7 @@ function RiskReviewDrawer({ client, mode = "generate" }: { client: ClientRecord;
     const scenarioId = createScenario({ clientId: client.id, name: `${client.lastName} Household Risk Review`, includedModules: advisorReferenceModules, activeModule: "life" })
     if (scenarioId) navigate(`/scenarios/${scenarioId}/life`)
   }
-  return isRegenerate ? <button aria-label={`Regenerate risk review for ${client.displayName}`} title="Regenerate risk review" className="rounded-md p-1.5 text-[#80d5db] transition-colors hover:bg-brand-500/15 hover:text-[#b0e5e9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400" onClick={handleClick}><RiRefreshLine className="size-4" aria-hidden="true" /></button> : <Button variant="secondary" onClick={handleClick}>Generate Risk Review</Button>
+  return isRegenerate ? <button aria-label={`Regenerate risk review for ${client.displayName}`} title="Regenerate risk review" className="rounded-md p-1.5 text-brand-600 transition-colors hover:bg-[#188a89]/15 hover:text-[#188a89] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#188a89] group-hover:text-white/80 dark:text-brand-300 dark:hover:text-white" onClick={handleClick}><RiRefreshLine className="size-4" aria-hidden="true" /></button> : <Button variant="secondary" onClick={handleClick}>Generate Risk Review</Button>
 }
 
 function RemoveClientDrawer({ client, scenarioCount }: { client: ClientRecord; scenarioCount: number }) {
@@ -200,45 +214,45 @@ export function Dashboard() {
           <div className="mt-6 flex justify-center"><AddClientDrawer /></div>
         </Card>
       ) : (
-        <Card className="overflow-hidden border-[#41677b] bg-[#24475d] p-0 shadow-[0_14px_34px_rgba(13,27,42,0.22)] dark:border-gray-800 dark:bg-[#090E1A] dark:shadow-sm">
+        <Card className="overflow-hidden border-[#d5e2e5] bg-white p-0 shadow-[0_14px_34px_rgba(13,27,42,0.14)] dark:border-gray-800 dark:bg-[#111821] dark:shadow-sm">
           {filteredClients.length ? (
-            <ul className="divide-y divide-[#41677b] dark:divide-gray-800/60">
+            <ul className="divide-y divide-[#d5e2e5] dark:divide-gray-800/60">
               {filteredClients.map((client) => {
                 const scenarioCount = scenariosByClientId[client.id] ?? 0
                 const firstScenario = firstScenarioByClientId[client.id]
                 const hasGeneratedReview = scenarioCount > 0
                 return (
-                  <li key={client.id} className="group flex items-center gap-4 px-6 py-4 transition-colors hover:bg-[#2c566e] dark:hover:bg-gray-900/35">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-brand-400/25 bg-brand-500/10 text-[#80d5db] shadow-inner">
+                  <li key={client.id} className="group flex items-center gap-4 px-6 py-4 transition-colors hover:bg-[#188a89]">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-brand-500/25 bg-brand-500/10 text-brand-600 shadow-inner transition-colors group-hover:border-white/25 group-hover:bg-white/10 group-hover:text-white dark:text-brand-300">
                       <RiUserLine className="size-5" aria-hidden="true" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <Link to={`/clients/${client.id}/overview`} className="truncate font-semibold text-[#f1f7f8] transition-colors hover:text-[#80d5db] hover:underline" title="View client overview">{client.displayName}</Link>
-                        <Link to={`/clients/${client.id}/overview`} aria-label={`View and edit ${client.displayName}`} title="View and edit client overview" className="rounded-md p-1 text-[#40bec7] transition-colors hover:bg-brand-500/15 hover:text-[#b0e5e9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400"><RiEyeLine className="size-3.5" aria-hidden="true" /></Link>
+                        <Link to={`/clients/${client.id}/overview`} className="truncate font-semibold text-[#102a3a] transition-colors hover:underline group-hover:text-white dark:text-[#f1f7f8]" title="View client overview">{client.displayName}</Link>
+                        <Link to={`/clients/${client.id}/overview`} aria-label={`View and edit ${client.displayName}`} title="View and edit client overview" className="rounded-md p-1 text-brand-600 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white group-hover:text-white/80 dark:text-brand-300"><RiEyeLine className="size-3.5" aria-hidden="true" /></Link>
                       </div>
-                      <div className="mt-1 flex items-center gap-2 text-xs text-[#9fb8c4]">
+                      <div className="mt-1 flex items-center gap-2 text-xs text-[#607583] transition-colors group-hover:text-white/75 dark:text-[#9fb8c4]">
                         <span>Updated {formatDate(client.updatedAt)}</span>
                         <span aria-hidden="true">•</span>
                         <span>{scenarioCount} review{scenarioCount === 1 ? "" : "s"}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      {firstScenario ? <Link to={`/scenarios/${firstScenario.id}/${firstScenario.activeModule}`} className="rounded-lg border border-brand-400/25 bg-brand-500/10 px-3 py-1.5 text-sm font-semibold text-[#80d5db] transition-colors hover:border-brand-300/50 hover:bg-brand-500/20 hover:text-[#e6f7f8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400">Open Review</Link> : null}
+                      {firstScenario ? <Link to={`/scenarios/${firstScenario.id}/${firstScenario.activeModule}`} className="rounded-lg border border-brand-500/30 bg-brand-500/10 px-3 py-1.5 text-sm font-semibold text-brand-600 transition-colors hover:border-white/40 hover:bg-white/15 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white group-hover:border-white/25 group-hover:bg-white/10 group-hover:text-white dark:text-brand-300">Open Review</Link> : null}
                       <ExportClientButton client={client} compact />
                       {hasGeneratedReview ? <RiskReviewDrawer client={client} mode="regenerate" /> : <RiskReviewDrawer client={client} mode="generate" />}
                       <RemoveClientDrawer client={client} scenarioCount={scenarioCount} />
                     </div>
-                    <RiArrowRightSLine className="size-4 shrink-0 text-[#7896a5] transition-transform group-hover:translate-x-0.5 group-hover:text-[#b0c6cf]" aria-hidden="true" />
+                    <RiArrowRightSLine className="size-4 shrink-0 text-[#607583] transition-transform group-hover:translate-x-0.5 group-hover:text-white/80 dark:text-[#7896a5]" aria-hidden="true" />
                   </li>
                 )
               })}
             </ul>
           ) : (
             <div className="px-6 py-12 text-center">
-              <RiSearchLine className="mx-auto size-6 text-[#7896a5]" aria-hidden="true" />
-              <p className="mt-3 text-sm font-semibold text-[#f1f7f8]">No clients match “{search}”</p>
-              <button type="button" onClick={() => setSearch("")} className="mt-2 text-xs font-medium text-[#80d5db] hover:text-[#b0e5e9]">Clear search</button>
+              <RiSearchLine className="mx-auto size-6 text-[#607583] dark:text-[#7896a5]" aria-hidden="true" />
+              <p className="mt-3 text-sm font-semibold text-[#102a3a] dark:text-[#f1f7f8]">No clients match “{search}”</p>
+              <button type="button" onClick={() => setSearch("")} className="mt-2 text-xs font-medium text-brand-600 hover:text-brand-500 dark:text-brand-300 dark:hover:text-brand-200">Clear search</button>
             </div>
           )}
         </Card>
