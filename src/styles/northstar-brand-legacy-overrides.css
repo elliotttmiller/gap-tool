@@ -63,7 +63,7 @@
 .light .module-metric-card .module-metric-description,
 .light .module-metric-card .module-metric-disclosure,
 .light .module-metric-card .module-metric-value [class~="text-gray-400"] {
-  color: var(--ns-muted) !important;
+  color: var(--ns-light-text-readable) !important;
 }
 
 .light .module-metric-card .module-metric-disclosure {
@@ -113,6 +113,20 @@
   border-color: var(--ns-border) !important;
   background: #ffffff !important;
   box-shadow: var(--ns-shadow-sm) !important;
+}
+
+/* Nested visualization summaries historically used slate/gray opacity
+ * utilities instead of the shared card class. In light mode they are white,
+ * with Header-gray copy, so context never sits gray-on-gray. */
+.light .module-chart-card [class~="bg-slate-950/50"],
+.light .module-chart-card [class~="bg-slate-950/40"],
+.light .module-chart-card [class~="bg-gray-900/35"],
+.light .module-chart-card [class~="bg-gray-900/30"],
+.light .module-chart-card [class~="bg-gray-900/25"],
+.light .module-chart-card [class~="bg-gray-900/20"] {
+  background: #ffffff !important;
+  border-color: var(--ns-border) !important;
+  color: var(--ns-header) !important;
 }
 
 /* Old light-mode input rules use explicit teal literals. This final layer keeps

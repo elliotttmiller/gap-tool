@@ -25,6 +25,7 @@
   --ns-surface: #ffffff;
   --ns-text: var(--ns-header);
   --ns-muted: rgb(79 79 84 / 0.72);
+  --ns-light-text-readable: #202024;
   --ns-border: rgb(79 79 84 / 0.18);
   --ns-border-strong: rgb(79 79 84 / 0.3);
   --ns-sirius-soft: rgb(24 138 137 / 0.1);
@@ -41,8 +42,8 @@
   --ns-dark-surface-muted: #5e5e63;
   --ns-dark-border: rgb(255 255 255 / 0.22);
   --ns-dark-text: #ffffff;
-  --ns-dark-text-secondary: #f1f1f2;
-  --ns-dark-text-muted: #d0d0d4;
+  --ns-dark-text-secondary: #ffffff;
+  --ns-dark-text-muted: #ffffff;
 
   /* Tailwind brand utilities are redirected to the official Sirius family. */
   --color-brand-50: #eef8f8;
@@ -160,8 +161,16 @@ h6 {
 .light [class~="bg-gray-950"],
 .light [class~="bg-[#090E1A]"],
 .light [class~="bg-gray-950/95"],
+.light [class~="bg-gray-950/70"],
+.light [class~="bg-gray-950/60"],
+.light [class~="bg-gray-950/55"],
+.light [class~="bg-gray-950/50"],
+.light [class~="bg-gray-950/40"],
+.light [class~="bg-gray-950/30"],
 .light [class~="bg-slate-950/70"],
-.light [class~="bg-slate-950/60"] {
+.light [class~="bg-slate-950/60"],
+.light [class~="bg-slate-950/50"],
+.light [class~="bg-slate-950/40"] {
   background-color: var(--ns-surface) !important;
 }
 
@@ -173,9 +182,11 @@ h6 {
 .light [class~="bg-gray-900/35"],
 .light [class~="bg-gray-900/30"],
 .light [class~="bg-gray-900/25"],
+.light [class~="bg-gray-900/20"],
 .light [class~="bg-slate-900"],
 .light [class~="bg-slate-900/95"],
 .light [class~="bg-slate-900/80"],
+.light [class~="bg-slate-900/70"],
 .light [class~="bg-slate-900/40"] {
   background-color: #f4f4f4 !important;
 }
@@ -191,14 +202,14 @@ h6 {
 .light [class~="text-slate-50"],
 .light [class~="text-slate-100"],
 .light [class~="text-gray-900"] {
-  color: var(--ns-header) !important;
+  color: var(--ns-light-text-readable) !important;
 }
 
 .light [class~="text-gray-200"],
 .light [class~="text-gray-300"],
 .light [class~="text-slate-200"],
 .light [class~="text-slate-300"] {
-  color: rgb(79 79 84 / 0.88) !important;
+  color: var(--ns-light-text-readable) !important;
 }
 
 .light [class~="text-gray-400"],
@@ -207,7 +218,15 @@ h6 {
 .light [class~="text-slate-400"],
 .light [class~="text-slate-500"],
 .light [class~="text-slate-600"] {
-  color: var(--ns-muted) !important;
+  color: var(--ns-light-text-readable) !important;
+}
+
+.light [class~="text-gray-700"],
+.light [class~="text-gray-800"],
+.light [class~="text-slate-700"],
+.light [class~="text-slate-800"],
+.light [class~="text-slate-900"] {
+  color: var(--ns-light-text-readable) !important;
 }
 
 .light [class*="border-gray-"],
@@ -220,12 +239,25 @@ h6 {
 .light [role="combobox"] {
   background-color: #ffffff !important;
   border-color: var(--ns-border-strong) !important;
-  color: var(--ns-header) !important;
+  color: var(--ns-light-text-readable) !important;
 }
 
 .light input::placeholder,
 .light textarea::placeholder {
-  color: rgb(79 79 84 / 0.55) !important;
+  color: var(--ns-light-text-readable) !important;
+  opacity: 1;
+}
+
+.light .recharts-cartesian-axis-tick-value,
+.light .recharts-polar-angle-axis-tick-value,
+.light .recharts-polar-radius-axis-tick-value,
+.light .recharts-legend-item-text {
+  fill: var(--ns-light-text-readable) !important;
+  color: var(--ns-light-text-readable) !important;
+}
+
+.light .app-header [class*="text-white/"] {
+  color: #ffffff !important;
 }
 
 .light input:not([type="checkbox"]):not([type="radio"]):focus,
@@ -248,8 +280,16 @@ h6 {
 .dark [class~="bg-[#090E1A]"],
 .dark [class~="bg-gray-950"],
 .dark [class~="bg-gray-950/95"],
+.dark [class~="bg-gray-950/70"],
+.dark [class~="bg-gray-950/60"],
+.dark [class~="bg-gray-950/55"],
+.dark [class~="bg-gray-950/50"],
+.dark [class~="bg-gray-950/40"],
+.dark [class~="bg-gray-950/30"],
 .dark [class~="bg-slate-950/70"],
-.dark [class~="bg-slate-950/60"] {
+.dark [class~="bg-slate-950/60"],
+.dark [class~="bg-slate-950/50"],
+.dark [class~="bg-slate-950/40"] {
   background-color: var(--ns-dark-surface) !important;
 }
 
@@ -258,8 +298,15 @@ h6 {
 .dark [class~="bg-gray-900/60"],
 .dark [class~="bg-gray-900/50"],
 .dark [class~="bg-gray-900/40"],
+.dark [class~="bg-gray-900/35"],
+.dark [class~="bg-gray-900/30"],
+.dark [class~="bg-gray-900/25"],
+.dark [class~="bg-gray-900/20"],
 .dark [class~="bg-slate-900"],
-.dark [class~="bg-slate-900/80"] {
+.dark [class~="bg-slate-900/95"],
+.dark [class~="bg-slate-900/80"],
+.dark [class~="bg-slate-900/70"],
+.dark [class~="bg-slate-900/40"] {
   background-color: var(--ns-dark-surface-raised) !important;
 }
 
@@ -293,10 +340,19 @@ h6 {
 .dark [class~="text-gray-400"],
 .dark [class~="text-gray-500"],
 .dark [class~="text-gray-600"],
+.dark [class~="text-gray-700"],
 .dark [class~="text-slate-400"],
 .dark [class~="text-slate-500"],
-.dark [class~="text-slate-600"] {
+.dark [class~="text-slate-600"],
+.dark [class~="text-slate-700"] {
   color: var(--ns-dark-text-muted) !important;
+}
+
+/* Dark-mode content never uses translucent white or low-contrast neutral
+ * text. Semantic brand colors remain untouched for meaningful status/value
+ * distinctions, while every neutral text role resolves to solid white. */
+.dark [class*="text-white/"] {
+  color: var(--ns-dark-text) !important;
 }
 
 .dark input:not([type="checkbox"]):not([type="radio"]),
@@ -350,6 +406,22 @@ h6 {
 .dark .recharts-polar-grid-concentric-polygon,
 .dark .recharts-polar-grid-angle line {
   stroke: rgb(255 255 255 / 0.16) !important;
+}
+
+/* Every module visualization family resolves to the same surface contract.
+ * This overrides legacy navy literals and opacity variants consistently. */
+.dark .module-chart-card,
+.dark .module-kpi-card,
+.dark .module-metric-card {
+  background: var(--ns-dark-surface-raised) !important;
+  border-color: var(--ns-dark-border) !important;
+  box-shadow: 0 10px 28px rgb(0 0 0 / 0.12) !important;
+}
+
+.dark .module-metric-card .module-metric-label,
+.dark .module-metric-card .module-metric-description,
+.dark .module-metric-card .module-metric-disclosure {
+  color: var(--ns-dark-text-muted) !important;
 }
 
 /* Shell and portaled workflow headers use the approved dark-background logo
