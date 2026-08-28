@@ -22,7 +22,7 @@ docs/
   Project documentation and advisor source materials.
 
 public/
-  Static browser assets such as icons, manifest, logo, and meta-tag HTML.
+  Static browser assets such as the favicon, logo, and hosting configuration.
 
 scripts/
   Local maintenance or helper scripts.
@@ -207,7 +207,6 @@ src/lib/
   siteConfig.ts
   use-once-animation.ts
   useOnWindowResize.tsx
-  usePWAInstall.ts
 ```
 
 `store-types.ts` defines client, scenario, module-record, and persisted-data shapes. `store.ts` creates the Zustand store, initializes default client/module data, persists application state, updates inputs, and stores calculation outputs.
@@ -232,7 +231,7 @@ src/components/
   TabNavigation.tsx
 ```
 
-`components/global/` contains app-wide shell, sidebar navigation, PWA update toast, install button, disclaimer block, and module error boundary. `components/ui/` contains smaller UI primitives used by newer or more granular interfaces.
+`components/global/` contains the app-wide shell, sidebar navigation, disclaimer block, and module error boundary. `components/ui/` contains smaller UI primitives used by newer or more granular interfaces.
 
 ## State Shape
 

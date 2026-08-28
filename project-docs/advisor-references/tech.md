@@ -12,7 +12,6 @@ Gap Tool is a front-end TypeScript application built with:
 - Tailwind CSS 4 through `@tailwindcss/vite`.
 - Zustand 5 for client-side state and persistence.
 - Recharts 2 for chart rendering.
-- Vite PWA plugin for service-worker generation and install/update support.
 
 The project is configured as an ES module package with `"type": "module"`.
 
@@ -90,21 +89,17 @@ Important compiler settings:
 
 `tsconfig.json` includes `src` and excludes generated/build folders.
 
-## Vite And PWA Configuration
+## Vite Configuration
 
 `vite.config.ts` configures:
 
 - React plugin.
 - Tailwind CSS Vite plugin.
-- Vite PWA plugin.
 - `@` alias to `src`.
 - Conditional base path: `/gap-tool/` in GitHub Actions and `/` otherwise.
 - Manual chunks for React/router, charts, and UI/icon dependencies.
-- Service-worker precaching for emitted JS, CSS, HTML, SVG, PNG, ICO, and WOFF2 files.
-- Network-first app-shell navigation fallback.
-- Cache-first Google Fonts runtime caching.
 
-The PWA manifest is managed manually in `public/manifest.json`; the Vite PWA plugin is configured with `manifest: false`.
+The product is a desktop company-server web tool with standard online browser delivery only.
 
 ## Coding Standards
 

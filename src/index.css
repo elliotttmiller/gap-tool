@@ -94,6 +94,8 @@
 @layer base {
   :root {
     color-scheme: light;
+    --northstar-header: #4f4f54;
+    --northstar-navy: #091421;
     --light-canvas: #eaf1f3;
     --light-surface: #f6f9fa;
     --light-surface-raised: #ffffff;
@@ -110,7 +112,17 @@
   }
   :root.dark {
     color-scheme: dark;
-    background: #0d1b2a;
+    --dark-canvas: #25292f;
+    --dark-surface: #32373f;
+    --dark-surface-raised: #3a4048;
+    --dark-surface-inset: #2b3037;
+    --dark-border: #59616b;
+    --dark-border-soft: #4b535d;
+    --dark-text: #f7fafb;
+    --dark-text-secondary: #d9e1e5;
+    --dark-text-muted: #b5c1c8;
+    --dark-text-subtle: #98a8b2;
+    background: var(--dark-canvas);
   }
   body {
     @apply min-h-screen font-sans antialiased;
@@ -118,7 +130,8 @@
     color: var(--light-text);
   }
   .dark body {
-    @apply bg-gray-950 text-gray-50;
+    background: var(--dark-canvas);
+    color: var(--dark-text);
   }
 }
 
@@ -130,11 +143,140 @@
 }
 
 .dark .app-shell-surface {
-  background: #20242b;
+  background:
+    radial-gradient(circle at 12% 0%, rgb(29 184 185 / 0.07), transparent 34rem),
+    linear-gradient(180deg, #292d33 0%, var(--dark-canvas) 100%);
 }
 
+.app-shell-header,
 .dark .app-shell-header {
-  background: linear-gradient(135deg, rgb(9 20 33 / 0.98), rgb(17 35 53 / 0.98));
+  background: var(--northstar-header);
+}
+
+/* Dark mode uses a charcoal surface hierarchy so content panels remain
+   distinct from the canvas without competing with the official gray header. */
+@layer utilities {
+  .dark [class~="bg-[#090E1A]"],
+  .dark [class~="bg-white"],
+  .dark [class~="bg-white/95"],
+  .dark [class~="bg-gray-950"],
+  .dark [class~="bg-gray-950/95"],
+  .dark [class~="bg-gray-900"],
+  .dark [class~="bg-gray-900/80"],
+  .dark [class~="bg-gray-900/60"],
+  .dark [class~="bg-gray-900/50"],
+  .dark [class~="bg-gray-900/40"],
+  .dark [class~="bg-gray-900/35"],
+  .dark [class~="bg-gray-900/30"],
+  .dark [class~="bg-gray-900/25"],
+  .dark [class~="bg-slate-900"],
+  .dark [class~="bg-slate-900/95"],
+  .dark [class~="bg-slate-900/80"],
+  .dark [class~="bg-slate-900/70"],
+  .dark [class~="bg-slate-900/40"],
+  .dark [class~="dark:bg-[#090E1A]"],
+  .dark [class~="dark:bg-[#0d1b2a]"],
+  .dark [class~="dark:bg-gray-950"],
+  .dark [class~="dark:bg-gray-900"],
+  .dark [class~="dark:bg-gray-900/80"],
+  .dark [class~="dark:bg-gray-900/40"] {
+    background-color: var(--dark-surface) !important;
+  }
+
+  .dark [class~="bg-slate-950/70"],
+  .dark [class~="bg-slate-950/60"],
+  .dark [class~="bg-slate-950/50"],
+  .dark [class~="bg-slate-950/40"],
+  .dark [class~="bg-gray-800"],
+  .dark [class~="bg-gray-800/80"],
+  .dark [class~="bg-gray-800/40"],
+  .dark [class~="bg-slate-800/60"],
+  .dark [class~="dark:bg-gray-800"],
+  .dark [class~="dark:bg-slate-800"] {
+    background-color: var(--dark-surface-inset) !important;
+  }
+
+  .dark [class~="text-gray-50"], .dark [class~="text-gray-100"],
+  .dark [class~="text-slate-50"], .dark [class~="text-slate-100"] {
+    color: var(--dark-text) !important;
+  }
+  .dark [class~="text-gray-200"], .dark [class~="text-gray-300"],
+  .dark [class~="text-slate-200"], .dark [class~="text-slate-300"] {
+    color: var(--dark-text-secondary) !important;
+  }
+  .dark [class~="text-gray-400"], .dark [class~="text-slate-400"] {
+    color: var(--dark-text-muted) !important;
+  }
+  .dark [class~="text-gray-500"], .dark [class~="text-slate-500"],
+  .dark [class~="text-gray-600"], .dark [class~="text-slate-600"],
+  .dark [class~="text-gray-700"], .dark [class~="text-slate-700"] {
+    color: var(--dark-text-subtle) !important;
+  }
+  .dark [class~="dark:text-gray-500"],
+  .dark [class~="dark:text-slate-500"] {
+    color: var(--dark-text-muted) !important;
+  }
+
+  .dark [class~="border-gray-800"], .dark [class~="border-gray-800/90"],
+  .dark [class~="border-gray-800/80"], .dark [class~="border-gray-800/60"],
+  .dark [class~="border-gray-700"], .dark [class~="border-gray-700/70"],
+  .dark [class~="border-gray-700/50"], .dark [class~="border-slate-800"],
+  .dark [class~="border-slate-800/80"], .dark [class~="border-slate-800/70"],
+  .dark [class~="border-slate-800/60"], .dark [class~="border-slate-800/50"],
+  .dark [class~="border-slate-800/40"], .dark [class~="border-slate-700/70"],
+  .dark [class~="border-slate-700/60"],
+  .dark [class~="dark:border-gray-800"], .dark [class~="dark:border-gray-700"],
+  .dark [class~="dark:border-slate-800"], .dark [class~="dark:border-slate-700"] {
+    border-color: var(--dark-border-soft) !important;
+  }
+
+  .dark input:not([type="checkbox"]):not([type="radio"]),
+  .dark textarea,
+  .dark select {
+    background-color: #292e35 !important;
+    border-color: var(--dark-border) !important;
+    color: var(--dark-text) !important;
+  }
+  .dark input:not([type="checkbox"]):not([type="radio"]):hover,
+  .dark textarea:hover,
+  .dark select:hover {
+    background-color: #2e343b !important;
+    border-color: #71808a !important;
+  }
+  .dark input:not([type="checkbox"]):not([type="radio"]):focus,
+  .dark textarea:focus,
+  .dark select:focus {
+    border-color: #1db8b9 !important;
+    box-shadow: 0 0 0 3px rgb(29 184 185 / 0.16) !important;
+  }
+
+  .dark .module-chart-card {
+    border-color: var(--dark-border) !important;
+    background: linear-gradient(180deg, #30353c 0%, #2b3037 100%) !important;
+    box-shadow: 0 10px 26px rgb(0 0 0 / 0.18) !important;
+  }
+  .dark .module-metric-card,
+  .dark .module-kpi-card {
+    border-color: var(--dark-border-soft) !important;
+    background: linear-gradient(145deg, #3a4048 0%, #343a42 100%) !important;
+    box-shadow: 0 6px 18px rgb(0 0 0 / 0.14) !important;
+  }
+  .dark .module-metric-card .module-metric-label,
+  .dark .module-metric-card .module-metric-description,
+  .dark .module-metric-card .module-metric-disclosure {
+    color: var(--dark-text-muted) !important;
+  }
+  .dark .recharts-cartesian-axis-tick-value {
+    fill: #bdc8ce !important;
+  }
+  .dark .recharts-cartesian-grid line {
+    stroke: #525b65 !important;
+    stroke-opacity: 0.7 !important;
+  }
+  .dark .recharts-cartesian-axis-line,
+  .dark .recharts-cartesian-axis-tick-line {
+    stroke: #77858e !important;
+  }
 }
 
 /* Dark-first planning modules inherit this complete light surface system. */

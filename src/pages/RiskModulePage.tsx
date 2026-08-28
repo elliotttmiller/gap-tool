@@ -136,7 +136,7 @@ export function RiskModulePage({ title, subtitle, headerActions, compactForm = f
         title={inputsOpen ? "Hide input panel" : "Show input panel"}
         onClick={() => setInputsOpen((open) => !open)}
         className={cx(
-          "fixed top-1/2 z-40 hidden h-14 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-brand-600/40 bg-white text-brand-700 shadow-[0_8px_24px_rgba(15,42,58,0.16)] ring-4 ring-[#eaf1f3] transition-[left,transform,background-color,border-color,color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[#188a89] hover:bg-[#188a89]/15 hover:text-[#188a89] hover:shadow-[0_10px_28px_rgba(24,138,137,0.18)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#188a89]/25 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:ring-[#20242b] dark:hover:text-white xl:flex",
+          "fixed top-1/2 z-40 hidden h-14 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-brand-600/40 bg-white text-brand-700 shadow-[0_8px_24px_rgba(15,42,58,0.16)] ring-4 ring-[#eaf1f3] transition-[left,transform,background-color,border-color,color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[#188a89] hover:bg-[#188a89]/15 hover:text-[#188a89] hover:shadow-[0_10px_28px_rgba(24,138,137,0.18)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#188a89]/25 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:ring-[#25292f] dark:hover:text-white xl:flex",
           inputsOpen
             ? "left-[max(1rem,calc((100vw-100rem)/2-2rem))]"
             : "left-4",

@@ -11,7 +11,6 @@ import {
 } from "@/components/Drawer"
 import { Input } from "@/components/Input"
 import { ThemedSelect } from "@/components/ThemedSelect"
-import { ExportAllClientsButton, ExportClientButton, ImportClientsDrawer } from "@/features/client-profiles/ClientProfileActions"
 import type { DiBenefitPeriod } from "@/features/risk-modules/disability/types"
 import { ClientRecord, RiskModuleType, useAppStore } from "@/lib/store"
 import { cx, formatDate } from "@/lib/utils"
@@ -194,8 +193,6 @@ export function Dashboard() {
           <p className="mt-1 text-sm text-gray-400">Enter client information to generate a personalized gap analysis across all advisor modules.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <ImportClientsDrawer />
-          <ExportAllClientsButton clients={clients} />
           <AddClientDrawer />
         </div>
       </div>
@@ -239,7 +236,6 @@ export function Dashboard() {
                     </div>
                     <div className="flex items-center gap-1.5">
                       {firstScenario ? <Link to={`/scenarios/${firstScenario.id}/${firstScenario.activeModule}`} className="rounded-lg border border-brand-500/30 bg-brand-500/10 px-3 py-1.5 text-sm font-semibold text-brand-600 transition-colors hover:border-white/40 hover:bg-white/15 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white group-hover:border-white/25 group-hover:bg-white/10 group-hover:text-white dark:text-brand-300">Open Review</Link> : null}
-                      <ExportClientButton client={client} compact />
                       {hasGeneratedReview ? <RiskReviewDrawer client={client} mode="regenerate" /> : <RiskReviewDrawer client={client} mode="generate" />}
                       <RemoveClientDrawer client={client} scenarioCount={scenarioCount} />
                     </div>
