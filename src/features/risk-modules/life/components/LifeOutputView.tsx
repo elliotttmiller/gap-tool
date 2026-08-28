@@ -26,12 +26,12 @@ function formatRatePctOneDecimal(rate: number): string {
 function getRunwayCoverageStatus(covered: number, need: number) {
   const coverageRate = need > 0 ? Math.max(0, Math.min(1, covered / need)) : 1
   if (coverageRate >= 0.999999) {
-    return { label: "Fully Covered", description: "Resource pool funds the full annual need", accent: "green" as const, coverageRate }
+    return { label: "Fully Covered", description: "Resource pool funds the full annual need", accent: "positive" as const, coverageRate }
   }
   if (coverageRate <= 0.000001) {
-    return { label: "Uncovered", description: "Resource pool funds none of the annual need", accent: "red" as const, coverageRate }
+    return { label: "Uncovered", description: "Resource pool funds none of the annual need", accent: "negative" as const, coverageRate }
   }
-  return { label: "Partially Covered", description: "Resource pool funds part of the annual need", accent: "amber" as const, coverageRate }
+  return { label: "Partially Covered", description: "Resource pool funds part of the annual need", accent: "warning" as const, coverageRate }
 }
 
 function buildAgeTicks(data: { age: number }[], targetTickCount = 14): number[] {
@@ -87,21 +87,21 @@ function RunwayMetricBoxes({ m2, projectionEndAge, selectedAge }: { m2: IncomeGa
     const status = getRunwayCoverageStatus(selected.runwayIncomeCovered, selected.projectedIncome)
     return (
       <div className="life-metric-grid life-metric-grid--runway">
-        <ModuleMetricCard className={compactCardClass} label={`Proj. Net Income at Age ${selected.age}`} value={formatCurrency(selected.projectedIncome)} description="Annual projected need" accent="slate" />
+        <ModuleMetricCard className={compactCardClass} label={`Proj. Net Income at Age ${selected.age}`} value={formatCurrency(selected.projectedIncome)} description="Annual projected need" accent="neutral" />
         <ModuleMetricCard className={compactCardClass} label={`Coverage at Age ${selected.age}`} value={status.label} description={`${formatRatePctOneDecimal(status.coverageRate)} covered. ${status.description}`} accent={status.accent} />
-        <ModuleMetricCard className={compactCardClass} label={`Net Income Replaced at Age ${selected.age}`} value={formatCurrency(selected.runwayIncomeCovered)} description="Covered by resource pool" accent="cyan" />
-        <ModuleMetricCard className={compactCardClass} label={`Income Gap at Age ${selected.age}`} value={formatCurrency(selected.runwayIncomeGap)} description="Projected net need minus amount covered" accent={selected.runwayIncomeGap > 0 ? "red" : "green"} />
-        <ModuleMetricCard className={compactCardClass} label={`Cumulative Gap Through Age ${selected.age}`} value={formatCurrency(selected.cumulativeRunwayIncomeGap)} description="Running uncovered net income total" accent={selected.cumulativeRunwayIncomeGap > 0 ? "red" : "green"} />
+        <ModuleMetricCard className={compactCardClass} label={`Net Income Replaced at Age ${selected.age}`} value={formatCurrency(selected.runwayIncomeCovered)} description="Covered by resource pool" accent="primary" />
+        <ModuleMetricCard className={compactCardClass} label={`Income Gap at Age ${selected.age}`} value={formatCurrency(selected.runwayIncomeGap)} description="Projected net need minus amount covered" accent={selected.runwayIncomeGap > 0 ? "negative" : "positive"} />
+        <ModuleMetricCard className={compactCardClass} label={`Cumulative Gap Through Age ${selected.age}`} value={formatCurrency(selected.cumulativeRunwayIncomeGap)} description="Running uncovered net income total" accent={selected.cumulativeRunwayIncomeGap > 0 ? "negative" : "positive"} />
       </div>
     )
   }
   return (
     <div className="life-metric-grid life-metric-grid--runway">
-      <ModuleMetricCard className={compactCardClass} label={`Proj. Net Income to Age ${projectionEndAge}`} value={formatCurrency(m2.projectedNetIncomeTotal)} description="Total projected net income need" accent="slate" />
-      <ModuleMetricCard className={compactCardClass} label="Years of Full Coverage" value={<>{Math.floor(m2.yearsOfFullCoverage)}<span className="text-sm font-normal text-gray-400"> Years</span></>} description={m2.yearsOfFullCoverage > 0 ? `Ages ${m2.startCoverageAge}–${m2.endCoverageAge}` : "No full coverage years"} accent={m2.yearsOfFullCoverage > 0 ? "green" : "red"} />
-      <ModuleMetricCard className={compactCardClass} label="Total Net Income Replaced" value={formatCurrency(m2.totalIncomeReplaced)} description="Covered by resource pool" accent="cyan" />
-      <ModuleMetricCard className={compactCardClass} label="Survivor Gap" value={formatCurrency(m2.survivorGap)} description="Projected minus replaced" accent={hasGap ? "red" : "green"} />
-      <ModuleMetricCard className={compactCardClass} label="Death Benefit Gap" value={hasGap ? formatCurrency(runwayGapCapital) : "$0"} description={`Scenario PV gap at ${formatRatePctOneDecimal(m2.roi)}`} accent={hasGap ? "red" : "green"} />
+      <ModuleMetricCard className={compactCardClass} label={`Proj. Net Income to Age ${projectionEndAge}`} value={formatCurrency(m2.projectedNetIncomeTotal)} description="Total projected net income need" accent="neutral" />
+      <ModuleMetricCard className={compactCardClass} label="Years of Full Coverage" value={<>{Math.floor(m2.yearsOfFullCoverage)}<span className="text-sm font-normal text-gray-400"> Years</span></>} description={m2.yearsOfFullCoverage > 0 ? `Ages ${m2.startCoverageAge}–${m2.endCoverageAge}` : "No full coverage years"} accent={m2.yearsOfFullCoverage > 0 ? "positive" : "negative"} />
+      <ModuleMetricCard className={compactCardClass} label="Total Net Income Replaced" value={formatCurrency(m2.totalIncomeReplaced)} description="Covered by resource pool" accent="primary" />
+      <ModuleMetricCard className={compactCardClass} label="Survivor Gap" value={formatCurrency(m2.survivorGap)} description="Projected minus replaced" accent={hasGap ? "negative" : "positive"} />
+      <ModuleMetricCard className={compactCardClass} label="Death Benefit Gap" value={hasGap ? formatCurrency(runwayGapCapital) : "$0"} description={`Scenario PV gap at ${formatRatePctOneDecimal(m2.roi)}`} accent={hasGap ? "negative" : "positive"} />
     </div>
   )
 }
@@ -117,22 +117,22 @@ function SafeIncomeMetricBoxes({ m1, projectionEndAge, selectedAge }: { m1: Inco
     const selectedCoveragePct = selected.projectedIncome > 0 ? selected.safeIncomeCoverage / selected.projectedIncome : 0
     return (
       <div className="life-metric-grid life-metric-grid--runway">
-        <ModuleMetricCard className={compactCardClass} label={`Proj. Net Income at Age ${selected.age}`} value={formatCurrency(selected.projectedIncome)} description="Annual projected net income need" accent="slate" />
-        <ModuleMetricCard className={compactCardClass} label="Income Support Rate" value={formatRatePctOneDecimal(selectedCoveragePct)} description="Constant support ratio applied across the projection schedule" accent={selectedCoveragePct > 0 ? "green" : "red"} />
-        <ModuleMetricCard className={compactCardClass} label={`Income Supported at Age ${selected.age}`} value={formatCurrency(selected.safeIncomeCoverage)} description="Annual income backed by resources" accent="green" />
-        <ModuleMetricCard className={compactCardClass} label={`Income Gap at Age ${selected.age}`} value={formatCurrency(selected.incomeGap)} description="Target support minus supported income" accent={selected.incomeGap > 0 ? "red" : "green"} />
-        <ModuleMetricCard className={compactCardClass} label={`Cumulative Gap Through Age ${selected.age}`} value={formatCurrency(selected.cumulativeIncomeGap)} description="Running target-income gap" accent={selected.cumulativeIncomeGap > 0 ? "red" : "green"} />
+        <ModuleMetricCard className={compactCardClass} label={`Proj. Net Income at Age ${selected.age}`} value={formatCurrency(selected.projectedIncome)} description="Annual projected net income need" accent="neutral" />
+        <ModuleMetricCard className={compactCardClass} label="Income Support Rate" value={formatRatePctOneDecimal(selectedCoveragePct)} description="Constant support ratio applied across the projection schedule" accent="primary" />
+        <ModuleMetricCard className={compactCardClass} label={`Income Supported at Age ${selected.age}`} value={formatCurrency(selected.safeIncomeCoverage)} description="Annual income backed by resources" accent="primary" />
+        <ModuleMetricCard className={compactCardClass} label={`Income Gap at Age ${selected.age}`} value={formatCurrency(selected.incomeGap)} description="Target support minus supported income" accent={selected.incomeGap > 0 ? "negative" : "positive"} />
+        <ModuleMetricCard className={compactCardClass} label={`Cumulative Gap Through Age ${selected.age}`} value={formatCurrency(selected.cumulativeIncomeGap)} description="Running target-income gap" accent={selected.cumulativeIncomeGap > 0 ? "negative" : "positive"} />
       </div>
     )
   }
 
   return (
     <div className="life-metric-grid life-metric-grid--runway">
-      <ModuleMetricCard className={compactCardClass} label={`Proj. Net Income to Age ${projectionEndAge}`} value={formatCurrency(m1.projectedNetIncomeTotal)} description="Full projected net income need" accent="slate" />
-      <ModuleMetricCard className={compactCardClass} label="Income Support Rate" value={formatRatePctOneDecimal(annualIncomeReplacementPct)} disclosure="Total safe income supported ÷ total projected income need; constant across projected years" accent={annualIncomeReplacementPct > 0 ? "green" : "red"} />
-      <ModuleMetricCard className={compactCardClass} label="Total Income Supported" value={formatCurrency(m1.totalIncomeReplaced)} description="Supported target income stream" accent="green" />
-      <ModuleMetricCard className={compactCardClass} label="Survivor Gap" value={formatCurrency(survivorGap)} description="Target support minus supported income" accent={hasGap ? "red" : "green"} />
-      <ModuleMetricCard className={compactCardClass} label="Death Benefit Gap" value={formatCurrency(m1.additionalDeathBenefitNeeded)} description={`PV capital gap at ${formatRatePctOneDecimal(m1.roi)}`} accent={m1.additionalDeathBenefitNeeded > 0 ? "red" : "green"} />
+      <ModuleMetricCard className={compactCardClass} label={`Proj. Net Income to Age ${projectionEndAge}`} value={formatCurrency(m1.projectedNetIncomeTotal)} description="Full projected net income need" accent="neutral" />
+      <ModuleMetricCard className={compactCardClass} label="Income Support Rate" value={formatRatePctOneDecimal(annualIncomeReplacementPct)} disclosure="Total safe income supported ÷ total projected income need; constant across projected years" accent="primary" />
+      <ModuleMetricCard className={compactCardClass} label="Total Income Supported" value={formatCurrency(m1.totalIncomeReplaced)} description="Supported target income stream" accent="primary" />
+      <ModuleMetricCard className={compactCardClass} label="Survivor Gap" value={formatCurrency(survivorGap)} description="Target support minus supported income" accent={hasGap ? "negative" : "positive"} />
+      <ModuleMetricCard className={compactCardClass} label="Death Benefit Gap" value={formatCurrency(m1.additionalDeathBenefitNeeded)} description={`PV capital gap at ${formatRatePctOneDecimal(m1.roi)}`} accent={m1.additionalDeathBenefitNeeded > 0 ? "negative" : "positive"} />
     </div>
   )
 }
@@ -155,7 +155,7 @@ function ChartPanel({ title, subtitle, coveredLabel, data, ticks, selectedAge, o
           <div className="min-w-0 flex-1">
             <div className="life-chart-area chart-reveal">
               <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                <BarChart data={data} margin={{ top: 8, right: 14, left: 2, bottom: 8 }} barCategoryGap="8%" onClick={(state) => { if (state?.activePayload) onSelectAge(Number(state.activeLabel)) }} style={{ cursor: "pointer" }}>
+                <BarChart data={data} margin={{ top: 8, right: 14, left: 2, bottom: 8 }} barGap={0} barCategoryGap="8%" onClick={(state) => { if (state?.activePayload) onSelectAge(Number(state.activeLabel)) }} style={{ cursor: "pointer" }}>
                   <CartesianGrid stroke="rgba(100,116,139,0.16)" strokeDasharray="3 5" vertical={false} />
                   <XAxis dataKey="age" ticks={ticks} interval={0} minTickGap={8} tickMargin={9} tick={{ fill: "#64748b", fontSize: 10, fontWeight: 600 }} axisLine={{ stroke: "#64748b", strokeOpacity: 0.45 }} tickLine={{ stroke: "#64748b", strokeOpacity: 0.45 }} />
                   <YAxis tickFormatter={(v) => `$${Math.round(Number(v) / 1000)}k`} tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} width={46} />
@@ -165,8 +165,8 @@ function ChartPanel({ title, subtitle, coveredLabel, data, ticks, selectedAge, o
             </div>
             <div className="mt-1 text-center"><span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Age (Years)</span></div>
             <div className="mt-2 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 border-t border-slate-800/50 pt-2">
-              <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400"><span className="h-2.5 w-4 rounded-sm bg-emerald-500" />{coveredLabel}</span>
-              <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400"><span className="h-2.5 w-4 rounded-sm bg-red-500" />Income Gap</span>
+              <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400"><span className="h-2.5 w-4 rounded-sm" style={{ backgroundColor: "#10b981" }} />{coveredLabel}</span>
+              <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400"><span className="h-2.5 w-4 rounded-sm" style={{ backgroundColor: "#ef4444" }} />Income Gap</span>
             </div>
           </div>
         </div>
@@ -220,8 +220,8 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
           <div className="life-visual-dashboard">
             <ChartPanel title={`Safe Income Coverage — Target Annual Net Income to Age ${retirementAge}`} subtitle={`${formatRatePctOneDecimal(module1.netIncomeFactor)} net income factor; capital required uses ${formatRatePctOneDecimal(module1.roi)} PV reference rate`} coveredLabel="Income Supported" data={module1.yearlyData} ticks={safeTicks} selectedAge={selectedSafeAge} onSelectAge={setSelectedSafeAge} onReset={() => setSelectedSafeAge(null)}>
               <Tooltip content={SafeTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-              <Bar dataKey="safeIncomeCoverage" name="Income Supported" stackId="income" fill="#10b981" radius={[0, 0, 0, 0]} isAnimationActive={false}>{module1.yearlyData.map((point) => <Cell key={`safe-covered-${point.age}`} opacity={selectedSafeAge === null || selectedSafeAge === point.age ? 1 : 0.3} stroke={selectedSafeAge === point.age ? "#f8fafc" : "transparent"} strokeWidth={selectedSafeAge === point.age ? 1.5 : 0} style={{ transition: "opacity 220ms ease, filter 220ms ease", filter: selectedSafeAge === point.age ? "drop-shadow(0 0 5px rgba(16,185,129,0.65))" : "none" }} />)}</Bar>
-              <Bar dataKey="incomeGap" name="Income Gap" stackId="income" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={false}>{module1.yearlyData.map((point) => <Cell key={`safe-gap-${point.age}`} opacity={selectedSafeAge === null || selectedSafeAge === point.age ? 1 : 0.3} stroke={selectedSafeAge === point.age ? "#f8fafc" : "transparent"} strokeWidth={selectedSafeAge === point.age ? 1.5 : 0} style={{ transition: "opacity 220ms ease, filter 220ms ease" }} />)}</Bar>
+              <Bar dataKey="safeIncomeCoverage" name="Income Supported" stackId="income" barSize={28} fill="#10b981" radius={[0, 0, 0, 0]} shapeRendering="crispEdges" isAnimationActive={false}>{module1.yearlyData.map((point) => <Cell key={`safe-covered-${point.age}`} opacity={selectedSafeAge === null || selectedSafeAge === point.age ? 1 : 0.3} style={{ transition: "opacity 220ms ease, filter 220ms ease", filter: selectedSafeAge === point.age ? "drop-shadow(0 0 5px rgba(16,185,129,0.65))" : "none" }} />)}</Bar>
+              <Bar dataKey="incomeGap" name="Income Gap" stackId="income" barSize={28} fill="#ef4444" radius={[2, 2, 0, 0]} shapeRendering="crispEdges" isAnimationActive={false}>{module1.yearlyData.map((point) => <Cell key={`safe-gap-${point.age}`} opacity={selectedSafeAge === null || selectedSafeAge === point.age ? 1 : 0.3} style={{ transition: "opacity 220ms ease, filter 220ms ease" }} />)}</Bar>
             </ChartPanel>
             <div key={`safe-metrics-${selectedSafeAge ?? "all"}`} className="animate-slideUpAndFade"><SafeIncomeMetricBoxes m1={module1} projectionEndAge={retirementAge} selectedAge={selectedSafeAge} /></div>
           </div>
@@ -233,8 +233,8 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
           <div className="life-visual-dashboard">
             <ChartPanel title="Covered Runway Scenario — Resource Drawdown Coverage" subtitle={`Existing coverage resources modeled at the shared ${formatRatePctOneDecimal(module2.roi)} PV reference rate while funding projected net income`} coveredLabel="Net Income Covered" data={module2.yearlyData} ticks={runwayTicks} selectedAge={selectedRunwayAge} onSelectAge={setSelectedRunwayAge} onReset={() => setSelectedRunwayAge(null)}>
               <Tooltip content={RunwayTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-              <Bar dataKey="runwayIncomeCovered" name="Net Income Covered" stackId="income" fill="#10b981" radius={[0, 0, 0, 0]} isAnimationActive={false}>{module2.yearlyData.map((point) => <Cell key={`runway-covered-${point.age}`} opacity={selectedRunwayAge === null || selectedRunwayAge === point.age ? 1 : 0.3} stroke={selectedRunwayAge === point.age ? "#f8fafc" : "transparent"} strokeWidth={selectedRunwayAge === point.age ? 1.5 : 0} style={{ transition: "opacity 220ms ease, filter 220ms ease", filter: selectedRunwayAge === point.age ? "drop-shadow(0 0 5px rgba(16,185,129,0.65))" : "none" }} />)}</Bar>
-              <Bar dataKey="runwayIncomeGap" name="Income Gap" stackId="income" fill="#ef4444" radius={[2, 2, 0, 0]} isAnimationActive={false}>{module2.yearlyData.map((point) => <Cell key={`runway-gap-${point.age}`} opacity={selectedRunwayAge === null || selectedRunwayAge === point.age ? 1 : 0.3} stroke={selectedRunwayAge === point.age ? "#f8fafc" : "transparent"} strokeWidth={selectedRunwayAge === point.age ? 1.5 : 0} style={{ transition: "opacity 220ms ease, filter 220ms ease" }} />)}</Bar>
+              <Bar dataKey="runwayIncomeCovered" name="Net Income Covered" stackId="income" barSize={28} fill="#10b981" radius={[0, 0, 0, 0]} shapeRendering="crispEdges" isAnimationActive={false}>{module2.yearlyData.map((point) => <Cell key={`runway-covered-${point.age}`} opacity={selectedRunwayAge === null || selectedRunwayAge === point.age ? 1 : 0.3} style={{ transition: "opacity 220ms ease, filter 220ms ease", filter: selectedRunwayAge === point.age ? "drop-shadow(0 0 5px rgba(16,185,129,0.65))" : "none" }} />)}</Bar>
+              <Bar dataKey="runwayIncomeGap" name="Income Gap" stackId="income" barSize={28} fill="#ef4444" radius={[2, 2, 0, 0]} shapeRendering="crispEdges" isAnimationActive={false}>{module2.yearlyData.map((point) => <Cell key={`runway-gap-${point.age}`} opacity={selectedRunwayAge === null || selectedRunwayAge === point.age ? 1 : 0.3} style={{ transition: "opacity 220ms ease, filter 220ms ease" }} />)}</Bar>
             </ChartPanel>
             <div key={`runway-metrics-${selectedRunwayAge ?? "all"}`} className="animate-slideUpAndFade"><RunwayMetricBoxes m2={module2} projectionEndAge={retirementAge} selectedAge={selectedRunwayAge} /></div>
           </div>

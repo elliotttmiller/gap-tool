@@ -161,18 +161,33 @@
   .dark [class~="bg-white/95"],
   .dark [class~="bg-gray-950"],
   .dark [class~="bg-gray-950/95"],
+  .dark [class~="bg-gray-950/70"],
+  .dark [class~="bg-gray-950/60"],
+  .dark [class~="bg-gray-950/55"],
+  .dark [class~="bg-gray-950/50"],
+  .dark [class~="bg-gray-950/40"],
+  .dark [class~="bg-gray-950/30"],
+  .dark [class~="bg-gray-950/20"],
   .dark [class~="bg-gray-900"],
+  .dark [class~="bg-gray-900/95"],
   .dark [class~="bg-gray-900/80"],
+  .dark [class~="bg-gray-900/70"],
   .dark [class~="bg-gray-900/60"],
   .dark [class~="bg-gray-900/50"],
   .dark [class~="bg-gray-900/40"],
   .dark [class~="bg-gray-900/35"],
   .dark [class~="bg-gray-900/30"],
   .dark [class~="bg-gray-900/25"],
+  .dark [class~="bg-gray-900/20"],
   .dark [class~="bg-slate-900"],
   .dark [class~="bg-slate-900/95"],
   .dark [class~="bg-slate-900/80"],
   .dark [class~="bg-slate-900/70"],
+  .dark [class~="bg-slate-900/60"],
+  .dark [class~="bg-slate-900/50"],
+  .dark [class~="bg-slate-900/30"],
+  .dark [class~="bg-slate-900/25"],
+  .dark [class~="bg-slate-900/20"],
   .dark [class~="bg-slate-900/40"],
   .dark [class~="dark:bg-[#090E1A]"],
   .dark [class~="dark:bg-[#0d1b2a]"],
@@ -189,8 +204,17 @@
   .dark [class~="bg-slate-950/40"],
   .dark [class~="bg-gray-800"],
   .dark [class~="bg-gray-800/80"],
+  .dark [class~="bg-gray-800/60"],
+  .dark [class~="bg-gray-800/50"],
   .dark [class~="bg-gray-800/40"],
+  .dark [class~="bg-gray-800/30"],
+  .dark [class~="bg-gray-800/20"],
+  .dark [class~="bg-gray-700"],
+  .dark [class~="bg-slate-800"],
+  .dark [class~="bg-slate-800/80"],
   .dark [class~="bg-slate-800/60"],
+  .dark [class~="bg-slate-800/40"],
+  .dark [class~="bg-slate-700"],
   .dark [class~="dark:bg-gray-800"],
   .dark [class~="dark:bg-slate-800"] {
     background-color: var(--dark-surface-inset) !important;
@@ -284,6 +308,13 @@
   .light [class~="bg-[#090E1A]"],
   .light [class~="bg-gray-950"],
   .light [class~="bg-gray-950/95"],
+  .light [class~="bg-gray-950/70"],
+  .light [class~="bg-gray-950/60"],
+  .light [class~="bg-gray-950/55"],
+  .light [class~="bg-gray-950/50"],
+  .light [class~="bg-gray-950/40"],
+  .light [class~="bg-gray-950/30"],
+  .light [class~="bg-gray-950/20"],
   .light [class~="bg-slate-950/70"],
   .light [class~="bg-slate-950/60"],
   .light [class~="bg-slate-950/50"],
@@ -297,23 +328,40 @@
   .light [class~="bg-gray-200"] { background-color: #e3ecee !important; }
 
   .light [class~="bg-gray-900"],
+  .light [class~="bg-gray-900/95"],
   .light [class~="bg-gray-900/80"],
+  .light [class~="bg-gray-900/70"],
   .light [class~="bg-gray-900/60"],
   .light [class~="bg-gray-900/50"],
   .light [class~="bg-gray-900/40"],
   .light [class~="bg-gray-900/35"],
   .light [class~="bg-gray-900/30"],
   .light [class~="bg-gray-900/25"],
+  .light [class~="bg-gray-900/20"],
   .light [class~="bg-slate-900"],
   .light [class~="bg-slate-900/95"],
   .light [class~="bg-slate-900/80"],
   .light [class~="bg-slate-900/70"],
+  .light [class~="bg-slate-900/60"],
+  .light [class~="bg-slate-900/50"],
+  .light [class~="bg-slate-900/30"],
+  .light [class~="bg-slate-900/25"],
+  .light [class~="bg-slate-900/20"],
   .light [class~="bg-slate-900/40"] { background-color: var(--light-surface) !important; }
 
   .light [class~="bg-gray-800"],
   .light [class~="bg-gray-800/80"],
+  .light [class~="bg-gray-800/60"],
+  .light [class~="bg-gray-800/50"],
   .light [class~="bg-gray-800/40"],
-  .light [class~="bg-slate-800/60"] { background-color: #edf3f4 !important; }
+  .light [class~="bg-gray-800/30"],
+  .light [class~="bg-gray-800/20"],
+  .light [class~="bg-gray-700"],
+  .light [class~="bg-slate-800"],
+  .light [class~="bg-slate-800/80"],
+  .light [class~="bg-slate-800/60"],
+  .light [class~="bg-slate-800/40"],
+  .light [class~="bg-slate-700"] { background-color: #edf3f4 !important; }
 
   .light [class~="text-gray-50"], .light [class~="text-gray-100"],
   .light [class~="text-slate-50"], .light [class~="text-slate-100"] { color: var(--light-text) !important; }
@@ -542,6 +590,54 @@
   .theme-transitioning *::after { transition-duration: 0ms !important; }
   ::view-transition-old(root),
   ::view-transition-new(root) { animation-duration: 0ms !important; }
+}
+
+/* Premium vs. self-insured controls use a theme-aware data-entry treatment
+   instead of inheriting the generic dark-first range-input surface. */
+.light input.premium-slider-control,
+.dark input.premium-slider-control {
+  height: 0.45rem !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 9999px !important;
+  background: linear-gradient(
+    to right,
+    #188a89 0%,
+    #188a89 var(--slider-progress),
+    #d5e2e5 var(--slider-progress),
+    #d5e2e5 100%
+  ) !important;
+  box-shadow: inset 0 1px 2px rgb(15 42 58 / 0.12) !important;
+}
+
+.dark input.premium-slider-control {
+  background: linear-gradient(
+    to right,
+    #1db8b9 0%,
+    #1db8b9 var(--slider-progress),
+    #626b75 var(--slider-progress),
+    #626b75 100%
+  ) !important;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.28) !important;
+}
+
+input.premium-slider-control::-webkit-slider-thumb {
+  width: 1.1rem;
+  height: 1.1rem;
+  appearance: none;
+  border: 3px solid #ffffff;
+  border-radius: 9999px;
+  background: #188a89;
+  box-shadow: 0 1px 4px rgb(15 42 58 / 0.24), 0 0 0 1px rgb(24 138 137 / 0.2);
+}
+
+input.premium-slider-control::-moz-range-thumb {
+  width: 0.8rem;
+  height: 0.8rem;
+  border: 3px solid #ffffff;
+  border-radius: 9999px;
+  background: #188a89;
+  box-shadow: 0 1px 4px rgb(15 42 58 / 0.24), 0 0 0 1px rgb(24 138 137 / 0.2);
 }
 
 @layer utilities {

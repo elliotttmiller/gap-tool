@@ -1,14 +1,13 @@
 import type { ReactNode } from "react"
 
-export type MetricCardAccent = "slate" | "green" | "red" | "cyan" | "amber" | "blue"
+export type MetricCardAccent = "neutral" | "primary" | "positive" | "warning" | "negative"
 
 const TONES: Record<MetricCardAccent, { bar: string; value: string; border: string }> = {
-  slate: { bar: "bg-slate-500",   value: "text-slate-50",    border: "border-slate-800/80" },
-  green: { bar: "bg-emerald-400", value: "text-emerald-300", border: "border-slate-800/80" },
-  red:   { bar: "bg-rose-500",    value: "text-rose-300",    border: "border-slate-800/80" },
-  cyan:  { bar: "bg-cyan-400",    value: "text-cyan-300",    border: "border-slate-800/80" },
-  amber: { bar: "bg-amber-400",   value: "text-amber-300",   border: "border-slate-800/80" },
-  blue:  { bar: "bg-blue-400",    value: "text-blue-300",    border: "border-slate-800/80" },
+  neutral:  { bar: "bg-slate-500", value: "text-slate-50", border: "border-slate-800/80" },
+  primary:  { bar: "bg-[#188a89]", value: "text-[#1b75bc] dark:text-[#7fccef]", border: "border-slate-800/80" },
+  positive: { bar: "bg-[#44b649]", value: "text-[#148f45] dark:text-[#75d27a]", border: "border-slate-800/80" },
+  warning:  { bar: "bg-[#fbb040]", value: "text-[#9a4a14] dark:text-[#ffd084]", border: "border-slate-800/80" },
+  negative: { bar: "bg-[#f15a29]", value: "text-[#c13f17] dark:text-[#ff9a78]", border: "border-slate-800/80" },
 }
 
 interface ModuleMetricCardProps {
@@ -24,11 +23,12 @@ export function ModuleMetricCard({
   label,
   value,
   description,
-  accent = "slate",
+  accent = "neutral",
   className,
   disclosure,
 }: ModuleMetricCardProps) {
-  const tone = TONES[accent]
+  // Keep the fallback resilient across hot reloads and persisted presentation state.
+  const tone = TONES[accent] ?? TONES.neutral
 
   return (
     <div className={`module-metric-card rounded-lg border ${tone.border} bg-slate-950/60 px-3.5 py-3 ${className ?? ""}`}>
@@ -74,14 +74,13 @@ interface CompactMetricProps {
   accent?: MetricCardAccent
 }
 
-export function CompactMetric({ label, value, accent = "slate" }: CompactMetricProps) {
+export function CompactMetric({ label, value, accent = "neutral" }: CompactMetricProps) {
   const valueColor: Record<MetricCardAccent, string> = {
-    slate: "text-slate-200",
-    green: "text-emerald-300",
-    red:   "text-rose-300",
-    cyan:  "text-cyan-300",
-    amber: "text-amber-300",
-    blue:  "text-blue-300",
+    neutral: "text-slate-200",
+    primary: "text-[#1b75bc] dark:text-[#7fccef]",
+    positive: "text-[#148f45] dark:text-[#75d27a]",
+    warning: "text-[#9a4a14] dark:text-[#ffd084]",
+    negative: "text-[#c13f17] dark:text-[#ff9a78]",
   }
   return (
     <div className="flex items-baseline justify-between gap-2 border-b border-slate-800/40 py-1.5 last:border-0">

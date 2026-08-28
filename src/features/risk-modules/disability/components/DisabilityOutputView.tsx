@@ -307,13 +307,13 @@ export function DisabilityOutputView({
                 <div className="flex min-w-0 flex-1 flex-col">
                   <div className="chart-reveal min-h-52 w-full flex-1">
                     <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                      <BarChart data={chartData.projectionChartData} margin={{ top: 10, right: 16, left: 0, bottom: 4 }} barCategoryGap="8%" onClick={(data) => { if (data?.activePayload) setSelectedAge(Number(data.activeLabel)) }} style={{ cursor: "pointer" }}>
+                      <BarChart data={chartData.projectionChartData} margin={{ top: 10, right: 16, left: 0, bottom: 4 }} barGap={0} barCategoryGap="8%" onClick={(data) => { if (data?.activePayload) setSelectedAge(Number(data.activeLabel)) }} style={{ cursor: "pointer" }}>
                         <XAxis dataKey="age" ticks={ageTicks} interval={0} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
                         <YAxis tickFormatter={(v) => `$${Math.round(v / 1000)}k`} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} width={48} />
                         <Tooltip content={CustomTooltip} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-                        <Bar dataKey={ltdLabel} stackId="a" fill="#1b75bc" isAnimationActive={false} />
-                        <Bar dataKey="Individual DI" stackId="a" fill="#1db8b9" isAnimationActive={false} />
-                        <Bar dataKey="Income Gap" stackId="a" fill="#f15a29" radius={[2, 2, 0, 0]} isAnimationActive={false} />
+                        <Bar dataKey={ltdLabel} stackId="a" barSize={28} fill="#1b75bc" shapeRendering="crispEdges" isAnimationActive={false} />
+                        <Bar dataKey="Individual DI" stackId="a" barSize={28} fill="#1db8b9" shapeRendering="crispEdges" isAnimationActive={false} />
+                        <Bar dataKey="Income Gap" stackId="a" barSize={28} fill="#f15a29" radius={[2, 2, 0, 0]} shapeRendering="crispEdges" isAnimationActive={false} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -330,11 +330,11 @@ export function DisabilityOutputView({
 
           <div className="module-metric-rail">
             <MetricGroup title="Monthly Benefits">
-              <ModuleMetricCard label={assumedIncomeLabel} value={<>{formatCurrency(assumedIncomeDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description="Monthly income basis used for the selected view" accent="slate" />
-              <ModuleMetricCard label={ltdLabel} value={<>{formatCurrency(ltdDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description={chartView === "gross" ? "Gross monthly LTD benefit" : "Net after-tax LTD monthly benefit"} accent="blue" />
-              <ModuleMetricCard label="Individual DI" value={<>{formatCurrency(monthly.individualDIMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description="Private disability insurance benefit" accent="cyan" />
-              <ModuleMetricCard label={totalBenefitLabel} value={<>{formatCurrency(totalDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description="Combined LTD + individual DI monthly benefit" accent="slate" />
-              <ModuleMetricCard label={incomeLossLabel} value={<>{formatCurrency(incomeLossDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description={incomeLossDescription} accent="red" />
+              <ModuleMetricCard label={assumedIncomeLabel} value={<>{formatCurrency(assumedIncomeDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description="Monthly income basis used for the selected view" accent="neutral" />
+              <ModuleMetricCard label={ltdLabel} value={<>{formatCurrency(ltdDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description={chartView === "gross" ? "Gross monthly LTD benefit" : "Net after-tax LTD monthly benefit"} accent="primary" />
+              <ModuleMetricCard label="Individual DI" value={<>{formatCurrency(monthly.individualDIMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description="Private disability insurance benefit" accent="primary" />
+              <ModuleMetricCard label={totalBenefitLabel} value={<>{formatCurrency(totalDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description="Combined LTD + individual DI monthly benefit" accent="primary" />
+              <ModuleMetricCard label={incomeLossLabel} value={<>{formatCurrency(incomeLossDisplayMonthly)}<span className="text-sm font-normal text-gray-400">/mo</span></>} description={incomeLossDescription} accent={incomeLossDisplayMonthly > 0 ? "negative" : "positive"} />
             </MetricGroup>
           </div>
         </div>

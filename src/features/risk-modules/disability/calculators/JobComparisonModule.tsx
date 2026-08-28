@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
-import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { Card, CardContent } from "@/components/ui/card"
+import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
 import { formatCurrency } from "@/lib/utils"
 import type { DisabilityInputs } from "../types"
 
@@ -15,6 +16,31 @@ interface JobState {
   hasIdi: boolean
   monthlyPremium: number
   idiBenefit: number
+}
+
+interface JobChartDatum {
+  name: string
+  "Group LTD": number
+  "IDI Benefit": number
+  "Income Gap": number
+  totalBar: number
+}
+
+type JobChartSeriesKey = "Group LTD" | "IDI Benefit" | "Income Gap"
+
+function roundedStackCells(
+  data: JobChartDatum[],
+  dataKey: JobChartSeriesKey,
+  isTopSegment: (row: JobChartDatum) => boolean,
+) {
+  return data.map((row) => (
+    <Cell
+      key={`${row.name}-${dataKey}`}
+      // Cell inherits the SVG radius type, but Recharts forwards Bar's
+      // documented four-corner tuple to its Rectangle renderer.
+      radius={(isTopSegment(row) ? [8, 8, 0, 0] : [0, 0, 0, 0]) as unknown as number}
+    />
+  ))
 }
 
 function getInitialJobs(inputs?: DisabilityInputs): { jobA: JobState; jobB: JobState } {
@@ -37,6 +63,14 @@ function calcGroupLTDAnnual(salary: number, groupPct: number, groupCap: number):
 
 function parseWholeNumberInput(value: string): number {
   return Number(value) || 0
+}
+
+function binaryOptionClass(selected: boolean): string {
+  return `rounded-md px-3 py-1 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#188a89] ${
+    selected
+      ? "bg-[#188a89] text-white shadow-sm"
+      : "bg-gray-800 text-gray-400 hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"
+  }`
 }
 
 function NumberField({
@@ -97,29 +131,6 @@ function GroupCapField({ label, value, onChange }: { label: string; value: strin
   )
 }
 
-function MetricCard({ label, value, sub, accent = "default" }: {
-  label: string
-  value: string
-  sub?: string
-  accent?: "green" | "red" | "cyan" | "default"
-}) {
-  const valueClass = accent === "green"
-    ? "text-emerald-300"
-    : accent === "red"
-      ? "text-red-400"
-      : accent === "cyan"
-        ? "text-cyan-300"
-        : "text-gray-100"
-
-  return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900/30 p-3.5">
-      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-gray-500">{label}</p>
-      <p className={`mt-1 text-lg font-semibold ${valueClass}`}>{value}</p>
-      {sub ? <p className="mt-0.5 text-[11px] text-gray-500">{sub}</p> : null}
-    </div>
-  )
-}
-
 function ComparisonTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null
   const point = payload[0]?.payload
@@ -172,7 +183,7 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
   const jobBIDIChart = Math.min(jobBIDIAnnual, Math.max(0, jobBIncome - jobBGroupChart))
   const jobBChartGap = Math.max(0, jobBIncome - jobBGroupChart - jobBIDIChart)
 
-  const chartData = [
+  const chartData: JobChartDatum[] = [
     { name: "Job A", "Group LTD": jobAChartCovered, "IDI Benefit": 0, "Income Gap": jobAChartGap, totalBar: jobAIncome },
     { name: "Job B", "Group LTD": jobBGroupChart, "IDI Benefit": jobBIDIChart, "Income Gap": jobBChartGap, totalBar: jobBIncome },
   ]
@@ -181,10 +192,10 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
     <div className="module-output-container">
       <div className="space-y-4">
         <div className="grid items-start gap-4 xl:grid-cols-2">
-          <Card className="border-t-4 border-gray-800 border-t-emerald-500 bg-gray-900/25">
+          <Card className="border-t-4 border-gray-800 border-t-[#188a89] bg-gray-900/25">
             <CardContent className="p-4">
               <div className="mb-3 flex items-center justify-between">
-                <p className="text-sm font-semibold text-emerald-400">Job A</p>
+                <p className="text-sm font-semibold text-[#188a89] dark:text-[#1db8b9]">Job A</p>
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] text-gray-400">Has IDI policy?</span>
                   <div className="flex gap-1">
@@ -193,7 +204,7 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
                         key={option}
                         type="button"
                         onClick={() => setJobA({ ...jobA, hasIdi: option === "Yes" })}
-                        className={`rounded-md px-3 py-1 text-xs font-semibold transition-colors ${(option === "Yes") === jobA.hasIdi ? "bg-emerald-600 text-white" : "bg-gray-800 text-gray-400 hover:bg-gray-700"}`}
+                        className={binaryOptionClass((option === "Yes") === jobA.hasIdi)}
                       >
                         {option}
                       </button>
@@ -215,10 +226,10 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
             </CardContent>
           </Card>
 
-          <Card className="border-t-4 border-gray-800 border-t-cyan-500 bg-gray-900/25">
+          <Card className="border-t-4 border-gray-800 border-t-[#188a89] bg-gray-900/25">
             <CardContent className="p-4">
               <div className="mb-3 flex items-center justify-between">
-                <p className="text-sm font-semibold text-cyan-400">Job B</p>
+                <p className="text-sm font-semibold text-[#188a89] dark:text-[#1db8b9]">Job B</p>
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] text-gray-400">Has IDI policy?</span>
                   <div className="flex gap-1">
@@ -227,7 +238,7 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
                         key={option}
                         type="button"
                         onClick={() => setJobB({ ...jobB, hasIdi: option === "Yes" })}
-                        className={`rounded-md px-3 py-1 text-xs font-semibold transition-colors ${(option === "Yes") === jobB.hasIdi ? "bg-cyan-600 text-white" : "bg-gray-800 text-gray-400 hover:bg-gray-700"}`}
+                        className={binaryOptionClass((option === "Yes") === jobB.hasIdi)}
                       >
                         {option}
                       </button>
@@ -271,9 +282,18 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
                     <XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 12, fontWeight: 600 }} tickLine={false} axisLine={false} dy={6} />
                     <YAxis tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} axisLine={false} width={54} domain={[0, (dataMax: number) => Math.max(1, Math.ceil((dataMax * 1.15) / 1000) * 1000)]} tickFormatter={(value) => `$${Math.round(Number(value) / 1000)}k`} />
                     <Tooltip content={<ComparisonTooltip />} cursor={{ fill: "rgba(255,255,255,0.025)" }} />
-                    <Bar dataKey="Group LTD" stackId="stack" fill="#3b82f6"><LabelList dataKey="Group LTD" position="center" formatter={(value: number) => value > 0 ? formatCurrency(value) : ""} style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }} /></Bar>
-                    <Bar dataKey="IDI Benefit" stackId="stack" fill="#06b6d4"><LabelList dataKey="IDI Benefit" position="center" formatter={(value: number) => value > 0 ? formatCurrency(value) : ""} style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }} /></Bar>
-                    <Bar dataKey="Income Gap" stackId="stack" fill="#ef4444" radius={[6, 6, 0, 0]}><LabelList dataKey="Income Gap" position="center" formatter={(value: number) => value > 0 ? formatCurrency(value) : ""} style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }} /></Bar>
+                    <Bar dataKey="Group LTD" stackId="stack" fill="#3b82f6">
+                      {roundedStackCells(chartData, "Group LTD", (row) => row["IDI Benefit"] <= 0 && row["Income Gap"] <= 0)}
+                      <LabelList dataKey="Group LTD" position="center" formatter={(value: number) => value > 0 ? formatCurrency(value) : ""} style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }} />
+                    </Bar>
+                    <Bar dataKey="IDI Benefit" stackId="stack" fill="#06b6d4">
+                      {roundedStackCells(chartData, "IDI Benefit", (row) => row["Income Gap"] <= 0)}
+                      <LabelList dataKey="IDI Benefit" position="center" formatter={(value: number) => value > 0 ? formatCurrency(value) : ""} style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }} />
+                    </Bar>
+                    <Bar dataKey="Income Gap" stackId="stack" fill="#ef4444">
+                      {roundedStackCells(chartData, "Income Gap", (row) => row["Income Gap"] > 0)}
+                      <LabelList dataKey="Income Gap" position="center" formatter={(value: number) => value > 0 ? formatCurrency(value) : ""} style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }} />
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -281,10 +301,10 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
           </Card>
 
           <div className="flex flex-col gap-3 xl:justify-center">
-            <MetricCard label="Job A Income" value={`${formatCurrency(jobAIncome)}/yr`} sub="Income input" />
-            <MetricCard label="Job B Income" value={`${formatCurrency(jobBIncome)}/yr`} sub="Income input − annual Individual DI premium" accent="cyan" />
-            <MetricCard label="Job A Income if Disabled" value={`${formatCurrency(jobAIncomeIfDisabled)}/yr`} sub="Group LTD benefit" />
-            <MetricCard label="Job B Income if Disabled" value={`${formatCurrency(jobBIncomeIfDisabled)}/yr`} sub="Group LTD benefit + Individual DI benefit" accent="green" />
+            <ModuleMetricCard label="Job A Income" value={`${formatCurrency(jobAIncome)}/yr`} description="Income input" accent="neutral" />
+            <ModuleMetricCard label="Job B Income" value={`${formatCurrency(jobBIncome)}/yr`} description="Income input − annual Individual DI premium" accent="neutral" />
+            <ModuleMetricCard label="Job A Income if Disabled" value={`${formatCurrency(jobAIncomeIfDisabled)}/yr`} description="Group LTD benefit" accent="primary" />
+            <ModuleMetricCard label="Job B Income if Disabled" value={`${formatCurrency(jobBIncomeIfDisabled)}/yr`} description="Group LTD benefit + Individual DI benefit" accent="primary" />
           </div>
         </div>
       </div>

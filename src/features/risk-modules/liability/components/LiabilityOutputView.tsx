@@ -128,28 +128,28 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
             label="Total Exposure"
             value={formatLiabilityMetric(totalRisk)}
             description="Projected wage exposure + assets at risk"
-            accent="cyan"
+            accent="primary"
           />
           <ModuleMetricCard
             className={compactCardClass}
             label="Total Current Coverage"
             value={formatLiabilityMetric(outputs.householdTotalCoverage)}
             description="Auto liability + existing umbrella"
-            accent={outputs.householdTotalCoverage > 0 ? "green" : "red"}
+            accent="primary"
           />
           <ModuleMetricCard
             className={compactCardClass}
             label="Coverage Gap"
             value={formatLiabilityMetric(outputs.householdLiabilityGap)}
             description="Exposure minus current coverage"
-            accent={outputs.householdLiabilityGap > 0 ? "red" : "green"}
+            accent={outputs.householdLiabilityGap > 0 ? "negative" : "positive"}
           />
           <ModuleMetricCard
             className={compactCardClass}
             label="Needed Umbrella"
             value={formatLiabilityMetric(neededUmbrellaCoverage)}
             description={advisorSafeCopy.liability.umbrellaNeededDescription}
-            accent={neededUmbrellaCoverage > 0 ? "red" : "green"}
+            accent={neededUmbrellaCoverage > 0 ? "negative" : "positive"}
           />
         </div>
       </div>

@@ -102,7 +102,7 @@ function ComparisonCard({ ratio }: { ratio: number | null }) {
       label="Cost efficiency comparison"
       value={formatMultiplier(ratio)}
       description={description}
-      accent="green"
+      accent="neutral"
     />
   )
 }
@@ -190,11 +190,11 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
 
           <div className="mt-1.5 grid gap-2 sm:grid-cols-2">
             {visibleAssetRows.map((row) => (
-              <div key={row.id} className="group flex items-center gap-2 rounded-lg border border-gray-800 bg-gray-950/40 px-2.5 py-2 transition duration-200 focus-within:border-cyan-500/50 focus-within:shadow-[0_0_18px_rgba(34,211,238,0.10)]">
+              <div key={row.id} className="asset-entry-row group flex items-center gap-2 rounded-lg border border-[#cbdadd] bg-[#f4f8f9] px-2.5 py-2 shadow-[0_1px_2px_rgba(15,42,58,0.04)] transition duration-200 focus-within:border-[#188a89] focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(24,138,137,0.10)] dark:border-[#59616b] dark:bg-[#343a42] dark:focus-within:bg-[#3a4048]">
                 <input type="text" value={row.label} onChange={(event) => updateAssetRowLabel(row.id, event.target.value)} disabled={!canEditAssets} placeholder="Asset name" className="h-7 min-w-0 flex-1 rounded-md border border-transparent bg-transparent px-1.5 text-sm font-semibold text-gray-100 outline-none transition focus:border-gray-700 focus:bg-gray-950 disabled:opacity-60" />
                 <div className="flex min-w-24 shrink-0 items-center justify-center gap-1" title="Value of asset"><span className="shrink-0 text-[11px] text-gray-500">$</span><input type="number" min={0} step={1000} value={row.assetValue || ""} onChange={(event) => updateAssetRowValue(row.id, Math.max(0, Number(event.target.value) || 0))} disabled={!canEditAssets} placeholder="0" className="h-7 min-w-14 max-w-40 appearance-none rounded-md border border-transparent bg-transparent px-1 text-right text-sm text-gray-100 outline-none transition field-sizing-content focus:border-gray-700 focus:bg-gray-950 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none disabled:opacity-60" /></div>
                 <div className="flex min-w-24 shrink-0 items-center justify-center gap-1" title="Annual cost to insure"><span className="shrink-0 text-[11px] text-gray-500">$</span><input type="number" min={0} step={50} value={row.annualPremium || ""} onChange={(event) => updateAssetRowPremium(row.id, Math.max(0, Number(event.target.value) || 0))} disabled={!canEditAssets} placeholder="0" className="h-7 min-w-14 max-w-40 appearance-none rounded-md border border-transparent bg-transparent px-1 text-right text-sm font-semibold text-gray-100 outline-none transition field-sizing-content focus:border-gray-700 focus:bg-gray-950 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none disabled:opacity-60" /></div>
-                <button type="button" onClick={() => removeAssetRow(row.id)} disabled={!canEditAssets} aria-label="Remove asset" className="flex h-7 w-6 shrink-0 items-center justify-center rounded text-gray-600 opacity-0 transition hover:bg-red-950/50 hover:text-red-400 group-hover:opacity-100 focus-visible:opacity-100 disabled:pointer-events-none disabled:opacity-0"><Trash2 className="h-3.5 w-3.5" /></button>
+                <button type="button" onClick={() => removeAssetRow(row.id)} disabled={!canEditAssets} aria-label="Remove asset" className="flex h-7 w-6 shrink-0 items-center justify-center rounded text-gray-600 opacity-0 transition hover:bg-[#fde9e6] hover:text-[#a92d20] group-hover:opacity-100 focus-visible:opacity-100 disabled:pointer-events-none disabled:opacity-0 dark:hover:bg-[#8f3124]/45 dark:hover:text-[#ffc7bf]"><Trash2 className="h-3.5 w-3.5" /></button>
               </div>
             ))}
           </div>
@@ -225,8 +225,8 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
       </Card>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <EfficiencyCard label="Other Asset" rate={otherCostPerThousand} accent="blue" />
-        <EfficiencyCard label="Income Asset" rate={incomeCostPerThousand} accent="cyan" />
+        <EfficiencyCard label="Other Asset" rate={otherCostPerThousand} accent="primary" />
+        <EfficiencyCard label="Income Asset" rate={incomeCostPerThousand} accent="primary" />
         <ComparisonCard ratio={costRatio} />
       </div>
     </div>

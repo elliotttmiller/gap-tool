@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, type CSSProperties } from "react"
 import { RiAlertLine } from "@remixicon/react"
 import {
   Area,
@@ -118,10 +118,12 @@ function SliderRow({
   onChange: (value: number) => void
   helperText?: string
 }) {
+  const progress = ((value - min) / Math.max(max - min, Number.EPSILON)) * 100
+
   return (
-    <div className="rounded-xl border border-gray-800 bg-gray-950/50 px-3 py-2.5">
+    <div className="premium-slider-row rounded-xl border border-[#cbdadd] bg-[#f8fbfb] px-3 py-2.5 shadow-[0_1px_2px_rgba(15,42,58,0.05)] dark:border-[#59616b] dark:bg-[#343a42] dark:shadow-[0_5px_14px_rgba(0,0,0,0.14)]">
       <div className="grid grid-cols-[minmax(7.75rem,8.75rem)_minmax(0,1fr)_max-content] items-center gap-x-3 gap-y-1.5">
-        <span className="truncate text-xs text-gray-400">{label}</span>
+        <span className="truncate text-xs font-medium text-[#415b6d] dark:text-[#d9e1e5]">{label}</span>
         <input
           type="range"
           min={min}
@@ -130,10 +132,11 @@ function SliderRow({
           value={value}
           aria-label={label}
           onChange={(event) => onChange(Number(event.target.value))}
-          className="h-2 w-full min-w-0 cursor-pointer appearance-none rounded-full bg-gray-800 accent-brand-500 outline-none transition focus-visible:ring-2 focus-visible:ring-brand-500/50"
+          style={{ "--slider-progress": `${progress}%` } as CSSProperties}
+          className="premium-slider-control h-2 w-full min-w-0 cursor-pointer appearance-none rounded-full outline-none transition focus-visible:ring-2 focus-visible:ring-[#188a89]/40 focus-visible:ring-offset-2"
         />
-        <span className="w-27 text-right font-mono text-xs font-semibold tabular-nums text-gray-100">{displayValue}</span>
-        {helperText ? <p className="col-start-2 col-end-4 text-[11px] leading-snug text-slate-500">{helperText}</p> : null}
+        <span className="w-27 text-right font-mono text-xs font-semibold tabular-nums text-[#102a3a] dark:text-[#f7fafb]">{displayValue}</span>
+        {helperText ? <p className="col-start-2 col-end-4 text-[11px] leading-snug text-[#607583] dark:text-[#b5c1c8]">{helperText}</p> : null}
       </div>
     </div>
   )
@@ -453,19 +456,19 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                 label={`Premium invested to age ${retirementAge}`}
                 value={formatCurrency(investedPremiumFV)}
                 description={`${yearsToRetirement} yrs · ${formatCurrency(values.monthlyPremium)}/mo · ${formatPlainPercent(values.annualRateOfReturn)} return`}
-                accent="green"
+                accent="primary"
               />
               <ModuleMetricCard
                 label="Months of disability funded"
                 value={<>{formatDecimal(monthsOfCoverage, 1)} <span className="text-sm font-normal text-slate-400">months</span></>}
                 description={`Fund value ÷ ${formatCurrency(values.monthlyBenefit)}/mo benefit`}
-                accent="blue"
+                accent="primary"
               />
               <ModuleMetricCard
                 label="Years of disability funded"
                 value={<>{formatDecimal(yearsOfCoverage, 1)} <span className="text-sm font-normal text-slate-400">years</span></>}
                 description="Months of coverage ÷ 12"
-                accent="cyan"
+                accent="primary"
               />
             </div>
           </div>
@@ -477,17 +480,17 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                 label="Benefits with insurance"
                 value={formatCurrency(result.benefitsReceived)}
                 description="Monthly DI benefit × disability duration"
-                accent="green"
+                accent="primary"
                 className={`${metricPulseClass} ${benefitsPulseClass}`}
               />
               <ModuleMetricCard
                 label="Insurance wins if disabled before"
                 value={`Year ${formatDecimal(insuranceWinsBeforeYear, 1)}`}
                 description={`≈ Month ${result.roundedBreakEvenMonths} break-even point`}
-                accent="amber"
+                accent="warning"
                 className={`${metricPulseClass} ${breakEvenPulseClass}`}
               />
-              <ModuleMetricCard label="Break-even month" value={`Month ${result.roundedBreakEvenMonths}`} description="Break-even years × 12 months" accent="slate" />
+              <ModuleMetricCard label="Break-even month" value={`Month ${result.roundedBreakEvenMonths}`} description="Break-even years × 12 months" accent="neutral" />
             </div>
           </div>
         </div>
