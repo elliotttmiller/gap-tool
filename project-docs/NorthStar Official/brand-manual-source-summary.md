@@ -1,6 +1,6 @@
 # 2020 Brand Manual source summary
 
-Authoritative source: `docs/NorthStar Official/2020 Brand Manual.pdf` (last updated May 2020).
+Authoritative source: `project-docs/NorthStar Official/2020 Brand Manual.pdf` (last updated May 2020).
 
 This summary exists to make the implementation traceable. It does not supersede or reinterpret the Brand Manual.
 
