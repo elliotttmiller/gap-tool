@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
-# Builds the app for GitHub Pages, syncs dist/ into docs/, and commits + pushes to main.
-# Pages is configured (Settings -> Pages) to serve from main:/docs, since Actions workflows
-# are disabled for this repo (billing). This script is the manual replacement for that workflow.
+# Builds the GitHub Pages target directly into docs/ and commits + pushes that
+# deployment output to main. The production/Northstar artifact is intentionally
+# separate and remains available through `npm run build:northstar` or `npm run build`.
 
 $ErrorActionPreference = "Stop"
 
@@ -9,35 +9,26 @@ $repoRoot = $PSScriptRoot
 Set-Location $repoRoot
 
 Write-Host "==> Checking working tree..." -ForegroundColor Cyan
-$dirty = git status --porcelain | Where-Object { $_ -notmatch '^\?\? docs/' -and $_ -notmatch '^ M docs/' }
-if ($dirty) {
-    Write-Host "Working tree has uncommitted changes outside docs/ — these will be committed together with the build:" -ForegroundColor Yellow
+$dirtyOutsideDocs = git status --porcelain | Where-Object { $_ -notmatch '^.. docs/' }
+if ($dirtyOutsideDocs) {
+    Write-Host "Working tree has uncommitted changes outside docs/. Commit or stash them before deploying Pages." -ForegroundColor Red
     git status --short
-}
-
-Write-Host "==> Building (GITHUB_ACTIONS=true for correct /gap-tool/ base path)..." -ForegroundColor Cyan
-$env:GITHUB_ACTIONS = "true"
-npm run build
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Build failed." -ForegroundColor Red
     exit 1
 }
 
-Write-Host "==> Syncing dist/ into docs/..." -ForegroundColor Cyan
-if (Test-Path "$repoRoot\docs") {
-    Get-ChildItem "$repoRoot\docs" -Force | Remove-Item -Recurse -Force
-} else {
-    New-Item -ItemType Directory -Path "$repoRoot\docs" | Out-Null
+Write-Host "==> Building GitHub Pages target (/gap-tool/) directly into docs/..." -ForegroundColor Cyan
+npm run build:pages
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "GitHub Pages build failed." -ForegroundColor Red
+    exit 1
 }
-Copy-Item "$repoRoot\dist\*" "$repoRoot\docs" -Recurse -Force
-New-Item -ItemType File -Path "$repoRoot\docs\.nojekyll" -Force | Out-Null
 
-Write-Host "==> Staging changes..." -ForegroundColor Cyan
-git add -A
+Write-Host "==> Staging docs/ deployment output..." -ForegroundColor Cyan
+git add -A -- docs
 
-$staged = git diff --cached --name-only
+$staged = git diff --cached --name-only -- docs
 if (-not $staged) {
-    Write-Host "No changes to deploy — working tree already matches this build." -ForegroundColor Yellow
+    Write-Host "No Pages changes to deploy — docs/ already matches this build." -ForegroundColor Yellow
     exit 0
 }
 
