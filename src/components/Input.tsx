@@ -4,6 +4,7 @@ import { RiEyeFill, RiEyeOffFill, RiSearchLine } from "@remixicon/react"
 import React from "react"
 import { tv, type VariantProps } from "tailwind-variants"
 
+import { formatGroupedNumberInput, normalizeGroupedNumberInput } from "@/lib/numberInput"
 import { cx, focusInput, focusRing, formatNumberInputValue, hasErrorInput } from "@/lib/utils"
 
 const inputStyles = tv({
@@ -38,17 +39,34 @@ interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement>,
     VariantProps<typeof inputStyles> {
   inputClassName?: string
+  groupThousands?: boolean
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, inputClassName, hasError, enableStepper = true, type, value, onFocus, onBlur, inputMode, ...props }, forwardedRef) => {
+  ({ className, inputClassName, hasError, enableStepper = true, type, value, onChange, onFocus, onBlur, inputMode, groupThousands, placeholder, ...props }, forwardedRef) => {
     const [typeState, setTypeState] = React.useState(type)
     const [isEditingNumber, setIsEditingNumber] = React.useState(false)
     const isPassword = type === "password"
     const isSearch = type === "search"
     const isNumber = type === "number"
-    const renderedType = isNumber && !isEditingNumber ? "text" : (isPassword ? typeState : type)
-    const renderedValue = isNumber && !isEditingNumber ? formatNumberInputValue(value) : value
+    const shouldGroupThousands = groupThousands ?? (isNumber && placeholder?.includes("($)"))
+    const renderedType = shouldGroupThousands
+      ? "text"
+      : isNumber && !isEditingNumber
+        ? "text"
+        : (isPassword ? typeState : type)
+    const renderedValue = shouldGroupThousands
+      ? formatGroupedNumberInput(value)
+      : isNumber && !isEditingNumber
+        ? formatNumberInputValue(value)
+        : value
+
+    function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+      if (shouldGroupThousands) {
+        event.currentTarget.value = normalizeGroupedNumberInput(event.currentTarget.value)
+      }
+      onChange?.(event)
+    }
 
     return (
       <div className={cx("relative w-full", className)}>
@@ -57,14 +75,16 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           type={renderedType}
           inputMode={isNumber ? (inputMode ?? "decimal") : inputMode}
           value={renderedValue}
+          onChange={handleChange}
           onFocus={(event) => {
-            if (isNumber) setIsEditingNumber(true)
+            if (isNumber && !shouldGroupThousands) setIsEditingNumber(true)
             onFocus?.(event)
           }}
           onBlur={(event) => {
-            if (isNumber) setIsEditingNumber(false)
+            if (isNumber && !shouldGroupThousands) setIsEditingNumber(false)
             onBlur?.(event)
           }}
+          placeholder={placeholder}
           className={cx(
             inputStyles({ hasError, enableStepper }),
             { "pl-8": isSearch, "pr-10": isPassword },
