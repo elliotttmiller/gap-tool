@@ -1,6 +1,6 @@
 import { UsersRound, CalendarDays, Shield } from "lucide-react"
-import type { CSSProperties } from "react"
 import type { ClientRecord } from "@/lib/store-types"
+import "@/styles/print-runtime.css"
 
 type ReportCoverPageProps = {
   client: ClientRecord
@@ -36,23 +36,6 @@ export function ReportCoverPage({ client, reportDate }: ReportCoverPageProps) {
     year: "numeric",
   })
   const markUrl = `${import.meta.env.BASE_URL}favicon.svg`
-  const watermarkStyle: CSSProperties = {
-    position: "absolute",
-    top: "2.05in",
-    right: "-1.05in",
-    width: "6.25in",
-    height: "6.25in",
-    backgroundColor: "#747B85",
-    opacity: 0.18,
-    WebkitMaskImage: `url(${markUrl})`,
-    maskImage: `url(${markUrl})`,
-    WebkitMaskRepeat: "no-repeat",
-    maskRepeat: "no-repeat",
-    WebkitMaskPosition: "center",
-    maskPosition: "center",
-    WebkitMaskSize: "contain",
-    maskSize: "contain",
-  }
 
   return (
     <section className="report-cover-page" aria-label="Risk Review Report cover page">
@@ -65,7 +48,35 @@ export function ReportCoverPage({ client, reportDate }: ReportCoverPageProps) {
       </div>
 
       <div className="report-cover-watermark" aria-hidden="true">
-        <span className="report-cover-watermark-mark" style={watermarkStyle} />
+        <svg
+          className="report-cover-watermark-mark"
+          viewBox="0 0 1254 1254"
+          preserveAspectRatio="xMidYMid meet"
+          focusable="false"
+        >
+          <defs>
+            <filter id="report-cover-solid-grey" colorInterpolationFilters="sRGB">
+              <feColorMatrix
+                type="matrix"
+                values="
+                  0 0 0 0 0.454902
+                  0 0 0 0 0.482353
+                  0 0 0 0 0.521569
+                  0 0 0 1 0
+                "
+              />
+            </filter>
+          </defs>
+          <image
+            href={markUrl}
+            x="0"
+            y="0"
+            width="1254"
+            height="1254"
+            preserveAspectRatio="xMidYMid meet"
+            filter="url(#report-cover-solid-grey)"
+          />
+        </svg>
       </div>
 
       <div className="report-cover-content">
