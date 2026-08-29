@@ -278,13 +278,28 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
                 <ResponsiveContainer width="100%" height="100%" debounce={100}>
                   <BarChart
                     data={chartData}
-                    margin={{ top: 16, right: 40, left: 0, bottom: 12 }}
+                    margin={{ top: 16, right: 40, left: 12, bottom: 32 }}
                     barSize={financialBarChartTheme.geometry.comparisonBarSize}
                     barCategoryGap={financialBarChartTheme.geometry.comparisonCategoryGap}
                   >
                     <CartesianGrid stroke={financialBarChartTheme.grid.stroke} strokeDasharray={financialBarChartTheme.grid.strokeDasharray} vertical={false} />
-                    <XAxis dataKey="name" tick={{ fill: financialBarChartTheme.axis.tickFill, fontSize: 12, fontWeight: 600 }} tickLine={false} axisLine={false} dy={6} />
-                    <YAxis tick={{ fill: financialBarChartTheme.axis.tickFill, fontSize: 11 }} tickLine={false} axisLine={false} width={54} domain={[0, (dataMax: number) => Math.max(1, Math.ceil((dataMax * 1.15) / 1000) * 1000)]} tickFormatter={(value) => `$${Math.round(Number(value) / 1000)}k`} />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fill: financialBarChartTheme.axis.tickFill, fontSize: 12, fontWeight: 600 }}
+                      tickLine={{ stroke: financialBarChartTheme.axis.lineStroke, strokeOpacity: financialBarChartTheme.axis.lineOpacity }}
+                      axisLine={{ stroke: financialBarChartTheme.axis.lineStroke, strokeOpacity: financialBarChartTheme.axis.lineOpacity }}
+                      dy={6}
+                      label={{ value: "Job Scenario", position: "insideBottom", offset: -18, fill: financialBarChartTheme.axis.tickFill, fontSize: 10, fontWeight: 600 }}
+                    />
+                    <YAxis
+                      tick={{ fill: financialBarChartTheme.axis.tickFill, fontSize: 11 }}
+                      tickLine={{ stroke: financialBarChartTheme.axis.lineStroke, strokeOpacity: financialBarChartTheme.axis.lineOpacity }}
+                      axisLine={{ stroke: financialBarChartTheme.axis.lineStroke, strokeOpacity: financialBarChartTheme.axis.lineOpacity }}
+                      width={62}
+                      domain={[0, (dataMax: number) => Math.max(1, Math.ceil((dataMax * 1.15) / 1000) * 1000)]}
+                      tickFormatter={(value) => `$${Math.round(Number(value) / 1000)}k`}
+                      label={{ value: "Annual Income ($)", angle: -90, position: "insideLeft", offset: 2, fill: financialBarChartTheme.axis.tickFill, fontSize: 10, fontWeight: 600 }}
+                    />
                     <Tooltip content={<ComparisonTooltip />} cursor={{ fill: financialBarChartTheme.cursor.fill }} />
                     <Bar dataKey="Group LTD" stackId="stack" fill="#3b82f6" shapeRendering="geometricPrecision">
                       {roundedStackCells(chartData, "Group LTD", (row) => row["IDI Benefit"] <= 0 && row["Income Gap"] <= 0)}
