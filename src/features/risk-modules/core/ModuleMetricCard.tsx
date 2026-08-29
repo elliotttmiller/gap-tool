@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import { AdvisorInfoTooltip } from "@/components/ui/advisor-info-tooltip"
 
 export type MetricCardAccent = "neutral" | "primary" | "positive" | "warning" | "negative"
 
@@ -27,21 +28,18 @@ export function ModuleMetricCard({
   className,
   disclosure,
 }: ModuleMetricCardProps) {
-  // Keep the fallback resilient across hot reloads and persisted presentation state.
   const tone = TONES[accent] ?? TONES.neutral
+  const info = [description, disclosure].filter(Boolean).join(" ")
 
   return (
     <div className={`module-metric-card rounded-lg border ${tone.border} bg-slate-950/60 px-3.5 py-3 ${className ?? ""}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="module-metric-label text-[10px] font-bold uppercase leading-snug tracking-[0.15em] text-slate-500">{label}</p>
+          <div className="flex items-start gap-1.5">
+            <p className="module-metric-label text-[10px] font-bold uppercase leading-snug tracking-[0.15em] text-slate-500">{label}</p>
+            {info ? <AdvisorInfoTooltip content={info} ariaLabel={`About ${label}`} /> : null}
+          </div>
           <div className={`module-metric-value mt-1 text-xl font-bold leading-none tracking-tight ${tone.value}`}>{value}</div>
-          {description && (
-            <p className="module-metric-description mt-1.5 text-[11px] leading-snug text-slate-600">{description}</p>
-          )}
-          {disclosure && (
-            <p className="module-metric-disclosure mt-2 border-t border-slate-800/50 pt-1.5 text-[10px] italic leading-snug text-slate-700">{disclosure}</p>
-          )}
         </div>
         <div className={`mt-0.5 h-8 w-0.5 shrink-0 rounded-full ${tone.bar}`} />
       </div>
@@ -65,8 +63,6 @@ export function MetricGroup({ children }: MetricGroupProps) {
 export function MetricGroupDivider() {
   return <div className="my-1 border-t border-slate-800/50" />
 }
-
-// ── Compact inline metric row ─────────────────────────────────────────────────
 
 interface CompactMetricProps {
   label: string
