@@ -2,7 +2,7 @@ import { useState } from "react"
 import { DisabilityOutputs } from "../types"
 import type { DisabilityInputs, DisabilityAssumptions } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { financialBarChartTheme } from "@/components/charts/financialBarChartTheme"
+import { financialBarChartTheme, topStackRadius } from "@/components/charts/financialBarChartTheme"
 import { formatCurrency } from "@/lib/utils"
 import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import { getDisabilityNarrative } from "../constants/moduleCopy"
@@ -325,22 +325,25 @@ export function DisabilityOutputView({
                         <XAxis dataKey="age" ticks={ageTicks} interval={0} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
                         <YAxis tickFormatter={(v) => `$${Math.round(v / 1000)}k`} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} width={48} />
                         <Tooltip content={CustomTooltip} cursor={{ fill: financialBarChartTheme.cursor.fill }} />
-                        <Bar dataKey={ltdLabel} stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.primaryCoverage} isAnimationActive={false}>
+                        <Bar dataKey={ltdLabel} stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.primaryCoverage} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>
                           {chartData.projectionChartData.map((point) => {
                             const visual = projectionCellVisualState(selectedAge, point.age, "rgba(27,117,188,0.72)")
-                            return <Cell key={`ltd-${point.age}`} opacity={visual.opacity} style={visual.style} />
+                            const isTopSegment = Number(point["Individual DI"]) <= 0 && Number(point["Income Gap"]) <= 0
+                            return <Cell key={`ltd-${point.age}`} radius={topStackRadius(isTopSegment)} opacity={visual.opacity} style={visual.style} />
                           })}
                         </Bar>
-                        <Bar dataKey="Individual DI" stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.secondaryCoverage} isAnimationActive={false}>
+                        <Bar dataKey="Individual DI" stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.secondaryCoverage} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>
                           {chartData.projectionChartData.map((point) => {
                             const visual = projectionCellVisualState(selectedAge, point.age, "rgba(29,184,185,0.72)")
-                            return <Cell key={`idi-${point.age}`} opacity={visual.opacity} style={visual.style} />
+                            const isTopSegment = Number(point["Individual DI"]) > 0 && Number(point["Income Gap"]) <= 0
+                            return <Cell key={`idi-${point.age}`} radius={topStackRadius(isTopSegment)} opacity={visual.opacity} style={visual.style} />
                           })}
                         </Bar>
-                        <Bar dataKey="Income Gap" stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.gap} isAnimationActive={false}>
+                        <Bar dataKey="Income Gap" stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.gap} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>
                           {chartData.projectionChartData.map((point) => {
                             const visual = projectionCellVisualState(selectedAge, point.age, financialBarChartTheme.semantic.gapGlow)
-                            return <Cell key={`gap-${point.age}`} opacity={visual.opacity} style={visual.style} />
+                            const isTopSegment = Number(point["Income Gap"]) > 0
+                            return <Cell key={`gap-${point.age}`} radius={topStackRadius(isTopSegment)} opacity={visual.opacity} style={visual.style} />
                           })}
                         </Bar>
                       </BarChart>
