@@ -1,14 +1,16 @@
 export const financialBarChartTheme = {
   geometry: {
-    // Annual projection series use a balanced column-to-gutter ratio so each
-    // year remains distinct without reading as a row of thin sticks. Life and
-    // Disability both consume these values, including the off-canvas report
-    // tree used for browser PDF export, keeping screen and PDF geometry aligned.
-    projectionBarSize: 28,
+    // Annual projection series use a dense, balanced column-to-gutter ratio so
+    // the projection reads as one continuous financial story rather than a row
+    // of isolated sticks. Life and Disability both consume these values,
+    // including the off-canvas report tree used for browser PDF export.
+    projectionBarSize: 30,
     comparisonBarSize: 88,
-    projectionCategoryGap: "10%",
+    projectionCategoryGap: "8%",
     comparisonCategoryGap: "50%",
-    stackRadius: 4,
+    // Keep the exterior silhouette subtly rounded. A small radius preserves a
+    // modern finish without making the top stack segment look like a detached cap.
+    stackRadius: 2,
   },
   // Semantic financial colors are shared across modules so "covered/supported"
   // and "gap/unprotected" always carry the same visual meaning. These are the
