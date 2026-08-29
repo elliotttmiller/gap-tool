@@ -12,8 +12,8 @@ import {
   financialProjectionYAxisProps,
 } from "./financialBarChartTheme"
 
-interface FinancialProjectionChartProps {
-  data: Record<string, any>[]
+interface FinancialProjectionChartProps<T extends { age: number }> {
+  data: T[]
   ticks: number[]
   children: ReactNode
   onSelectAge?: (age: number) => void
@@ -26,12 +26,12 @@ interface FinancialProjectionChartProps {
  * axis geometry, grid, responsiveness, click selection, and bar spacing live
  * here so builder, presentation, and the off-screen PDF tree cannot drift.
  */
-export function FinancialProjectionChart({
+export function FinancialProjectionChart<T extends { age: number }>({
   data,
   ticks,
   children,
   onSelectAge,
-}: FinancialProjectionChartProps) {
+}: FinancialProjectionChartProps<T>) {
   return (
     <ResponsiveContainer
       width="100%"
