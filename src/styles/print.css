@@ -32,6 +32,14 @@
     }
   }
 
+  @page:first {
+    margin: 0;
+
+    @bottom-left { content: none; }
+    @bottom-center { content: none; }
+    @bottom-right { content: none; }
+  }
+
   *,
   *::before,
   *::after {
@@ -59,7 +67,6 @@
     margin: 0 !important;
   }
 
-  /* Screen-only application chrome. */
   .print\:hidden,
   body > header,
   body > nav,
@@ -68,7 +75,6 @@
     display: none !important;
   }
 
-  /* Only the dedicated print tree inside Presentation should render. */
   .presentation-mode {
     display: block !important;
     width: 100% !important;
@@ -99,89 +105,159 @@
     box-shadow: none !important;
   }
 
-  /* ------------------------------------------------------------------
-     Report masthead
-     ------------------------------------------------------------------ */
-
-  .print-cover-header {
+  /* Full-page report cover. */
+  .report-cover-page {
     position: relative !important;
-    min-height: 0 !important;
-    margin: 0 0 0.2in !important;
-    padding: 0.24in 0.3in 0.22in !important;
-    overflow: hidden !important;
-    border: 1px solid #d5e2e5 !important;
-    border-top: 8px solid #188a89 !important;
-    border-bottom: 1px solid #b9cbd1 !important;
-    border-radius: 0 !important;
-    background: #ffffff !important;
-    color: #102a3a !important;
-    break-after: avoid-page !important;
-    page-break-after: avoid !important;
-  }
-
-  .print-cover-header::after {
-    content: "HOUSEHOLD RISK REVIEW";
-    position: absolute;
-    top: 0.18in;
-    right: 0.28in;
-    color: #607583;
-    font-size: 6.8pt;
-    font-weight: 700;
-    letter-spacing: 0.16em;
-  }
-
-  .print-cover-header > div:first-child {
-    display: flex !important;
-    width: 100% !important;
-    margin: 0 0 0.16in !important;
-  }
-
-  .print-cover-header img {
     display: block !important;
-    width: auto !important;
-    height: 0.32in !important;
-    max-width: 2.1in !important;
+    width: 8.5in !important;
+    height: 11in !important;
+    min-height: 11in !important;
+    margin: 0 !important;
+    padding: 0.58in 0.58in 0.62in !important;
+    overflow: hidden !important;
+    background:
+      radial-gradient(circle at 37% 40%, rgba(81, 88, 99, 0.18), rgba(37, 42, 49, 0) 34%),
+      linear-gradient(122deg, #20242a 0%, #272c33 48%, #171b20 100%) !important;
+    color: #ffffff !important;
+    break-after: page !important;
+    page-break-after: always !important;
+    isolation: isolate !important;
+  }
+
+  .report-cover-brand {
+    position: relative !important;
+    z-index: 3 !important;
+    margin: 0 !important;
+  }
+
+  .report-cover-logo {
+    display: block !important;
+    width: 3.35in !important;
+    height: auto !important;
+    max-width: none !important;
     object-fit: contain !important;
   }
 
-  .print-cover-header h1 {
-    margin: 0 !important;
-    color: #102a3a !important;
-    font-size: 23pt !important;
-    font-weight: 700 !important;
-    line-height: 1.08 !important;
-    letter-spacing: -0.025em !important;
+  .report-cover-watermark {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
   }
 
-  .print-cover-header h1 + p {
-    margin: 6pt 0 0 !important;
-    color: #188a89 !important;
-    font-size: 11pt !important;
-    font-weight: 650 !important;
-  }
-
-  .print-cover-header p {
-    color: #607583 !important;
-    font-size: 8pt !important;
-    line-height: 1.4 !important;
-  }
-
-  .print-cover-header p:nth-of-type(2) {
-    margin-top: 3pt !important;
-  }
-
-  .print-cover-header p:last-child {
+  .report-cover-watermark-piece {
+    position: absolute !important;
     display: block !important;
-    margin-top: 8pt !important;
-    padding-top: 8pt !important;
-    border-top: 1px solid #e2eaec !important;
-    color: #78909c !important;
-    font-size: 7.2pt !important;
-    font-weight: 500 !important;
+    background: linear-gradient(138deg, rgba(116, 123, 134, 0.25), rgba(85, 91, 101, 0.13)) !important;
   }
 
-  /* The current print tree uses space-y-16 as its report body. Remove the
-     screen spacing and make page starts deliberate. */
+  .report-cover-watermark-piece-one {
+    top: -0.55in !important;
+    right: -0.05in !important;
+    width: 1.6in !important;
+    height: 4.6in !important;
+    clip-path: polygon(66% 0, 100% 0, 32% 100%, 0 100%) !important;
+  }
+
+  .report-cover-watermark-piece-two {
+    top: 2.6in !important;
+    right: -0.18in !important;
+    width: 4.65in !important;
+    height: 4.8in !important;
+    clip-path: polygon(31% 26%, 66% 0, 53% 34%, 100% 100%, 39% 57%, 0 38%) !important;
+  }
+
+  .report-cover-watermark-piece-three {
+    right: -0.12in !important;
+    bottom: -0.05in !important;
+    width: 2.05in !important;
+    height: 3.55in !important;
+    clip-path: polygon(22% 8%, 100% 0, 100% 100%, 63% 100%) !important;
+  }
+
+  .report-cover-content {
+    position: absolute !important;
+    left: 0.58in !important;
+    right: 0.58in !important;
+    bottom: 0.62in !important;
+    z-index: 3 !important;
+  }
+
+  .report-cover-content h1 {
+    margin: 0 !important;
+    color: #ffffff !important;
+    font-size: 44pt !important;
+    font-weight: 700 !important;
+    line-height: 0.98 !important;
+    letter-spacing: -0.035em !important;
+  }
+
+  .report-cover-household {
+    margin: 10pt 0 0 !important;
+    color: rgba(255, 255, 255, 0.92) !important;
+    font-size: 23pt !important;
+    font-weight: 400 !important;
+    line-height: 1.1 !important;
+  }
+
+  .report-cover-details {
+    display: grid !important;
+    gap: 0.25in !important;
+    margin-top: 0.6in !important;
+    width: 5.9in !important;
+  }
+
+  .report-cover-detail-row {
+    display: grid !important;
+    grid-template-columns: 0.52in minmax(0, 1fr) !important;
+    gap: 0.18in !important;
+    align-items: start !important;
+  }
+
+  .report-cover-detail-icon {
+    width: 0.36in !important;
+    height: 0.36in !important;
+    color: rgba(255, 255, 255, 0.58) !important;
+    stroke-width: 1.65 !important;
+  }
+
+  .report-cover-detail-label {
+    margin: 0 !important;
+    color: rgba(255, 255, 255, 0.58) !important;
+    font-size: 8.5pt !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+  }
+
+  .report-cover-detail-value {
+    margin: 5pt 0 0 !important;
+    color: #ffffff !important;
+    font-size: 14pt !important;
+    font-weight: 400 !important;
+    line-height: 1.25 !important;
+  }
+
+  .report-cover-confidential-row {
+    margin-top: 0.12in !important;
+  }
+
+  .report-cover-confidential-copy {
+    margin: 5pt 0 0 !important;
+    color: rgba(255, 255, 255, 0.72) !important;
+    font-size: 8pt !important;
+    line-height: 1.52 !important;
+  }
+
+  /* Report body starts after the cover with normal page margins. */
+  .print-report-body {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
   .presentation-mode > .hidden.print\:block .space-y-16 {
     display: block !important;
     width: 100% !important;
@@ -193,8 +269,6 @@
     margin-top: 0 !important;
   }
 
-  /* Each risk module after the first begins cleanly on a new page. The final
-     disclosure follows the last module instead of creating an empty page. */
   .presentation-mode > .hidden.print\:block .space-y-16 > div:not(:first-child):not(:last-child) {
     break-before: page !important;
     page-break-before: always !important;
@@ -205,10 +279,6 @@
     break-before: auto !important;
     page-break-before: auto !important;
   }
-
-  /* ------------------------------------------------------------------
-     Module heading + modeled gap
-     ------------------------------------------------------------------ */
 
   .presentation-mode > .hidden.print\:block .space-y-16 > div > h2.border-b {
     position: relative !important;
@@ -247,10 +317,6 @@
     font-size: 8pt !important;
     font-weight: 600 !important;
   }
-
-  /* ------------------------------------------------------------------
-     Input snapshot
-     ------------------------------------------------------------------ */
 
   .presentation-mode > .hidden.print\:block .mb-5.rounded-lg.border {
     margin: 0 0 0.14in !important;
@@ -300,10 +366,6 @@
     font-weight: 650 !important;
     line-height: 1.2 !important;
   }
-
-  /* ------------------------------------------------------------------
-     Existing module output components - print as a document, not as dark UI
-     ------------------------------------------------------------------ */
 
   .presentation-mode > .hidden.print\:block .module-output-container {
     width: 100% !important;
@@ -377,7 +439,6 @@
     color: #9a6b17 !important;
   }
 
-  /* Compact the screen-oriented vertical rhythm. */
   .presentation-mode > .hidden.print\:block .module-output-container .space-y-8 > * + *,
   .presentation-mode > .hidden.print\:block .module-output-container .space-y-6 > * + *,
   .presentation-mode > .hidden.print\:block .module-output-container .space-y-5 > * + *,
@@ -391,7 +452,6 @@
     padding: 0.11in !important;
   }
 
-  /* Cards and metric groups should stay together whenever possible. */
   .presentation-mode > .hidden.print\:block .module-output-container [class*="rounded"][class*="border"],
   .presentation-mode > .hidden.print\:block .module-output-container .stat-card {
     break-inside: avoid-page !important;
@@ -399,8 +459,6 @@
     border-radius: 5px !important;
   }
 
-  /* Screen output views contain fixed-height chart canvases. Keep a useful
-     printed plot area without allowing one chart to consume most of a page. */
   .presentation-mode > .hidden.print\:block .module-output-container .h-96,
   .presentation-mode > .hidden.print\:block .module-output-container .h-80,
   .presentation-mode > .hidden.print\:block .module-output-container .h-72,
@@ -419,8 +477,6 @@
     max-height: 2.25in !important;
   }
 
-  /* Recharts emits SVG. Avoid clipped plots and make axis/grid text legible on
-     a white page while preserving the component's authoritative data series. */
   .presentation-mode > .hidden.print\:block .module-output-container svg {
     max-width: 100% !important;
     overflow: visible !important;
@@ -450,8 +506,6 @@
     display: none !important;
   }
 
-  /* Keep intentional data colors for fills/bars but normalize utility-based
-     backgrounds used for indicators. */
   .presentation-mode > .hidden.print\:block .module-output-container [class*="bg-brand-"],
   .presentation-mode > .hidden.print\:block .module-output-container [class*="bg-cyan-"],
   .presentation-mode > .hidden.print\:block .module-output-container [class*="bg-teal-"] {
@@ -472,17 +526,12 @@
     background-color: #d9694f !important;
   }
 
-  /* Explanatory and interaction-only copy should not dominate the PDF. */
   .presentation-mode > .hidden.print\:block .module-output-container p,
   .presentation-mode > .hidden.print\:block .module-output-container span,
   .presentation-mode > .hidden.print\:block .module-output-container li {
     orphans: 3;
     widows: 3;
   }
-
-  /* ------------------------------------------------------------------
-     Final disclosure
-     ------------------------------------------------------------------ */
 
   .presentation-mode > .hidden.print\:block .space-y-16 > div:last-child {
     padding: 0.12in 0.14in !important;
@@ -516,9 +565,12 @@
     font-weight: 700 !important;
   }
 
-  /* Prevent incidental horizontal overflow from becoming a second blank PDF
-     page in Chromium's print renderer. */
   .presentation-mode > .hidden.print\:block * {
     max-width: 100% !important;
+  }
+
+  .report-cover-page,
+  .report-cover-page * {
+    max-width: none !important;
   }
 }

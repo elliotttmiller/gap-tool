@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom"
 import { ArrowLeft, BriefcaseBusiness, FileDown, HeartPulse, Scale, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemedSelect } from "@/components/ThemedSelect"
+import { ReportCoverPage } from "@/components/reporting/ReportCoverPage"
 import { LifeOutputView } from "@/features/risk-modules/life/components/LifeOutputView"
 import { calculateLifeInsuranceGap } from "@/features/risk-modules/life/calculations/calculateLifeInsuranceGap"
 import { calculateIncomeGapScenarios } from "@/features/risk-modules/life/calculations/calculateIncomeGapScenarios"
@@ -278,6 +279,7 @@ export function Presentation() {
   )
   const [activeModule, setActiveModule] = useState<RiskModuleType | null>(null)
   const [disabilityVisualization, setDisabilityVisualization] = useState<"incomeGap" | "premiumVsSelfInsured" | "jobComparison">("incomeGap")
+  const [reportDate, setReportDate] = useState(() => new Date())
 
   if (!scenarioId || !scenario || !client || !records) {
     return (
@@ -412,6 +414,11 @@ export function Presentation() {
     return null
   }
 
+  function exportPdf() {
+    setReportDate(new Date())
+    window.setTimeout(() => window.print(), 0)
+  }
+
   return (
     <div className="presentation-mode relative h-screen overflow-hidden bg-gray-950 p-2 text-gray-50 print:h-auto print:overflow-visible print:bg-white print:p-0">
       <Button variant="ghost" className="absolute left-3 top-3 z-20 h-8 px-2 shadow-none print:hidden" asChild>
@@ -423,7 +430,7 @@ export function Presentation() {
         type="button"
         variant="secondary"
         className="absolute right-3 top-3 z-20 h-8 gap-2 px-3 shadow-sm print:hidden"
-        onClick={() => window.print()}
+        onClick={exportPdf}
         title="Open the print dialog to save this report as a PDF for AdviceWorks"
       >
         <FileDown className="h-4 w-4" aria-hidden="true" />
@@ -479,26 +486,10 @@ export function Presentation() {
       </div>
 
       <div className="hidden print:block">
-        <div className="overflow-hidden rounded-xl border border-gray-800 bg-[#090E1A] shadow-lg print:border-none print:shadow-none">
-          <div className="print-cover-header border-b border-gray-800 bg-[#0a1628] p-12 text-white">
-            <div className="mb-6 hidden items-center gap-3 print:flex">
-              <img
-                src={`${import.meta.env.BASE_URL}northstar-logo.svg`}
-                alt="North Star Resource Group"
-                className="h-8 w-auto object-contain"
-              />
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight">{scenario.name}</h1>
-            <p className="mt-2 text-lg text-gray-400">{client.displayName}</p>
-            <p className="mt-1 text-sm text-gray-500">
-              Advisor-facing risk review presentation based on saved scenario state.
-            </p>
-            <p className="mt-3 hidden text-xs text-gray-500 print:block">
-              Generated {new Date().toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })} &nbsp;·&nbsp; North Star Resource Group &nbsp;·&nbsp; Confidential
-            </p>
-          </div>
+        <ReportCoverPage client={client} reportDate={reportDate} />
 
-          <div className="space-y-16 p-12">
+        <div className="print-report-body">
+          <div className="space-y-16">
             {visibleModules.map((module) => (
               <div key={module}>
                 <h2 className="mb-2 border-b border-gray-800 pb-2 text-xl font-semibold text-gray-50">
