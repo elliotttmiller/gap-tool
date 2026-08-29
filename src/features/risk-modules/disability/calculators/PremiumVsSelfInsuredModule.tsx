@@ -39,30 +39,16 @@ interface PremiumChartPoint {
   month: number
   "Self-Insurance Fund": number
   "Benefit Needed": number
-  lowerBound: number
-  dangerZone: number
-  safetyZone: number
   remainingGap: number
 }
 
 type HighlightMetric = "benefits" | "breakeven" | "none"
 
-/**
- * Produces clean year-boundary tick marks for the X-axis.
- * Step adapts to the visible range so there are always ~8–12 ticks.
- *
- *   ≤ 12 years  → every 1 year
- *   ≤ 25 years  → every 2 years
- *   ≤ 50 years  → every 5 years
- *   > 50 years  → every 10 years
- */
 function buildChartYearTicks(endMonth: number): number[] {
   const totalYears = endMonth / 12
   const step = totalYears <= 12 ? 1 : totalYears <= 25 ? 2 : totalYears <= 50 ? 5 : 10
   const ticks: number[] = []
-  for (let yr = 0; yr * 12 <= endMonth; yr += step) {
-    ticks.push(yr * 12)
-  }
+  for (let yr = 0; yr * 12 <= endMonth; yr += step) ticks.push(yr * 12)
   return ticks
 }
 
@@ -147,6 +133,7 @@ function PremiumTooltip({ active, payload, label }: any) {
   const point = payload[0].payload as PremiumChartPoint
   const month = Number(label ?? point.month)
   const year = month / 12
+
   return (
     <div className="min-w-60 rounded-xl border border-gray-700 bg-gray-950/95 p-3 text-xs shadow-2xl backdrop-blur">
       <p className="mb-2 font-semibold text-gray-100">Year {formatDecimal(year, 1)} (Month {month})</p>
@@ -156,7 +143,7 @@ function PremiumTooltip({ active, payload, label }: any) {
           <span className="font-mono text-gray-100">{formatCurrency(point["Self-Insurance Fund"])}</span>
         </div>
         <div className="flex justify-between gap-4">
-          <span className="text-rose-400">Benefit needed</span>
+          <span className="text-red-400">Benefit needed</span>
           <span className="font-mono text-gray-100">{formatCurrency(point["Benefit Needed"])}</span>
         </div>
         <div className="flex justify-between gap-4 border-t border-gray-800 pt-1.5">
@@ -189,7 +176,6 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
 
   const result = useMemo(() => calculateBreakEven({ ...values, colaRate: benefitColaRate }), [values, benefitColaRate])
 
-  // Derive retirement age from benefit period (A65/A67/A70) or fall back to retirementAge input.
   const currentAge = props.inputs?.currentAge ?? 0
   const benefitPeriod = props.inputs?.privateDiBenefitPeriod ?? ""
   const retirementAge = benefitPeriod === "A65" ? 65
@@ -198,18 +184,12 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
     : props.inputs?.retirementAge ?? 65
   const yearsToRetirement = Math.max(retirementAge - currentAge, 0)
 
-  // Card A: FV of investing the monthly premium until retirement at the slider's rate of return.
-  // Using FV of annuity: PMT * [((1 + r/12)^n - 1) / (r/12)]
   const monthlyRate = values.annualRateOfReturn / 12
   const nMonths = yearsToRetirement * 12
   const investedPremiumFV = monthlyRate > 0
     ? values.monthlyPremium * ((Math.pow(1 + monthlyRate, nMonths) - 1) / monthlyRate)
     : values.monthlyPremium * nMonths
-
-  // Card B: FV ÷ monthly premium = how many months of benefit the fund could cover.
-  const monthsOfCoverage = values.monthlyPremium > 0 ? investedPremiumFV / values.monthlyBenefit : 0
-
-  // Card C: months ÷ 12 = years of disability coverage.
+  const monthsOfCoverage = values.monthlyBenefit > 0 ? investedPremiumFV / values.monthlyBenefit : 0
   const yearsOfCoverage = monthsOfCoverage / 12
 
   if (result.ok === false) {
@@ -227,28 +207,22 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
 
   const premiumMax = Math.max(2000, roundToStep(values.monthlyPremium * 2, 50))
   const benefitMax = Math.max(20000, roundToStep(values.monthlyBenefit * 2, 500))
-
-  // ── Dynamic chart range ──────────────────────────────────────────────────
-  // Show whichever horizon is largest: retirement window, a padded break-even,
-  // or a 10-year floor.  Cap at 100 years (1 200 months) to match the schedule.
   const MIN_CHART_YEARS = 10
   const breakEvenPaddedYears = Math.ceil((result.roundedBreakEvenMonths / 12) * 1.3)
   const chartEndYears = Math.max(MIN_CHART_YEARS, yearsToRetirement, breakEvenPaddedYears)
   const chartEndMonth = Math.min(chartEndYears * 12, 1200)
-
   const durationEndMonth = Math.min(values.monthsWithoutIncome, chartEndMonth)
+  const breakEvenMonth = Math.min(result.roundedBreakEvenMonths, chartEndMonth)
+
   const chartData: PremiumChartPoint[] = result.schedule
     .filter((row) => row.month <= chartEndMonth)
     .map((row) => ({
       month: row.month,
       "Self-Insurance Fund": row.investmentBalance,
       "Benefit Needed": result.benefitsReceived,
-      lowerBound: Math.min(row.investmentBalance, result.benefitsReceived),
-      dangerZone: Math.max(result.benefitsReceived - row.investmentBalance, 0),
-      safetyZone: Math.max(row.investmentBalance - result.benefitsReceived, 0),
       remainingGap: Math.max(result.benefitsReceived - row.investmentBalance, 0),
     }))
-  const yearOneFund = result.schedule[11]?.investmentBalance ?? 0
+
   const insuranceWinsBeforeYear = result.breakEvenYears
 
   function handleSliderChange(
@@ -267,10 +241,8 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
   const breakEvenPulseClass = highlightMetric === "breakeven"
     ? "animate-pulse ring-amber-500/70 shadow-[0_0_0_1px_rgba(245,158,11,0.35)]"
     : ""
-  const disabilityBandFillOpacity = isPresentationMode ? 0.5 : 0.35
-  const riskZoneFillOpacity = isPresentationMode ? 0.3 : 0.2
-  const surplusZoneFillOpacity = isPresentationMode ? 0.22 : 0.15
-  const eventLabelColor = isPresentationMode ? "#bfdbfe" : "#93c5fd"
+
+  const eventLabelColor = isPresentationMode ? "#607583" : "#7896a5"
   const eventLabelFontSize = isPresentationMode ? 11 : 10
   const eventStartLabel = isPresentationMode ? "Event starts" : "Disability starts"
   const eventEndLabel = isPresentationMode ? "Event ends" : "Disability ends"
@@ -329,120 +301,137 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
           <div className="flex flex-col gap-3">
             <Card className="border-gray-800 bg-gray-900/25">
               <CardContent className="p-4">
-                <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-gray-400">
-                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-emerald-400" />Self-insurance fund</span>
-                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-rose-500" />Benefit needed</span>
-                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-rose-500/40" />{isPresentationMode ? "Gap window" : "Risk zone"}</span>
-                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-cyan-400/40" />{isPresentationMode ? "Surplus window" : "Surplus zone"}</span>
+                <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-[#607583] dark:text-[#aebdc5]">
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#12b981]" />Self-insurance fund</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#ef4444]" />Benefit needed</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#ef4444]/25 ring-1 ring-[#ef4444]/35" />Before break-even</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#12b981]/25 ring-1 ring-[#12b981]/35" />After break-even</span>
                 </div>
-                <div className="chart-reveal h-56 sm:h-64">
-                  <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                    <ComposedChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
-                      <CartesianGrid stroke="#1f2937" strokeDasharray="3 3" vertical={false} />
+
+                <div className="chart-reveal h-60 sm:h-72">
+                  <ResponsiveContainer width="100%" height="100%" debounce={80}>
+                    <ComposedChart data={chartData} margin={{ top: 12, right: 18, left: 8, bottom: 8 }}>
+                      <defs>
+                        <linearGradient id="selfInsuranceFundFill" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#12b981" stopOpacity={0.22} />
+                          <stop offset="70%" stopColor="#12b981" stopOpacity={0.07} />
+                          <stop offset="100%" stopColor="#12b981" stopOpacity={0.015} />
+                        </linearGradient>
+                      </defs>
+
+                      <CartesianGrid stroke="#91a5ae" strokeOpacity={0.22} strokeDasharray="2 5" vertical={false} />
                       <XAxis
                         dataKey="month"
                         type="number"
                         domain={[0, chartEndMonth]}
-                        tick={{ fill: "#64748b", fontSize: 10 }}
-                        tickLine={{ stroke: "#1f2937" }}
-                        axisLine={{ stroke: "#1f2937" }}
+                        tick={{ fill: "#607583", fontSize: 10 }}
+                        tickLine={false}
+                        axisLine={{ stroke: "#8da3ad", strokeOpacity: 0.75 }}
                         ticks={buildChartYearTicks(chartEndMonth)}
                         tickFormatter={(value) => `Yr ${Number(value) / 12}`}
                       />
                       <YAxis
-                        tick={{ fill: "#64748b", fontSize: 10 }}
+                        tick={{ fill: "#607583", fontSize: 10 }}
                         tickLine={false}
-                        axisLine={false}
+                        axisLine={{ stroke: "#8da3ad", strokeOpacity: 0.75 }}
                         width={52}
                         tickFormatter={(value) => `$${Math.round(Number(value) / 1000)}k`}
                       />
-                      <Tooltip content={<PremiumTooltip />} cursor={{ stroke: "#475569", strokeDasharray: "4 4" }} />
+
+                      <Tooltip
+                        content={<PremiumTooltip />}
+                        cursor={{ stroke: "#8da3ad", strokeWidth: 1, strokeDasharray: "3 4", strokeOpacity: 0.7 }}
+                      />
+
+                      {breakEvenMonth > 0 ? (
+                        <ReferenceArea
+                          x1={0}
+                          x2={breakEvenMonth}
+                          fill="#ef4444"
+                          fillOpacity={0.025}
+                          ifOverflow="hidden"
+                        />
+                      ) : null}
+
+                      {result.roundedBreakEvenMonths < chartEndMonth ? (
+                        <ReferenceArea
+                          x1={result.roundedBreakEvenMonths}
+                          x2={chartEndMonth}
+                          fill="#12b981"
+                          fillOpacity={0.025}
+                          ifOverflow="hidden"
+                        />
+                      ) : null}
+
                       {durationEndMonth > 0 ? (
                         <ReferenceArea
                           x1={0}
                           x2={durationEndMonth}
-                          fill="#0f172a"
-                          fillOpacity={disabilityBandFillOpacity}
-                          ifOverflow="extendDomain"
+                          fill="#64748b"
+                          fillOpacity={0.055}
+                          ifOverflow="hidden"
                         />
                       ) : null}
+
                       <Area
                         type="monotone"
-                        dataKey="lowerBound"
-                        stackId="risk-zone"
+                        dataKey="Self-Insurance Fund"
                         stroke="none"
-                        fill="transparent"
+                        fill="url(#selfInsuranceFundFill)"
                         isAnimationActive
-                        animationDuration={650}
+                        animationDuration={500}
                         animationEasing="ease-out"
                       />
-                      <Area
-                        type="monotone"
-                        dataKey="dangerZone"
-                        stackId="risk-zone"
-                        stroke="none"
-                        fill="#f43f5e"
-                        fillOpacity={riskZoneFillOpacity}
-                        isAnimationActive
-                        animationDuration={650}
-                        animationEasing="ease-out"
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="safetyZone"
-                        stackId="risk-zone"
-                        stroke="none"
-                        fill="#22d3ee"
-                        fillOpacity={surplusZoneFillOpacity}
-                        isAnimationActive
-                        animationDuration={650}
-                        animationEasing="ease-out"
-                      />
+
                       {durationEndMonth > 0 ? (
                         <>
                           <ReferenceLine
                             x={0}
-                            stroke="#60a5fa"
-                            strokeDasharray="3 3"
+                            stroke="#7896a5"
+                            strokeOpacity={0.55}
+                            strokeDasharray="3 4"
                             label={{ value: eventStartLabel, fill: eventLabelColor, fontSize: eventLabelFontSize, position: "insideTopLeft" }}
                           />
                           <ReferenceLine
                             x={durationEndMonth}
-                            stroke="#60a5fa"
-                            strokeDasharray="3 3"
+                            stroke="#7896a5"
+                            strokeOpacity={0.55}
+                            strokeDasharray="3 4"
                             label={{ value: eventEndLabel, fill: eventLabelColor, fontSize: eventLabelFontSize, position: "insideTopRight" }}
                           />
                         </>
                       ) : null}
+
                       {result.roundedBreakEvenMonths <= chartEndMonth ? (
                         <ReferenceLine
                           x={result.roundedBreakEvenMonths}
                           stroke="#f59e0b"
-                          strokeDasharray="4 4"
-                          label={{ value: "Break-even", fill: "#fbbf24", fontSize: 11, position: "insideTopRight" }}
+                          strokeWidth={1.5}
+                          strokeDasharray="5 5"
+                          label={{ value: "Break-even", fill: "#d97706", fontSize: 11, position: "insideTopRight" }}
                         />
                       ) : null}
+
                       <Line
                         type="monotone"
                         dataKey="Self-Insurance Fund"
-                        stroke="#34d399"
-                        strokeWidth={2.5}
+                        stroke="#12b981"
+                        strokeWidth={3}
                         dot={false}
-                        strokeDasharray="5 3"
-                        activeDot={{ r: 4, stroke: "#6ee7b7", strokeWidth: 2, fill: "#34d399" }}
+                        activeDot={{ r: 4.5, stroke: "#ffffff", strokeWidth: 2, fill: "#12b981" }}
                         isAnimationActive
-                        animationDuration={650}
+                        animationDuration={500}
                         animationEasing="ease-out"
                       />
                       <Line
                         type="monotone"
                         dataKey="Benefit Needed"
-                        stroke="#f43f5e"
+                        stroke="#ef4444"
                         strokeWidth={2.5}
                         dot={false}
                         activeDot={false}
                         isAnimationActive
-                        animationDuration={650}
+                        animationDuration={500}
                         animationEasing="ease-out"
                       />
                     </ComposedChart>
@@ -490,11 +479,15 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                 accent="warning"
                 className={`${metricPulseClass} ${breakEvenPulseClass}`}
               />
-              <ModuleMetricCard label="Break-even month" value={`Month ${result.roundedBreakEvenMonths}`} description="Break-even years × 12 months" accent="neutral" />
+              <ModuleMetricCard
+                label="Break-even month"
+                value={`Month ${result.roundedBreakEvenMonths}`}
+                description="Break-even years × 12 months"
+                accent="neutral"
+              />
             </div>
           </div>
         </div>
-
       </div>
     </div>
   )
