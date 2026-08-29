@@ -50,7 +50,7 @@ export function AppShell() {
               <Link
                 to="/"
                 aria-label="Back to Dashboard"
-                className="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-[#94a3b8] transition-colors hover:bg-white/5 hover:text-[#ffffff]"
+                className="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-white transition-colors hover:bg-white/10 hover:text-white"
               >
                 <ArrowLeft className="h-4 w-4" />
                 <span className="text-sm font-medium">Back</span>
@@ -75,7 +75,7 @@ export function AppShell() {
               title="Settings"
               aria-expanded={settingsOpen}
               onClick={() => setSettingsOpen((v) => !v)}
-              className="flex size-8 items-center justify-center rounded-full text-[#94a3b8] transition-colors hover:bg-white/5 hover:text-[#ffffff]"
+              className="flex size-8 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10 hover:text-white"
             >
               <Settings className="h-4 w-4" />
             </button>
