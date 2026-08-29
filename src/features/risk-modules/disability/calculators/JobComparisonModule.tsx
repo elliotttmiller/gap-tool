@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { Card, CardContent } from "@/components/ui/card"
 import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
-import { financialBarChartTheme, topStackRadius } from "@/components/charts/financialBarChartTheme"
+import { financialBarChartTheme, topStackCellRadius } from "@/components/charts/financialBarChartTheme"
 import { formatCurrency } from "@/lib/utils"
 import type { DisabilityInputs } from "../types"
 
@@ -37,7 +37,7 @@ function roundedStackCells(
   return data.map((row) => (
     <Cell
       key={`${row.name}-${dataKey}`}
-      radius={topStackRadius(isTopSegment(row)) as unknown as number}
+      radius={topStackCellRadius(isTopSegment(row))}
     />
   ))
 }

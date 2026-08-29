@@ -62,6 +62,16 @@ export function topStackRadius(isTopSegment: boolean): ProjectionBarRadius {
     : [0, 0, 0, 0]
 }
 
+/**
+ * Recharts renders Cell bars through Rectangle, which supports a four-corner
+ * radius tuple, but Cell's React SVG prop type only exposes a scalar radius.
+ * Keep that upstream type mismatch isolated here instead of casting at every
+ * projection cell call site.
+ */
+export function topStackCellRadius(isTopSegment: boolean): number {
+  return topStackRadius(isTopSegment) as unknown as number
+}
+
 export function formatProjectionCurrencyTick(value: number): string {
   return `$${Math.round(Number(value) / 1000)}k`
 }

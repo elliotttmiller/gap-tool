@@ -10,6 +10,7 @@ import {
   buildProjectionAgeTicks,
   financialBarChartTheme,
   projectionCellVisualState,
+  topStackCellRadius,
   topStackRadius,
 } from "@/components/charts/financialBarChartTheme"
 
@@ -131,7 +132,7 @@ function SafeIncomeMetricBoxes({ m1, projectionEndAge, selectedAge }: { m1: Inco
   )
 }
 
-function ChartPanel({ title, subtitle, coveredLabel, data, ticks, selectedAge, onSelectAge, onReset, children }: { title: string; subtitle: string; coveredLabel: string; data: Record<string, any>[]; ticks: number[]; selectedAge: number | null; onSelectAge: (age: number) => void; onReset: () => void; children: ReactNode }) {
+function ChartPanel({ title, subtitle, coveredLabel, data, ticks, selectedAge, onSelectAge, onReset, children }: { title: string; subtitle: string; coveredLabel: string; data: { age: number }[]; ticks: number[]; selectedAge: number | null; onSelectAge: (age: number) => void; onReset: () => void; children: ReactNode }) {
   return (
     <Card className="module-chart-card life-chart-panel financial-projection-chart border-slate-800/80 bg-slate-950/60">
       <CardHeader className="px-5 pt-4 pb-0">
@@ -212,13 +213,13 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
               <Bar dataKey="safeIncomeCoverage" name="Income Supported" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.supported} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>
                 {module1.yearlyData.map((point) => {
                   const visual = projectionCellVisualState(selectedSafeAge, point.age, financialBarChartTheme.semantic.supportedGlow)
-                  return <Cell key={`safe-covered-${point.age}`} radius={topStackRadius(point.incomeGap <= 0 && point.safeIncomeCoverage > 0)} opacity={visual.opacity} style={visual.style} />
+                  return <Cell key={`safe-covered-${point.age}`} radius={topStackCellRadius(point.incomeGap <= 0 && point.safeIncomeCoverage > 0)} opacity={visual.opacity} style={visual.style} />
                 })}
               </Bar>
               <Bar dataKey="incomeGap" name="Income Gap" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.gap} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>
                 {module1.yearlyData.map((point) => {
                   const visual = projectionCellVisualState(selectedSafeAge, point.age, financialBarChartTheme.semantic.gapGlow)
-                  return <Cell key={`safe-gap-${point.age}`} radius={topStackRadius(point.incomeGap > 0)} opacity={visual.opacity} style={visual.style} />
+                  return <Cell key={`safe-gap-${point.age}`} radius={topStackCellRadius(point.incomeGap > 0)} opacity={visual.opacity} style={visual.style} />
                 })}
               </Bar>
             </ChartPanel>
@@ -235,13 +236,13 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
               <Bar dataKey="runwayIncomeCovered" name="Net Income Covered" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.supported} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>
                 {module2.yearlyData.map((point) => {
                   const visual = projectionCellVisualState(selectedRunwayAge, point.age, financialBarChartTheme.semantic.supportedGlow)
-                  return <Cell key={`runway-covered-${point.age}`} radius={topStackRadius(point.runwayIncomeGap <= 0 && point.runwayIncomeCovered > 0)} opacity={visual.opacity} style={visual.style} />
+                  return <Cell key={`runway-covered-${point.age}`} radius={topStackCellRadius(point.runwayIncomeGap <= 0 && point.runwayIncomeCovered > 0)} opacity={visual.opacity} style={visual.style} />
                 })}
               </Bar>
               <Bar dataKey="runwayIncomeGap" name="Income Gap" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.gap} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>
                 {module2.yearlyData.map((point) => {
                   const visual = projectionCellVisualState(selectedRunwayAge, point.age, financialBarChartTheme.semantic.gapGlow)
-                  return <Cell key={`runway-gap-${point.age}`} radius={topStackRadius(point.runwayIncomeGap > 0)} opacity={visual.opacity} style={visual.style} />
+                  return <Cell key={`runway-gap-${point.age}`} radius={topStackCellRadius(point.runwayIncomeGap > 0)} opacity={visual.opacity} style={visual.style} />
                 })}
               </Bar>
             </ChartPanel>
