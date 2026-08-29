@@ -10,6 +10,13 @@
   position: relative;
 }
 
+/* Recharts focuses its wrapper/surface after a pointer click, which otherwise
+ * draws a browser-default rectangular outline across the plot area. */
+.financial-projection-chart .recharts-wrapper:focus,
+.financial-projection-chart .recharts-surface:focus {
+  outline: none;
+}
+
 /* Disability previously drew a second CSS axis frame because its native
  * Recharts axes were disabled. Both modules now use the shared native axes. */
 .financial-projection-chart .financial-projection-plot::before,
