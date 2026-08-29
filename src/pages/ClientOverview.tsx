@@ -22,9 +22,9 @@ const BENEFIT_PERIOD_OPTIONS: { value: DiBenefitPeriod | ""; label: string }[] =
 
 function SectionTitle({ title, description }: { title: string; description?: string }) {
   return (
-    <div className="border-b border-gray-800 pb-3">
-      <h2 className="text-sm font-semibold uppercase tracking-widest text-cyan-500">{title}</h2>
-      {description ? <p className="mt-1 text-sm text-gray-500">{description}</p> : null}
+    <div className="border-b border-[#d5e2e5] pb-3 dark:border-gray-800">
+      <h2 className="text-sm font-semibold uppercase tracking-widest text-[#0e9f9a] dark:text-cyan-500">{title}</h2>
+      {description ? <p className="mt-1 text-sm text-[#607583] dark:text-gray-500">{description}</p> : null}
     </div>
   )
 }
@@ -32,7 +32,7 @@ function SectionTitle({ title, description }: { title: string; description?: str
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="space-y-1.5">
-      <span className="text-sm font-medium text-gray-300">{label}</span>
+      <span className="text-sm font-medium text-[#29495b] dark:text-gray-300">{label}</span>
       {children}
     </label>
   )
@@ -48,15 +48,17 @@ function EarnerPanel({
   children: React.ReactNode
 }) {
   return (
-    <section className="rounded-xl border border-gray-800 bg-gray-950/35 p-5">
+    <section className="rounded-xl border border-[#d5e2e5] bg-[#f8fbfb] p-5 shadow-[0_4px_14px_rgba(16,42,58,0.06)] dark:border-gray-800 dark:bg-gray-950/35 dark:shadow-none">
       <div className="mb-4">
-        <h3 className="text-sm font-semibold text-gray-100">{title}</h3>
-        <p className="mt-1 text-xs leading-5 text-gray-500">{description}</p>
+        <h3 className="text-sm font-semibold text-[#102a3a] dark:text-gray-100">{title}</h3>
+        <p className="mt-1 text-xs leading-5 text-[#607583] dark:text-gray-500">{description}</p>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
     </section>
   )
 }
+
+const LIGHT_PANEL_CLASS = "rounded-xl border border-[#d5e2e5] bg-[#f8fbfb] p-5 shadow-[0_4px_14px_rgba(16,42,58,0.06)] dark:border-gray-800 dark:bg-gray-950/25 dark:shadow-none"
 
 export function ClientOverview() {
   const { clientId } = useParams()
@@ -120,7 +122,7 @@ export function ClientOverview() {
         </div>
       </div>
 
-      <Card className="space-y-8 p-8">
+      <Card className="space-y-8 border-[#d5e2e5] bg-white p-8 shadow-[0_14px_34px_rgba(13,27,42,0.08)] dark:border-gray-800 dark:bg-[#111821] dark:shadow-sm">
         <div className="space-y-4">
           <SectionTitle title="Client Type" />
           <div className="grid grid-cols-2 gap-3">
@@ -131,7 +133,7 @@ export function ClientOverview() {
                 onClick={() => setField("clientType", type)}
                 className={cx(
                   "rounded-xl border px-5 py-3 text-sm font-semibold capitalize transition",
-                  form.clientType === type ? "border-[#188a89] bg-[#188a89] text-white shadow-sm" : "border-gray-700 bg-gray-900/60 text-gray-400 hover:border-[#188a89] hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white",
+                  form.clientType === type ? "border-[#188a89] bg-[#188a89] text-white shadow-sm" : "border-[#cbdadd] bg-[#f8fbfb] text-[#415b6d] hover:border-[#188a89] hover:bg-[#eaf7f6] hover:text-[#188a89] dark:border-gray-700 dark:bg-gray-900/60 dark:text-gray-400 dark:hover:border-[#188a89] dark:hover:bg-[#188a89]/15 dark:hover:text-white",
                 )}
               >
                 {type === "individual" ? "Individual" : "Couple"}
@@ -182,8 +184,8 @@ export function ClientOverview() {
 
         <div className="space-y-4">
           <SectionTitle title="Primary Earner Disability Coverage" description="Disability coverage is modeled for the primary earner and prefills the Disability module when a risk review is generated or refreshed." />
-          <div className="rounded-xl border border-gray-800 bg-gray-950/25 p-5">
-            <h3 className="mb-4 text-sm font-semibold text-gray-100">Group Long Term Disability (LTD)</h3>
+          <div className={LIGHT_PANEL_CLASS}>
+            <h3 className="mb-4 text-sm font-semibold text-[#102a3a] dark:text-gray-100">Group Long Term Disability (LTD)</h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               <Field label="Coverage of Income (%)"><Input type="number" min={0} max={100} step={1} value={form.ltdCoveragePercent} onChange={(event) => setField("ltdCoveragePercent", event.target.value)} /></Field>
               <Field label="Monthly Cap ($)"><Input type="number" min={0} groupThousands value={form.ltdMonthlyCap} onChange={(event) => setField("ltdMonthlyCap", event.target.value)} /></Field>
@@ -191,8 +193,8 @@ export function ClientOverview() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-gray-800 bg-gray-950/25 p-5">
-            <h3 className="mb-4 text-sm font-semibold text-gray-100">Individual Disability Insurance</h3>
+          <div className={LIGHT_PANEL_CLASS}>
+            <h3 className="mb-4 text-sm font-semibold text-[#102a3a] dark:text-gray-100">Individual Disability Insurance</h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
               <Field label="Monthly Benefit ($)"><Input type="number" min={0} groupThousands value={form.privateDisabilityBenefitMonthly} onChange={(event) => setField("privateDisabilityBenefitMonthly", event.target.value)} /></Field>
               <Field label="Monthly Premium ($)"><Input type="number" min={0} groupThousands value={form.privateDisabilityMonthlyPremium} onChange={(event) => setField("privateDisabilityMonthlyPremium", event.target.value)} /></Field>
