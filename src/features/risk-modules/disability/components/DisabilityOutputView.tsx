@@ -325,21 +325,21 @@ export function DisabilityOutputView({
                         <XAxis dataKey="age" ticks={ageTicks} interval={0} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
                         <YAxis tickFormatter={(v) => `$${Math.round(v / 1000)}k`} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} width={48} />
                         <Tooltip content={CustomTooltip} cursor={{ fill: financialBarChartTheme.cursor.fill }} />
-                        <Bar dataKey={ltdLabel} stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill="#1b75bc" isAnimationActive={false}>
+                        <Bar dataKey={ltdLabel} stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.primaryCoverage} isAnimationActive={false}>
                           {chartData.projectionChartData.map((point) => {
                             const visual = projectionCellVisualState(selectedAge, point.age, "rgba(27,117,188,0.72)")
                             return <Cell key={`ltd-${point.age}`} opacity={visual.opacity} style={visual.style} />
                           })}
                         </Bar>
-                        <Bar dataKey="Individual DI" stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill="#1db8b9" isAnimationActive={false}>
+                        <Bar dataKey="Individual DI" stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.secondaryCoverage} isAnimationActive={false}>
                           {chartData.projectionChartData.map((point) => {
                             const visual = projectionCellVisualState(selectedAge, point.age, "rgba(29,184,185,0.72)")
                             return <Cell key={`idi-${point.age}`} opacity={visual.opacity} style={visual.style} />
                           })}
                         </Bar>
-                        <Bar dataKey="Income Gap" stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill="#f15a29" radius={[financialBarChartTheme.geometry.stackRadius, financialBarChartTheme.geometry.stackRadius, 0, 0]} isAnimationActive={false}>
+                        <Bar dataKey="Income Gap" stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.gap} isAnimationActive={false}>
                           {chartData.projectionChartData.map((point) => {
-                            const visual = projectionCellVisualState(selectedAge, point.age, "rgba(241,90,41,0.72)")
+                            const visual = projectionCellVisualState(selectedAge, point.age, financialBarChartTheme.semantic.gapGlow)
                             return <Cell key={`gap-${point.age}`} opacity={visual.opacity} style={visual.style} />
                           })}
                         </Bar>
@@ -348,9 +348,9 @@ export function DisabilityOutputView({
                   </div>
                   <div className="mt-1 text-center"><span className="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">Age</span></div>
                   <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
-                    <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400"><span className="inline-block h-2.5 w-4 rounded-sm bg-[#1b75bc]" />{ltdLabel}</span>
-                    <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400"><span className="inline-block h-2.5 w-4 rounded-sm bg-[#1db8b9]" />Individual DI</span>
-                    <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400"><span className="inline-block h-2.5 w-4 rounded-sm bg-[#f15a29]" />Income Gap</span>
+                    <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400"><span className="inline-block h-2.5 w-4 rounded-sm" style={{ backgroundColor: financialBarChartTheme.semantic.primaryCoverage }} />{ltdLabel}</span>
+                    <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400"><span className="inline-block h-2.5 w-4 rounded-sm" style={{ backgroundColor: financialBarChartTheme.semantic.secondaryCoverage }} />Individual DI</span>
+                    <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400"><span className="inline-block h-2.5 w-4 rounded-sm" style={{ backgroundColor: financialBarChartTheme.semantic.gap }} />Income Gap</span>
                   </div>
                 </div>
               </div>
