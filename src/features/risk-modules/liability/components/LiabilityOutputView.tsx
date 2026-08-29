@@ -45,9 +45,9 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
   const neededUmbrellaCoverage = outputs.neededUmbrellaCoverage
     ?? (outputs.householdLiabilityGap > 0 ? Math.ceil(outputs.householdLiabilityGap / 1_000_000) * 1_000_000 : 0)
   const coverageLayers = [
-    { label: "Auto Liability", value: outputs.householdAutoLiabilityCoverage, tone: "bg-[#44b649]", text: "text-[#148f45] dark:text-[#44b649]" },
-    { label: "Existing Umbrella", value: outputs.householdUmbrellaCoverage, tone: "bg-[#27aae1]", text: "text-[#1b75bc] dark:text-[#27aae1]" },
-    { label: "Unprotected Gap", value: outputs.householdLiabilityGap, tone: "bg-[#f15a29]", text: "text-[#c13f17] dark:text-[#f15a29]" },
+    { label: "Auto Liability", value: outputs.householdAutoLiabilityCoverage, color: financialBarChartTheme.semantic.supported, text: "text-emerald-600 dark:text-emerald-400" },
+    { label: "Existing Umbrella", value: outputs.householdUmbrellaCoverage, color: financialBarChartTheme.semantic.secondaryCoverage, text: "text-[#1b75bc] dark:text-[#27aae1]" },
+    { label: "Unprotected Gap", value: outputs.householdLiabilityGap, color: financialBarChartTheme.semantic.gap, text: "text-red-600 dark:text-red-400" },
   ]
 
   return (
@@ -94,15 +94,15 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
                       {outputs.householdAutoLiabilityCoverage > 0 ? (
                         <ReferenceLine
                           y={outputs.householdAutoLiabilityCoverage}
-                          stroke="#44b649"
+                          stroke={financialBarChartTheme.semantic.supported}
                           strokeDasharray="4 4"
                           strokeOpacity={0.75}
-                          label={{ value: `Auto limit ${formatLiabilityMetric(outputs.householdAutoLiabilityCoverage)}`, position: "insideBottomLeft", fill: "#148f45", fontSize: 10 }}
+                          label={{ value: `Auto limit ${formatLiabilityMetric(outputs.householdAutoLiabilityCoverage)}`, position: "insideBottomLeft", fill: financialBarChartTheme.semantic.supported, fontSize: 10 }}
                         />
                       ) : null}
-                      <Bar dataKey="AutoCoverage" name="Auto Liability Coverage" stackId="a" fill="#44b649" minPointSize={6} radius={[0, 0, 0, 0]} shapeRendering="geometricPrecision" isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
-                      <Bar dataKey="UmbrellaCoverage" name="Umbrella Coverage" stackId="a" fill="#27aae1" radius={[0, 0, 0, 0]} shapeRendering="geometricPrecision" isAnimationActive={true} animationBegin={100} animationDuration={1200} animationEasing="ease-out" />
-                      <Bar dataKey="ExposureGap" name="Unprotected Liability Gap" stackId="a" fill="#f15a29" radius={[financialBarChartTheme.geometry.stackRadius, financialBarChartTheme.geometry.stackRadius, 0, 0]} shapeRendering="geometricPrecision" isAnimationActive={true} animationBegin={160} animationDuration={1200} animationEasing="ease-out" />
+                      <Bar dataKey="AutoCoverage" name="Auto Liability Coverage" stackId="a" fill={financialBarChartTheme.semantic.supported} minPointSize={6} radius={[0, 0, 0, 0]} shapeRendering="geometricPrecision" isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
+                      <Bar dataKey="UmbrellaCoverage" name="Umbrella Coverage" stackId="a" fill={financialBarChartTheme.semantic.secondaryCoverage} radius={[0, 0, 0, 0]} shapeRendering="geometricPrecision" isAnimationActive={true} animationBegin={100} animationDuration={1200} animationEasing="ease-out" />
+                      <Bar dataKey="ExposureGap" name="Unprotected Liability Gap" stackId="a" fill={financialBarChartTheme.semantic.gap} radius={[financialBarChartTheme.geometry.stackRadius, financialBarChartTheme.geometry.stackRadius, 0, 0]} shapeRendering="geometricPrecision" isAnimationActive={true} animationBegin={160} animationDuration={1200} animationEasing="ease-out" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -113,7 +113,7 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
               {coverageLayers.map((layer) => (
                 <div key={layer.label} className="flex items-center justify-between gap-3 rounded-lg border border-slate-800/70 bg-slate-950/50 px-3 py-2">
                   <span className="flex min-w-0 items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                    <span className={`h-7 w-1 shrink-0 rounded-full ${layer.tone}`} />
+                    <span className="h-7 w-1 shrink-0 rounded-full" style={{ backgroundColor: layer.color }} />
                     {layer.label}
                   </span>
                   <span className={`text-xs font-bold tabular-nums ${layer.text}`}>{formatLiabilityMetric(layer.value)}</span>
