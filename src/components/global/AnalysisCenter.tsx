@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, type ReactNode } from "react"
 import { Calculator, ChevronDown, Database, Download, FileCode2, FileSearch, ShieldCheck, Table2, X } from "lucide-react"
 import { advisorFormulaRegistry } from "@/domain/formulas/formulaRegistry"
 import { calculateLifeInsuranceGap } from "@/features/risk-modules/life/calculations/calculateLifeInsuranceGap"
@@ -163,7 +163,7 @@ function ModuleAudit({ item, defaultOpen }: { item: AnalysisModule; defaultOpen:
   )
 }
 
-export function AnalysisCenter() {
+export function AnalysisCenter({ trigger }: { trigger?: ReactNode }) {
   const clients = useAppStore((state) => state.clients)
   const scenarios = useAppStore((state) => state.scenarios)
   const records = useAppStore((state) => state.moduleRecordsByScenarioId)
@@ -263,9 +263,11 @@ export function AnalysisCenter() {
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>
-        <button className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#188a89] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#188a89] dark:bg-brand-500 dark:hover:bg-[#188a89]">
-          <FileSearch className="size-4" aria-hidden="true" /> Open Analysis Center
-        </button>
+        {trigger ?? (
+          <button className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#188a89] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#188a89] dark:bg-brand-500 dark:hover:bg-[#188a89]">
+            <FileSearch className="size-4" aria-hidden="true" /> Open Analysis Center
+          </button>
+        )}
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[80] bg-slate-950/70 backdrop-blur-sm data-[state=open]:animate-dialogOverlayShow" />
