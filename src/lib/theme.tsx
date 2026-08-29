@@ -77,6 +77,24 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => applyTheme(resolvedTheme), [resolvedTheme])
 
+  useEffect(() => {
+    // Printed/PDF reports are a document artifact, not a screenshot of the
+    // advisor's current UI preference. Force the root theme to light before
+    // Chromium builds print preview so every print stylesheet, dark-mode
+    // selector, CSS variable, and browser form control resolves against the
+    // canonical light report palette. Restore the advisor's active theme as
+    // soon as the print dialog closes or printing completes.
+    const handleBeforePrint = () => applyTheme("light")
+    const handleAfterPrint = () => applyTheme(resolvedTheme)
+
+    window.addEventListener("beforeprint", handleBeforePrint)
+    window.addEventListener("afterprint", handleAfterPrint)
+    return () => {
+      window.removeEventListener("beforeprint", handleBeforePrint)
+      window.removeEventListener("afterprint", handleAfterPrint)
+    }
+  }, [resolvedTheme])
+
   const value = useMemo<ThemeContextValue>(() => ({
     theme,
     resolvedTheme,
