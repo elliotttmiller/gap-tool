@@ -112,7 +112,7 @@ export function AppShell() {
       )}
 
       <main className="pt-[3.75rem]">
-        <div className={isInScenario ? "mx-auto w-full max-w-[120rem] px-3 py-4 sm:px-4 2xl:px-5" : "mx-auto max-w-400 px-8 py-8 sm:px-12"}>
+        <div className={isInScenario ? "mx-auto w-full max-w-[108rem] px-4 py-4 sm:px-5 2xl:px-6" : "mx-auto max-w-400 px-8 py-8 sm:px-12"}>
           <Outlet />
         </div>
       </main>
