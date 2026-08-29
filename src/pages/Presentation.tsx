@@ -15,7 +15,6 @@ import { UnemploymentOutputView } from "@/features/risk-modules/unemployment/com
 import { calculateUnemploymentGap } from "@/features/risk-modules/unemployment/calculations/calculateUnemploymentGap"
 import { LiabilityOutputView } from "@/features/risk-modules/liability/components/LiabilityOutputView"
 import { calculateLiabilityGap } from "@/features/risk-modules/liability/calculations/calculateLiabilityGap"
-import { DisclaimerBlock } from "@/components/global/DisclaimerBlock"
 import { RiskModuleType, ScenarioModuleRecords, useAppStore } from "@/lib/store"
 import { formatGapCurrency, getModuleGapValue } from "@/lib/scenarioMetrics"
 import { formatCurrency, formatPercent } from "@/lib/utils"
@@ -33,6 +32,17 @@ const moduleIcons: Record<RiskModuleType, React.ComponentType<{ className?: stri
   disability: ShieldAlert,
   unemployment: BriefcaseBusiness,
   liability: Scale,
+}
+
+type LifeVisualization = "safe" | "runway"
+type DisabilityVisualization = "incomeGap" | "premiumVsSelfInsured" | "jobComparison" | "assetComparison"
+
+interface ReportSection {
+  key: string
+  module: RiskModuleType
+  title: string
+  lifeVisualization?: LifeVisualization
+  disabilityVisualization?: DisabilityVisualization
 }
 
 function formatModuleGap(module: RiskModuleType, record: ScenarioModuleRecords) {
@@ -278,8 +288,9 @@ export function Presentation() {
     [records?.liability],
   )
   const [activeModule, setActiveModule] = useState<RiskModuleType | null>(null)
-  const [disabilityVisualization, setDisabilityVisualization] = useState<"incomeGap" | "premiumVsSelfInsured" | "jobComparison">("incomeGap")
+  const [disabilityVisualization, setDisabilityVisualization] = useState<DisabilityVisualization>("incomeGap")
   const [reportDate, setReportDate] = useState(() => new Date())
+  const [isPreparingPdf, setIsPreparingPdf] = useState(false)
 
   if (!scenarioId || !scenario || !client || !records) {
     return (
@@ -313,6 +324,23 @@ export function Presentation() {
     ? getPresentationInputSpecs(selectedModule, records).length > 0 &&
       (selectedModule !== "disability" || disabilityVisualization === "incomeGap")
     : false
+  const reportSections = visibleModules.flatMap((module): ReportSection[] => {
+    if (module === "life") {
+      return [
+        { key: "life-safe", module, title: "Premature Death - Safe Income Coverage", lifeVisualization: "safe" },
+        { key: "life-runway", module, title: "Premature Death - Covered Runway Scenario", lifeVisualization: "runway" },
+      ]
+    }
+    if (module === "disability") {
+      return [
+        { key: "disability-income-gap", module, title: "Disability / Illness - Income Gap", disabilityVisualization: "incomeGap" },
+        { key: "disability-premium", module, title: "Disability / Illness - Premium vs. Self-Insured", disabilityVisualization: "premiumVsSelfInsured" },
+        { key: "disability-jobs", module, title: "Disability / Illness - Job A vs. Job B", disabilityVisualization: "jobComparison" },
+        { key: "disability-assets", module, title: "Disability / Illness - Asset Comparison", disabilityVisualization: "assetComparison" },
+      ]
+    }
+    return [{ key: module, module, title: moduleCopy[module].title }]
+  })
 
   function updateSnapshotInput(module: RiskModuleType, field: string, value: number | string | boolean) {
     if (!scenarioId || !records) return
@@ -374,7 +402,7 @@ export function Presentation() {
     }
   }
 
-  function renderModule(module: RiskModuleType) {
+  function renderModule(module: RiskModuleType, reportSection?: ReportSection) {
     if (module === "life" && lifeOutputs && lifeIncomeGapOutputs && records?.life) {
       return (
         <LifeOutputView
@@ -383,6 +411,7 @@ export function Presentation() {
           assumptions={records.life.assumptions}
           incomeGapOutputs={lifeIncomeGapOutputs}
           mode="presentation"
+          activeTab={reportSection?.lifeVisualization}
         />
       )
     }
@@ -395,8 +424,8 @@ export function Presentation() {
           onAssumptionsChange={(updates) => updateDisabilityAssumptions(scenarioId, updates)}
           onInputsChange={(next) => updateDisabilityInputs(scenarioId, next)}
           mode="presentation"
-          visualization={disabilityVisualization}
-          onVisualizationChange={setDisabilityVisualization}
+          visualization={reportSection?.disabilityVisualization ?? disabilityVisualization}
+          onVisualizationChange={reportSection ? undefined : setDisabilityVisualization}
         />
       )
     }
@@ -414,9 +443,24 @@ export function Presentation() {
     return null
   }
 
-  function exportPdf() {
+  async function exportPdf() {
+    if (isPreparingPdf) return
+    setIsPreparingPdf(true)
     setReportDate(new Date())
-    window.setTimeout(() => window.print(), 0)
+
+    // Give every off-screen report module a real layout pass at its final PDF
+    // width. Recharts resolves ResponsiveContainer dimensions asynchronously,
+    // so printing on the same task can preserve only the already-visible chart.
+    await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()))
+    await document.fonts?.ready
+    window.dispatchEvent(new Event("resize"))
+    await new Promise<void>((resolve) => window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => resolve())
+    }))
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 150))
+
+    window.print()
+    setIsPreparingPdf(false)
   }
 
   return (
@@ -425,50 +469,50 @@ export function Presentation() {
         <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#090E1A] shadow-lg">
           <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-4 py-3">
             {selectedModule ? (
-              <div className="flex min-h-full flex-col">
-                <div className="mb-2 grid shrink-0 gap-2 border-b border-gray-800 pb-2 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center">
+              <div className="relative flex min-h-full flex-col">
+                <div className="relative mb-2 flex min-h-12 shrink-0 items-center justify-between gap-3 border-b border-gray-800 pb-2">
                   <Button variant="ghost" className="h-8 w-fit gap-2 px-2 text-gray-400 shadow-none hover:text-gray-100" asChild>
                     <Link to={`/scenarios/${scenarioId}/${scenario.activeModule}`}>
                       <ArrowLeft className="h-4 w-4" /> Back to Builder
                     </Link>
                   </Button>
 
-                  <div className="min-w-0 lg:px-2">
+                  <div className="pointer-events-none absolute left-1/2 top-1/2 w-[min(42rem,calc(100%-24rem))] -translate-x-1/2 -translate-y-1/2 text-center">
                     <h2 className="truncate text-lg font-semibold leading-tight text-gray-50">{moduleCopy[selectedModule].title}</h2>
-                    <p className="mt-0.5 text-xs leading-tight text-gray-500">Visualization and metrics for the selected risk module.</p>
+                    <p className="mt-0.5 truncate text-xs leading-tight text-gray-500">Visualization and metrics for the selected risk module.</p>
                   </div>
 
-                  <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
-                    <div className="presentation-module-tabs scrollbar-hide flex max-w-full gap-1 overflow-x-auto rounded-lg bg-gray-950/40 p-1">
-                      {visibleModules.map((module) => {
-                        const Icon = moduleIcons[module]
-                        const selected = module === selectedModule
-                        return (
-                          <button
-                            key={module}
-                            type="button"
-                            onClick={() => setActiveModule(module)}
-                            className={`flex min-w-max items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
-                              selected ? "bg-[#188a89] text-white shadow-sm ring-1 ring-[#188a89]" : "text-gray-400 hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"
-                            }`}
-                          >
-                            <Icon className="h-3.5 w-3.5" />
-                            {moduleCopy[module].tabLabel}
-                          </button>
-                        )
-                      })}
-                    </div>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="h-8 shrink-0 gap-2 border border-slate-700 bg-slate-900/70 px-3 text-gray-100 shadow-none hover:border-[#188a89] hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"
-                      onClick={exportPdf}
-                      title="Open the print dialog to save this report as a PDF for AdviceWorks"
-                    >
-                      <FileDown className="h-4 w-4" aria-hidden="true" />
-                      Export PDF
-                    </Button>
-                  </div>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="h-8 shrink-0 gap-2 border border-slate-700 bg-slate-900/70 px-3 text-gray-100 shadow-none hover:border-[#188a89] hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"
+                    onClick={exportPdf}
+                    disabled={isPreparingPdf}
+                    title="Open the print dialog to save this report as a PDF for AdviceWorks"
+                  >
+                    <FileDown className="h-4 w-4" aria-hidden="true" />
+                    {isPreparingPdf ? "Preparing Report…" : "Export PDF"}
+                  </Button>
+                </div>
+
+                <div className="presentation-module-tabs scrollbar-hide mb-2 ml-auto flex max-w-full gap-1 overflow-x-auto rounded-lg bg-gray-950/40 p-1 xl:absolute xl:right-0 xl:top-[3.75rem] xl:z-20 xl:mb-0">
+                  {visibleModules.map((module) => {
+                    const Icon = moduleIcons[module]
+                    const selected = module === selectedModule
+                    return (
+                      <button
+                        key={module}
+                        type="button"
+                        onClick={() => setActiveModule(module)}
+                        className={`flex min-w-max items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
+                          selected ? "bg-[#188a89] text-white shadow-sm ring-1 ring-[#188a89]" : "text-gray-400 hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"
+                        }`}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                        {moduleCopy[module].tabLabel}
+                      </button>
+                    )
+                  })}
                 </div>
 
                 {selectedModuleHasSnapshot ? (
@@ -489,25 +533,23 @@ export function Presentation() {
         </div>
       </div>
 
-      <div className="hidden print:block">
+      <div className={`pdf-report-staging hidden print:block${isPreparingPdf ? " pdf-report-staging--preparing" : ""}`}>
         <ReportCoverPage client={client} reportDate={reportDate} />
 
         <div className="print-report-body">
           <div className="space-y-16">
-            {visibleModules.map((module) => (
-              <div key={module}>
+            {reportSections.map((section) => (
+              <div key={section.key} data-report-module={section.module} data-report-visualization={section.key}>
                 <h2 className="mb-2 border-b border-gray-800 pb-2 text-xl font-semibold text-gray-50">
-                  {moduleCopy[module].title}
+                  {section.title}
                 </h2>
                 <p className="mb-6 text-sm text-gray-400">
-                  Modeled gap: {formatModuleGap(module, records)}
+                  Modeled gap: {formatModuleGap(section.module, records)}
                 </p>
-                <ModuleInputSpecs module={module} records={records} />
-                {renderModule(module)}
+                <ModuleInputSpecs module={section.module} records={records} />
+                {renderModule(section.module, section)}
               </div>
             ))}
-
-            <DisclaimerBlock />
           </div>
         </div>
       </div>

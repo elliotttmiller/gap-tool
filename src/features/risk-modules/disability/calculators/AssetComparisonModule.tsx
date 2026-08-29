@@ -109,9 +109,9 @@ function ComparisonCard({ ratio }: { ratio: number | null }) {
 
 function ComparisonColumn({ datum, columnIndex, valueMax, premiumMax, minimumBarPct, scaleMode }: { datum: ComparisonDatum; columnIndex: number; valueMax: number; premiumMax: number; minimumBarPct?: number; scaleMode?: "linear" | "sqrt" }) {
   return (
-    <section className="min-w-0 px-3 py-1 first:pl-0 last:pr-0 lg:border-l lg:border-slate-800/80 lg:first:border-l-0 lg:first:pl-0 lg:last:pr-0">
+    <section className="asset-comparison-column min-w-0 px-3 py-1 first:pl-0 last:pr-0 lg:border-l lg:border-slate-800/80 lg:first:border-l-0 lg:first:pl-0 lg:last:pr-0">
       <h3 className="text-center text-[11px] font-bold uppercase tracking-[0.17em] text-slate-100">{datum.name}</h3>
-      <div className="mt-4 grid h-52 grid-cols-2 items-end gap-4 border-b border-slate-700/80 px-4">
+      <div className="asset-comparison-bars mt-4 grid h-52 grid-cols-2 items-end gap-4 border-b border-slate-700/80 px-4">
         <div className="flex h-full min-w-0 flex-col justify-end">
           <div className="mb-2 text-center">
             <p className="text-xs font-bold tabular-nums text-slate-100">{formatCurrency(datum.value)}</p>
@@ -145,6 +145,7 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
   const collapsedAssetLimit = 4
   const hasHiddenAssets = assetRows.length > collapsedAssetLimit
   const visibleAssetRows = assetsExpanded || !hasHiddenAssets ? assetRows : assetRows.slice(0, collapsedAssetLimit)
+  const reportAssetRows = assetRows.filter((row) => row.label.trim() || row.assetValue > 0 || row.annualPremium > 0)
 
   const annualOtherAssetInsuranceCost = useMemo(() => assetRows.reduce((sum, row) => sum + (row.annualPremium || 0), 0), [assetRows])
   const totalAssetValue = useMemo(() => assetRows.reduce((sum, row) => sum + (row.assetValue || 0), 0), [assetRows])
@@ -175,8 +176,8 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
   const updateAssetRowPremium = (id: string, annualPremium: number) => commitAssetRows(assetRows.map((row) => row.id === id ? { ...row, annualPremium } : row))
 
   return (
-    <div className="module-output-container space-y-4">
-      <Card className="border-gray-800 bg-gray-900/25">
+    <div className="asset-comparison-report module-output-container space-y-4">
+      <Card className="asset-comparison-editor border-gray-800 bg-gray-900/25">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">Other Asset Premiums</span>
@@ -206,7 +207,31 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
         </CardContent>
       </Card>
 
-      <Card className="module-chart-card border-slate-800/80 bg-slate-950/60">
+      <section className="asset-comparison-print-assets hidden">
+        <div className="asset-comparison-print-assets-heading">
+          <h3>Other Asset Premiums</h3>
+          <p>Entered asset values and annual protection costs used in this comparison.</p>
+        </div>
+        {reportAssetRows.length > 0 ? (
+          <div className="asset-comparison-print-asset-grid">
+            {reportAssetRows.map((row) => {
+              const costPerThousand = row.assetValue > 0 ? (row.annualPremium / row.assetValue) * 1_000 : null
+              return (
+                <article key={row.id} className="asset-comparison-print-asset-card">
+                  <h4>{row.label.trim() || "Other Asset"}</h4>
+                  <div><span>Asset Value</span><strong>{formatCurrency(row.assetValue)}</strong></div>
+                  <div><span>Annual Premium</span><strong>{formatCurrency(row.annualPremium)}</strong></div>
+                  <div><span>Cost per $1,000</span><strong>{formatRate(costPerThousand)}</strong></div>
+                </article>
+              )
+            })}
+          </div>
+        ) : (
+          <p className="asset-comparison-print-empty">No other assets were entered for this comparison.</p>
+        )}
+      </section>
+
+      <Card className="asset-comparison-visual module-chart-card border-slate-800/80 bg-slate-950/60">
         <CardContent className="p-5">
           <div className="border-b border-slate-800/70 pb-4">
             <div>
@@ -215,7 +240,7 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
             </div>
           </div>
 
-          <div className="mt-5 grid gap-6 lg:grid-cols-3 lg:gap-0">
+          <div className="asset-comparison-columns mt-5 grid gap-6 lg:grid-cols-3 lg:gap-0">
             <ComparisonColumn datum={chartData[0]} columnIndex={0} valueMax={sourceAssetScaleMax} premiumMax={sourceAssetScaleMax} minimumBarPct={1} scaleMode="sqrt" />
             <ComparisonColumn datum={chartData[1]} columnIndex={1} valueMax={sourceAssetScaleMax} premiumMax={sourceAssetScaleMax} minimumBarPct={1} scaleMode="sqrt" />
             <ComparisonColumn datum={chartData[2]} columnIndex={2} valueMax={valueMax} premiumMax={premiumMax} />
@@ -224,7 +249,7 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
         </CardContent>
       </Card>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="asset-comparison-metrics grid gap-3 sm:grid-cols-3">
         <EfficiencyCard label="Other Asset" rate={otherCostPerThousand} accent="primary" />
         <EfficiencyCard label="Income Asset" rate={incomeCostPerThousand} accent="primary" />
         <ComparisonCard ratio={costRatio} />

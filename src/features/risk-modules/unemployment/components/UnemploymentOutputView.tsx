@@ -19,6 +19,26 @@ interface UnemploymentOutputViewProps {
 const compactCardClass = "unemployment-kpi-card"
 const SAVINGS_DRAG_STEP = 250
 
+interface ReserveBandLabelProps {
+  label: string
+  lowerPct: number
+  upperPct: number
+}
+
+function ReserveBandLabel({ label, lowerPct, upperPct }: ReserveBandLabelProps) {
+  const bandHeight = Math.max(0, upperPct - lowerPct)
+  if (bandHeight === 0) return null
+
+  return (
+    <span
+      className="pointer-events-none absolute inset-x-0 translate-y-1/2 text-center text-[9px] font-bold uppercase tracking-widest text-white/85"
+      style={{ bottom: `${lowerPct + bandHeight / 2}%` }}
+    >
+      {label}
+    </span>
+  )
+}
+
 function roundToStep(value: number, step: number): number {
   return Math.round(value / step) * step
 }
@@ -178,10 +198,10 @@ function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOut
                 <div className="absolute inset-x-0 top-0 bg-linear-to-t from-[#5279d8] to-[#7399e8] transition-[height] duration-500 ease-out" style={{ height: `${Math.max(0, 100 - idealPct)}%` }} />
                 <div className="absolute inset-x-0 border-t border-dashed border-white/60" style={{ bottom: `${minimumPct}%` }} />
                 <div className="absolute inset-x-0 border-t border-dashed border-white/70" style={{ bottom: `${idealPct}%` }} />
-                <span className="absolute inset-x-0 bottom-[8%] text-center text-[9px] font-bold uppercase tracking-widest text-white/85">Danger</span>
-                {minimumPct - dangerPct > 12 ? <span className="absolute inset-x-0 text-center text-[9px] font-bold uppercase tracking-widest text-white/85" style={{ bottom: `${dangerPct + (minimumPct - dangerPct) / 2}%` }}>Below Minimum</span> : null}
-                {idealPct - minimumPct > 16 ? <span className="absolute inset-x-0 text-center text-[9px] font-bold uppercase tracking-widest text-white/85" style={{ bottom: `${minimumPct + Math.min(8, (idealPct - minimumPct) * 0.2)}%` }}>Target Range</span> : null}
-                {100 - idealPct > 12 ? <span className="absolute inset-x-0 top-[8%] text-center text-[9px] font-bold uppercase tracking-widest text-white/85">Ideal+</span> : null}
+                <ReserveBandLabel label="Danger" lowerPct={0} upperPct={dangerPct} />
+                <ReserveBandLabel label="Below Minimum" lowerPct={dangerPct} upperPct={minimumPct} />
+                <ReserveBandLabel label="Target Range" lowerPct={minimumPct} upperPct={idealPct} />
+                <ReserveBandLabel label="Ideal+" lowerPct={idealPct} upperPct={100} />
               </div>
 
               {canAdjust ? (
@@ -223,7 +243,7 @@ function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOut
 
               {ticks.map((month) => (
                 <div key={month} className="pointer-events-none absolute bottom-3 left-0 right-[calc(50%+3.5rem)] top-3">
-                  <div className="absolute inset-x-0 flex -translate-y-1/2 items-center justify-end gap-1.5" style={{ bottom: `${(month / gaugeMaxMonths) * 100}%` }}>
+                  <div className="absolute inset-x-0 flex translate-y-1/2 items-center justify-end gap-1.5" style={{ bottom: `${(month / gaugeMaxMonths) * 100}%` }}>
                     <span className="whitespace-nowrap text-[10px] font-medium tabular-nums text-slate-500">{month % 1 === 0 ? month : month.toFixed(1)} mo</span>
                     <span className="h-px w-2 bg-slate-600" />
                   </div>

@@ -3,27 +3,32 @@
 @media print {
   @page {
     size: letter portrait;
-    margin: 0.36in 0.42in 0.48in;
+    margin: 0.36in 0.42in 0.72in;
 
     @bottom-left {
-      content: "North Star Resource Group";
-      color: #6f808b;
-      font-family: "Montserrat", ui-sans-serif, system-ui, sans-serif;
-      font-size: 6.6pt;
+      content: none;
     }
 
     @bottom-center {
-      content: "Income Gap Tool - Confidential";
-      color: #6f808b;
+      content: "For illustrative planning purposes only. This model is not a guarantee, financial plan, insurance recommendation, legal advice, tax advice, or underwriting determination. Actual needs may vary based on individual circumstances, policy terms, carrier rules, taxation, inflation, market conditions, and advisor review.";
+      box-sizing: border-box;
+      width: 7.66in;
+      margin: 0.06in 0 0.08in;
+      padding: 4pt 8pt;
+      border: 1px solid #d5e2e5;
+      border-radius: 5px;
+      background: #f7f9fa;
+      color: #607583;
       font-family: "Montserrat", ui-sans-serif, system-ui, sans-serif;
-      font-size: 6.6pt;
+      font-size: 5.1pt;
+      font-weight: 600;
+      line-height: 1.3;
+      text-align: center;
+      vertical-align: middle;
     }
 
     @bottom-right {
-      content: counter(page) " / " counter(pages);
-      color: #6f808b;
-      font-family: "Montserrat", ui-sans-serif, system-ui, sans-serif;
-      font-size: 6.6pt;
+      content: none;
     }
   }
 
@@ -255,27 +260,233 @@
   .print-report-body .liability-kpi-card > div > div:last-child,
   .print-report-body .unemployment-kpi-card > div > div:last-child { height: auto !important; min-height: 0 !important; }
 
-  /* Disability: collapse the screen 3-area dashboard into a print-friendly
-     chart + metrics grid so the whole module stays on one page. */
+  /* Match Disability's five supporting metrics to the compact KPI treatment
+     used throughout the rest of the report. */
+  .print-report-body .module-metric-card {
+    padding: 5pt 6pt !important;
+    min-height: 0 !important;
+  }
+  .print-report-body .module-metric-card > div { gap: 4pt !important; }
+  .print-report-body .module-metric-card .module-metric-label {
+    font-size: 5.1pt !important;
+    line-height: 1.15 !important;
+    letter-spacing: .09em !important;
+  }
+  .print-report-body .module-metric-card .module-metric-value {
+    margin-top: 2pt !important;
+    font-size: 8.2pt !important;
+    line-height: 1.03 !important;
+    white-space: nowrap !important;
+  }
+  .print-report-body .module-metric-card .module-metric-value span {
+    font-size: 5.2pt !important;
+  }
+  .print-report-body .module-metric-card > div > div:last-child {
+    width: 1.5pt !important;
+    height: 16pt !important;
+  }
+
+  /* Disability: give the projection the full report width, then place the five
+     supporting metrics in one row beneath it. */
   .print-report-body .disability-coverage-grid {
     display: grid !important;
     grid-template-areas:
-      "chart metric"
-      "summary summary" !important;
-    grid-template-columns: minmax(0,1fr) 1.52in !important;
-    grid-template-rows: auto auto !important;
+      "chart"
+      "metric"
+      "summary" !important;
+    grid-template-columns: minmax(0,1fr) !important;
+    grid-template-rows: auto auto auto !important;
     gap: .08in !important;
     align-items: stretch !important;
   }
   .print-report-body .disability-chart-panel { grid-area: chart !important; min-width: 0 !important; height: 5.15in !important; max-height: 5.15in !important; overflow: hidden !important; }
   .print-report-body .disability-chart-panel .chart-reveal { width: 100% !important; height: 3.72in !important; min-height: 3.72in !important; max-height: 3.72in !important; }
   .print-report-body .disability-coverage-grid > .module-metric-rail { grid-area: metric !important; display: block !important; min-width: 0 !important; }
-  .print-report-body .module-metric-rail > * { display: grid !important; grid-template-columns: 1fr !important; gap: 4pt !important; }
+  .print-report-body .module-metric-rail > * { display: grid !important; grid-template-columns: repeat(5, minmax(0,1fr)) !important; gap: 4pt !important; }
   .print-report-body .module-metric-rail .module-metric-card { padding: 5pt !important; }
   .print-report-body .disability-summary-rail { grid-area: summary !important; display: grid !important; grid-template-columns: repeat(3,minmax(0,1fr)) !important; gap: 5pt !important; margin-top: 0 !important; }
   .print-report-body .disability-summary-rail--cola { grid-template-columns: repeat(4,minmax(0,1fr)) !important; }
   .print-report-body .disability-summary-rail .module-kpi-card { height: auto !important; }
   .print-report-body .disability-chart-panel button { display: none !important; }
+
+  /* Asset Comparison is an interactive three-column workspace on screen. In
+     the PDF, omit its editor and lock the comparison to a compact report grid
+     so responsive breakpoints cannot stack it across multiple pages. */
+  .print-report-body [data-report-visualization="disability-assets"],
+  .print-report-body [data-report-visualization="disability-assets"] .asset-comparison-report {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .print-report-body .asset-comparison-editor { display: none !important; }
+  .print-report-body .asset-comparison-report {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .print-report-body .asset-comparison-print-assets {
+    display: block !important;
+    order: 1 !important;
+    margin: 0 0 .09in !important;
+    padding: 7pt !important;
+    border: 1px solid #d5e2e5 !important;
+    border-radius: 5px !important;
+    background: #f8fbfb !important;
+    break-inside: avoid !important;
+  }
+  .print-report-body .asset-comparison-print-assets-heading {
+    display: flex !important;
+    align-items: baseline !important;
+    justify-content: space-between !important;
+    gap: 8pt !important;
+    margin-bottom: 5pt !important;
+  }
+  .print-report-body .asset-comparison-print-assets-heading h3 {
+    margin: 0 !important;
+    color: #188a89 !important;
+    font-size: 7.2pt !important;
+    font-weight: 700 !important;
+    letter-spacing: .08em !important;
+    text-transform: uppercase !important;
+  }
+  .print-report-body .asset-comparison-print-assets-heading p {
+    margin: 0 !important;
+    color: #607583 !important;
+    font-size: 5.4pt !important;
+  }
+  .print-report-body .asset-comparison-print-asset-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+    gap: 5pt !important;
+  }
+  .print-report-body .asset-comparison-print-asset-card {
+    display: grid !important;
+    grid-template-columns: 1.15fr 1fr 1fr 1fr !important;
+    align-items: center !important;
+    gap: 5pt !important;
+    min-width: 0 !important;
+    padding: 5pt 6pt !important;
+    border: 1px solid #e1eaec !important;
+    border-left: 3px solid #188a89 !important;
+    border-radius: 4px !important;
+    background: #fff !important;
+  }
+  .print-report-body .asset-comparison-print-asset-card h4 {
+    margin: 0 !important;
+    color: #102a3a !important;
+    font-size: 7pt !important;
+    font-weight: 700 !important;
+  }
+  .print-report-body .asset-comparison-print-asset-card div { min-width: 0 !important; }
+  .print-report-body .asset-comparison-print-asset-card span {
+    display: block !important;
+    color: #78909c !important;
+    font-size: 4.7pt !important;
+    font-weight: 700 !important;
+    letter-spacing: .04em !important;
+    text-transform: uppercase !important;
+  }
+  .print-report-body .asset-comparison-print-asset-card strong {
+    display: block !important;
+    margin-top: 1.5pt !important;
+    color: #102a3a !important;
+    font-size: 6.5pt !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+  }
+  .print-report-body .asset-comparison-print-empty {
+    margin: 0 !important;
+    color: #607583 !important;
+    font-size: 6.2pt !important;
+  }
+  .print-report-body .asset-comparison-visual {
+    order: 2 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    break-inside: avoid !important;
+  }
+  .print-report-body .asset-comparison-visual > div { padding: .10in !important; }
+  .print-report-body .asset-comparison-visual > div > div:first-child { padding-bottom: .07in !important; }
+  .print-report-body .asset-comparison-columns {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0,1fr)) !important;
+    gap: 0 !important;
+    margin-top: .10in !important;
+  }
+  .print-report-body .asset-comparison-column {
+    padding: 3pt 7pt !important;
+    border-left: 1px solid #d8e3e6 !important;
+  }
+  .print-report-body .asset-comparison-column:first-child { border-left: 0 !important; }
+  .print-report-body .asset-comparison-column h3 { font-size: 7pt !important; }
+  .print-report-body .asset-comparison-bars {
+    height: 2.65in !important;
+    margin-top: 7pt !important;
+    gap: 7pt !important;
+    padding-right: 5pt !important;
+    padding-left: 5pt !important;
+  }
+  .print-report-body .asset-comparison-bars p { font-size: 6.4pt !important; }
+  .print-report-body .asset-comparison-metrics {
+    display: grid !important;
+    order: 3 !important;
+    grid-template-columns: repeat(3, minmax(0,1fr)) !important;
+    gap: 5pt !important;
+    margin-top: .09in !important;
+  }
+
+  /* Job comparison uses editable fields on screen. Replace them in the PDF
+     with compact, value-complete assumption cards instead of printing empty
+     controls after the global input/button suppression rules run. */
+  .print-report-body .job-comparison-editor { display: none !important; }
+  .print-report-body .job-comparison-print-inputs {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 5pt !important;
+    margin: 0 0 .08in !important;
+  }
+  .print-report-body .job-comparison-print-card {
+    padding: 6pt 7pt !important;
+    border: 1px solid #d5e2e5 !important;
+    border-top: 3px solid #188a89 !important;
+    border-radius: 5px !important;
+    background: #f8fbfb !important;
+    break-inside: avoid !important;
+  }
+  .print-report-body .job-comparison-print-card h3 {
+    margin: 0 0 5pt !important;
+    color: #188a89 !important;
+    font-size: 7.2pt !important;
+    font-weight: 700 !important;
+  }
+  .print-report-body .job-comparison-print-fields {
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(0,1fr)) !important;
+    gap: 4pt !important;
+  }
+  .print-report-body .job-comparison-print-fields > div {
+    min-width: 0 !important;
+    padding: 4pt 5pt !important;
+    border: 1px solid #e1eaec !important;
+    border-radius: 4px !important;
+    background: #fff !important;
+  }
+  .print-report-body .job-comparison-print-fields p {
+    margin: 0 !important;
+    color: #78909c !important;
+    font-size: 5pt !important;
+    font-weight: 700 !important;
+    line-height: 1.1 !important;
+    letter-spacing: .06em !important;
+    text-transform: uppercase !important;
+  }
+  .print-report-body .job-comparison-print-fields strong {
+    display: block !important;
+    margin-top: 2pt !important;
+    color: #102a3a !important;
+    font-size: 6.7pt !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+  }
 
   /* Recharts print stability: force measurable wrappers and completed SVG
      state. Keep the actual data geometry and fills intact. */
@@ -311,12 +522,6 @@
   .print-report-body .module-output-container [class*="p-6"],
   .print-report-body .module-output-container [class*="p-5"],
   .print-report-body .module-output-container [class*="p-4"] { padding: .08in !important; }
-
-  /* Final disclosure shares the last module page when space allows. */
-  .print-report-body .space-y-16 > div:last-child { padding: .10in .12in !important; border: 1px solid #d5e2e5 !important; border-left: 4px solid #607583 !important; border-radius: 5px !important; background: #f7f9fa !important; color: #607583 !important; box-shadow: none !important; break-inside: avoid !important; }
-  .print-report-body .space-y-16 > div:last-child svg { width: 12px !important; height: 12px !important; color: #607583 !important; }
-  .print-report-body .space-y-16 > div:last-child p { margin: 0 !important; color: #607583 !important; font-size: 6.2pt !important; line-height: 1.35 !important; }
-  .print-report-body .space-y-16 > div:last-child p.font-semibold { margin-bottom: 2pt !important; color: #435b68 !important; font-size: 6.6pt !important; font-weight: 700 !important; }
 
   .print-report-body * { max-width: 100% !important; }
 }

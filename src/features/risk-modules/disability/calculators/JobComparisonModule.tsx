@@ -27,6 +27,34 @@ interface JobChartDatum {
   totalBar: number
 }
 
+function JobPrintSummary({ label, job }: { label: string; job: JobState }) {
+  const groupCap = parseWholeNumberInput(job.groupCap)
+  const fields = [
+    { label: "Annual Income", value: `${formatCurrency(job.salary)}/yr` },
+    { label: "Group LTD", value: `${job.groupPct}% of income` },
+    { label: "Group LTD Cap", value: groupCap > 0 ? `${formatCurrency(groupCap)}/mo` : "No monthly cap" },
+    { label: "Individual DI", value: job.hasIdi ? "Included" : "Not included" },
+    ...(job.hasIdi ? [
+      { label: "IDI Premium", value: `${formatCurrency(job.monthlyPremium)}/mo` },
+      { label: "IDI Benefit", value: `${formatCurrency(job.idiBenefit)}/mo` },
+    ] : []),
+  ]
+
+  return (
+    <section className="job-comparison-print-card">
+      <h3>{label}</h3>
+      <div className="job-comparison-print-fields">
+        {fields.map((field) => (
+          <div key={field.label}>
+            <p>{field.label}</p>
+            <strong>{field.value}</strong>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 type JobChartSeriesKey = "Group LTD" | "IDI Benefit" | "Income Gap"
 
 function roundedStackCells(
@@ -190,7 +218,7 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
   return (
     <div className="module-output-container">
       <div className="space-y-4">
-        <div className="grid items-start gap-4 xl:grid-cols-2">
+        <div className="job-comparison-editor grid items-start gap-4 xl:grid-cols-2">
           <Card className="border-t-4 border-gray-800 border-t-[#188a89] bg-gray-900/25">
             <CardContent className="p-4">
               <div className="mb-3 flex items-center justify-between">
@@ -260,7 +288,12 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
           </Card>
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_19rem]">
+        <div className="job-comparison-print-inputs hidden">
+          <JobPrintSummary label="Job A" job={jobA} />
+          <JobPrintSummary label="Job B" job={jobB} />
+        </div>
+
+        <div className="job-comparison-results grid gap-4 xl:grid-cols-[minmax(0,1fr)_19rem]">
           <Card className="border-gray-800 bg-gray-900/25">
             <CardContent className="p-4">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -319,7 +352,7 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
             </CardContent>
           </Card>
 
-          <div className="flex flex-col gap-3 xl:justify-center">
+          <div className="job-comparison-metrics flex flex-col gap-3 xl:justify-center">
             <ModuleMetricCard label="Job A Income" value={`${formatCurrency(jobAIncome)}/yr`} description="Income input" accent="neutral" />
             <ModuleMetricCard label="Job B Income" value={`${formatCurrency(jobBIncome)}/yr`} description="Income input − annual Individual DI premium" accent="neutral" />
             <ModuleMetricCard label="Job A Income if Disabled" value={`${formatCurrency(jobAIncomeIfDisabled)}/yr`} description="Group LTD benefit" accent="primary" />

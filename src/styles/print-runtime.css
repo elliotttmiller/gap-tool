@@ -91,13 +91,21 @@
     position: fixed !important;
     top: 0 !important;
     left: -10000px !important;
-    width: 7.66in !important;
+    width: 7.65in !important;
     height: auto !important;
     min-height: 0 !important;
     visibility: hidden !important;
     pointer-events: none !important;
     overflow: visible !important;
     contain: layout style !important;
+  }
+
+  /* Export briefly changes the staging width to guarantee a ResizeObserver
+     notification for every off-screen ResponsiveContainer before printing. */
+  .presentation-mode > .pdf-report-staging--preparing {
+    width: 7.66in !important;
+    visibility: visible !important;
+    opacity: 0 !important;
   }
 
   /* Mirror the print document's single-column module dashboards exactly. */
@@ -128,17 +136,16 @@
     max-height: 3.18in !important;
   }
 
-  /* Disability must be measured using the same chart/metric split that is
-     used on the PDF page. The former screen layout reserved 13.5–17rem for
-     the metric rail, while print reserved only 1.52in; that mismatch caused
-     the chart SVG to retain a narrow plot centered inside a wider print card. */
+  /* Measure Disability using the same full-width chart and five-card metric
+     row used by the PDF, so Recharts receives the final printable width. */
   .presentation-mode > .hidden.print\:block .disability-coverage-grid {
     display: grid !important;
     grid-template-areas:
-      "chart metric"
-      "summary summary" !important;
-    grid-template-columns: minmax(0, 1fr) 1.52in !important;
-    grid-template-rows: auto auto !important;
+      "chart"
+      "metric"
+      "summary" !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto auto !important;
     gap: 0.08in !important;
     align-items: stretch !important;
   }
@@ -164,6 +171,12 @@
     grid-area: metric !important;
     display: block !important;
     min-width: 0 !important;
+  }
+
+  .presentation-mode > .hidden.print\:block .module-metric-rail > * {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 4pt !important;
   }
 
   .presentation-mode > .hidden.print\:block .disability-summary-rail {
