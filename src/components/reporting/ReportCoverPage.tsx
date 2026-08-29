@@ -1,4 +1,5 @@
 import { UsersRound, CalendarDays, Shield } from "lucide-react"
+import type { CSSProperties } from "react"
 import type { ClientRecord } from "@/lib/store-types"
 
 type ReportCoverPageProps = {
@@ -34,6 +35,24 @@ export function ReportCoverPage({ client, reportDate }: ReportCoverPageProps) {
     day: "numeric",
     year: "numeric",
   })
+  const markUrl = `${import.meta.env.BASE_URL}favicon.svg`
+  const watermarkStyle: CSSProperties = {
+    position: "absolute",
+    top: "2.05in",
+    right: "-1.05in",
+    width: "6.25in",
+    height: "6.25in",
+    backgroundColor: "#747B85",
+    opacity: 0.18,
+    WebkitMaskImage: `url(${markUrl})`,
+    maskImage: `url(${markUrl})`,
+    WebkitMaskRepeat: "no-repeat",
+    maskRepeat: "no-repeat",
+    WebkitMaskPosition: "center",
+    maskPosition: "center",
+    WebkitMaskSize: "contain",
+    maskSize: "contain",
+  }
 
   return (
     <section className="report-cover-page" aria-label="Risk Review Report cover page">
@@ -46,9 +65,7 @@ export function ReportCoverPage({ client, reportDate }: ReportCoverPageProps) {
       </div>
 
       <div className="report-cover-watermark" aria-hidden="true">
-        <span className="report-cover-watermark-piece report-cover-watermark-piece-one" />
-        <span className="report-cover-watermark-piece report-cover-watermark-piece-two" />
-        <span className="report-cover-watermark-piece report-cover-watermark-piece-three" />
+        <span className="report-cover-watermark-mark" style={watermarkStyle} />
       </div>
 
       <div className="report-cover-content">
