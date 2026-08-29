@@ -97,14 +97,16 @@
 }
 
 /* Cover watermark positioning; the actual mark is rendered from favicon.svg
- * by ReportCoverPage, not recreated with CSS geometry. */
+ * by ReportCoverPage, not recreated with CSS geometry. The mark is deliberately
+ * oversized and pushed beyond the right page edge so the cover shows only a
+ * cropped portion of the official brand symbol. */
 .report-cover-watermark-mark {
   position: absolute;
-  top: 2.05in;
-  right: -1.05in;
+  top: 1.72in;
+  right: -2.32in;
   display: block;
-  width: 6.25in;
-  height: 6.25in;
+  width: 7.65in;
+  height: 7.65in;
   max-width: none;
   overflow: visible;
   opacity: 0.18;
@@ -113,11 +115,11 @@
 @media print {
   .report-cover-watermark-mark {
     position: absolute !important;
-    top: 2.05in !important;
-    right: -1.05in !important;
+    top: 1.72in !important;
+    right: -2.32in !important;
     display: block !important;
-    width: 6.25in !important;
-    height: 6.25in !important;
+    width: 7.65in !important;
+    height: 7.65in !important;
     max-width: none !important;
     opacity: 0.18 !important;
     overflow: visible !important;
