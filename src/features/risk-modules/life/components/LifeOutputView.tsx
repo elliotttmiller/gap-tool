@@ -1,11 +1,17 @@
 import { useEffect, useState, type ReactNode } from "react"
+import { Bar, Cell, Tooltip } from "recharts"
 import { LifeOutputs, LifeInputs, LifeAssumptions, IncomeGapOutputs, IncomeGapModule1, IncomeGapModule2 } from "../types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
-import { BarChart, Bar, CartesianGrid, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import { AnimatedSection } from "@/components/ui/animated-section"
 import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
-import { financialBarChartTheme, topStackRadius } from "@/components/charts/financialBarChartTheme"
+import { FinancialProjectionChart } from "@/components/charts/FinancialProjectionChart"
+import {
+  buildProjectionAgeTicks,
+  financialBarChartTheme,
+  projectionCellVisualState,
+  topStackRadius,
+} from "@/components/charts/financialBarChartTheme"
 
 interface LifeOutputViewProps {
   outputs: LifeOutputs
@@ -33,19 +39,6 @@ function getRunwayCoverageStatus(covered: number, need: number) {
     return { label: "Uncovered", description: "Resource pool funds none of the annual need", accent: "negative" as const, coverageRate }
   }
   return { label: "Partially Covered", description: "Resource pool funds part of the annual need", accent: "warning" as const, coverageRate }
-}
-
-function buildAgeTicks(data: { age: number }[], targetTickCount = 14): number[] {
-  if (data.length === 0) return []
-  const firstAge = data[0].age
-  const lastAge = data[data.length - 1].age
-  if (firstAge === lastAge) return [firstAge]
-  const span = lastAge - firstAge
-  const step = Math.max(1, Math.ceil(span / Math.max(1, targetTickCount - 1)))
-  const ticks: number[] = [firstAge]
-  for (let age = firstAge + step; age < lastAge; age += step) ticks.push(age)
-  ticks.push(lastAge)
-  return ticks
 }
 
 const SafeTooltip = ({ active, payload, label }: any) => {
@@ -138,57 +131,28 @@ function SafeIncomeMetricBoxes({ m1, projectionEndAge, selectedAge }: { m1: Inco
   )
 }
 
-function ChartPanel({ title, subtitle, coveredLabel, data, ticks, selectedAge, onSelectAge, onReset, children }: { title: string; subtitle: string; coveredLabel: string; data: any[]; ticks: number[]; selectedAge: number | null; onSelectAge: (age: number) => void; onReset: () => void; children: ReactNode }) {
+function ChartPanel({ title, subtitle, coveredLabel, data, ticks, selectedAge, onSelectAge, onReset, children }: { title: string; subtitle: string; coveredLabel: string; data: Record<string, any>[]; ticks: number[]; selectedAge: number | null; onSelectAge: (age: number) => void; onReset: () => void; children: ReactNode }) {
   return (
-    <Card className="module-chart-card life-chart-panel border-slate-800/80 bg-slate-950/60">
-      <CardHeader className="px-5 pb-0 pt-4">
+    <Card className="module-chart-card life-chart-panel financial-projection-chart border-slate-800/80 bg-slate-950/60">
+      <CardHeader className="px-5 pt-4 pb-0">
         <div className="text-center">
-          <CardTitle className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">{title}</CardTitle>
+          <CardTitle className="text-[11px] font-bold tracking-[0.14em] text-slate-500 uppercase">{title}</CardTitle>
           <p className="mt-1 text-xs leading-snug text-slate-400">{subtitle}</p>
           {selectedAge !== null ? <div className="mt-2 flex items-center justify-center gap-2"><span className="rounded-full border border-brand-700 bg-brand-950/40 px-3 py-1 text-xs font-semibold text-brand-300">Age {selectedAge}</span><button type="button" onClick={onReset} className="text-xs text-gray-400 transition-colors hover:text-gray-100" aria-label="Reset selected age">× Reset</button></div> : <p className="mt-2 text-[10px] text-slate-500">Select a bar to inspect that age</p>}
         </div>
       </CardHeader>
-      <CardContent className="px-5 pb-4 pt-3">
+      <CardContent className="px-5 pt-3 pb-4">
         <div className="flex items-stretch gap-2">
           <div className="flex w-4 shrink-0 items-center justify-center">
-            <span style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }} className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider text-slate-500">Annual Income ($)</span>
+            <span style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }} className="text-[10px] font-semibold tracking-wider whitespace-nowrap text-slate-500 uppercase">Annual Income ($)</span>
           </div>
           <div className="min-w-0 flex-1">
-            <div className="life-chart-area chart-reveal">
-              <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                <BarChart
-                  data={data}
-                  margin={{ top: 10, right: 18, left: 8, bottom: 10 }}
-                  barGap={0}
-                  barCategoryGap={financialBarChartTheme.geometry.projectionCategoryGap}
-                  onClick={(state) => { if (state?.activePayload) onSelectAge(Number(state.activeLabel)) }}
-                  style={{ cursor: "pointer" }}
-                >
-                  <CartesianGrid stroke={financialBarChartTheme.grid.stroke} strokeDasharray={financialBarChartTheme.grid.strokeDasharray} vertical={false} />
-                  <XAxis
-                    dataKey="age"
-                    ticks={ticks}
-                    interval={0}
-                    minTickGap={8}
-                    tickMargin={9}
-                    padding={{ left: 10, right: 10 }}
-                    tick={{ fill: financialBarChartTheme.axis.tickFill, fontSize: 10, fontWeight: 600 }}
-                    axisLine={{ stroke: financialBarChartTheme.axis.lineStroke, strokeOpacity: financialBarChartTheme.axis.lineOpacity }}
-                    tickLine={{ stroke: financialBarChartTheme.axis.lineStroke, strokeOpacity: financialBarChartTheme.axis.lineOpacity }}
-                  />
-                  <YAxis
-                    tickFormatter={(v) => `$${Math.round(Number(v) / 1000)}k`}
-                    tick={{ fill: financialBarChartTheme.axis.tickFill, fontSize: 10 }}
-                    axisLine={{ stroke: financialBarChartTheme.axis.lineStroke, strokeOpacity: financialBarChartTheme.axis.lineOpacity }}
-                    tickLine={{ stroke: financialBarChartTheme.axis.lineStroke, strokeOpacity: financialBarChartTheme.axis.lineOpacity }}
-                    tickMargin={7}
-                    width={50}
-                  />
-                  {children}
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="life-chart-area chart-reveal financial-projection-plot">
+              <FinancialProjectionChart data={data} ticks={ticks} onSelectAge={onSelectAge}>
+                {children}
+              </FinancialProjectionChart>
             </div>
-            <div className="mt-1 text-center"><span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Age (Years)</span></div>
+            <div className="mt-1 text-center"><span className="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">Age (Years)</span></div>
             <div className="mt-2 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 border-t border-slate-800/50 pt-2">
               <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400"><span className="h-2.5 w-4 rounded-sm" style={{ backgroundColor: financialBarChartTheme.semantic.supported }} />{coveredLabel}</span>
               <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400"><span className="h-2.5 w-4 rounded-sm" style={{ backgroundColor: financialBarChartTheme.semantic.gap }} />Income Gap</span>
@@ -212,8 +176,8 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
 
   const { module1, module2, isM1FullyCovered, m1SurvivorGap } = incomeGapOutputs
   const retirementAge = module1.yearlyData.at(-1)?.age ?? 65
-  const safeTicks = buildAgeTicks(module1.yearlyData)
-  const runwayTicks = buildAgeTicks(module2.yearlyData)
+  const safeTicks = buildProjectionAgeTicks(module1.yearlyData, 14)
+  const runwayTicks = buildProjectionAgeTicks(module2.yearlyData, 14)
   const safePct = module1.targetIncomeSupportTotal > 0 ? Math.round((module1.totalIncomeReplaced / module1.targetIncomeSupportTotal) * 1000) / 10 : 0
   const runwayPct = module2.projectedNetIncomeTotal > 0 ? Math.round((module2.totalIncomeReplaced / module2.projectedNetIncomeTotal) * 1000) / 10 : 0
 
@@ -245,8 +209,18 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
           <div className="life-visual-dashboard">
             <ChartPanel title={`Safe Income Coverage — Target Annual Net Income to Age ${retirementAge}`} subtitle={`${formatRatePctOneDecimal(module1.netIncomeFactor)} net income factor; capital required uses ${formatRatePctOneDecimal(module1.roi)} PV reference rate`} coveredLabel="Income Supported" data={module1.yearlyData} ticks={safeTicks} selectedAge={selectedSafeAge} onSelectAge={setSelectedSafeAge} onReset={() => setSelectedSafeAge(null)}>
               <Tooltip content={SafeTooltip} cursor={{ fill: financialBarChartTheme.cursor.fill }} />
-              <Bar dataKey="safeIncomeCoverage" name="Income Supported" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.supported} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>{module1.yearlyData.map((point) => <Cell key={`safe-covered-${point.age}`} radius={topStackRadius(point.incomeGap <= 0 && point.safeIncomeCoverage > 0)} opacity={selectedSafeAge === null || selectedSafeAge === point.age ? 1 : 0.3} style={{ transition: "opacity 220ms ease, filter 220ms ease", filter: selectedSafeAge === point.age ? `drop-shadow(0 0 5px ${financialBarChartTheme.semantic.supportedGlow})` : "none" }} />)}</Bar>
-              <Bar dataKey="incomeGap" name="Income Gap" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.gap} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>{module1.yearlyData.map((point) => <Cell key={`safe-gap-${point.age}`} radius={topStackRadius(point.incomeGap > 0)} opacity={selectedSafeAge === null || selectedSafeAge === point.age ? 1 : 0.3} style={{ transition: "opacity 220ms ease, filter 220ms ease" }} />)}</Bar>
+              <Bar dataKey="safeIncomeCoverage" name="Income Supported" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.supported} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>
+                {module1.yearlyData.map((point) => {
+                  const visual = projectionCellVisualState(selectedSafeAge, point.age, financialBarChartTheme.semantic.supportedGlow)
+                  return <Cell key={`safe-covered-${point.age}`} radius={topStackRadius(point.incomeGap <= 0 && point.safeIncomeCoverage > 0)} opacity={visual.opacity} style={visual.style} />
+                })}
+              </Bar>
+              <Bar dataKey="incomeGap" name="Income Gap" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.gap} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>
+                {module1.yearlyData.map((point) => {
+                  const visual = projectionCellVisualState(selectedSafeAge, point.age, financialBarChartTheme.semantic.gapGlow)
+                  return <Cell key={`safe-gap-${point.age}`} radius={topStackRadius(point.incomeGap > 0)} opacity={visual.opacity} style={visual.style} />
+                })}
+              </Bar>
             </ChartPanel>
             <div key={`safe-metrics-${selectedSafeAge ?? "all"}`} className="animate-slideUpAndFade"><SafeIncomeMetricBoxes m1={module1} projectionEndAge={retirementAge} selectedAge={selectedSafeAge} /></div>
           </div>
@@ -258,8 +232,18 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
           <div className="life-visual-dashboard">
             <ChartPanel title="Covered Runway Scenario — Resource Drawdown Coverage" subtitle={`Existing coverage resources modeled at the shared ${formatRatePctOneDecimal(module2.roi)} PV reference rate while funding projected net income`} coveredLabel="Net Income Covered" data={module2.yearlyData} ticks={runwayTicks} selectedAge={selectedRunwayAge} onSelectAge={setSelectedRunwayAge} onReset={() => setSelectedRunwayAge(null)}>
               <Tooltip content={RunwayTooltip} cursor={{ fill: financialBarChartTheme.cursor.fill }} />
-              <Bar dataKey="runwayIncomeCovered" name="Net Income Covered" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.supported} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>{module2.yearlyData.map((point) => <Cell key={`runway-covered-${point.age}`} radius={topStackRadius(point.runwayIncomeGap <= 0 && point.runwayIncomeCovered > 0)} opacity={selectedRunwayAge === null || selectedRunwayAge === point.age ? 1 : 0.3} style={{ transition: "opacity 220ms ease, filter 220ms ease", filter: selectedRunwayAge === point.age ? `drop-shadow(0 0 5px ${financialBarChartTheme.semantic.supportedGlow})` : "none" }} />)}</Bar>
-              <Bar dataKey="runwayIncomeGap" name="Income Gap" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.gap} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>{module2.yearlyData.map((point) => <Cell key={`runway-gap-${point.age}`} radius={topStackRadius(point.runwayIncomeGap > 0)} opacity={selectedRunwayAge === null || selectedRunwayAge === point.age ? 1 : 0.3} style={{ transition: "opacity 220ms ease, filter 220ms ease" }} />)}</Bar>
+              <Bar dataKey="runwayIncomeCovered" name="Net Income Covered" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.supported} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>
+                {module2.yearlyData.map((point) => {
+                  const visual = projectionCellVisualState(selectedRunwayAge, point.age, financialBarChartTheme.semantic.supportedGlow)
+                  return <Cell key={`runway-covered-${point.age}`} radius={topStackRadius(point.runwayIncomeGap <= 0 && point.runwayIncomeCovered > 0)} opacity={visual.opacity} style={visual.style} />
+                })}
+              </Bar>
+              <Bar dataKey="runwayIncomeGap" name="Income Gap" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.gap} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>
+                {module2.yearlyData.map((point) => {
+                  const visual = projectionCellVisualState(selectedRunwayAge, point.age, financialBarChartTheme.semantic.gapGlow)
+                  return <Cell key={`runway-gap-${point.age}`} radius={topStackRadius(point.runwayIncomeGap > 0)} opacity={visual.opacity} style={visual.style} />
+                })}
+              </Bar>
             </ChartPanel>
             <div key={`runway-metrics-${selectedRunwayAge ?? "all"}`} className="animate-slideUpAndFade"><RunwayMetricBoxes m2={module2} projectionEndAge={retirementAge} selectedAge={selectedRunwayAge} /></div>
           </div>
@@ -269,7 +253,7 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
       {mode === "builder" ? (
         <Card className="mt-2 border border-gray-800 bg-[#090E1A]">
           <CardContent className="px-4 py-3">
-            <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-[#27aae1]">Planning Narrative</h4>
+            <h4 className="mb-1 text-[11px] font-semibold tracking-wider text-[#27aae1] uppercase">Planning Narrative</h4>
             <p className="text-xs leading-relaxed text-gray-300">{activeNarrative}</p>
           </CardContent>
         </Card>
