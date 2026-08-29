@@ -209,8 +209,24 @@
   .print-report-body .liability-visual-dashboard,
   .print-report-body .unemployment-visual-dashboard { display: grid !important; grid-template-columns: minmax(0,1fr) !important; gap: .08in !important; }
 
-  .print-report-body .life-chart-area,
-  .print-report-body .liability-chart-area { display: block !important; width: 100% !important; height: 3.18in !important; min-height: 3.18in !important; max-height: 3.18in !important; }
+  /* Give Life's annual income-gap projection a deliberate report-sized canvas.
+     It carries 20+ yearly stacked columns and needs more vertical resolution
+     than the compact liability visualization to remain legible in Letter PDF. */
+  .print-report-body .life-chart-area {
+    display: block !important;
+    width: 100% !important;
+    height: 4.05in !important;
+    min-height: 4.05in !important;
+    max-height: 4.05in !important;
+  }
+
+  .print-report-body .liability-chart-area {
+    display: block !important;
+    width: 100% !important;
+    height: 3.18in !important;
+    min-height: 3.18in !important;
+    max-height: 3.18in !important;
+  }
 
   .print-report-body .life-chart-panel,
   .print-report-body .liability-chart-panel-compact,
