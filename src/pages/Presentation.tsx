@@ -420,53 +420,57 @@ export function Presentation() {
   }
 
   return (
-    <div className="presentation-mode relative h-screen overflow-hidden bg-gray-950 p-2 text-gray-50 print:h-auto print:overflow-visible print:bg-white print:p-0">
-      <Button variant="ghost" className="absolute left-3 top-3 z-20 h-8 px-2 shadow-none print:hidden" asChild>
-        <Link to={`/scenarios/${scenarioId}/${scenario.activeModule}`} className="gap-2">
-          <ArrowLeft className="h-4 w-4" /> Back to Builder
-        </Link>
-      </Button>
-      <Button
-        type="button"
-        variant="secondary"
-        className="absolute right-3 top-3 z-20 h-8 gap-2 px-3 shadow-sm print:hidden"
-        onClick={exportPdf}
-        title="Open the print dialog to save this report as a PDF for AdviceWorks"
-      >
-        <FileDown className="h-4 w-4" aria-hidden="true" />
-        Export PDF
-      </Button>
-
-      <div className="mx-auto h-full max-w-400 print:hidden">
+    <div className="presentation-mode h-screen overflow-hidden bg-gray-950 p-2 text-gray-50 print:h-auto print:overflow-visible print:bg-white print:p-0">
+      <div className="h-full w-full print:hidden">
         <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#090E1A] shadow-lg">
           <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-4 py-3">
             {selectedModule ? (
               <div className="flex min-h-full flex-col">
-                <div className="mb-2 grid shrink-0 items-center gap-2 border-b border-gray-800 pb-2 pl-24 lg:grid-cols-[minmax(0,1fr)_auto] 2xl:pl-0">
-                  <div className="min-w-0">
+                <div className="mb-2 grid shrink-0 gap-2 border-b border-gray-800 pb-2 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center">
+                  <Button variant="ghost" className="h-8 w-fit gap-2 px-2 text-gray-400 shadow-none hover:text-gray-100" asChild>
+                    <Link to={`/scenarios/${scenarioId}/${scenario.activeModule}`}>
+                      <ArrowLeft className="h-4 w-4" /> Back to Builder
+                    </Link>
+                  </Button>
+
+                  <div className="min-w-0 lg:px-2">
                     <h2 className="truncate text-lg font-semibold leading-tight text-gray-50">{moduleCopy[selectedModule].title}</h2>
                     <p className="mt-0.5 text-xs leading-tight text-gray-500">Visualization and metrics for the selected risk module.</p>
                   </div>
-                  <div className="presentation-module-tabs scrollbar-hide flex max-w-full gap-1 overflow-x-auto rounded-lg bg-gray-950/40 p-1 lg:justify-self-end">
-                    {visibleModules.map((module) => {
-                      const Icon = moduleIcons[module]
-                      const selected = module === selectedModule
-                      return (
-                        <button
-                          key={module}
-                          type="button"
-                          onClick={() => setActiveModule(module)}
-                          className={`flex min-w-max items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
-                            selected ? "bg-[#188a89] text-white shadow-sm ring-1 ring-[#188a89]" : "text-gray-400 hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"
-                          }`}
-                        >
-                          <Icon className="h-3.5 w-3.5" />
-                          {moduleCopy[module].tabLabel}
-                        </button>
-                      )
-                    })}
+
+                  <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
+                    <div className="presentation-module-tabs scrollbar-hide flex max-w-full gap-1 overflow-x-auto rounded-lg bg-gray-950/40 p-1">
+                      {visibleModules.map((module) => {
+                        const Icon = moduleIcons[module]
+                        const selected = module === selectedModule
+                        return (
+                          <button
+                            key={module}
+                            type="button"
+                            onClick={() => setActiveModule(module)}
+                            className={`flex min-w-max items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
+                              selected ? "bg-[#188a89] text-white shadow-sm ring-1 ring-[#188a89]" : "text-gray-400 hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"
+                            }`}
+                          >
+                            <Icon className="h-3.5 w-3.5" />
+                            {moduleCopy[module].tabLabel}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="h-8 shrink-0 gap-2 border border-slate-700 bg-slate-900/70 px-3 text-gray-100 shadow-none hover:border-[#188a89] hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"
+                      onClick={exportPdf}
+                      title="Open the print dialog to save this report as a PDF for AdviceWorks"
+                    >
+                      <FileDown className="h-4 w-4" aria-hidden="true" />
+                      Export PDF
+                    </Button>
                   </div>
                 </div>
+
                 {selectedModuleHasSnapshot ? (
                   <div className={selectedModule === "liability" ? "grid min-h-0 gap-3 xl:grid-cols-[22rem_minmax(0,1fr)] xl:items-start" : "grid min-h-0 gap-4 xl:grid-cols-[16rem_minmax(0,1fr)] xl:items-start"}>
                     <ModuleInputSpecs module={selectedModule} records={records} variant="rail" onInputChange={(field, value) => updateSnapshotInput(selectedModule, field, value)} />
