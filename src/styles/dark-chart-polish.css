@@ -13,10 +13,14 @@
    without changing chart data, scales, ticks, or responsive geometry. */
 :root {
   --financial-chart-axis-line: rgb(100 116 139 / 0.52);
+  --financial-chart-hover-band: rgb(24 138 137 / 0.08);
+  --financial-chart-hover-stroke: rgb(24 138 137 / 0.24);
 }
 
 .dark {
   --financial-chart-axis-line: rgb(148 163 184 / 0.62);
+  --financial-chart-hover-band: rgb(255 255 255 / 0.055);
+  --financial-chart-hover-stroke: rgb(148 163 184 / 0.22);
 }
 
 .life-chart-area,
@@ -91,23 +95,43 @@
   shape-rendering: geometricPrecision;
 }
 
-/* Match the Disability Asset Comparison hover language: slight lift,
-   brightness increase, and a restrained halo. These selectors are scoped to
-   the two requested income-gap visualizations only. */
+/* Treat each stacked age column as one hover target. Recharts' tooltip cursor
+   already spans the full category slot across every stacked series, so use
+   that single cursor as the visual hover surface instead of independently
+   lifting/brightening whichever individual stack segment happens to be under
+   the pointer. This keeps Group LTD + Individual DI + Income Gap, or Life's
+   supported-income + gap stack, visually unified as one annual column. */
+.life-chart-area .recharts-tooltip-cursor,
+.disability-chart-panel .recharts-tooltip-cursor {
+  fill: var(--financial-chart-hover-band) !important;
+  stroke: var(--financial-chart-hover-stroke) !important;
+  stroke-width: 1 !important;
+  rx: 5px;
+  ry: 5px;
+  pointer-events: none;
+  transition:
+    fill 140ms ease,
+    stroke 140ms ease,
+    opacity 140ms ease;
+}
+
+/* Individual stack rectangles should never move independently on hover. Their
+   selected-age opacity/filter state is still preserved below, but geometry is
+   fixed so a stacked bar cannot visually split into separate animated pieces. */
 .life-chart-area .recharts-bar-rectangle .recharts-rectangle,
 .disability-chart-panel .recharts-bar-rectangle .recharts-rectangle {
+  transform: none !important;
   transform-box: fill-box;
   transform-origin: center bottom;
   transition:
-    transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
-    filter 200ms ease,
-    opacity 220ms ease;
+    filter 160ms ease,
+    opacity 180ms ease;
 }
 
 .life-chart-area .recharts-bar-rectangle .recharts-rectangle:hover,
 .disability-chart-panel .recharts-bar-rectangle .recharts-rectangle:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.1) drop-shadow(0 0 7px rgb(255 255 255 / 0.30));
+  transform: none !important;
+  filter: inherit;
 }
 
 /* Life already persists the selected age with per-cell opacity. Convert that
@@ -119,8 +143,8 @@
 }
 
 .life-chart-area .recharts-rectangle[opacity="0.3"]:hover {
-  opacity: 0.62 !important;
-  filter: blur(0.2px) brightness(1.06) drop-shadow(0 0 7px rgb(255 255 255 / 0.24)) !important;
+  opacity: 0.28 !important;
+  filter: blur(0.65px) brightness(0.78) !important;
 }
 
 /* Disability uses the same persisted-selection cell treatment added in its
@@ -130,20 +154,24 @@
 }
 
 .disability-chart-panel .recharts-rectangle[opacity="0.28"]:hover {
-  opacity: 0.62 !important;
-  filter: blur(0.2px) brightness(1.06) drop-shadow(0 0 7px rgb(255 255 255 / 0.24)) !important;
+  opacity: 0.28 !important;
+  filter: blur(0.65px) brightness(0.78) !important;
 }
 
 @media print {
   :root {
     --financial-chart-axis-line: #9eb2bb;
+    --financial-chart-hover-band: transparent;
+    --financial-chart-hover-stroke: transparent;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .life-chart-area .recharts-tooltip-cursor,
+  .disability-chart-panel .recharts-tooltip-cursor,
   .life-chart-area .recharts-bar-rectangle .recharts-rectangle,
   .disability-chart-panel .recharts-bar-rectangle .recharts-rectangle {
-    transition: opacity 120ms linear;
+    transition: none !important;
     transform: none !important;
   }
 }
