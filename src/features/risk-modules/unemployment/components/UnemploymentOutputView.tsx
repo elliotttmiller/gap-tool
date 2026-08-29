@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
 import { advisorSafeCopy } from "@/domain/copy/advisorSafeCopy"
 import { UnemploymentOutputs } from "../types"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { MoveVertical } from "lucide-react"
 
 interface UnemploymentOutputViewProps {
@@ -47,27 +47,87 @@ function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOut
   const idealMonths = outputs.idealReserveMonths
   const naturalGaugeMax = Math.max(6, idealMonths, Math.ceil(reserveMonths))
   const [dragScale, setDragScale] = useState<number | null>(null)
+  const [dragPreviewDollars, setDragPreviewDollars] = useState<number | null>(null)
   const gaugeMaxMonths = dragScale ?? naturalGaugeMax
   const barRef = useRef<HTMLDivElement>(null)
+  const dragRectRef = useRef<DOMRect | null>(null)
+  const isDraggingRef = useRef(false)
+  const pendingCommitRef = useRef<number | null>(null)
+  const commitFrameRef = useRef<number | null>(null)
   const canAdjust = Boolean(onReserveLevelChange && outputs.monthlyGapAtDepletion > 0)
-  const markerPct = Math.min(100, Math.max(0, (reserveMonths / gaugeMaxMonths) * 100))
+  const displayedReserveDollars = dragPreviewDollars ?? outputs.currentReserveLevel
+  const displayedReserveMonths = outputs.monthlyGapAtDepletion > 0
+    ? displayedReserveDollars / outputs.monthlyGapAtDepletion
+    : reserveMonths
+  const markerPct = Math.min(100, Math.max(0, (displayedReserveMonths / gaugeMaxMonths) * 100))
   const dangerPct = Math.min(100, (1.5 / gaugeMaxMonths) * 100)
   const minimumPct = Math.min(100, (3 / gaugeMaxMonths) * 100)
   const idealPct = Math.min(100, (idealMonths / gaugeMaxMonths) * 100)
-  const status = getReserveStatus(reserveMonths, idealMonths)
+  const status = getReserveStatus(displayedReserveMonths, idealMonths)
   const ticks = Array.from(new Set([0, 1.5, 3, idealMonths, gaugeMaxMonths])).sort((a, b) => a - b)
 
   // Snapped to SAVINGS_DRAG_STEP and floored so a rounded value can never
   // push reserveMonths past gaugeMaxMonths (keeps aria-valuenow <= aria-valuemax).
   const maxSnappedDollars = Math.floor((gaugeMaxMonths * outputs.monthlyGapAtDepletion) / SAVINGS_DRAG_STEP) * SAVINGS_DRAG_STEP
 
-  function setMonthsFromClientY(clientY: number) {
-    const rect = barRef.current?.getBoundingClientRect()
-    if (!rect || !onReserveLevelChange || outputs.monthlyGapAtDepletion <= 0) return
+  useEffect(() => () => {
+    if (commitFrameRef.current !== null) cancelAnimationFrame(commitFrameRef.current)
+  }, [])
+
+  function dollarsFromClientY(clientY: number, scaleMonths = gaugeMaxMonths): number | null {
+    const rect = dragRectRef.current ?? barRef.current?.getBoundingClientRect()
+    if (!rect || rect.height <= 0 || outputs.monthlyGapAtDepletion <= 0) return null
     const ratio = Math.max(0, Math.min(1, (rect.bottom - clientY) / rect.height))
-    const months = ratio * gaugeMaxMonths
+    const months = ratio * scaleMonths
+    const maxDollars = Math.floor((scaleMonths * outputs.monthlyGapAtDepletion) / SAVINGS_DRAG_STEP) * SAVINGS_DRAG_STEP
     const snapped = roundToStep(months * outputs.monthlyGapAtDepletion, SAVINGS_DRAG_STEP)
-    onReserveLevelChange(Math.max(0, Math.min(maxSnappedDollars, snapped)))
+    return Math.max(0, Math.min(maxDollars, snapped))
+  }
+
+  function scheduleReserveCommit(value: number) {
+    if (!onReserveLevelChange) return
+    pendingCommitRef.current = value
+    if (commitFrameRef.current !== null) return
+    commitFrameRef.current = requestAnimationFrame(() => {
+      commitFrameRef.current = null
+      const pending = pendingCommitRef.current
+      pendingCommitRef.current = null
+      if (pending !== null) onReserveLevelChange(pending)
+    })
+  }
+
+  function updateDrag(clientY: number, scaleMonths = gaugeMaxMonths) {
+    const nextDollars = dollarsFromClientY(clientY, scaleMonths)
+    if (nextDollars === null) return
+    // The marker follows the pointer from local state immediately. Persisted
+    // inputs/calculations are limited to one update per animation frame so a
+    // high-frequency pointer stream cannot stall the drag interaction.
+    setDragPreviewDollars(nextDollars)
+    scheduleReserveCommit(nextDollars)
+  }
+
+  function finishDrag(finalClientY?: number) {
+    if (!isDraggingRef.current) return
+    if (finalClientY !== undefined) {
+      const finalDollars = dollarsFromClientY(finalClientY, dragScale ?? naturalGaugeMax)
+      if (finalDollars !== null) {
+        setDragPreviewDollars(finalDollars)
+        pendingCommitRef.current = finalDollars
+      }
+    }
+
+    if (commitFrameRef.current !== null) {
+      cancelAnimationFrame(commitFrameRef.current)
+      commitFrameRef.current = null
+    }
+    const finalCommit = pendingCommitRef.current
+    pendingCommitRef.current = null
+    if (finalCommit !== null) onReserveLevelChange?.(finalCommit)
+
+    isDraggingRef.current = false
+    dragRectRef.current = null
+    setDragScale(null)
+    setDragPreviewDollars(null)
   }
 
   function nudgeMonths(delta: number) {
@@ -110,7 +170,7 @@ function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOut
           </aside>
 
           <div className="flex min-w-0 items-center justify-center py-1">
-            <div className="relative h-[22rem] w-full max-w-[26rem]" role="img" aria-label={`Current liquid emergency savings cover ${reserveMonths.toFixed(1)} months; the minimum is 3 months and the ideal is ${idealMonths} months`}>
+            <div className="relative h-[22rem] w-full max-w-[26rem]" role="img" aria-label={`Current liquid emergency savings cover ${displayedReserveMonths.toFixed(1)} months; the minimum is 3 months and the ideal is ${idealMonths} months`}>
               <div ref={barRef} className="absolute bottom-3 left-1/2 top-3 w-28 -translate-x-1/2 overflow-hidden rounded-[1.5rem] border border-slate-700/80 bg-slate-900 shadow-[inset_0_1px_2px_rgba(255,255,255,0.08),0_18px_38px_rgba(2,6,23,0.32)]">
                 <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-[#ed5a46] to-[#f47a5f] transition-[height] duration-500 ease-out" style={{ height: `${dangerPct}%` }} />
                 <div className="absolute inset-x-0 bg-linear-to-t from-[#f2aa45] to-[#f8c76b] transition-[bottom,height] duration-500 ease-out" style={{ bottom: `${dangerPct}%`, height: `${Math.max(0, minimumPct - dangerPct)}%` }} />
@@ -131,24 +191,27 @@ function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOut
                   aria-label="Liquid emergency savings coverage"
                   aria-valuemin={0}
                   aria-valuemax={gaugeMaxMonths}
-                  aria-valuenow={Number(reserveMonths.toFixed(2))}
-                  aria-valuetext={`${reserveMonths.toFixed(1)} months of runway, ${formatCurrency(outputs.currentReserveLevel)} liquid emergency savings`}
+                  aria-valuenow={Number(displayedReserveMonths.toFixed(2))}
+                  aria-valuetext={`${displayedReserveMonths.toFixed(1)} months of runway, ${formatCurrency(displayedReserveDollars)} liquid emergency savings`}
                   title="Drag to model liquid emergency savings. Monthly gap is controlled by expenses and remaining income."
                   className="peer absolute bottom-3 left-1/2 top-3 z-20 w-40 -translate-x-1/2 touch-none cursor-ns-resize rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
                   onPointerDown={(event) => {
-                    event.currentTarget.setPointerCapture(event.pointerId)
+                    event.preventDefault()
+                    dragRectRef.current = barRef.current?.getBoundingClientRect() ?? null
+                    isDraggingRef.current = true
                     setDragScale(naturalGaugeMax)
-                    setMonthsFromClientY(event.clientY)
+                    event.currentTarget.setPointerCapture(event.pointerId)
+                    updateDrag(event.clientY, naturalGaugeMax)
                   }}
                   onPointerMove={(event) => {
-                    if (event.currentTarget.hasPointerCapture(event.pointerId)) setMonthsFromClientY(event.clientY)
+                    if (isDraggingRef.current && event.currentTarget.hasPointerCapture(event.pointerId)) updateDrag(event.clientY, dragScale ?? naturalGaugeMax)
                   }}
                   onPointerUp={(event) => {
+                    finishDrag(event.clientY)
                     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
-                    setDragScale(null)
                   }}
-                  onPointerCancel={() => setDragScale(null)}
-                  onLostPointerCapture={() => setDragScale(null)}
+                  onPointerCancel={() => finishDrag()}
+                  onLostPointerCapture={() => finishDrag()}
                   onKeyDown={(event) => {
                     if (event.key === "ArrowUp" || event.key === "ArrowRight") { event.preventDefault(); nudgeMonths(event.shiftKey ? 1 : 0.25) }
                     if (event.key === "ArrowDown" || event.key === "ArrowLeft") { event.preventDefault(); nudgeMonths(event.shiftKey ? -1 : -0.25) }
@@ -168,15 +231,15 @@ function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOut
               ))}
 
               <div className="pointer-events-none absolute bottom-3 left-[calc(50%-3.5rem)] right-0 top-3 z-10">
-                <div className="absolute inset-x-0 flex translate-y-1/2 items-center transition-[bottom] duration-500 ease-out" style={{ bottom: `${markerPct}%` }}>
-                  <span className={`h-[3px] w-28 rounded-full bg-gradient-to-r from-cyan-400/10 via-cyan-300/70 to-cyan-200 shadow-[0_0_10px_rgba(34,211,238,0.4)] transition-all duration-200 peer-hover:h-1 peer-hover:shadow-[0_0_16px_rgba(34,211,238,0.65)] ${dragScale !== null ? "h-1 shadow-[0_0_18px_rgba(34,211,238,0.8)]" : ""}`} />
-                  <span className={`relative -ml-2 flex size-5 items-center justify-center rounded-full border-2 border-cyan-100 bg-slate-950 shadow-[0_0_0_4px_rgba(34,211,238,0.12),0_0_16px_rgba(34,211,238,0.75)] transition-transform duration-200 peer-hover:scale-110 ${dragScale !== null ? "scale-110" : ""}`}>
-                    <span className={`size-2 rounded-full bg-cyan-300 ${dragScale !== null ? "animate-pulse" : ""}`} />
+                <div className={`absolute inset-x-0 flex translate-y-1/2 items-center ${dragScale !== null ? "transition-none" : "transition-[bottom] duration-150 ease-out"}`} style={{ bottom: `${markerPct}%` }}>
+                  <span className={`h-[3px] w-28 rounded-full bg-gradient-to-r from-cyan-400/10 via-cyan-300/70 to-cyan-200 shadow-[0_0_10px_rgba(34,211,238,0.4)] transition-all duration-150 peer-hover:h-1 peer-hover:shadow-[0_0_16px_rgba(34,211,238,0.65)] ${dragScale !== null ? "h-1 shadow-[0_0_18px_rgba(34,211,238,0.8)]" : ""}`} />
+                  <span className={`relative -ml-2 flex size-5 items-center justify-center rounded-full border-2 border-cyan-100 bg-slate-950 shadow-[0_0_0_4px_rgba(34,211,238,0.12),0_0_16px_rgba(34,211,238,0.75)] transition-transform duration-150 peer-hover:scale-110 ${dragScale !== null ? "scale-110" : ""}`}>
+                    <span className="size-2 rounded-full bg-cyan-300" />
                   </span>
-                  <span className={`ml-2 flex items-center gap-2 rounded-xl border border-cyan-700/60 bg-slate-950/95 px-2.5 py-1.5 whitespace-nowrap shadow-[0_8px_24px_rgba(2,6,23,0.45)] backdrop-blur transition-all duration-200 peer-hover:-translate-y-0.5 peer-hover:border-cyan-500/70 ${dragScale !== null ? "-translate-y-0.5 border-cyan-400/80 shadow-[0_10px_28px_rgba(8,145,178,0.22)]" : ""}`}>
+                  <span className={`ml-2 flex items-center gap-2 rounded-xl border border-cyan-700/60 bg-slate-950/95 px-2.5 py-1.5 whitespace-nowrap shadow-[0_8px_24px_rgba(2,6,23,0.45)] backdrop-blur transition-[transform,border-color,box-shadow] duration-150 peer-hover:-translate-y-0.5 peer-hover:border-cyan-500/70 ${dragScale !== null ? "-translate-y-0.5 border-cyan-400/80 shadow-[0_10px_28px_rgba(8,145,178,0.22)]" : ""}`}>
                     <span className="flex flex-col leading-none">
                       <span className="savings-level-label text-[8px] font-bold uppercase tracking-[0.16em] text-slate-500">Savings Level</span>
-                      <span className="savings-level-value mt-1 text-[11px] font-bold tabular-nums text-cyan-200">{reserveMonths.toFixed(1)} mo · {formatCurrency(outputs.currentReserveLevel)}</span>
+                      <span className="savings-level-value mt-1 text-[11px] font-bold tabular-nums text-cyan-200">{displayedReserveMonths.toFixed(1)} mo · {formatCurrency(displayedReserveDollars)}</span>
                     </span>
                     {canAdjust ? <MoveVertical className="size-3.5 text-cyan-400" aria-hidden="true" /> : null}
                   </span>
