@@ -35,7 +35,7 @@ export function AnimatedSection({ children, delay = 0, className }: AnimatedSect
 
   return (
     <div
-      className={className}
+      className={["animated-section", className].filter(Boolean).join(" ")}
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(16px)",
