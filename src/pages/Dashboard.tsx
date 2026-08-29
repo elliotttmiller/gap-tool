@@ -238,7 +238,7 @@ function DashboardWatermark() {
   return (
     <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
       <svg
-        className="absolute top-36 -right-[18rem] size-[clamp(38rem,58vw,58rem)] max-w-none opacity-[0.11] sm:top-24 sm:-right-[20rem] dark:opacity-[0.14]"
+        className="absolute top-28 -right-[22rem] size-[clamp(46rem,72vw,72rem)] max-w-none opacity-[0.11] sm:top-12 sm:-right-[25rem] dark:opacity-[0.14]"
         viewBox="0 0 1254 1254"
         preserveAspectRatio="xMidYMid meet"
         focusable="false"
