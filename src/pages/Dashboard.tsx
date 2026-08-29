@@ -11,6 +11,7 @@ import {
 } from "@/components/Drawer"
 import { Input } from "@/components/Input"
 import { ThemedSelect } from "@/components/ThemedSelect"
+import { ImportClientsDrawer } from "@/features/client-profiles/ClientProfileActions"
 import type { DiBenefitPeriod } from "@/features/risk-modules/disability/types"
 import { ClientRecord, RiskModuleType, useAppStore } from "@/lib/store"
 import { cx, formatDate } from "@/lib/utils"
@@ -98,7 +99,10 @@ function AddClientDrawer() {
       </DrawerTrigger>
       <DrawerContent className="sm:max-w-5xl">
         <DrawerHeader>
-          <DrawerTitle>Client Setup</DrawerTitle>
+          <div className="flex flex-wrap items-center gap-2">
+            <DrawerTitle>Client Setup</DrawerTitle>
+            <ImportClientsDrawer compact />
+          </div>
         </DrawerHeader>
         <DrawerBody className="space-y-5">
           <SectionTitle>Client Type</SectionTitle>
