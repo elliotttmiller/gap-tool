@@ -1,0 +1,101 @@
+/*
+ * Shared annual financial projection chart contract.
+ *
+ * Life and Disability both render the same Recharts frame through
+ * FinancialProjectionChart. This stylesheet owns the remaining SVG interaction,
+ * theme, and print behavior that cannot be expressed as React props alone.
+ */
+
+.financial-projection-chart .financial-projection-plot {
+  position: relative;
+}
+
+/* Disability previously drew a second CSS axis frame because its native
+ * Recharts axes were disabled. Both modules now use the shared native axes. */
+.financial-projection-chart .financial-projection-plot::before,
+.financial-projection-chart .financial-projection-plot::after,
+.disability-chart-panel .chart-reveal::before,
+.disability-chart-panel .chart-reveal::after {
+  content: none !important;
+  display: none !important;
+}
+
+.financial-projection-chart .recharts-cartesian-axis-line,
+.financial-projection-chart .recharts-cartesian-axis-tick-line {
+  stroke: var(--financial-chart-axis-line, rgb(100 116 139 / 0.52));
+  stroke-width: 1;
+  shape-rendering: geometricPrecision;
+}
+
+.financial-projection-chart .recharts-cartesian-grid line {
+  shape-rendering: geometricPrecision;
+}
+
+.financial-projection-chart .recharts-rectangle {
+  shape-rendering: geometricPrecision;
+}
+
+/* One category-wide hover surface keeps stacked bars visually unified. */
+.financial-projection-chart .recharts-tooltip-cursor {
+  fill: var(--financial-chart-hover-band, rgb(24 138 137 / 0.08)) !important;
+  stroke: var(--financial-chart-hover-stroke, rgb(24 138 137 / 0.24)) !important;
+  stroke-width: 1 !important;
+  rx: 5px;
+  ry: 5px;
+  pointer-events: none;
+  transition: fill 140ms ease, stroke 140ms ease, opacity 140ms ease;
+}
+
+.financial-projection-chart .recharts-bar-rectangle .recharts-rectangle,
+.financial-projection-chart .recharts-bar-rectangle .recharts-rectangle:hover {
+  transform: none !important;
+  transform-box: fill-box;
+  transform-origin: center bottom;
+}
+
+.dark .financial-projection-chart .recharts-cartesian-axis-tick-value {
+  fill: var(--dark-text-muted, #d9e1e5) !important;
+}
+
+.light .financial-projection-chart .recharts-cartesian-axis-tick-value {
+  fill: #405966 !important;
+}
+
+@media print {
+  .print-report-body .financial-projection-chart .recharts-cartesian-axis-line,
+  .print-report-body .financial-projection-chart .recharts-cartesian-axis-tick-line {
+    stroke: #91a7b2 !important;
+    stroke-width: 0.8 !important;
+    shape-rendering: geometricPrecision !important;
+  }
+
+  .print-report-body .financial-projection-chart .recharts-cartesian-axis-tick-value {
+    fill: #526b78 !important;
+    font-size: 9.5px !important;
+    font-weight: 500 !important;
+  }
+
+  .print-report-body .financial-projection-chart .recharts-cartesian-grid line {
+    stroke: #dbe5e8 !important;
+    stroke-width: 0.7 !important;
+    stroke-dasharray: 3 4 !important;
+  }
+
+  .print-report-body .financial-projection-chart .recharts-tooltip-cursor {
+    display: none !important;
+  }
+
+  /* PDF output is static and must not inherit an advisor's selected-age state. */
+  .print-report-body .financial-projection-chart .recharts-rectangle {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .financial-projection-chart .recharts-tooltip-cursor,
+  .financial-projection-chart .recharts-bar-rectangle .recharts-rectangle {
+    transition: none !important;
+  }
+}
