@@ -5,6 +5,66 @@
  * change chart data, calculations, domains, inputs, assumptions, or behavior.
  */
 
+/* Shared axis-line treatment for the annual financial projection charts.
+   Recharts intentionally suppresses the Y baseline in these views and the
+   Disability chart suppresses both baselines. Draw a precise plot-boundary
+   baseline at the same measured offsets as each chart's YAxis/XAxis so Life
+   and Disability have a clear X/Y frame in light mode, dark mode, and print
+   without changing chart data, scales, ticks, or responsive geometry. */
+:root {
+  --financial-chart-axis-line: rgb(100 116 139 / 0.52);
+}
+
+.dark {
+  --financial-chart-axis-line: rgb(148 163 184 / 0.62);
+}
+
+.life-chart-area,
+.disability-chart-panel .chart-reveal {
+  position: relative;
+}
+
+.life-chart-area::before,
+.life-chart-area::after,
+.disability-chart-panel .chart-reveal::before,
+.disability-chart-panel .chart-reveal::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  background: var(--financial-chart-axis-line);
+}
+
+/* Life BarChart geometry: margin L2/R14/T8/B8 + YAxis 46px + XAxis ~30px. */
+.life-chart-area::before {
+  left: 48px;
+  right: 14px;
+  bottom: 38px;
+  height: 1px;
+}
+
+.life-chart-area::after {
+  top: 8px;
+  bottom: 38px;
+  left: 48px;
+  width: 1px;
+}
+
+/* Disability BarChart geometry: margin L0/R16/T10/B4 + YAxis 48px + XAxis ~30px. */
+.disability-chart-panel .chart-reveal::before {
+  left: 48px;
+  right: 16px;
+  bottom: 34px;
+  height: 1px;
+}
+
+.disability-chart-panel .chart-reveal::after {
+  top: 10px;
+  bottom: 34px;
+  left: 48px;
+  width: 1px;
+}
+
 /* Raise neutral/context copy contrast only in dark mode. Light mode is left
    completely untouched. Existing utility mappings in index.css consume these
    variables, so gray/slate context copy follows one consistent dark schema. */
@@ -72,6 +132,12 @@
 .disability-chart-panel .recharts-rectangle[opacity="0.28"]:hover {
   opacity: 0.62 !important;
   filter: blur(0.2px) brightness(1.06) drop-shadow(0 0 7px rgb(255 255 255 / 0.24)) !important;
+}
+
+@media print {
+  :root {
+    --financial-chart-axis-line: #9eb2bb;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
