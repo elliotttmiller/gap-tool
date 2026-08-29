@@ -8,6 +8,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/Drawer"
+import { parseClientProfileCsv } from "@/lib/clientProfileCsv"
 import { downloadClientProfileFile, parseClientProfileFile } from "@/lib/clientProfileExchange"
 import type { ClientRecord, CreateClientPayload } from "@/lib/store"
 import { useAppStore } from "@/lib/store"
@@ -22,7 +23,11 @@ type ImportPreview = {
   duplicates: string[]
 }
 
-export function ImportClientsDrawer() {
+type ImportClientsDrawerProps = {
+  compact?: boolean
+}
+
+export function ImportClientsDrawer({ compact = false }: ImportClientsDrawerProps) {
   const existingClients = useAppStore((state) => state.clients)
   const createClient = useAppStore((state) => state.createClient)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -41,8 +46,12 @@ export function ImportClientsDrawer() {
   async function selectFile(file?: File) {
     reset()
     if (!file) return
-    if (!file.name.toLowerCase().endsWith(".json")) {
-      setErrors(["Choose a Gap Tool client-profile JSON file."])
+
+    const lowerName = file.name.toLowerCase()
+    const isJson = lowerName.endsWith(".json")
+    const isCsv = lowerName.endsWith(".csv")
+    if (!isJson && !isCsv) {
+      setErrors(["Choose a Gap Tool client-profile JSON or CSV file."])
       return
     }
     if (file.size > MAX_IMPORT_BYTES) {
@@ -50,7 +59,8 @@ export function ImportClientsDrawer() {
       return
     }
 
-    const result = parseClientProfileFile(await file.text())
+    const contents = await file.text()
+    const result = isCsv ? parseClientProfileCsv(contents) : parseClientProfileFile(contents)
     if (result.ok === false) {
       setErrors(result.errors)
       return
@@ -73,23 +83,36 @@ export function ImportClientsDrawer() {
   return (
     <Drawer open={open} onOpenChange={(nextOpen) => { setOpen(nextOpen); if (!nextOpen) reset() }}>
       <DrawerTrigger asChild>
-        <Button variant="secondary">
-          Import Clients
-        </Button>
+        {compact ? (
+          <button
+            type="button"
+            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#188a89]/45 bg-[#188a89]/10 px-2.5 text-xs font-semibold text-[#188a89] transition-colors hover:border-[#188a89] hover:bg-[#188a89]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#188a89] dark:text-[#80d5db]"
+            aria-label="Import clients from CSV or JSON"
+            title="Import clients from CSV or JSON"
+          >
+            <RiUpload2Line className="size-4" aria-hidden="true" />
+            Import CSV/JSON
+          </button>
+        ) : (
+          <Button variant="secondary">
+            <RiUpload2Line className="size-4" aria-hidden="true" />
+            Import Clients
+          </Button>
+        )}
       </DrawerTrigger>
       <DrawerContent className="sm:max-w-2xl">
         <DrawerHeader><DrawerTitle>Import Client Profiles</DrawerTitle></DrawerHeader>
         <DrawerBody className="space-y-5">
           <div>
-            <p className="text-sm leading-6 text-gray-300">Import one or multiple client input profiles from a Gap Tool JSON file. Existing clients, reviews, calculations, and advisor assumptions will not be changed.</p>
+            <p className="text-sm leading-6 text-gray-300">Import one or multiple client input profiles from a Gap Tool JSON file or a CSV using the client-profile field names as column headers. Existing clients, reviews, calculations, and advisor assumptions will not be changed.</p>
             <p className="mt-2 text-xs leading-5 text-gray-500">Review the detected profiles before confirming. Imported clients receive new internal IDs and are ready for risk-review generation.</p>
           </div>
 
-          <input ref={inputRef} type="file" accept="application/json,.json" className="sr-only" onChange={(event) => void selectFile(event.target.files?.[0])} />
+          <input ref={inputRef} type="file" accept="application/json,text/csv,.json,.csv" className="sr-only" onChange={(event) => void selectFile(event.target.files?.[0])} />
           <button type="button" onClick={() => inputRef.current?.click()} className="flex w-full flex-col items-center justify-center rounded-2xl border border-dashed border-gray-700 bg-gray-950/50 px-6 py-10 text-center transition hover:border-brand-500/60 hover:bg-brand-500/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400">
             <RiFileUploadLine className="size-7 text-brand-400" aria-hidden="true" />
             <span className="mt-3 text-sm font-semibold text-gray-100">Choose client-profile file</span>
-            <span className="mt-1 text-xs text-gray-500">JSON · up to 2 MB · up to 500 clients</span>
+            <span className="mt-1 text-xs text-gray-500">CSV or JSON · up to 2 MB · up to 500 clients</span>
           </button>
 
           {errors.length ? (
