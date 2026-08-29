@@ -218,6 +218,16 @@
     opacity: 1 !important;
   }
 
+  /* Builder-only visualization selectors are useful while presenting, but are
+     not report content. Remove the Disability Income Gap / Premium vs
+     Self-Insured / Job A vs Job B / Asset Comparison selector row from the
+     print tree entirely so the PDF starts directly with the selected analysis. */
+  .print-report-body .space-y-6 > .animated-section > .flex.flex-wrap.gap-1.mb-4 {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
   /* Move the already-measured report into page flow without changing its
      printable content width. 7.66in = 8.5in letter width - 0.42in margins. */
   .presentation-mode > .hidden.print\:block {
