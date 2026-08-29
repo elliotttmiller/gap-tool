@@ -1,9 +1,10 @@
-/* Runtime support for browser PDF export.
+/* Runtime support for deterministic browser PDF export.
  *
- * Recharts measures ResponsiveContainer dimensions while the screen tree is
- * mounted. A display:none print tree therefore produces zero-sized SVG charts
- * when Chromium opens print preview. Keep the print report fully laid out
- * off-canvas on screen so every chart has real dimensions before window.print.
+ * Recharts ResponsiveContainer measures its parent in screen media. The PDF
+ * report therefore stays mounted off-canvas at the exact printable content
+ * width and uses the same chart/grid geometry before window.print() runs.
+ * This prevents Chromium print preview from reusing SVG coordinates measured
+ * against a different screen layout.
  */
 
 @media screen {
@@ -21,8 +22,15 @@
     contain: layout style !important;
   }
 
-  /* Give ResponsiveContainer the same deterministic chart heights it will
-     receive in the printed Letter document. */
+  /* Mirror the print document's single-column module dashboards exactly. */
+  .presentation-mode > .hidden.print\:block .life-visual-dashboard,
+  .presentation-mode > .hidden.print\:block .liability-visual-dashboard,
+  .presentation-mode > .hidden.print\:block .unemployment-visual-dashboard {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0.08in !important;
+  }
+
   .presentation-mode > .hidden.print\:block .life-chart-area,
   .presentation-mode > .hidden.print\:block .liability-chart-area {
     display: block !important;
@@ -32,11 +40,53 @@
     max-height: 3.18in !important;
   }
 
+  /* Disability must be measured using the same chart/metric split that is
+     used on the PDF page. The former screen layout reserved 13.5–17rem for
+     the metric rail, while print reserved only 1.52in; that mismatch caused
+     the chart SVG to retain a narrow plot centered inside a wider print card. */
+  .presentation-mode > .hidden.print\:block .disability-coverage-grid {
+    display: grid !important;
+    grid-template-areas:
+      "chart metric"
+      "summary summary" !important;
+    grid-template-columns: minmax(0, 1fr) 1.52in !important;
+    grid-template-rows: auto auto !important;
+    gap: 0.08in !important;
+    align-items: stretch !important;
+  }
+
+  .presentation-mode > .hidden.print\:block .disability-chart-panel {
+    grid-area: chart !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    height: 5.15in !important;
+    max-height: 5.15in !important;
+    overflow: hidden !important;
+  }
+
   .presentation-mode > .hidden.print\:block .disability-chart-panel .chart-reveal {
     display: block !important;
     width: 100% !important;
-    height: 3.15in !important;
-    min-height: 3.15in !important;
+    height: 3.72in !important;
+    min-height: 3.72in !important;
+    max-height: 3.72in !important;
+  }
+
+  .presentation-mode > .hidden.print\:block .disability-coverage-grid > .module-metric-rail {
+    grid-area: metric !important;
+    display: block !important;
+    min-width: 0 !important;
+  }
+
+  .presentation-mode > .hidden.print\:block .disability-summary-rail {
+    grid-area: summary !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 5pt !important;
+  }
+
+  .presentation-mode > .hidden.print\:block .disability-summary-rail--cola {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   }
 
   .presentation-mode > .hidden.print\:block .recharts-responsive-container {
@@ -46,9 +96,8 @@
   }
 }
 
-/* Use the actual docs/favicon.svg geometry as the cover watermark. The SVG
- * filter in ReportCoverPage converts every non-transparent source pixel to the
- * exact brand-neutral #747B85 while retaining the source alpha/shape. */
+/* Cover watermark positioning; the actual mark is rendered from favicon.svg
+ * by ReportCoverPage, not recreated with CSS geometry. */
 .report-cover-watermark-mark {
   position: absolute;
   top: 2.05in;
@@ -78,8 +127,8 @@
     opacity: 1 !important;
   }
 
-  /* The print report must become the normal page-flow document at print time;
-     this reverses the off-canvas prelayout state above without remounting it. */
+  /* Move the already-measured report into page flow without changing its
+     printable content width. 7.66in = 8.5in letter width - 0.42in margins. */
   .presentation-mode > .hidden.print\:block {
     position: static !important;
     left: auto !important;
@@ -90,8 +139,6 @@
     contain: none !important;
   }
 
-  /* Preserve the already-measured Recharts SVG instead of allowing print
-     pagination to collapse a responsive wrapper back to zero dimensions. */
   .print-report-body .recharts-responsive-container,
   .print-report-body .recharts-wrapper,
   .print-report-body .recharts-surface {
