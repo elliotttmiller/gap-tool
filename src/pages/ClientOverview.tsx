@@ -3,9 +3,9 @@ import { Card } from "@/components/Card"
 import { Input } from "@/components/Input"
 import { ThemedSelect } from "@/components/ThemedSelect"
 import type { DiBenefitPeriod } from "@/features/risk-modules/disability/types"
+import { ClientFormState, formFromClient, formToPayload, isClientFormValid } from "@/lib/clientFormSchema"
 import { useAppStore } from "@/lib/store"
 import { cx } from "@/lib/utils"
-import { ClientFormState, formFromClient, formToPayload, isClientFormValid } from "@/lib/clientFormSchema"
 import { RiArrowLeftLine, RiSave3Line } from "@remixicon/react"
 import { useMemo, useState } from "react"
 import { Link, useParams } from "react-router-dom"
@@ -35,6 +35,26 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="text-sm font-medium text-gray-300">{label}</span>
       {children}
     </label>
+  )
+}
+
+function EarnerPanel({
+  title,
+  description,
+  children,
+}: {
+  title: string
+  description: string
+  children: React.ReactNode
+}) {
+  return (
+    <section className="rounded-xl border border-gray-800 bg-gray-950/35 p-5">
+      <div className="mb-4">
+        <h3 className="text-sm font-semibold text-gray-100">{title}</h3>
+        <p className="mt-1 text-xs leading-5 text-gray-500">{description}</p>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
+    </section>
   )
 }
 
@@ -121,68 +141,67 @@ export function ClientOverview() {
         </div>
 
         <div className="space-y-4">
-          <SectionTitle title="Primary Earner" />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <Field label="First name *"><Input value={form.firstName} onChange={(event) => setField("firstName", event.target.value)} /></Field>
-            <Field label="Last name *"><Input value={form.lastName} onChange={(event) => setField("lastName", event.target.value)} /></Field>
-            <Field label="Household / display name"><Input value={form.displayName} onChange={(event) => setField("displayName", event.target.value)} /></Field>
-            <Field label="Current age *"><Input type="number" min={18} max={100} value={form.age} onChange={(event) => setField("age", event.target.value)} /></Field>
-            <Field label="Projection end age *"><Input type="number" min={18} max={100} value={form.expectedRetirementAge} onChange={(event) => setField("expectedRetirementAge", event.target.value)} /></Field>
-            <Field label="Annual income ($) *"><Input type="number" min={0} groupThousands value={form.annualIncome} onChange={(event) => setField("annualIncome", event.target.value)} /></Field>
-            <Field label="Monthly expenses ($)"><Input type="number" min={0} groupThousands value={form.monthlyExpenses} onChange={(event) => setField("monthlyExpenses", event.target.value)} /></Field>
+          <SectionTitle
+            title={isCouple ? "Household Earners" : "Primary Earner"}
+            description={isCouple ? "Keep both earners together so income, assets, and Life coverage can be reviewed consistently across the household." : "Primary client information used across the advisor risk modules."}
+          />
+          <div className={cx("grid gap-4", isCouple && "xl:grid-cols-2")}>
+            <EarnerPanel title="Primary Earner" description="Primary insured and income source for the household review.">
+              <Field label="First name *"><Input value={form.firstName} onChange={(event) => setField("firstName", event.target.value)} /></Field>
+              <Field label="Last name *"><Input value={form.lastName} onChange={(event) => setField("lastName", event.target.value)} /></Field>
+              <Field label="Current age *"><Input type="number" min={18} max={100} value={form.age} onChange={(event) => setField("age", event.target.value)} /></Field>
+              <Field label="Annual income to replace ($) *"><Input type="number" min={0} groupThousands value={form.annualIncome} onChange={(event) => setField("annualIncome", event.target.value)} /></Field>
+              <Field label="Non-qualified assets ($)"><Input type="number" min={0} groupThousands value={form.nonQualifiedAssets} onChange={(event) => setField("nonQualifiedAssets", event.target.value)} /></Field>
+              <Field label="Group Life death benefit ($)"><Input type="number" min={0} groupThousands value={form.groupLifeCoverage} onChange={(event) => setField("groupLifeCoverage", event.target.value)} /></Field>
+              <Field label="Private Life death benefit ($)"><Input type="number" min={0} groupThousands value={form.privateLifeCoverage} onChange={(event) => setField("privateLifeCoverage", event.target.value)} /></Field>
+            </EarnerPanel>
+
+            {isCouple ? (
+              <EarnerPanel title="Secondary Earner" description="Secondary insured and income source included in household replacement needs.">
+                <Field label="Full name"><Input value={form.spouseName} onChange={(event) => setField("spouseName", event.target.value)} /></Field>
+                <Field label="Current age"><Input type="number" min={18} max={100} value={form.spouseAge} onChange={(event) => setField("spouseAge", event.target.value)} /></Field>
+                <Field label="Annual income to replace ($)"><Input type="number" min={0} groupThousands value={form.spouseAnnualIncome} onChange={(event) => setField("spouseAnnualIncome", event.target.value)} /></Field>
+                <Field label="Non-qualified assets ($)"><Input type="number" min={0} groupThousands value={form.spouseNonQualifiedAssets} onChange={(event) => setField("spouseNonQualifiedAssets", event.target.value)} /></Field>
+                <Field label="Group Life death benefit ($)"><Input type="number" min={0} groupThousands value={form.spouseGroupLifeCoverage} onChange={(event) => setField("spouseGroupLifeCoverage", event.target.value)} /></Field>
+                <Field label="Private Life death benefit ($)"><Input type="number" min={0} groupThousands value={form.spousePrivateLifeCoverage} onChange={(event) => setField("spousePrivateLifeCoverage", event.target.value)} /></Field>
+              </EarnerPanel>
+            ) : null}
           </div>
         </div>
 
         <div className="space-y-4">
-          <SectionTitle title="Household Cash / Assets" description="These values feed Life Insurance, Unemployment, and Liability assumptions." />
+          <SectionTitle title="Household Planning" description="Shared household values used to prefill projection, liquidity, and liability assumptions." />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <Field label="Household / display name"><Input value={form.displayName} onChange={(event) => setField("displayName", event.target.value)} /></Field>
+            <Field label="Projection end age *"><Input type="number" min={18} max={100} value={form.expectedRetirementAge} onChange={(event) => setField("expectedRetirementAge", event.target.value)} /></Field>
+            <Field label="Monthly household expenses ($)"><Input type="number" min={0} groupThousands value={form.monthlyExpenses} onChange={(event) => setField("monthlyExpenses", event.target.value)} /></Field>
             <Field label="Emergency savings ($)"><Input type="number" min={0} groupThousands value={form.emergencySavings} onChange={(event) => setField("emergencySavings", event.target.value)} /></Field>
-            <Field label="Non-qualified assets ($)"><Input type="number" min={0} groupThousands value={form.nonQualifiedAssets} onChange={(event) => setField("nonQualifiedAssets", event.target.value)} /></Field>
             <Field label="Home equity ($)"><Input type="number" min={0} groupThousands value={form.homeEquity} onChange={(event) => setField("homeEquity", event.target.value)} /></Field>
           </div>
         </div>
 
         <div className="space-y-4">
-          <SectionTitle title="Existing Life Coverage — Primary Earner" />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            <Field label="Group Life death benefit ($)"><Input type="number" min={0} groupThousands value={form.groupLifeCoverage} onChange={(event) => setField("groupLifeCoverage", event.target.value)} /></Field>
-            <Field label="Private Life death benefit ($)"><Input type="number" min={0} groupThousands value={form.privateLifeCoverage} onChange={(event) => setField("privateLifeCoverage", event.target.value)} /></Field>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <SectionTitle title="Group Long Term Disability (LTD)" description="These values prefill the Disability module when a risk review is generated or refreshed." />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <Field label="Coverage of Income (%)"><Input type="number" min={0} max={100} step={1} value={form.ltdCoveragePercent} onChange={(event) => setField("ltdCoveragePercent", event.target.value)} /></Field>
-            <Field label="Monthly Cap ($)"><Input type="number" min={0} groupThousands value={form.ltdMonthlyCap} onChange={(event) => setField("ltdMonthlyCap", event.target.value)} /></Field>
-            <Field label="Taxable?"><ThemedSelect value={form.ltdTaxable ? "true" : "false"} onValueChange={(value) => setField("ltdTaxable", value === "true")} options={[{ value: "true", label: "Yes - 70% of gross" }, { value: "false", label: "No - full benefit" }]} /></Field>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <SectionTitle title="Individual Disability Insurance" description="Individual DI benefit, premium, benefit period, and break-even assumptions for income-gap analysis." />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-            <Field label="Monthly Benefit ($)"><Input type="number" min={0} groupThousands value={form.privateDisabilityBenefitMonthly} onChange={(event) => setField("privateDisabilityBenefitMonthly", event.target.value)} /></Field>
-            <Field label="Monthly Premium ($)"><Input type="number" min={0} groupThousands value={form.privateDisabilityMonthlyPremium} onChange={(event) => setField("privateDisabilityMonthlyPremium", event.target.value)} /></Field>
-            <Field label="Benefit Period"><ThemedSelect value={form.privateDisabilityBenefitPeriod} onValueChange={(value) => setField("privateDisabilityBenefitPeriod", value as DiBenefitPeriod | "")} options={BENEFIT_PERIOD_OPTIONS} /></Field>
-            <Field label="Break-Even Rate of Return (%)"><Input type="number" min={0} max={30} step={0.1} value={form.disabilityBreakEvenRateOfReturn} onChange={(event) => setField("disabilityBreakEvenRateOfReturn", event.target.value)} /></Field>
-            <Field label="Months Without Income"><Input type="number" min={1} step={1} value={form.disabilityBreakEvenMonthsWithoutIncome} onChange={(event) => setField("disabilityBreakEvenMonthsWithoutIncome", event.target.value)} /></Field>
-          </div>
-        </div>
-
-        {isCouple ? (
-          <div className="space-y-4">
-            <SectionTitle title="Secondary Earner" description="Annual income is added to the Life need when both incomes should be replaced." />
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <Field label="Full name"><Input value={form.spouseName} onChange={(event) => setField("spouseName", event.target.value)} /></Field>
-              <Field label="Current age"><Input type="number" min={18} max={100} value={form.spouseAge} onChange={(event) => setField("spouseAge", event.target.value)} /></Field>
-              <Field label="Annual income to replace ($)"><Input type="number" min={0} groupThousands value={form.spouseAnnualIncome} onChange={(event) => setField("spouseAnnualIncome", event.target.value)} /></Field>
-              <Field label="Non-qualified assets ($)"><Input type="number" min={0} groupThousands value={form.spouseNonQualifiedAssets} onChange={(event) => setField("spouseNonQualifiedAssets", event.target.value)} /></Field>
-              <Field label="Group Life death benefit ($)"><Input type="number" min={0} groupThousands value={form.spouseGroupLifeCoverage} onChange={(event) => setField("spouseGroupLifeCoverage", event.target.value)} /></Field>
-              <Field label="Private Life death benefit ($)"><Input type="number" min={0} groupThousands value={form.spousePrivateLifeCoverage} onChange={(event) => setField("spousePrivateLifeCoverage", event.target.value)} /></Field>
+          <SectionTitle title="Primary Earner Disability Coverage" description="Disability coverage is modeled for the primary earner and prefills the Disability module when a risk review is generated or refreshed." />
+          <div className="rounded-xl border border-gray-800 bg-gray-950/25 p-5">
+            <h3 className="mb-4 text-sm font-semibold text-gray-100">Group Long Term Disability (LTD)</h3>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <Field label="Coverage of Income (%)"><Input type="number" min={0} max={100} step={1} value={form.ltdCoveragePercent} onChange={(event) => setField("ltdCoveragePercent", event.target.value)} /></Field>
+              <Field label="Monthly Cap ($)"><Input type="number" min={0} groupThousands value={form.ltdMonthlyCap} onChange={(event) => setField("ltdMonthlyCap", event.target.value)} /></Field>
+              <Field label="Taxable?"><ThemedSelect value={form.ltdTaxable ? "true" : "false"} onValueChange={(value) => setField("ltdTaxable", value === "true")} options={[{ value: "true", label: "Yes - 70% of gross" }, { value: "false", label: "No - full benefit" }]} /></Field>
             </div>
           </div>
-        ) : null}
+
+          <div className="rounded-xl border border-gray-800 bg-gray-950/25 p-5">
+            <h3 className="mb-4 text-sm font-semibold text-gray-100">Individual Disability Insurance</h3>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+              <Field label="Monthly Benefit ($)"><Input type="number" min={0} groupThousands value={form.privateDisabilityBenefitMonthly} onChange={(event) => setField("privateDisabilityBenefitMonthly", event.target.value)} /></Field>
+              <Field label="Monthly Premium ($)"><Input type="number" min={0} groupThousands value={form.privateDisabilityMonthlyPremium} onChange={(event) => setField("privateDisabilityMonthlyPremium", event.target.value)} /></Field>
+              <Field label="Benefit Period"><ThemedSelect value={form.privateDisabilityBenefitPeriod} onValueChange={(value) => setField("privateDisabilityBenefitPeriod", value as DiBenefitPeriod | "")} options={BENEFIT_PERIOD_OPTIONS} /></Field>
+              <Field label="Break-Even Rate of Return (%)"><Input type="number" min={0} max={30} step={0.1} value={form.disabilityBreakEvenRateOfReturn} onChange={(event) => setField("disabilityBreakEvenRateOfReturn", event.target.value)} /></Field>
+              <Field label="Months Without Income"><Input type="number" min={1} step={1} value={form.disabilityBreakEvenMonthsWithoutIncome} onChange={(event) => setField("disabilityBreakEvenMonthsWithoutIncome", event.target.value)} /></Field>
+            </div>
+          </div>
+        </div>
 
         <div className="space-y-4">
           <SectionTitle title="Household Liability Coverage" />
