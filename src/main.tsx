@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import './styles/dark-chart-polish.css';
+import './styles/print-runtime.css';
 import { ThemeProvider } from './lib/theme';
 
 // Permanently decommission workers and Workbox caches issued by earlier Gap
