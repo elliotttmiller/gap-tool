@@ -15,6 +15,10 @@
   --financial-chart-axis-line: rgb(100 116 139 / 0.52);
   --financial-chart-hover-band: rgb(24 138 137 / 0.08);
   --financial-chart-hover-stroke: rgb(24 138 137 / 0.24);
+  /* Authoritative semantic visualization colors. These match the established
+     Life Income Gap chart and are shared across every risk visualization. */
+  --financial-chart-supported: #10b981;
+  --financial-chart-gap: #ef4444;
 }
 
 .dark {
@@ -93,6 +97,56 @@
 .liability-visual-dashboard .recharts-rectangle,
 .module-output-container .recharts-rectangle {
   shape-rendering: geometricPrecision;
+}
+
+/* Semantic palette normalization. Some older module visualizations predate the
+   shared financial chart theme and still carry legacy North Star green/orange
+   or alternate Tailwind green/red SVG values. Normalize only visualization
+   marks—not business logic, UI state, or warning colors—so supported/covered/
+   surplus is always Life green and gap/unprotected/danger is always Life red. */
+.disability-chart-panel .recharts-rectangle[fill="#f15a29"],
+.liability-visual-dashboard .recharts-rectangle[fill="#f15a29"],
+.module-output-container .recharts-rectangle[fill="#f15a29"],
+.module-output-container .recharts-area-area[fill="#f43f5e"],
+.module-output-container .recharts-line-curve[stroke="#f43f5e"] {
+  fill: var(--financial-chart-gap) !important;
+  stroke: var(--financial-chart-gap) !important;
+}
+
+.liability-visual-dashboard .recharts-rectangle[fill="#44b649"],
+.module-output-container .recharts-line-curve[stroke="#34d399"],
+.module-output-container .recharts-area-area[fill="#22d3ee"] {
+  fill: var(--financial-chart-supported) !important;
+  stroke: var(--financial-chart-supported) !important;
+}
+
+.liability-visual-dashboard .recharts-reference-line-line[stroke="#44b649"] {
+  stroke: var(--financial-chart-supported) !important;
+}
+
+/* Keep legends synchronized with the chart marks they explain. */
+.disability-chart-panel [class*="bg-[#f15a29]"],
+.module-output-container [class*="bg-rose-500"] {
+  background-color: var(--financial-chart-gap) !important;
+}
+
+.module-output-container [class*="bg-emerald-400"] {
+  background-color: var(--financial-chart-supported) !important;
+}
+
+/* Unemployment's target gauge uses the same semantic success/danger colors.
+   The amber below-minimum band remains amber because it represents a warning,
+   not a financial gap category. */
+.unemployment-reserve-plot [class*="from-[#4eb979]"],
+.unemployment-reserve-plot [class*="from-[#79cf95]"] {
+  background-image: none !important;
+  background-color: var(--financial-chart-supported) !important;
+}
+
+.unemployment-reserve-plot [class*="from-[#ed5a46]"],
+.unemployment-reserve-plot [class*="from-[#f47a5f]"] {
+  background-image: none !important;
+  background-color: var(--financial-chart-gap) !important;
 }
 
 /* Treat each stacked age column as one hover target. Recharts' tooltip cursor
