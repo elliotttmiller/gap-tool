@@ -2,7 +2,7 @@ import { LifeInputs } from "../types"
 import { Label } from "@/components/ui/label"
 import { Input, type InputProps } from "@/components/ui/input"
 import { CollapsibleInputSection } from "@/components/ui/collapsible-input-section"
-
+import { AdvisorInfoTooltip } from "@/components/ui/advisor-info-tooltip"
 
 /** Convert a decimal rate (0.04) to a display percentage value (4). */
 function toPercent(rate: number): number {
@@ -43,6 +43,15 @@ function AffixedInput({
   )
 }
 
+function InputLabel({ htmlFor, children, info }: { htmlFor: string; children: string; info?: string }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <Label htmlFor={htmlFor}>{children}</Label>
+      {info ? <AdvisorInfoTooltip content={info} ariaLabel={`About ${children}`} /> : null}
+    </div>
+  )
+}
+
 export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
   const handleNumberChange = (field: keyof LifeInputs, value: string) => {
     const numericValue = parseFiniteOrZero(value)
@@ -52,87 +61,73 @@ export function LifeInputForm({ inputs, onChange }: LifeInputFormProps) {
   return (
     <div className="space-y-4">
       <CollapsibleInputSection title="Income Earner Information" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="currentAge">Current Age</Label>
-            <Input id="currentAge" type="number" min={18} max={64} value={inputs.currentAge || ""} className="w-full" onChange={(e) => handleNumberChange("currentAge", e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="annualIncome">Annual Income</Label>
-            <AffixedInput id="annualIncome" type="number" prefix="$" value={inputs.annualIncome || ""} className="w-full" onChange={(e) => handleNumberChange("annualIncome", e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="retirementAge">Projection End Age</Label>
-            <Input id="retirementAge" type="number" value={inputs.retirementAge || ""} className="w-full" onChange={(e) => handleNumberChange("retirementAge", e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="incomeReplacementRatio">Income Replacement</Label>
-            <AffixedInput id="incomeReplacementRatio" type="number" min={0} max={125} step={5} suffix="%" value={Math.round((inputs.incomeReplacementRatio ?? 0.7) * 100) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, incomeReplacementRatio: fromPercent(e.target.value) })} />
-          </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="currentAge">Current Age</Label>
+          <Input id="currentAge" type="number" min={18} max={64} value={inputs.currentAge || ""} className="w-full" onChange={(e) => handleNumberChange("currentAge", e.target.value)} />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="annualIncome">Annual Income</Label>
+          <AffixedInput id="annualIncome" type="number" prefix="$" value={inputs.annualIncome || ""} className="w-full" onChange={(e) => handleNumberChange("annualIncome", e.target.value)} />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="retirementAge">Projection End Age</Label>
+          <Input id="retirementAge" type="number" value={inputs.retirementAge || ""} className="w-full" onChange={(e) => handleNumberChange("retirementAge", e.target.value)} />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="incomeReplacementRatio">Income Replacement</Label>
+          <AffixedInput id="incomeReplacementRatio" type="number" min={0} max={125} step={5} suffix="%" value={Math.round((inputs.incomeReplacementRatio ?? 0.7) * 100) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, incomeReplacementRatio: fromPercent(e.target.value) })} />
+        </div>
       </CollapsibleInputSection>
 
       <CollapsibleInputSection title="Existing Coverage" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="groupLifeCoverage" className="whitespace-nowrap">Group Life Death Benefit</Label>
-              <AffixedInput id="groupLifeCoverage" type="number" prefix="$" value={inputs.groupLifeCoverage || ""} className="w-full" onChange={(e) => handleNumberChange("groupLifeCoverage", e.target.value)} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="privateLifeCoverage" className="whitespace-nowrap">Private Life Death Benefit</Label>
-              <AffixedInput id="privateLifeCoverage" type="number" prefix="$" value={inputs.privateLifeCoverage || ""} className="w-full" onChange={(e) => handleNumberChange("privateLifeCoverage", e.target.value)} />
-            </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="groupLifeCoverage" className="whitespace-nowrap">Group Life Death Benefit</Label>
+            <AffixedInput id="groupLifeCoverage" type="number" prefix="$" value={inputs.groupLifeCoverage || ""} className="w-full" onChange={(e) => handleNumberChange("groupLifeCoverage", e.target.value)} />
           </div>
-          <div className="grid grid-cols-1 gap-3">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="nonQualifiedAssets" className="whitespace-nowrap">Non-Qualified Assets</Label>
-              <AffixedInput id="nonQualifiedAssets" type="number" prefix="$" value={inputs.nonQualifiedAssets || ""} className="w-full" onChange={(e) => handleNumberChange("nonQualifiedAssets", e.target.value)} />
-            </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="privateLifeCoverage" className="whitespace-nowrap">Private Life Death Benefit</Label>
+            <AffixedInput id="privateLifeCoverage" type="number" prefix="$" value={inputs.privateLifeCoverage || ""} className="w-full" onChange={(e) => handleNumberChange("privateLifeCoverage", e.target.value)} />
           </div>
+        </div>
+        <div className="grid grid-cols-1 gap-3">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="nonQualifiedAssets" className="whitespace-nowrap">Non-Qualified Assets</Label>
+            <AffixedInput id="nonQualifiedAssets" type="number" prefix="$" value={inputs.nonQualifiedAssets || ""} className="w-full" onChange={(e) => handleNumberChange("nonQualifiedAssets", e.target.value)} />
+          </div>
+        </div>
       </CollapsibleInputSection>
 
       <CollapsibleInputSection title="Income Gap Analysis" contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="flex flex-col gap-2">
-                <Label htmlFor="netIncomeFactor">Net Income Factor</Label>
-                <AffixedInput
-                  id="netIncomeFactor"
-                  type="number"
-                  min={0}
-                  max={100}
-                  step={5}
-                  suffix="%"
-                  value={toPercent(inputs.netIncomeFactor ?? inputs.targetIncomeSupportPct ?? inputs.safeIncomeCoveragePct ?? 0.85) || ""}
-                  className="w-full"
-                  onChange={(e) => onChange({ ...inputs, netIncomeFactor: fromPercent(e.target.value) })}
-                  placeholder="85"
-                />
-                <p className="text-[10px] leading-snug text-gray-500">Percentage of gross annual income used to calculate projected net income. Coverage support is then calculated from entered death benefit/resources.</p>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="incomeGapRoi">PV Reference Rate</Label>
-              <AffixedInput id="incomeGapRoi" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.incomeGapRoi ?? 0.05) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, incomeGapRoi: fromPercent(e.target.value) })} placeholder="5" />
-              <p className="text-[10px] leading-snug text-gray-500">Used by both Safe Income Coverage and the Covered Runway Scenario.</p>
-            </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="flex flex-col gap-2">
+            <InputLabel htmlFor="netIncomeFactor" info="Percentage of gross annual income used to calculate projected net income. Coverage support is then calculated from entered death benefit/resources.">Net Income Factor</InputLabel>
+            <AffixedInput id="netIncomeFactor" type="number" min={0} max={100} step={5} suffix="%" value={toPercent(inputs.netIncomeFactor ?? inputs.targetIncomeSupportPct ?? inputs.safeIncomeCoveragePct ?? 0.85) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, netIncomeFactor: fromPercent(e.target.value) })} placeholder="85" />
           </div>
+          <div className="flex flex-col gap-2">
+            <InputLabel htmlFor="incomeGapRoi" info="Used by both Safe Income Coverage and the Covered Runway Scenario.">PV Reference Rate</InputLabel>
+            <AffixedInput id="incomeGapRoi" type="number" min={0} max={25} step={0.5} suffix="%" value={toPercent(inputs.incomeGapRoi ?? 0.05) || ""} className="w-full" onChange={(e) => onChange({ ...inputs, incomeGapRoi: fromPercent(e.target.value) })} placeholder="5" />
+          </div>
+        </div>
       </CollapsibleInputSection>
 
       <CollapsibleInputSection title="Optional Advanced Life Needs" defaultOpen={false} contentClassName="grid grid-cols-1 gap-3 px-5 pt-3 pb-4 sm:grid-cols-2">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="debtsTotal">Outstanding Debts</Label>
-            <AffixedInput id="debtsTotal" type="number" prefix="$" value={inputs.debtsTotal || ""} className="w-full" onChange={(e) => handleNumberChange("debtsTotal", e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="educationGoal">Education Funding Goal</Label>
-            <AffixedInput id="educationGoal" type="number" prefix="$" value={inputs.educationGoal || ""} className="w-full" onChange={(e) => handleNumberChange("educationGoal", e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="finalExpenses">Final Expenses</Label>
-            <AffixedInput id="finalExpenses" type="number" prefix="$" value={inputs.finalExpenses || ""} className="w-full" onChange={(e) => handleNumberChange("finalExpenses", e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="spouseAnnualIncome">Spouse / Partner Income to Replace</Label>
-            <AffixedInput id="spouseAnnualIncome" type="number" prefix="$" value={inputs.spouseAnnualIncome || ""} className="w-full" onChange={(e) => handleNumberChange("spouseAnnualIncome", e.target.value)} />
-            <p className="text-[10px] leading-snug text-gray-500">Adds the spouse/partner's income to the modeled need when the plan should replace both incomes.</p>
-          </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="debtsTotal">Outstanding Debts</Label>
+          <AffixedInput id="debtsTotal" type="number" prefix="$" value={inputs.debtsTotal || ""} className="w-full" onChange={(e) => handleNumberChange("debtsTotal", e.target.value)} />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="educationGoal">Education Funding Goal</Label>
+          <AffixedInput id="educationGoal" type="number" prefix="$" value={inputs.educationGoal || ""} className="w-full" onChange={(e) => handleNumberChange("educationGoal", e.target.value)} />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="finalExpenses">Final Expenses</Label>
+          <AffixedInput id="finalExpenses" type="number" prefix="$" value={inputs.finalExpenses || ""} className="w-full" onChange={(e) => handleNumberChange("finalExpenses", e.target.value)} />
+        </div>
+        <div className="flex flex-col gap-2">
+          <InputLabel htmlFor="spouseAnnualIncome" info="Adds the spouse/partner's income to the modeled need when the plan should replace both incomes.">Spouse / Partner Income to Replace</InputLabel>
+          <AffixedInput id="spouseAnnualIncome" type="number" prefix="$" value={inputs.spouseAnnualIncome || ""} className="w-full" onChange={(e) => handleNumberChange("spouseAnnualIncome", e.target.value)} />
+        </div>
       </CollapsibleInputSection>
     </div>
   )
