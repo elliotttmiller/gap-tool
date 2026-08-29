@@ -1,0 +1,99 @@
+/*
+ * Light-theme typography contrast normalization.
+ *
+ * Presentation-only overrides: no calculations, inputs, chart data, domains,
+ * assumptions, or business logic are changed here. This file centralizes the
+ * readable neutral text hierarchy for light mode so dark-first utility classes
+ * do not render as low-contrast gray on white/light advisor surfaces.
+ */
+
+.light {
+  --light-text-secondary-strong: #2f4856;
+  --light-text-muted-strong: #405966;
+  --light-text-subtle-strong: #526a75;
+  --light-text-placeholder: #667d88;
+}
+
+/* Normalize neutral Tailwind text utilities to a readable light-mode hierarchy.
+   Semantic colors (blue/green/red/amber/brand) are intentionally untouched. */
+.light [class~="text-gray-200"],
+.light [class~="text-gray-300"],
+.light [class~="text-slate-200"],
+.light [class~="text-slate-300"] {
+  color: var(--light-text-secondary-strong) !important;
+}
+
+.light [class~="text-gray-400"],
+.light [class~="text-slate-400"],
+.light [class~="text-gray-500"],
+.light [class~="text-slate-500"] {
+  color: var(--light-text-muted-strong) !important;
+}
+
+.light [class~="text-gray-600"],
+.light [class~="text-slate-600"] {
+  color: var(--light-text-subtle-strong) !important;
+}
+
+.light [class~="text-gray-700"],
+.light [class~="text-slate-700"] {
+  color: #334955 !important;
+}
+
+/* Metric cards are high-frequency advisor reading surfaces. Keep labels and
+   supporting copy darker than the general muted tier while preserving value
+   colors and semantic accents. */
+.light .module-metric-card .module-metric-label,
+.light .module-kpi-card [class~="text-slate-500"] {
+  color: #3b5562 !important;
+}
+
+.light .module-metric-card .module-metric-description,
+.light .module-metric-card .module-metric-disclosure,
+.light .module-kpi-card [class~="text-slate-600"],
+.light .module-kpi-card [class~="text-slate-700"] {
+  color: #4a626e !important;
+}
+
+.light .module-metric-card .module-metric-value [class~="text-gray-400"] {
+  color: #4a626e !important;
+}
+
+/* SVG chart labels do not inherit normal text color utilities. Use the same
+   readable neutral tone for axis ticks while leaving semantic series colors
+   unchanged. */
+.light .recharts-cartesian-axis-tick-value {
+  fill: #405966 !important;
+}
+
+.light .recharts-label,
+.light .recharts-text.recharts-label {
+  fill: #405966 !important;
+}
+
+/* Form helper/placeholder copy should remain visually secondary, but not fade
+   into the light input surface. */
+.light input::placeholder,
+.light textarea::placeholder {
+  color: var(--light-text-placeholder) !important;
+  opacity: 1;
+}
+
+/* Preserve intentionally dark presentation/input surfaces and summary cards.
+   These already have dedicated high-contrast light-theme overrides in
+   index.css and must not inherit the light-surface neutral palette above. */
+.light .presentation-input-rail [class~="text-gray-400"],
+.light .presentation-input-rail [class~="text-slate-400"],
+.light .presentation-input-rail [class~="text-gray-500"],
+.light .presentation-input-rail [class~="text-slate-500"] {
+  color: #b7d9de !important;
+}
+
+.light .analysis-module-summary [class~="text-gray-400"],
+.light .analysis-module-summary [class~="text-gray-500"] {
+  color: #b7cbd4 !important;
+}
+
+.light .analysis-module-summary [class~="text-gray-700"] {
+  color: #d6e2e7 !important;
+}
