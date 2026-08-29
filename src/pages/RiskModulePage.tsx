@@ -56,6 +56,8 @@ interface RiskModulePageProps {
 export function RiskModulePage({ title, subtitle, headerActions, compactForm = false, formSlot, outputSlot }: RiskModulePageProps) {
   const { scenarioId } = useParams()
   const [inputsOpen, setInputsOpen] = React.useState(true)
+  const formColumnRef = React.useRef<HTMLDivElement>(null)
+  const [toggleLeft, setToggleLeft] = React.useState<number | null>(null)
   const scenario = useAppStore((state) =>
     scenarioId ? state.scenarios.find((s) => s.id === scenarioId) : undefined,
   )
@@ -64,6 +66,32 @@ export function RiskModulePage({ title, subtitle, headerActions, compactForm = f
   )
   const setActiveModule = useAppStore((state) => state.setScenarioActiveModule)
   const includedTabs = scenario?.includedModules ?? []
+
+  React.useLayoutEffect(() => {
+    if (!inputsOpen) {
+      setToggleLeft(null)
+      return
+    }
+
+    const formColumn = formColumnRef.current
+    if (!formColumn) return
+
+    const updateTogglePosition = () => {
+      const rect = formColumn.getBoundingClientRect()
+      // Center the 32px-wide control on the actual input/output boundary.
+      setToggleLeft(Math.round(rect.right - 16))
+    }
+
+    updateTogglePosition()
+    const resizeObserver = new ResizeObserver(updateTogglePosition)
+    resizeObserver.observe(formColumn)
+    window.addEventListener("resize", updateTogglePosition)
+
+    return () => {
+      resizeObserver.disconnect()
+      window.removeEventListener("resize", updateTogglePosition)
+    }
+  }, [inputsOpen, compactForm])
 
   return (
     <div className="builder-mode w-full max-w-full space-y-3 overflow-x-hidden">
@@ -135,12 +163,8 @@ export function RiskModulePage({ title, subtitle, headerActions, compactForm = f
         aria-expanded={inputsOpen}
         title={inputsOpen ? "Hide input panel" : "Show input panel"}
         onClick={() => setInputsOpen((open) => !open)}
-        className={cx(
-          "fixed top-1/2 z-40 hidden h-14 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-brand-600/40 bg-white text-brand-700 shadow-[0_8px_24px_rgba(15,42,58,0.16)] ring-4 ring-[#eaf1f3] transition-[left,transform,background-color,border-color,color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[#188a89] hover:bg-[#188a89]/15 hover:text-[#188a89] hover:shadow-[0_10px_28px_rgba(24,138,137,0.18)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#188a89]/25 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:ring-[#25292f] dark:hover:text-white xl:flex",
-          inputsOpen
-            ? "left-[max(1rem,calc((100vw-100rem)/2-2rem))]"
-            : "left-4",
-        )}
+        style={{ left: inputsOpen && toggleLeft !== null ? `${toggleLeft}px` : "1rem" }}
+        className="fixed top-1/2 z-40 hidden h-14 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-brand-600/40 bg-white text-brand-700 shadow-[0_8px_24px_rgba(15,42,58,0.16)] ring-4 ring-[#eaf1f3] transition-[left,transform,background-color,border-color,color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-[#188a89] hover:bg-[#188a89]/15 hover:text-[#188a89] hover:shadow-[0_10px_28px_rgba(24,138,137,0.18)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#188a89]/25 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:ring-[#25292f] dark:hover:text-white xl:flex"
       >
         {inputsOpen ? (
           <RiArrowLeftSLine className="size-5" aria-hidden="true" />
@@ -160,6 +184,7 @@ export function RiskModulePage({ title, subtitle, headerActions, compactForm = f
         )}
       >
         <div
+          ref={formColumnRef}
           className={cx(
             "relative min-w-0 transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
             inputsOpen ? "overflow-visible opacity-100 translate-x-0" : "h-0 overflow-hidden translate-x-0 opacity-100",
