@@ -1,12 +1,14 @@
 export const financialBarChartTheme = {
   geometry: {
     // Annual projection series are intentionally denser than comparison charts.
-    // Life and Disability both consume these values, including the off-canvas
+    // Keep the projection bars slightly narrower than their category bands so
+    // the first/last columns do not visually crowd the chart axes. Life and
+    // Disability both consume these values, including the off-canvas
     // pre-rendered report tree used for browser PDF export, so screen and PDF
     // geometry remain identical.
-    projectionBarSize: 32,
+    projectionBarSize: 24,
     comparisonBarSize: 88,
-    projectionCategoryGap: "8%",
+    projectionCategoryGap: "14%",
     comparisonCategoryGap: "50%",
     stackRadius: 4,
   },
