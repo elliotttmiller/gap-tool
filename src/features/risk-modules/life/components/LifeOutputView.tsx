@@ -149,7 +149,7 @@ function ChartPanel({ title, subtitle, coveredLabel, data, ticks, selectedAge, o
         </div>
       </CardHeader>
       <CardContent className="px-5 pb-4 pt-3">
-        <div className="flex items-stretch gap-1">
+        <div className="flex items-stretch gap-2">
           <div className="flex w-4 shrink-0 items-center justify-center">
             <span style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }} className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider text-slate-500">Annual Income ($)</span>
           </div>
@@ -158,15 +158,32 @@ function ChartPanel({ title, subtitle, coveredLabel, data, ticks, selectedAge, o
               <ResponsiveContainer width="100%" height="100%" debounce={100}>
                 <BarChart
                   data={data}
-                  margin={{ top: 8, right: 14, left: 2, bottom: 8 }}
+                  margin={{ top: 10, right: 18, left: 8, bottom: 10 }}
                   barGap={0}
                   barCategoryGap={financialBarChartTheme.geometry.projectionCategoryGap}
                   onClick={(state) => { if (state?.activePayload) onSelectAge(Number(state.activeLabel)) }}
                   style={{ cursor: "pointer" }}
                 >
                   <CartesianGrid stroke={financialBarChartTheme.grid.stroke} strokeDasharray={financialBarChartTheme.grid.strokeDasharray} vertical={false} />
-                  <XAxis dataKey="age" ticks={ticks} interval={0} minTickGap={8} tickMargin={9} tick={{ fill: financialBarChartTheme.axis.tickFill, fontSize: 10, fontWeight: 600 }} axisLine={{ stroke: financialBarChartTheme.axis.lineStroke, strokeOpacity: financialBarChartTheme.axis.lineOpacity }} tickLine={{ stroke: financialBarChartTheme.axis.lineStroke, strokeOpacity: financialBarChartTheme.axis.lineOpacity }} />
-                  <YAxis tickFormatter={(v) => `$${Math.round(Number(v) / 1000)}k`} tick={{ fill: financialBarChartTheme.axis.tickFill, fontSize: 10 }} axisLine={false} tickLine={false} width={46} />
+                  <XAxis
+                    dataKey="age"
+                    ticks={ticks}
+                    interval={0}
+                    minTickGap={8}
+                    tickMargin={9}
+                    padding={{ left: 10, right: 10 }}
+                    tick={{ fill: financialBarChartTheme.axis.tickFill, fontSize: 10, fontWeight: 600 }}
+                    axisLine={{ stroke: financialBarChartTheme.axis.lineStroke, strokeOpacity: financialBarChartTheme.axis.lineOpacity }}
+                    tickLine={{ stroke: financialBarChartTheme.axis.lineStroke, strokeOpacity: financialBarChartTheme.axis.lineOpacity }}
+                  />
+                  <YAxis
+                    tickFormatter={(v) => `$${Math.round(Number(v) / 1000)}k`}
+                    tick={{ fill: financialBarChartTheme.axis.tickFill, fontSize: 10 }}
+                    axisLine={{ stroke: financialBarChartTheme.axis.lineStroke, strokeOpacity: financialBarChartTheme.axis.lineOpacity }}
+                    tickLine={{ stroke: financialBarChartTheme.axis.lineStroke, strokeOpacity: financialBarChartTheme.axis.lineOpacity }}
+                    tickMargin={7}
+                    width={50}
+                  />
                   {children}
                 </BarChart>
               </ResponsiveContainer>
