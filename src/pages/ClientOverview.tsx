@@ -160,9 +160,10 @@ export function ClientOverview() {
 
             {isCouple ? (
               <EarnerPanel title="Secondary Earner" description="Secondary insured and income source included in household replacement needs.">
-                <Field label="Full name"><Input value={form.spouseName} onChange={(event) => setField("spouseName", event.target.value)} /></Field>
-                <Field label="Current age"><Input type="number" min={18} max={100} value={form.spouseAge} onChange={(event) => setField("spouseAge", event.target.value)} /></Field>
-                <Field label="Annual income to replace ($)"><Input type="number" min={0} groupThousands value={form.spouseAnnualIncome} onChange={(event) => setField("spouseAnnualIncome", event.target.value)} /></Field>
+                <Field label="First name *"><Input value={form.spouseFirstName} onChange={(event) => setField("spouseFirstName", event.target.value)} /></Field>
+                <Field label="Last name *"><Input value={form.spouseLastName} onChange={(event) => setField("spouseLastName", event.target.value)} /></Field>
+                <Field label="Current age *"><Input type="number" min={18} max={100} value={form.spouseAge} onChange={(event) => setField("spouseAge", event.target.value)} /></Field>
+                <Field label="Annual income to replace ($) *"><Input type="number" min={0} groupThousands value={form.spouseAnnualIncome} onChange={(event) => setField("spouseAnnualIncome", event.target.value)} /></Field>
                 <Field label="Non-qualified assets ($)"><Input type="number" min={0} groupThousands value={form.spouseNonQualifiedAssets} onChange={(event) => setField("spouseNonQualifiedAssets", event.target.value)} /></Field>
                 <Field label="Group Life death benefit ($)"><Input type="number" min={0} groupThousands value={form.spouseGroupLifeCoverage} onChange={(event) => setField("spouseGroupLifeCoverage", event.target.value)} /></Field>
                 <Field label="Private Life death benefit ($)"><Input type="number" min={0} groupThousands value={form.spousePrivateLifeCoverage} onChange={(event) => setField("spousePrivateLifeCoverage", event.target.value)} /></Field>

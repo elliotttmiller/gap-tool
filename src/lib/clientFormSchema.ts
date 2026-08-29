@@ -26,7 +26,8 @@ export type ClientFormState = {
   privateDisabilityBenefitPeriod: DiBenefitPeriod | ""
   disabilityBreakEvenRateOfReturn: string
   disabilityBreakEvenMonthsWithoutIncome: string
-  spouseName: string
+  spouseFirstName: string
+  spouseLastName: string
   spouseAge: string
   spouseAnnualIncome: string
   spouseGroupLifeCoverage: string
@@ -60,7 +61,8 @@ export const emptyClientForm: ClientFormState = {
   privateDisabilityBenefitPeriod: "",
   disabilityBreakEvenRateOfReturn: "6",
   disabilityBreakEvenMonthsWithoutIncome: "12",
-  spouseName: "",
+  spouseFirstName: "",
+  spouseLastName: "",
   spouseAge: "",
   spouseAnnualIncome: "",
   spouseGroupLifeCoverage: "",
@@ -75,6 +77,9 @@ export const emptyClientForm: ClientFormState = {
 
 export function formFromClient(client: ClientRecord): ClientFormState {
   const legacyHomeEquity = Math.max(0, (client.profile.homeValue ?? 0) - (client.profile.mortgageBalance ?? 0))
+  const spouseNameParts = (client.profile.spouseIncomeEarnerName ?? "").trim().split(/\s+/).filter(Boolean)
+  const spouseLastName = spouseNameParts.length > 1 ? spouseNameParts.pop() ?? "" : ""
+  const spouseFirstName = spouseNameParts.join(" ")
   return {
     clientType: client.profile.clientType ?? "individual",
     firstName: client.firstName,
@@ -96,7 +101,8 @@ export function formFromClient(client: ClientRecord): ClientFormState {
     privateDisabilityBenefitPeriod: client.profile.privateDisabilityBenefitPeriod ?? "",
     disabilityBreakEvenRateOfReturn: numberToInput((client.profile.disabilityBreakEvenRateOfReturn ?? 0.06) * 100),
     disabilityBreakEvenMonthsWithoutIncome: numberToInput(client.profile.disabilityBreakEvenMonthsWithoutIncome ?? 12),
-    spouseName: client.profile.spouseIncomeEarnerName ?? "",
+    spouseFirstName,
+    spouseLastName,
     spouseAge: numberToInput(client.profile.spouseCurrentAge),
     spouseAnnualIncome: numberToInput(client.profile.spouseAnnualIncome),
     spouseGroupLifeCoverage: numberToInput(client.profile.spouseGroupLifeCoverage),
@@ -116,6 +122,7 @@ function toPercentNumber(value: string): number | undefined {
 }
 
 export function formToPayload(form: ClientFormState): CreateClientPayload {
+  const spouseName = [form.spouseFirstName.trim(), form.spouseLastName.trim()].filter(Boolean).join(" ")
   return {
     clientType: form.clientType,
     firstName: form.firstName,
@@ -137,7 +144,7 @@ export function formToPayload(form: ClientFormState): CreateClientPayload {
     privateDisabilityBenefitPeriod: form.privateDisabilityBenefitPeriod,
     disabilityBreakEvenRateOfReturn: toPercentNumber(form.disabilityBreakEvenRateOfReturn),
     disabilityBreakEvenMonthsWithoutIncome: toNumber(form.disabilityBreakEvenMonthsWithoutIncome),
-    spouseName: form.spouseName || undefined,
+    spouseName: spouseName || undefined,
     spouseAge: toNumber(form.spouseAge),
     spouseAnnualIncome: toNumber(form.spouseAnnualIncome),
     spouseGroupLifeCoverage: toNumber(form.spouseGroupLifeCoverage),
@@ -152,8 +159,13 @@ export function formToPayload(form: ClientFormState): CreateClientPayload {
 // ── Zod validation ────────────────────────────────────────────────────────────
 
 const _requiredFieldSchema = z.object({
+  clientType: z.enum(["individual", "couple"]),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
+  spouseFirstName: z.string(),
+  spouseLastName: z.string(),
+  spouseAge: z.string(),
+  spouseAnnualIncome: z.string(),
   age: z.string()
     .min(1, "Age is required")
     .refine(
@@ -172,10 +184,27 @@ const _requiredFieldSchema = z.object({
       (v) => { const n = Number(v); return Number.isFinite(n) && n >= 0 },
       "Annual income must be 0 or greater",
     ),
-}).refine(
-  (form) => Number(form.expectedRetirementAge) > Number(form.age),
-  { message: "Projection end age must be greater than current age", path: ["expectedRetirementAge"] },
-)
+}).superRefine((form, context) => {
+  if (Number(form.expectedRetirementAge) <= Number(form.age)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "Projection end age must be greater than current age", path: ["expectedRetirementAge"] })
+  }
+  if (form.clientType === "couple" && !form.spouseFirstName.trim()) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "Secondary earner first name is required", path: ["spouseFirstName"] })
+  }
+  if (form.clientType === "couple" && !form.spouseLastName.trim()) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "Secondary earner last name is required", path: ["spouseLastName"] })
+  }
+  if (form.clientType === "couple") {
+    const spouseAge = Number(form.spouseAge)
+    if (!form.spouseAge.trim() || !Number.isFinite(spouseAge) || spouseAge < 18 || spouseAge > 100) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: "Secondary earner age must be between 18 and 100", path: ["spouseAge"] })
+    }
+    const spouseAnnualIncome = Number(form.spouseAnnualIncome)
+    if (!form.spouseAnnualIncome.trim() || !Number.isFinite(spouseAnnualIncome) || spouseAnnualIncome < 0) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: "Secondary earner annual income must be 0 or greater", path: ["spouseAnnualIncome"] })
+    }
+  }
+})
 
 /** Returns true when the form passes all required-field validations. */
 export function isClientFormValid(form: ClientFormState): boolean {

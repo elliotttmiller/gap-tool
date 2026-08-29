@@ -11,6 +11,12 @@ import {
 } from "@/components/Drawer"
 import { Input } from "@/components/Input"
 import { ThemedSelect } from "@/components/ThemedSelect"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/Dropdown"
 import { ImportClientsDrawer } from "@/features/client-profiles/ClientProfileActions"
 import type { DiBenefitPeriod } from "@/features/risk-modules/disability/types"
 import { ClientRecord, RiskModuleType, useAppStore } from "@/lib/store"
@@ -22,7 +28,7 @@ import {
   isClientFormValid,
   validateClientForm,
 } from "@/lib/clientFormSchema"
-import { RiAddLine, RiAlertLine, RiArrowRightSLine, RiDeleteBinLine, RiEyeLine, RiRefreshLine, RiSearchLine, RiUserLine } from "@remixicon/react"
+import { RiAddLine, RiAlertLine, RiDeleteBinLine, RiMore2Line, RiSearchLine, RiUserLine } from "@remixicon/react"
 import { useMemo, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 
@@ -126,9 +132,10 @@ function AddClientDrawer() {
 
             {isCouple ? (
               <EarnerPanel title="Secondary Earner" description="Secondary insured and income source included in household replacement needs.">
-                <Field label="Full name"><Input value={form.spouseName} onChange={(event) => setField("spouseName", event.target.value)} /></Field>
-                <Field label="Current age"><Input type="number" min={18} max={100} value={form.spouseAge} onChange={(event) => setField("spouseAge", event.target.value)} /></Field>
-                <Field label="Annual income to replace ($)"><Input type="number" min={0} groupThousands value={form.spouseAnnualIncome} onChange={(event) => setField("spouseAnnualIncome", event.target.value)} /></Field>
+                <Field label="First name *"><Input value={form.spouseFirstName} onChange={(event) => setField("spouseFirstName", event.target.value)} /></Field>
+                <Field label="Last name *"><Input value={form.spouseLastName} onChange={(event) => setField("spouseLastName", event.target.value)} /></Field>
+                <Field label="Current age *"><Input type="number" min={18} max={100} value={form.spouseAge} onChange={(event) => setField("spouseAge", event.target.value)} /></Field>
+                <Field label="Annual income to replace ($) *"><Input type="number" min={0} groupThousands value={form.spouseAnnualIncome} onChange={(event) => setField("spouseAnnualIncome", event.target.value)} /></Field>
                 <Field label="Non-qualified assets ($)"><Input type="number" min={0} groupThousands value={form.spouseNonQualifiedAssets} onChange={(event) => setField("spouseNonQualifiedAssets", event.target.value)} /></Field>
                 <Field label="Group Life death benefit ($)"><Input type="number" min={0} groupThousands value={form.spouseGroupLifeCoverage} onChange={(event) => setField("spouseGroupLifeCoverage", event.target.value)} /></Field>
                 <Field label="Private Life death benefit ($)"><Input type="number" min={0} groupThousands value={form.spousePrivateLifeCoverage} onChange={(event) => setField("spousePrivateLifeCoverage", event.target.value)} /></Field>
@@ -182,21 +189,85 @@ function AddClientDrawer() {
   )
 }
 
-function RiskReviewDrawer({ client, mode = "generate" }: { client: ClientRecord; mode?: "generate" | "regenerate" }) {
+function ClientActionsMenu({ client, scenarioCount }: { client: ClientRecord; scenarioCount: number }) {
   const navigate = useNavigate()
   const createScenario = useAppStore((state) => state.createScenario)
-  const isRegenerate = mode === "regenerate"
-  function handleClick() {
+  const [removeOpen, setRemoveOpen] = useState(false)
+  const hasGeneratedReview = scenarioCount > 0
+
+  function handleGenerateReview() {
     const scenarioId = createScenario({ clientId: client.id, name: `${client.lastName} Household Risk Review`, includedModules: advisorReferenceModules, activeModule: "life" })
     if (scenarioId) navigate(`/scenarios/${scenarioId}/life`)
   }
-  return isRegenerate ? <button aria-label={`Regenerate risk review for ${client.displayName}`} title="Regenerate risk review" className="rounded-md p-1.5 text-brand-600 transition-colors hover:bg-[#188a89]/15 hover:text-[#188a89] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#188a89] group-hover:text-white/80 dark:text-brand-300 dark:hover:text-white" onClick={handleClick}><RiRefreshLine className="size-4" aria-hidden="true" /></button> : <Button variant="secondary" onClick={handleClick}>Generate Risk Review</Button>
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label={`More actions for ${client.displayName}`}
+            className="relative z-20 flex size-9 items-center justify-center rounded-lg border border-transparent text-[#607583] transition-all hover:border-[#188a89]/35 hover:bg-[#188a89]/15 hover:text-[#188a89] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#188a89] group-hover:text-white/80 dark:text-[#9fb8c4] dark:hover:text-white"
+          >
+            <RiMore2Line className="size-5" aria-hidden="true" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-52">
+          <DropdownMenuItem onSelect={() => navigate(`/clients/${client.id}/overview`)}>
+            View details
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={handleGenerateReview}>
+            {hasGeneratedReview ? "Regenerate review" : "Generate review"}
+          </DropdownMenuItem>
+          <DropdownMenuItem className="text-rose-600 hover:bg-rose-500/10 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-300" onSelect={() => setRemoveOpen(true)}>
+            Delete client
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <RemoveClientDrawer client={client} scenarioCount={scenarioCount} open={removeOpen} onOpenChange={setRemoveOpen} />
+    </>
+  )
 }
 
-function RemoveClientDrawer({ client, scenarioCount }: { client: ClientRecord; scenarioCount: number }) {
+function RemoveClientDrawer({ client, scenarioCount, open, onOpenChange }: { client: ClientRecord; scenarioCount: number; open: boolean; onOpenChange: (open: boolean) => void }) {
   const archiveClient = useAppStore((state) => state.archiveClient)
-  const [open, setOpen] = useState(false)
-  return <Drawer open={open} onOpenChange={setOpen}><DrawerTrigger asChild><button aria-label={`Remove ${client.displayName}`} title="Remove client" className="rounded-md p-1.5 text-[#fb7185] transition-colors hover:bg-rose-500/15 hover:text-[#fda4af] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-400"><RiDeleteBinLine className="size-4" aria-hidden="true" /></button></DrawerTrigger><DrawerContent className="sm:max-w-xl"><DrawerHeader><DrawerTitle>Remove Client</DrawerTitle></DrawerHeader><DrawerBody className="space-y-5"><div className="rounded-2xl border border-red-900/60 bg-red-950/20 p-4"><div className="flex items-start gap-3"><div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-red-950 text-red-300 ring-1 ring-red-800/80"><RiAlertLine className="size-5" aria-hidden="true" /></div><div><p className="font-semibold text-red-100">Remove {client.displayName} from the dashboard?</p><p className="mt-1 text-sm leading-6 text-red-200/70">This will archive the client profile and hide it from active client setup and review workflows.</p></div></div></div><div className="rounded-xl border border-gray-800 bg-gray-950/70 p-4"><p className="text-sm font-medium text-gray-100">{client.displayName}</p><p className="mt-1 text-xs text-gray-500">{client.profile.clientType === "couple" ? "Couple" : "Individual"} · {scenarioCount} risk review{scenarioCount === 1 ? "" : "s"}</p></div></DrawerBody><DrawerFooter><Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button><Button variant="destructive" onClick={() => { archiveClient(client.id); setOpen(false) }}><RiDeleteBinLine className="size-4" />Remove Client</Button></DrawerFooter></DrawerContent></Drawer>
+  return <Drawer open={open} onOpenChange={onOpenChange}><DrawerContent className="sm:max-w-xl"><DrawerHeader><DrawerTitle>Remove Client</DrawerTitle></DrawerHeader><DrawerBody className="space-y-5"><div className="rounded-2xl border border-red-900/60 bg-red-950/20 p-4"><div className="flex items-start gap-3"><div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-red-950 text-red-300 ring-1 ring-red-800/80"><RiAlertLine className="size-5" aria-hidden="true" /></div><div><p className="font-semibold text-red-100">Remove {client.displayName} from the dashboard?</p><p className="mt-1 text-sm leading-6 text-red-200/70">This will archive the client profile and hide it from active client setup and review workflows.</p></div></div></div><div className="rounded-xl border border-gray-800 bg-gray-950/70 p-4"><p className="text-sm font-medium text-gray-100">{client.displayName}</p><p className="mt-1 text-xs text-gray-500">{client.profile.clientType === "couple" ? "Couple" : "Individual"} · {scenarioCount} risk review{scenarioCount === 1 ? "" : "s"}</p></div></DrawerBody><DrawerFooter><Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button><Button variant="destructive" onClick={() => { archiveClient(client.id); onOpenChange(false) }}><RiDeleteBinLine className="size-4" />Remove Client</Button></DrawerFooter></DrawerContent></Drawer>
+}
+
+function DashboardWatermark() {
+  return (
+    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
+      <svg
+        className="absolute top-36 -right-[18rem] size-[clamp(38rem,58vw,58rem)] max-w-none opacity-[0.11] sm:top-24 sm:-right-[20rem] dark:opacity-[0.14]"
+        viewBox="0 0 1254 1254"
+        preserveAspectRatio="xMidYMid meet"
+        focusable="false"
+      >
+        <defs>
+          <filter id="dashboard-solid-grey" colorInterpolationFilters="sRGB">
+            <feColorMatrix
+              type="matrix"
+              values="
+                0 0 0 0 0.454902
+                0 0 0 0 0.482353
+                0 0 0 0 0.521569
+                0 0 0 1 0
+              "
+            />
+          </filter>
+        </defs>
+        <image
+          href={`${import.meta.env.BASE_URL}favicon.svg`}
+          x="0"
+          y="0"
+          width="1254"
+          height="1254"
+          preserveAspectRatio="xMidYMid meet"
+          filter="url(#dashboard-solid-grey)"
+        />
+      </svg>
+    </div>
+  )
 }
 
 export function Dashboard() {
@@ -210,8 +281,10 @@ export function Dashboard() {
   const filteredClients = useMemo(() => { const query = search.trim().toLowerCase(); return query ? clients.filter((client) => client.displayName.toLowerCase().includes(query)) : clients }, [clients, search])
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+    <div className="relative isolate min-h-[calc(100vh-3.75rem)]">
+      <DashboardWatermark />
+      <div className="relative z-10 mx-auto max-w-400 space-y-6 px-8 py-8 sm:px-12">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <div>
           <h1 className="text-2xl font-semibold text-gray-50">Client Setup</h1>
           <p className="mt-1 text-sm text-gray-400">Enter client information to generate a personalized gap analysis across all advisor modules.</p>
@@ -241,16 +314,18 @@ export function Dashboard() {
               {filteredClients.map((client) => {
                 const scenarioCount = scenariosByClientId[client.id] ?? 0
                 const firstScenario = firstScenarioByClientId[client.id]
-                const hasGeneratedReview = scenarioCount > 0
+                const cardDestination = firstScenario
+                  ? `/scenarios/${firstScenario.id}/${firstScenario.activeModule}`
+                  : `/clients/${client.id}/overview`
                 return (
-                  <li key={client.id} className="group flex items-center gap-4 px-6 py-4 transition-colors hover:bg-[#188a89]">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-brand-500/25 bg-brand-500/10 text-brand-600 shadow-inner transition-colors group-hover:border-white/25 group-hover:bg-white/10 group-hover:text-white dark:text-brand-300">
+                  <li key={client.id} className="group relative flex items-center gap-4 px-6 py-4 transition-colors hover:bg-[#188a89]">
+                    <Link to={cardDestination} aria-label={`${firstScenario ? "Open review for" : "Open client profile for"} ${client.displayName}`} className="absolute inset-0 z-0 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#188a89]" />
+                    <div className="pointer-events-none relative z-10 flex size-10 shrink-0 items-center justify-center rounded-xl border border-brand-500/25 bg-brand-500/10 text-brand-600 shadow-inner transition-colors group-hover:border-white/25 group-hover:bg-white/10 group-hover:text-white dark:text-brand-300">
                       <RiUserLine className="size-5" aria-hidden="true" />
                     </div>
-                    <div className="min-w-0 flex-1">
+                    <div className="pointer-events-none relative z-10 min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <Link to={`/clients/${client.id}/overview`} className="truncate font-semibold text-[#102a3a] transition-colors hover:underline group-hover:text-white dark:text-[#f1f7f8]" title="View client overview">{client.displayName}</Link>
-                        <Link to={`/clients/${client.id}/overview`} aria-label={`View and edit ${client.displayName}`} title="View and edit client overview" className="rounded-md p-1 text-brand-600 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white group-hover:text-white/80 dark:text-brand-300"><RiEyeLine className="size-3.5" aria-hidden="true" /></Link>
+                        <span className="truncate font-semibold text-[#102a3a] transition-colors group-hover:text-white dark:text-[#f1f7f8]">{client.displayName}</span>
                       </div>
                       <div className="mt-1 flex items-center gap-2 text-xs text-[#607583] transition-colors group-hover:text-white/75 dark:text-[#9fb8c4]">
                         <span>Updated {formatDate(client.updatedAt)}</span>
@@ -258,12 +333,9 @@ export function Dashboard() {
                         <span>{scenarioCount} review{scenarioCount === 1 ? "" : "s"}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      {firstScenario ? <Link to={`/scenarios/${firstScenario.id}/${firstScenario.activeModule}`} className="rounded-lg border border-brand-500/30 bg-brand-500/10 px-3 py-1.5 text-sm font-semibold text-brand-600 transition-colors hover:border-white/40 hover:bg-white/15 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white group-hover:border-white/25 group-hover:bg-white/10 group-hover:text-white dark:text-brand-300">Open Review</Link> : null}
-                      {hasGeneratedReview ? <RiskReviewDrawer client={client} mode="regenerate" /> : <RiskReviewDrawer client={client} mode="generate" />}
-                      <RemoveClientDrawer client={client} scenarioCount={scenarioCount} />
+                    <div className="relative z-20 flex items-center">
+                      <ClientActionsMenu client={client} scenarioCount={scenarioCount} />
                     </div>
-                    <RiArrowRightSLine className="size-4 shrink-0 text-[#607583] transition-transform group-hover:translate-x-0.5 group-hover:text-white/80 dark:text-[#7896a5]" aria-hidden="true" />
                   </li>
                 )
               })}
@@ -277,6 +349,7 @@ export function Dashboard() {
           )}
         </Card>
       )}
+        </div>
     </div>
   )
 }
