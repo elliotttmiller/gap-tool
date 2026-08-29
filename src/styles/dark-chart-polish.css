@@ -5,18 +5,10 @@
  * change chart data, calculations, domains, inputs, assumptions, or behavior.
  */
 
-/* Shared axis-line treatment for the annual financial projection charts.
-   Recharts intentionally suppresses the Y baseline in these views and the
-   Disability chart suppresses both baselines. Draw a precise plot-boundary
-   baseline at the same measured offsets as each chart's YAxis/XAxis so Life
-   and Disability have a clear X/Y frame in light mode, dark mode, and print
-   without changing chart data, scales, ticks, or responsive geometry. */
 :root {
   --financial-chart-axis-line: rgb(100 116 139 / 0.52);
   --financial-chart-hover-band: rgb(24 138 137 / 0.08);
   --financial-chart-hover-stroke: rgb(24 138 137 / 0.24);
-  /* Authoritative semantic visualization colors. These match the established
-     Life Income Gap chart and are shared across every risk visualization. */
   --financial-chart-supported: #10b981;
   --financial-chart-gap: #ef4444;
 }
@@ -32,8 +24,10 @@
   position: relative;
 }
 
-.life-chart-area::before,
-.life-chart-area::after,
+/* Disability still suppresses the native Recharts axis lines, so its chart
+   frame is drawn once at the exact plot boundary. Life now renders its native
+   X/Y axes and must not also receive a synthetic frame: the old duplicate
+   pseudo-axis was the source of the offset/double-line effect in PDF output. */
 .disability-chart-panel .chart-reveal::before,
 .disability-chart-panel .chart-reveal::after {
   content: "";
@@ -41,21 +35,6 @@
   z-index: 2;
   pointer-events: none;
   background: var(--financial-chart-axis-line);
-}
-
-/* Life BarChart geometry: margin L2/R14/T8/B8 + YAxis 46px + XAxis ~30px. */
-.life-chart-area::before {
-  left: 48px;
-  right: 14px;
-  bottom: 38px;
-  height: 1px;
-}
-
-.life-chart-area::after {
-  top: 8px;
-  bottom: 38px;
-  left: 48px;
-  width: 1px;
 }
 
 /* Disability BarChart geometry: margin L0/R16/T10/B4 + YAxis 48px + XAxis ~30px. */
@@ -153,8 +132,7 @@
    already spans the full category slot across every stacked series, so use
    that single cursor as the visual hover surface instead of independently
    lifting/brightening whichever individual stack segment happens to be under
-   the pointer. This keeps Group LTD + Individual DI + Income Gap, or Life's
-   supported-income + gap stack, visually unified as one annual column. */
+   the pointer. */
 .life-chart-area .recharts-tooltip-cursor,
 .disability-chart-panel .recharts-tooltip-cursor {
   fill: var(--financial-chart-hover-band) !important;
@@ -169,9 +147,7 @@
     opacity 140ms ease;
 }
 
-/* Individual stack rectangles should never move independently on hover. Their
-   selected-age opacity/filter state is still preserved below, but geometry is
-   fixed so a stacked bar cannot visually split into separate animated pieces. */
+/* Individual stack rectangles should never move independently on hover. */
 .life-chart-area .recharts-bar-rectangle .recharts-rectangle,
 .disability-chart-panel .recharts-bar-rectangle .recharts-rectangle {
   transform: none !important;
@@ -188,9 +164,6 @@
   filter: inherit;
 }
 
-/* Life already persists the selected age with per-cell opacity. Convert that
-   existing state into the requested focus treatment without changing its
-   state, click handler, values, or tooltip behavior. */
 .life-chart-area .recharts-rectangle[opacity="0.3"] {
   opacity: 0.28 !important;
   filter: blur(0.65px) brightness(0.78) !important;
@@ -201,8 +174,6 @@
   filter: blur(0.65px) brightness(0.78) !important;
 }
 
-/* Disability uses the same persisted-selection cell treatment added in its
-   output view. Keep the visual contract shared with Life. */
 .disability-chart-panel .recharts-rectangle[opacity="0.28"] {
   filter: blur(0.65px) brightness(0.78) !important;
 }
@@ -214,9 +185,77 @@
 
 @media print {
   :root {
-    --financial-chart-axis-line: #9eb2bb;
+    --financial-chart-axis-line: #91a7b2;
     --financial-chart-hover-band: transparent;
     --financial-chart-hover-stroke: transparent;
+  }
+
+  /* Print has no hover state and should present the chart as a static report
+     graphic. Use one crisp axis treatment with consistent typography and no
+     duplicated CSS/Recharts frame. */
+  .print-report-body .life-chart-area::before,
+  .print-report-body .life-chart-area::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  .print-report-body .life-chart-panel .recharts-cartesian-axis-line,
+  .print-report-body .life-chart-panel .recharts-cartesian-axis-tick-line {
+    stroke: #91a7b2 !important;
+    stroke-width: 0.8 !important;
+    shape-rendering: geometricPrecision !important;
+  }
+
+  .print-report-body .life-chart-panel .recharts-cartesian-axis-tick-value,
+  .print-report-body .disability-chart-panel .recharts-cartesian-axis-tick-value {
+    fill: #526b78 !important;
+    font-size: 9.5px !important;
+    font-weight: 500 !important;
+  }
+
+  .print-report-body .life-chart-panel .recharts-cartesian-grid line,
+  .print-report-body .disability-chart-panel .recharts-cartesian-grid line {
+    stroke: #dbe5e8 !important;
+    stroke-width: 0.7 !important;
+    stroke-dasharray: 3 4 !important;
+  }
+
+  /* Tighten the HTML labels surrounding the SVG so the axis titles and legend
+     read as part of the plot rather than floating away from it after Chromium
+     converts CSS pixels to the Letter-page print canvas. */
+  .print-report-body .life-chart-panel .life-chart-area + div,
+  .print-report-body .disability-chart-panel .chart-reveal + div {
+    margin-top: 2pt !important;
+    color: #526b78 !important;
+    line-height: 1 !important;
+  }
+
+  .print-report-body .life-chart-panel .life-chart-area + div + div,
+  .print-report-body .disability-chart-panel .chart-reveal + div + div {
+    margin-top: 5pt !important;
+    padding-top: 5pt !important;
+    color: #607583 !important;
+  }
+
+  .print-report-body .life-chart-panel .life-chart-area + div span,
+  .print-report-body .disability-chart-panel .chart-reveal + div span {
+    font-size: 7pt !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.07em !important;
+  }
+
+  .print-report-body .life-chart-panel .life-chart-area + div + div span,
+  .print-report-body .disability-chart-panel .chart-reveal + div + div span {
+    font-size: 6.7pt !important;
+    line-height: 1 !important;
+  }
+
+  /* The report is static: selected/hover blur and glow should never leak into
+     a PDF generated after an advisor interacted with the screen chart. */
+  .print-report-body .life-chart-area .recharts-rectangle,
+  .print-report-body .disability-chart-panel .recharts-rectangle {
+    opacity: 1 !important;
+    filter: none !important;
   }
 }
 
