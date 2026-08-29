@@ -31,7 +31,17 @@
     gap: 0.08in !important;
   }
 
-  .presentation-mode > .hidden.print\:block .life-chart-area,
+  /* Life needs a taller projection canvas in the report than the compact
+     liability chart. Measure it at its final PDF height before printing so
+     Recharts builds the SVG against the same aspect ratio Chromium will use. */
+  .presentation-mode > .hidden.print\:block .life-chart-area {
+    display: block !important;
+    width: 100% !important;
+    height: 4.05in !important;
+    min-height: 4.05in !important;
+    max-height: 4.05in !important;
+  }
+
   .presentation-mode > .hidden.print\:block .liability-chart-area {
     display: block !important;
     width: 100% !important;
