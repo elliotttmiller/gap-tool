@@ -1,0 +1,101 @@
+/* Runtime support for browser PDF export.
+ *
+ * Recharts measures ResponsiveContainer dimensions while the screen tree is
+ * mounted. A display:none print tree therefore produces zero-sized SVG charts
+ * when Chromium opens print preview. Keep the print report fully laid out
+ * off-canvas on screen so every chart has real dimensions before window.print.
+ */
+
+@media screen {
+  .presentation-mode > .hidden.print\:block {
+    display: block !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: -10000px !important;
+    width: 7.66in !important;
+    height: auto !important;
+    min-height: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    overflow: visible !important;
+    contain: layout style !important;
+  }
+
+  /* Give ResponsiveContainer the same deterministic chart heights it will
+     receive in the printed Letter document. */
+  .presentation-mode > .hidden.print\:block .life-chart-area,
+  .presentation-mode > .hidden.print\:block .liability-chart-area {
+    display: block !important;
+    width: 100% !important;
+    height: 3.18in !important;
+    min-height: 3.18in !important;
+    max-height: 3.18in !important;
+  }
+
+  .presentation-mode > .hidden.print\:block .disability-chart-panel .chart-reveal {
+    display: block !important;
+    width: 100% !important;
+    height: 3.15in !important;
+    min-height: 3.15in !important;
+  }
+
+  .presentation-mode > .hidden.print\:block .recharts-responsive-container {
+    width: 100% !important;
+    min-width: 1px !important;
+    min-height: 1px !important;
+  }
+}
+
+/* Use the actual docs/favicon.svg geometry as the cover watermark. The SVG
+ * filter in ReportCoverPage converts every non-transparent source pixel to the
+ * exact brand-neutral #747B85 while retaining the source alpha/shape. */
+.report-cover-watermark-mark {
+  position: absolute;
+  top: 2.05in;
+  right: -1.05in;
+  display: block;
+  width: 6.25in;
+  height: 6.25in;
+  max-width: none;
+  overflow: visible;
+  opacity: 0.18;
+}
+
+@media print {
+  .report-cover-watermark-mark {
+    position: absolute !important;
+    top: 2.05in !important;
+    right: -1.05in !important;
+    display: block !important;
+    width: 6.25in !important;
+    height: 6.25in !important;
+    max-width: none !important;
+    opacity: 0.18 !important;
+    overflow: visible !important;
+  }
+
+  .report-cover-watermark-mark image {
+    opacity: 1 !important;
+  }
+
+  /* The print report must become the normal page-flow document at print time;
+     this reverses the off-canvas prelayout state above without remounting it. */
+  .presentation-mode > .hidden.print\:block {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    width: 100% !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    contain: none !important;
+  }
+
+  /* Preserve the already-measured Recharts SVG instead of allowing print
+     pagination to collapse a responsive wrapper back to zero dimensions. */
+  .print-report-body .recharts-responsive-container,
+  .print-report-body .recharts-wrapper,
+  .print-report-body .recharts-surface {
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}
