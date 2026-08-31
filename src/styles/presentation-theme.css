@@ -1,6 +1,14 @@
 /* Live Presentation Mode should mirror the advisor's active Builder theme.
  * PDF/report rendering remains governed by print.css, which forces the canonical
  * light report palette at print time. */
+html.light .presentation-mode .presentation-input-rail {
+  background-color: var(--light-surface-raised) !important;
+}
+
+html.light .presentation-mode .presentation-input-item {
+  background-color: var(--light-surface-raised) !important;
+}
+
 html.dark .presentation-mode .presentation-input-rail {
   border-color: var(--dark-border-soft) !important;
   background-color: var(--dark-surface) !important;
@@ -68,4 +76,16 @@ html.dark .presentation-policy-menu [role="option"]:focus-visible {
 html.dark .presentation-policy-menu [role="option"][data-state="checked"] {
   background-color: rgb(29 184 185 / 0.18) !important;
   color: var(--dark-text) !important;
+}
+
+/* Keep the module switcher in normal document flow. Presentation.tsx positions
+ * it absolutely at xl sizes, which causes status badges in chart headers to sit
+ * underneath it and get clipped/obscured. Normal flow preserves the same
+ * right-aligned placement while reserving its vertical space for every module. */
+.presentation-mode .presentation-module-tabs {
+  position: static !important;
+  right: auto !important;
+  top: auto !important;
+  margin-left: auto !important;
+  margin-bottom: 0.5rem !important;
 }
