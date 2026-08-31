@@ -63,7 +63,7 @@ function SectionTitle({ children, description }: { children: React.ReactNode; de
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <label className="space-y-1.5">
-      <span className="block text-xs font-medium text-gray-300">{label}</span>
+      <span className="block text-xs font-medium text-[#415b6d] dark:text-gray-300">{label}</span>
       {children}
       {hint ? <span className="block text-[11px] leading-4 text-gray-500">{hint}</span> : null}
     </label>
@@ -72,10 +72,10 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 
 function EarnerPanel({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-gray-800 bg-gray-950/35 p-4">
+    <section className="rounded-xl border border-[#d5e2e5] bg-[#f2f2f2] p-4 dark:border-gray-800 dark:bg-gray-950/35">
       <div className="mb-3">
-        <h3 className="text-sm font-semibold text-gray-100">{title}</h3>
-        <p className="mt-1 text-xs leading-5 text-gray-500">{description}</p>
+        <h3 className="text-sm font-semibold text-[#102a3a] dark:text-gray-100">{title}</h3>
+        <p className="mt-1 text-xs leading-5 text-[#607583] dark:text-gray-500">{description}</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">{children}</div>
     </section>
@@ -114,7 +114,7 @@ function AddClientDrawer() {
           <SectionTitle>Client Type</SectionTitle>
           <div className="grid gap-2 sm:grid-cols-2">
             {(["individual", "couple"] as const).map((type) => (
-              <button key={type} type="button" onClick={() => setField("clientType", type)} className={cx("rounded-lg border px-4 py-2 text-sm font-semibold capitalize transition", form.clientType === type ? "border-[#188a89] bg-[#188a89] text-white shadow-sm" : "border-gray-700 bg-gray-900/60 text-gray-400 hover:border-[#188a89] hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white")}>{type === "individual" ? "Individual" : "Couple"}</button>
+              <button key={type} type="button" onClick={() => setField("clientType", type)} className={cx("rounded-lg border px-4 py-2 text-sm font-semibold capitalize transition", form.clientType === type ? "border-[#188a89] bg-[#188a89] text-white shadow-sm" : "border-[#c8d7db] bg-[#f2f2f2] text-[#415b6d] hover:border-[#188a89] hover:bg-[#188a89]/10 hover:text-[#188a89] dark:border-gray-700 dark:bg-gray-900/60 dark:text-gray-400 dark:hover:bg-[#188a89]/15 dark:hover:text-white")}>{type === "individual" ? "Individual" : "Couple"}</button>
             ))}
           </div>
 
@@ -153,8 +153,8 @@ function AddClientDrawer() {
           </div>
 
           <SectionTitle description="Disability coverage is modeled for the primary earner and prefills the Disability module.">Primary Earner Disability Coverage</SectionTitle>
-          <div className="rounded-xl border border-gray-800 bg-gray-950/25 p-4">
-            <p className="mb-3 text-xs font-semibold text-gray-200">Group Long Term Disability (LTD)</p>
+          <div className="rounded-xl border border-[#d5e2e5] bg-[#f2f2f2] p-4 dark:border-gray-800 dark:bg-gray-950/25">
+            <p className="mb-3 text-xs font-semibold text-[#102a3a] dark:text-gray-200">Group Long Term Disability (LTD)</p>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <Field label="Coverage of Income (%)"><Input type="number" min={0} max={100} step={1} value={form.ltdCoveragePercent} onChange={(event) => setField("ltdCoveragePercent", event.target.value)} /></Field>
               <Field label="Monthly Cap ($)"><Input type="number" min={0} groupThousands value={form.ltdMonthlyCap} onChange={(event) => setField("ltdMonthlyCap", event.target.value)} /></Field>
@@ -162,8 +162,8 @@ function AddClientDrawer() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-gray-800 bg-gray-950/25 p-4">
-            <p className="mb-3 text-xs font-semibold text-gray-200">Individual Disability Insurance</p>
+          <div className="rounded-xl border border-[#d5e2e5] bg-[#f2f2f2] p-4 dark:border-gray-800 dark:bg-gray-950/25">
+            <p className="mb-3 text-xs font-semibold text-[#102a3a] dark:text-gray-200">Individual Disability Insurance</p>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <Field label="Monthly Benefit ($)"><Input type="number" min={0} groupThousands value={form.privateDisabilityBenefitMonthly} onChange={(event) => setField("privateDisabilityBenefitMonthly", event.target.value)} /></Field>
               <Field label="Monthly Premium ($)"><Input type="number" min={0} groupThousands value={form.privateDisabilityMonthlyPremium} onChange={(event) => setField("privateDisabilityMonthlyPremium", event.target.value)} /></Field>
@@ -212,48 +212,39 @@ function ClientActionsMenu({ client, scenarioCount }: { client: ClientRecord; sc
             <RiMore2Line className="size-5" aria-hidden="true" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-52">
-          <DropdownMenuItem onSelect={() => navigate(`/clients/${client.id}/overview`)}>
-            View details
-          </DropdownMenuItem>
+        <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuItem onSelect={handleGenerateReview}>
-            {hasGeneratedReview ? "Regenerate review" : "Generate review"}
+            {hasGeneratedReview ? "Generate Another Review" : "Generate Review"}
           </DropdownMenuItem>
-          <DropdownMenuItem className="text-rose-600 hover:bg-rose-500/10 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-300" onSelect={() => setRemoveOpen(true)}>
-            Delete client
+          <DropdownMenuItem onSelect={() => navigate(`/clients/${client.id}/overview`)}>
+            Client Profile
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setRemoveOpen(true)} className="text-red-500 focus:text-red-500">
+            <RiDeleteBinLine className="size-4" aria-hidden="true" /> Remove Client
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <RemoveClientDrawer client={client} scenarioCount={scenarioCount} open={removeOpen} onOpenChange={setRemoveOpen} />
+      <Drawer open={removeOpen} onOpenChange={setRemoveOpen}>
+        <DrawerContent className="sm:max-w-md">
+          <DrawerHeader><DrawerTitle>Remove {client.displayName}?</DrawerTitle></DrawerHeader>
+          <DrawerBody><p className="text-sm text-gray-400">This archives the client from the active list. Existing reviews remain stored.</p></DrawerBody>
+          <DrawerFooter>
+            <Button variant="secondary" onClick={() => setRemoveOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={() => { useAppStore.getState().archiveClient(client.id); setRemoveOpen(false) }}>Remove</Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </>
   )
-}
-
-function RemoveClientDrawer({ client, scenarioCount, open, onOpenChange }: { client: ClientRecord; scenarioCount: number; open: boolean; onOpenChange: (open: boolean) => void }) {
-  const archiveClient = useAppStore((state) => state.archiveClient)
-  return <Drawer open={open} onOpenChange={onOpenChange}><DrawerContent className="sm:max-w-xl"><DrawerHeader><DrawerTitle>Remove Client</DrawerTitle></DrawerHeader><DrawerBody className="space-y-5"><div className="rounded-2xl border border-red-900/60 bg-red-950/20 p-4"><div className="flex items-start gap-3"><div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-red-950 text-red-300 ring-1 ring-red-800/80"><RiAlertLine className="size-5" aria-hidden="true" /></div><div><p className="font-semibold text-red-100">Remove {client.displayName} from the dashboard?</p><p className="mt-1 text-sm leading-6 text-red-200/70">This will archive the client profile and hide it from active client setup and review workflows.</p></div></div></div><div className="rounded-xl border border-gray-800 bg-gray-950/70 p-4"><p className="text-sm font-medium text-gray-100">{client.displayName}</p><p className="mt-1 text-xs text-gray-500">{client.profile.clientType === "couple" ? "Couple" : "Individual"} · {scenarioCount} risk review{scenarioCount === 1 ? "" : "s"}</p></div></DrawerBody><DrawerFooter><Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button><Button variant="destructive" onClick={() => { archiveClient(client.id); onOpenChange(false) }}><RiDeleteBinLine className="size-4" />Remove Client</Button></DrawerFooter></DrawerContent></Drawer>
 }
 
 function DashboardWatermark() {
   return (
     <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
-      <svg
-        className="absolute top-28 -right-[22rem] size-[clamp(46rem,72vw,72rem)] max-w-none opacity-[0.11] sm:top-12 sm:-right-[25rem] dark:opacity-[0.14]"
-        viewBox="0 0 1254 1254"
-        preserveAspectRatio="xMidYMid meet"
-        focusable="false"
-      >
+      <svg className="absolute right-[-18rem] top-[-10rem] h-[44rem] w-[44rem] opacity-[0.035] dark:opacity-[0.025]" viewBox="0 0 1254 1254" preserveAspectRatio="xMidYMid meet">
         <defs>
           <filter id="dashboard-solid-grey" colorInterpolationFilters="sRGB">
-            <feColorMatrix
-              type="matrix"
-              values="
-                0 0 0 0 0.454902
-                0 0 0 0 0.482353
-                0 0 0 0 0.521569
-                0 0 0 1 0
-              "
-            />
+            <feColorMatrix type="matrix" values="0 0 0 0 0.454902 0 0 0 0 0.482353 0 0 0 0 0.521569 0 0 0 1 0" />
           </filter>
         </defs>
         <image
