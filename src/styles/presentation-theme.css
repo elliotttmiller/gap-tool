@@ -2,11 +2,38 @@
  * PDF/report rendering remains governed by print.css, which forces the canonical
  * light report palette at print time. */
 html.light .presentation-mode .presentation-input-rail {
-  background-color: var(--light-surface-raised) !important;
+  border-color: #d5e2e5 !important;
+  background-color: #f8fbfb !important;
+  box-shadow: 0 1px 2px rgb(15 42 58 / 0.04), 0 10px 28px rgb(15 42 58 / 0.06) !important;
+}
+
+html.light .presentation-mode .presentation-input-rail > div:first-child {
+  border-color: #d7e5e7 !important;
 }
 
 html.light .presentation-mode .presentation-input-item {
-  background-color: var(--light-surface-raised) !important;
+  border-color: #dfe8ea !important;
+  background-color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+html.light .presentation-mode .presentation-input-control {
+  color-scheme: light !important;
+  border-color: #c8d7db !important;
+  background-color: #f1f6f7 !important;
+  color: var(--light-text) !important;
+}
+
+html.light .presentation-mode .presentation-input-control:hover {
+  border-color: #9ebbc2 !important;
+  background-color: #ffffff !important;
+}
+
+html.light .presentation-mode .presentation-input-control:focus,
+html.light .presentation-mode .presentation-input-control:focus-visible {
+  border-color: #0099a8 !important;
+  background-color: #f1f6f7 !important;
+  box-shadow: 0 0 0 3px rgb(0 153 168 / 0.12) !important;
 }
 
 html.dark .presentation-mode .presentation-input-rail {
