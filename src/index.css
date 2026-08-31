@@ -408,6 +408,12 @@
     box-shadow: var(--light-shadow-sm) !important;
   }
 
+  .light .disability-chart-panel--borderless,
+  .dark .disability-chart-panel--borderless {
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
   .light .module-kpi-card {
     border-color: #d4e2e5 !important;
     background: linear-gradient(145deg, #f8fbfb 0%, #eef5f6 100%) !important;
