@@ -28,6 +28,13 @@
   transition: none !important;
 }
 
+/* Reserve-band labels sit directly on saturated chart bands. Render them at
+ * full white opacity in both themes for maximum legibility. */
+.light .unemployment-reserve-plot [class~="text-white/85"],
+.dark .unemployment-reserve-plot [class~="text-white/85"] {
+  color: #ffffff !important;
+}
+
 /* Life selected-age badge: the shared dark-first chart classes leave the badge
  * with a charcoal fill in light mode. Keep the existing teal border/text but
  * use the canonical raised light surface. Dark mode retains its current fill. */
