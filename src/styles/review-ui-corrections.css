@@ -1,10 +1,19 @@
 /* Targeted advisor-review correction: remove only the outer frame around the
- * Unemployment reserve visualization. Internal gauge borders, separators,
- * controls, and metric-card hierarchy remain unchanged. */
+ * Unemployment reserve visualization. Internal separators, controls, and
+ * metric-card hierarchy remain unchanged. */
 .light .unemployment-chart-panel,
 .dark .unemployment-chart-panel {
   border: 0 !important;
   box-shadow: none !important;
+}
+
+/* The remaining dark outline in the reviewed Unemployment visualization is
+ * the reserve gauge's own border, not the chart-card frame above. Remove that
+ * perimeter while preserving its rounded clipping, band separators and drag
+ * interaction. */
+.light .unemployment-reserve-plot [class~="border-slate-700/80"],
+.dark .unemployment-reserve-plot [class~="border-slate-700/80"] {
+  border: 0 !important;
 }
 
 /* Presentation Input Snapshot mirrors the active Builder theme instead of
@@ -123,7 +132,7 @@
 /* Create Client uses the true light surface system. This drawer is uniquely
  * identified by its max-width token so other drawers keep their own surface
  * treatments. Dark mode is intentionally untouched. */
-.light [role="dialog"][class~="sm:max-w-5xl"] [class~="bg-[#f2f2f2]"] {
+.light [role="dialog"][class~="sm:max-w-5xl"] [class~="bg-[#f2f2f2"] {
   background-color: var(--light-surface-raised) !important;
 }
 
