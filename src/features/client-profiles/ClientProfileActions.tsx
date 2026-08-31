@@ -86,12 +86,11 @@ export function ImportClientsDrawer({ compact = false }: ImportClientsDrawerProp
         {compact ? (
           <button
             type="button"
-            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#188a89]/45 bg-[#188a89]/10 px-2.5 text-xs font-semibold text-[#188a89] transition-colors hover:border-[#188a89] hover:bg-[#188a89]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#188a89] dark:text-[#80d5db]"
-            aria-label="Import clients from CSV or JSON"
-            title="Import clients from CSV or JSON"
+            className="inline-flex size-8 items-center justify-center rounded-md border border-[#c8d7db] bg-white text-[#188a89] transition-colors hover:border-[#188a89] hover:bg-[#188a89]/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#188a89] dark:border-gray-700 dark:bg-transparent dark:text-[#80d5db] dark:hover:border-[#188a89] dark:hover:bg-[#188a89]/15"
+            aria-label="Import client profiles"
+            title="Import client profiles"
           >
             <RiUpload2Line className="size-4" aria-hidden="true" />
-            Import CSV/JSON
           </button>
         ) : (
           <Button variant="secondary">
