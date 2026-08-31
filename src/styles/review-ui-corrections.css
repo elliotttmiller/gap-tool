@@ -119,3 +119,43 @@
   background: rgb(29 184 185 / 0.18) !important;
   color: var(--dark-text) !important;
 }
+
+/* Create Client uses the true light surface system. This drawer is uniquely
+ * identified by its max-width token so other drawers keep their own surface
+ * treatments. Dark mode is intentionally untouched. */
+.light [role="dialog"][class~="sm:max-w-5xl"] [class~="bg-[#f2f2f2]"] {
+  background-color: var(--light-surface-raised) !important;
+}
+
+.light [role="dialog"][class~="sm:max-w-5xl"] input:not([type="checkbox"]):not([type="radio"]),
+.light [role="dialog"][class~="sm:max-w-5xl"] textarea {
+  background-color: var(--light-surface-raised) !important;
+  border-color: var(--light-border) !important;
+  color: var(--light-text) !important;
+  box-shadow: 0 1px 2px rgb(15 42 58 / 0.04) !important;
+}
+
+.light [role="dialog"][class~="sm:max-w-5xl"] input:not([type="checkbox"]):not([type="radio"]):hover,
+.light [role="dialog"][class~="sm:max-w-5xl"] textarea:hover {
+  background-color: var(--light-surface-raised) !important;
+  border-color: #9ebbc2 !important;
+}
+
+.light [role="dialog"][class~="sm:max-w-5xl"] input:not([type="checkbox"]):not([type="radio"]):focus,
+.light [role="dialog"][class~="sm:max-w-5xl"] textarea:focus {
+  background-color: var(--light-surface-raised) !important;
+  border-color: #0099a8 !important;
+  box-shadow: 0 0 0 3px rgb(0 153 168 / 0.12) !important;
+}
+
+.light [role="dialog"][class~="sm:max-w-5xl"] button[role="combobox"] {
+  background-color: var(--light-surface-raised) !important;
+  border-color: var(--light-border) !important;
+  color: var(--light-text) !important;
+  box-shadow: 0 1px 2px rgb(15 42 58 / 0.04) !important;
+}
+
+.light [role="dialog"][class~="sm:max-w-5xl"] button[role="combobox"]:hover {
+  background-color: var(--light-surface-raised) !important;
+  border-color: #9ebbc2 !important;
+}
