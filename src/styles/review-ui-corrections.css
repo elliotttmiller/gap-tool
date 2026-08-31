@@ -1,0 +1,121 @@
+/* Targeted advisor-review correction: remove only the outer frame around the
+ * Unemployment reserve visualization. Internal gauge borders, separators,
+ * controls, and metric-card hierarchy remain unchanged. */
+.light .unemployment-chart-panel,
+.dark .unemployment-chart-panel {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Presentation Input Snapshot mirrors the active Builder theme instead of
+ * forcing a single color scheme. Keep the PDF block treatment controlled by
+ * print.css; these rules apply to the live presentation workspace. */
+.light .presentation-mode .presentation-input-rail {
+  border-color: var(--light-border) !important;
+  background: var(--light-surface-raised) !important;
+  box-shadow: var(--light-shadow-sm) !important;
+}
+.light .presentation-mode .presentation-input-rail > div:first-child {
+  border-color: var(--light-border-soft) !important;
+}
+.light .presentation-mode .presentation-input-item {
+  border-color: var(--light-border-soft) !important;
+  background: var(--light-surface) !important;
+  box-shadow: none !important;
+}
+.light .presentation-mode .presentation-input-title,
+.light .presentation-mode .presentation-input-label,
+.light .presentation-mode .presentation-input-affix {
+  color: var(--light-text-muted) !important;
+}
+.light .presentation-mode .presentation-input-value {
+  color: var(--light-text) !important;
+}
+.light .presentation-mode .presentation-input-control {
+  color-scheme: light !important;
+  border-color: #c8d7db !important;
+  background: #f1f6f7 !important;
+  color: var(--light-text) !important;
+  box-shadow: 0 1px 2px rgb(15 42 58 / 0.04) !important;
+}
+.light .presentation-mode .presentation-input-control:hover {
+  border-color: #9ebbc2 !important;
+  background: #ffffff !important;
+}
+.light .presentation-mode .presentation-input-control:focus {
+  border-color: #0099a8 !important;
+  box-shadow: 0 0 0 3px rgb(0 153 168 / 0.12) !important;
+}
+.light .presentation-policy-menu {
+  color-scheme: light !important;
+  border-color: #c8d7db !important;
+  background: #ffffff !important;
+  color: var(--light-text) !important;
+}
+.light .presentation-policy-menu [role="option"] {
+  color: #344d5d !important;
+}
+.light .presentation-policy-menu [role="option"]:hover,
+.light .presentation-policy-menu [role="option"]:focus-visible {
+  background: var(--light-accent-soft) !important;
+  color: #126b6a !important;
+}
+.light .presentation-policy-menu [role="option"][data-state="checked"] {
+  background: #d9f1f3 !important;
+  color: #126b6a !important;
+}
+
+.dark .presentation-mode .presentation-input-rail {
+  border-color: var(--dark-border-soft) !important;
+  background: var(--dark-surface) !important;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.16) !important;
+}
+.dark .presentation-mode .presentation-input-rail > div:first-child {
+  border-color: var(--dark-border-soft) !important;
+}
+.dark .presentation-mode .presentation-input-item {
+  border-color: var(--dark-border-soft) !important;
+  background: var(--dark-surface-inset) !important;
+  box-shadow: none !important;
+}
+.dark .presentation-mode .presentation-input-title,
+.dark .presentation-mode .presentation-input-label,
+.dark .presentation-mode .presentation-input-affix {
+  color: var(--dark-text-subtle) !important;
+}
+.dark .presentation-mode .presentation-input-value {
+  color: var(--dark-text) !important;
+}
+.dark .presentation-mode .presentation-input-control {
+  color-scheme: dark !important;
+  border-color: var(--dark-border) !important;
+  background: #292e35 !important;
+  color: var(--dark-text) !important;
+  box-shadow: none !important;
+}
+.dark .presentation-mode .presentation-input-control:hover {
+  border-color: #71808a !important;
+  background: #2e343b !important;
+}
+.dark .presentation-mode .presentation-input-control:focus {
+  border-color: #1db8b9 !important;
+  box-shadow: 0 0 0 3px rgb(29 184 185 / 0.14) !important;
+}
+.dark .presentation-policy-menu {
+  color-scheme: dark !important;
+  border-color: var(--dark-border) !important;
+  background: var(--dark-surface-raised) !important;
+  color: var(--dark-text) !important;
+}
+.dark .presentation-policy-menu [role="option"] {
+  color: var(--dark-text-secondary) !important;
+}
+.dark .presentation-policy-menu [role="option"]:hover,
+.dark .presentation-policy-menu [role="option"]:focus-visible {
+  background: rgb(29 184 185 / 0.12) !important;
+  color: var(--dark-text) !important;
+}
+.dark .presentation-policy-menu [role="option"][data-state="checked"] {
+  background: rgb(29 184 185 / 0.18) !important;
+  color: var(--dark-text) !important;
+}

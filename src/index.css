@@ -271,32 +271,10 @@
   .dark textarea:focus,
   .dark select:focus {
     border-color: #1db8b9 !important;
-    box-shadow: 0 0 0 3px rgb(29 184 185 / 0.16) !important;
+    box-shadow: 0 0 0 3px rgb(29 184 185 / 0.14) !important;
   }
-
-  .dark .module-chart-card {
-    border-color: var(--dark-border) !important;
-    background: linear-gradient(180deg, #30353c 0%, #2b3037 100%) !important;
-    box-shadow: 0 10px 26px rgb(0 0 0 / 0.18) !important;
-  }
-  .dark .module-metric-card,
-  .dark .module-kpi-card {
-    border-color: var(--dark-border-soft) !important;
-    background: linear-gradient(145deg, #3a4048 0%, #343a42 100%) !important;
-    box-shadow: 0 6px 18px rgb(0 0 0 / 0.14) !important;
-  }
-  .dark .module-metric-card .module-metric-label,
-  .dark .module-metric-card .module-metric-description,
-  .dark .module-metric-card .module-metric-disclosure {
-    color: var(--dark-text-muted) !important;
-  }
-  .dark .recharts-cartesian-axis-tick-value {
-    fill: #bdc8ce !important;
-  }
-  .dark .recharts-cartesian-grid line {
-    stroke: #525b65 !important;
-    stroke-opacity: 0.7 !important;
-  }
+  .dark .recharts-cartesian-axis-tick-value { fill: #b7c4cc !important; }
+  .dark .recharts-cartesian-grid line { stroke: #5c6670 !important; }
   .dark .recharts-cartesian-axis-line,
   .dark .recharts-cartesian-axis-tick-line {
     stroke: #77858e !important;
@@ -463,80 +441,78 @@
       radial-gradient(circle at 85% 5%, rgb(0 153 168 / 0.08), transparent 28rem),
       linear-gradient(145deg, #edf4f5 0%, #e5eef0 100%) !important;
   }
-  .light .presentation-mode .presentation-input-rail {
-    border-color: #244c61 !important;
-    background: linear-gradient(155deg, #173d51 0%, #0e293a 100%) !important;
-    box-shadow: 0 16px 36px rgb(15 42 58 / 0.18) !important;
+  .light .presentation-mode .presentation-input-rail,
+  .dark .presentation-mode .presentation-input-rail {
+    border-color: #d5e2e5 !important;
+    background: #f2f2f2 !important;
+    box-shadow: 0 8px 24px rgb(15 42 58 / 0.08) !important;
   }
-  .light .presentation-mode .presentation-input-rail > div:first-child {
-    border-color: rgb(176 229 233 / 0.2) !important;
+  .light .presentation-mode .presentation-input-rail > div:first-child,
+  .dark .presentation-mode .presentation-input-rail > div:first-child {
+    border-color: #d5e2e5 !important;
   }
-  .light .presentation-mode .presentation-input-title { color: #b0e5e9 !important; }
-  .light .presentation-mode .presentation-input-badge {
-    border-color: rgb(176 229 233 / 0.28) !important;
-    background: rgb(255 255 255 / 0.08) !important;
-    color: #d9f1f3 !important;
+  .light .presentation-mode .presentation-input-title,
+  .dark .presentation-mode .presentation-input-title { color: #607583 !important; }
+  .light .presentation-mode .presentation-input-badge,
+  .dark .presentation-mode .presentation-input-badge {
+    border-color: #d5e2e5 !important;
+    background: #ffffff !important;
+    color: #415b6d !important;
   }
-  .light .presentation-mode .presentation-input-item {
-    border-color: rgb(176 229 233 / 0.16) !important;
-    background: rgb(255 255 255 / 0.07) !important;
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04) !important;
+  .light .presentation-mode .presentation-input-item,
+  .dark .presentation-mode .presentation-input-item {
+    border-color: #dfe8ea !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
   }
-  .light .presentation-mode .presentation-input-label { color: #82cbd1 !important; }
-  .light .presentation-mode .presentation-input-value { color: #f8fcfc !important; }
-  .presentation-mode .presentation-input-control {
-    color-scheme: dark;
-    border-color: rgb(176 229 233 / 0.22);
-    background: rgb(5 24 36 / 0.52);
-    color: #f8fcfc;
-    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.16);
+  .light .presentation-mode .presentation-input-label,
+  .dark .presentation-mode .presentation-input-label { color: #607583 !important; }
+  .light .presentation-mode .presentation-input-value,
+  .dark .presentation-mode .presentation-input-value { color: #102a3a !important; }
+  .presentation-mode .presentation-input-control,
+  .dark .presentation-mode .presentation-input-control {
+    color-scheme: light;
+    border-color: #c8d7db !important;
+    background: #ffffff !important;
+    color: #102a3a !important;
+    box-shadow: 0 1px 2px rgb(15 42 58 / 0.04) !important;
     transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
   }
-  .presentation-mode .presentation-input-control:hover {
-    border-color: rgb(128 213 219 / 0.5);
-    background: rgb(5 24 36 / 0.7);
+  .presentation-mode .presentation-input-control:hover,
+  .dark .presentation-mode .presentation-input-control:hover {
+    border-color: #9ebbc2 !important;
+    background: #ffffff !important;
   }
-  .presentation-mode .presentation-input-control:focus {
-    border-color: #40bec7;
-    box-shadow: 0 0 0 2px rgb(64 190 199 / 0.18);
+  .presentation-mode .presentation-input-control:focus,
+  .dark .presentation-mode .presentation-input-control:focus {
+    border-color: #188a89 !important;
+    box-shadow: 0 0 0 2px rgb(24 138 137 / 0.14) !important;
   }
-  .presentation-mode .presentation-input-control option {
-    background: #102d3f;
-    color: #f8fcfc;
+  .presentation-mode .presentation-input-control option,
+  .dark .presentation-mode .presentation-input-control option {
+    background: #ffffff !important;
+    color: #102a3a !important;
   }
-  .presentation-mode .presentation-input-affix { color: #82cbd1; }
+  .presentation-mode .presentation-input-affix,
+  .dark .presentation-mode .presentation-input-affix { color: #607583 !important; }
   .presentation-policy-menu {
-    color-scheme: dark;
-    border-color: #31586c !important;
-    background: linear-gradient(155deg, #173d51 0%, #0e293a 100%) !important;
-    color: #f8fcfc !important;
+    color-scheme: light;
+    border-color: #c8d7db !important;
+    background: #ffffff !important;
+    color: #102a3a !important;
     transform-origin: var(--radix-select-content-transform-origin);
   }
   .presentation-policy-menu [role="option"] {
-    color: #d9e8ec !important;
+    color: #344d5d !important;
   }
   .presentation-policy-menu [role="option"]:hover,
   .presentation-policy-menu [role="option"]:focus-visible {
-    background: rgb(0 153 168 / 0.2) !important;
-    color: #ffffff !important;
+    background: #e8f7f7 !important;
+    color: #126b6a !important;
   }
   .presentation-policy-menu [role="option"][data-state="checked"] {
-    background: rgb(0 153 168 / 0.3) !important;
-    color: #ffffff !important;
-  }
-  .light .presentation-mode .presentation-input-rail .presentation-input-control {
-    border-color: rgb(176 229 233 / 0.22) !important;
-    background: rgb(5 24 36 / 0.52) !important;
-    color: #f8fcfc !important;
-    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.16) !important;
-  }
-  .light .presentation-mode .presentation-input-rail .presentation-input-control:hover {
-    border-color: rgb(128 213 219 / 0.5) !important;
-    background: rgb(5 24 36 / 0.7) !important;
-  }
-  .light .presentation-mode .presentation-input-rail .presentation-input-control:focus {
-    border-color: #40bec7 !important;
-    box-shadow: 0 0 0 2px rgb(64 190 199 / 0.18) !important;
+    background: #d9f1f3 !important;
+    color: #126b6a !important;
   }
   .light .presentation-mode .presentation-module-tabs {
     border: 1px solid #d4e2e5;

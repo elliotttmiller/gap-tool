@@ -6,6 +6,7 @@ import './styles/light-text-contrast.css';
 import './styles/dark-chart-polish.css';
 import './styles/financial-projection-chart.css';
 import './styles/print-runtime.css';
+import './styles/review-ui-corrections.css';
 import { ThemeProvider } from './lib/theme';
 
 // Permanently decommission workers and Workbox caches issued by earlier Gap
