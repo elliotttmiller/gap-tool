@@ -1,0 +1,8 @@
+/* Targeted advisor-review correction: remove only the outer frame around the
+ * Unemployment reserve visualization. Internal gauge borders, separators,
+ * controls, and metric-card hierarchy remain unchanged. */
+.light .unemployment-chart-panel,
+.dark .unemployment-chart-panel {
+  border: 0 !important;
+  box-shadow: none !important;
+}

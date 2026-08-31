@@ -265,7 +265,7 @@ export function DisabilityOutputView({
             ) : null}
           </div>
 
-          <Card className="module-chart-card disability-chart-panel disability-chart-panel--borderless financial-projection-chart module-visual-panel flex flex-col border-0 bg-slate-950/60 shadow-none">
+          <Card className="module-chart-card disability-chart-panel financial-projection-chart module-visual-panel flex flex-col border-slate-800/80 bg-slate-950/60">
             <CardHeader className="shrink-0 px-6 pt-5 pb-0">
               <div className="grid gap-3">
                 <CardTitle className="text-center text-xs font-bold tracking-[0.15em] whitespace-nowrap text-slate-500 uppercase">Income vs. Disability Coverage — Annual Projection</CardTitle>
