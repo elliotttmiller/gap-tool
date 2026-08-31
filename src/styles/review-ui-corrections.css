@@ -42,6 +42,53 @@
   background-color: var(--light-surface-raised) !important;
 }
 
+/* Disability uses the same selected-age treatment as Life. Its component still
+ * carries legacy blue utility tokens, so normalize the badge to the same
+ * NorthStar teal border/text and light/dark fills without changing selection
+ * behavior or the chart interaction pipeline. */
+.light .disability-chart-panel [class*="bg-blue-900/40"] {
+  border-color: #188a89 !important;
+  background-color: var(--light-surface-raised) !important;
+  color: #7fccef !important;
+}
+.dark .disability-chart-panel [class*="bg-blue-900/40"] {
+  border-color: #188a89 !important;
+  background-color: rgb(8 47 61 / 0.4) !important;
+  color: #7fccef !important;
+}
+
+/* Asset Comparison editor responds to its actual available module width, not
+ * only the browser viewport. This prevents the two asset cards from retaining
+ * desktop fixed-width columns while the Disability input rail is open. */
+.asset-comparison-editor {
+  container-type: inline-size;
+}
+
+.asset-comparison-editor .asset-entry-row,
+.asset-comparison-editor [class~="mt-3"][class~="grid"][class~="gap-2"] > div {
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.8fr) minmax(0, 0.8fr) 1.75rem !important;
+}
+
+.asset-comparison-editor [class~="mt-3"][class~="grid"][class~="gap-2"],
+.asset-comparison-editor [class~="mt-1.5"][class~="grid"][class~="gap-2"] {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.asset-comparison-editor [class~="mt-3"][class~="grid"][class~="gap-2"] > div:nth-child(2) {
+  display: none !important;
+}
+
+@container (min-width: 75rem) {
+  .asset-comparison-editor [class~="mt-3"][class~="grid"][class~="gap-2"],
+  .asset-comparison-editor [class~="mt-1.5"][class~="grid"][class~="gap-2"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .asset-comparison-editor [class~="mt-3"][class~="grid"][class~="gap-2"] > div:nth-child(2) {
+    display: grid !important;
+  }
+}
+
 /* Presentation Input Snapshot mirrors the active Builder theme instead of
  * forcing a single color scheme. Keep the PDF block treatment controlled by
  * print.css; these rules apply to the live presentation workspace. */
