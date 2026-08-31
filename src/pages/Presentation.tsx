@@ -200,16 +200,16 @@ function ModuleInputSpecs({
 
   if (variant === "rail") {
     return (
-      <aside className={`presentation-input-rail rounded-xl border border-gray-800 bg-gray-950/55 shadow-inner shadow-black/20 xl:sticky xl:top-0 ${denseRail ? "p-2.5" : "p-3.5"}`}>
-        <div className={`border-b border-gray-800 ${denseRail ? "mb-2 pb-1.5" : "mb-3 pb-2.5"}`}>
-          <p className={`presentation-input-title font-bold uppercase text-gray-400 ${denseRail ? "text-[9px] tracking-[0.18em]" : "text-[10px] tracking-[0.22em]"}`}>
+      <aside className={`presentation-input-rail rounded-xl border border-[#d5e2e5] bg-[#f2f2f2] shadow-sm xl:sticky xl:top-0 ${denseRail ? "p-2.5" : "p-3.5"}`}>
+        <div className={`border-b border-[#d5e2e5] ${denseRail ? "mb-2 pb-1.5" : "mb-3 pb-2.5"}`}>
+          <p className={`presentation-input-title font-bold uppercase text-[#607583] ${denseRail ? "text-[9px] tracking-[0.18em]" : "text-[10px] tracking-[0.22em]"}`}>
             Input Snapshot
           </p>
         </div>
         <div className={denseRail ? "grid grid-cols-2 gap-1.5" : "grid gap-2"}>
           {specs.map((spec) => (
-            <div key={spec.label} className={`presentation-input-item min-w-0 rounded-lg border border-gray-800/90 bg-[#090E1A] ${denseRail ? "px-2 py-1.5" : "px-3 py-2.5"}`}>
-              <p className={`presentation-input-label truncate font-semibold uppercase text-gray-600 ${denseRail ? "text-[7.5px] leading-tight tracking-[0.12em]" : "text-[9px] tracking-[0.15em]"}`} title={spec.label}>{spec.label}</p>
+            <div key={spec.label} className={`presentation-input-item min-w-0 rounded-lg border border-[#dfe8ea] bg-white ${denseRail ? "px-2 py-1.5" : "px-3 py-2.5"}`}>
+              <p className={`presentation-input-label truncate font-semibold uppercase text-[#607583] ${denseRail ? "text-[7.5px] leading-tight tracking-[0.12em]" : "text-[9px] tracking-[0.15em]"}`} title={spec.label}>{spec.label}</p>
               {onInputChange ? (
                 spec.editor === "currency" || spec.editor === "number" || spec.editor === "percent" ? (
                   <SnapshotNumberInput compact={denseRail} className={denseRail ? "mt-0.5" : "mt-1"} label={spec.label} value={Number(spec.rawValue)} currency={spec.editor === "currency"} percent={spec.editor === "percent"} onCommit={(value) => onInputChange(spec.field, value)} />
@@ -220,11 +220,11 @@ function ModuleInputSpecs({
                     onValueChange={(value) => onInputChange(spec.field, spec.field === "ltdTaxable" ? value === "true" : value)}
                     options={spec.options ?? []}
                     className={`presentation-input-control w-full min-w-0 border px-2 py-0 text-xs font-semibold shadow-none ${denseRail ? "mt-0.5 h-6" : "mt-1 h-7"}`}
-                    contentClassName="presentation-policy-menu z-50 border-[#31586c] bg-[#102d3f] text-white shadow-[0_16px_36px_rgba(5,24,36,0.32)]"
+                    contentClassName="presentation-policy-menu z-50 border-[#c8d7db] bg-white text-[#102a3a] shadow-[0_12px_28px_rgba(15,42,58,0.16)]"
                   />
                 )
               ) : (
-                <p className={`presentation-input-value truncate font-semibold leading-tight text-gray-100 ${denseRail ? "mt-0.5 text-xs" : "mt-1 text-sm"}`} title={spec.value}>{spec.value}</p>
+                <p className={`presentation-input-value truncate font-semibold leading-tight text-[#102a3a] ${denseRail ? "mt-0.5 text-xs" : "mt-1 text-sm"}`} title={spec.value}>{spec.value}</p>
               )}
             </div>
           ))}
@@ -234,15 +234,15 @@ function ModuleInputSpecs({
   }
 
   return (
-    <div className="mb-5 rounded-lg border border-gray-800 bg-gray-950/60 p-4">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">
+    <div className="presentation-input-block mb-5 rounded-lg border border-[#d5e2e5] bg-[#f2f2f2] p-4">
+      <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#607583]">
         Input Snapshot
       </p>
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {specs.map((spec) => (
-          <div key={spec.label} className="rounded-md border border-gray-800 bg-[#090E1A] px-3 py-2">
-            <p className="text-[10px] uppercase tracking-wider text-gray-500">{spec.label}</p>
-            <p className="mt-1 text-sm font-semibold text-gray-100">{spec.value}</p>
+          <div key={spec.label} className="rounded-md border border-[#dfe8ea] bg-white px-3 py-2">
+            <p className="text-[10px] uppercase tracking-wider text-[#607583]">{spec.label}</p>
+            <p className="mt-1 text-sm font-semibold text-[#102a3a]">{spec.value}</p>
           </div>
         ))}
       </div>
