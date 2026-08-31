@@ -28,6 +28,13 @@
   transition: none !important;
 }
 
+/* Life selected-age badge: the shared dark-first chart classes leave the badge
+ * with a charcoal fill in light mode. Keep the existing teal border/text but
+ * use the canonical raised light surface. Dark mode retains its current fill. */
+.light .life-chart-panel [class*="bg-brand-950/40"] {
+  background-color: var(--light-surface-raised) !important;
+}
+
 /* Presentation Input Snapshot mirrors the active Builder theme instead of
  * forcing a single color scheme. Keep the PDF block treatment controlled by
  * print.css; these rules apply to the live presentation workspace. */
