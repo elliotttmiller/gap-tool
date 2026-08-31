@@ -16,6 +16,18 @@
   border: 0 !important;
 }
 
+/* Remove the decorative depth/animation treatment around the reserve gauge.
+ * Keep the visualization geometry and interactive marker behavior intact. */
+.light .unemployment-reserve-plot [class*="shadow-["],
+.dark .unemployment-reserve-plot [class*="shadow-["] {
+  box-shadow: none !important;
+}
+
+.light .unemployment-reserve-plot [class*="transition-["],
+.dark .unemployment-reserve-plot [class*="transition-["] {
+  transition: none !important;
+}
+
 /* Presentation Input Snapshot mirrors the active Builder theme instead of
  * forcing a single color scheme. Keep the PDF block treatment controlled by
  * print.css; these rules apply to the live presentation workspace. */
