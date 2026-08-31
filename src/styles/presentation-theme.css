@@ -1,0 +1,71 @@
+/* Live Presentation Mode should mirror the advisor's active Builder theme.
+ * PDF/report rendering remains governed by print.css, which forces the canonical
+ * light report palette at print time. */
+html.dark .presentation-mode .presentation-input-rail {
+  border-color: var(--dark-border-soft) !important;
+  background-color: var(--dark-surface) !important;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.16) !important;
+}
+
+html.dark .presentation-mode .presentation-input-rail > div:first-child {
+  border-color: var(--dark-border-soft) !important;
+}
+
+html.dark .presentation-mode .presentation-input-item {
+  border-color: var(--dark-border-soft) !important;
+  background-color: var(--dark-surface-inset) !important;
+  box-shadow: none !important;
+}
+
+html.dark .presentation-mode .presentation-input-title,
+html.dark .presentation-mode .presentation-input-label,
+html.dark .presentation-mode .presentation-input-affix {
+  color: var(--dark-text-subtle) !important;
+}
+
+html.dark .presentation-mode .presentation-input-value {
+  color: var(--dark-text) !important;
+}
+
+html.dark .presentation-mode .presentation-input-control {
+  color-scheme: dark !important;
+  border-color: var(--dark-border) !important;
+  background-color: #292e35 !important;
+  color: var(--dark-text) !important;
+  box-shadow: none !important;
+}
+
+html.dark .presentation-mode .presentation-input-control:hover {
+  border-color: #71808a !important;
+  background-color: #2e343b !important;
+}
+
+html.dark .presentation-mode .presentation-input-control:focus,
+html.dark .presentation-mode .presentation-input-control:focus-visible {
+  border-color: #1db8b9 !important;
+  box-shadow: 0 0 0 3px rgb(29 184 185 / 0.14) !important;
+}
+
+/* The select menu is portaled outside .presentation-mode, so scope it to the
+ * resolved document theme rather than the presentation container. */
+html.dark .presentation-policy-menu {
+  color-scheme: dark !important;
+  border-color: var(--dark-border) !important;
+  background-color: var(--dark-surface-raised) !important;
+  color: var(--dark-text) !important;
+}
+
+html.dark .presentation-policy-menu [role="option"] {
+  color: var(--dark-text-secondary) !important;
+}
+
+html.dark .presentation-policy-menu [role="option"]:hover,
+html.dark .presentation-policy-menu [role="option"]:focus-visible {
+  background-color: rgb(29 184 185 / 0.12) !important;
+  color: var(--dark-text) !important;
+}
+
+html.dark .presentation-policy-menu [role="option"][data-state="checked"] {
+  background-color: rgb(29 184 185 / 0.18) !important;
+  color: var(--dark-text) !important;
+}
