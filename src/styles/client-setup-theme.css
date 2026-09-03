@@ -50,10 +50,24 @@
   border-color: #188a89 !important;
 }
 
-/* Client-list hover state uses a saturated teal overlay. Keep every piece of
- * client identity/meta copy explicitly white while that overlay is rendered;
- * this also prevents broader light-theme text rules from overriding the
- * component's group-hover utilities. */
+/* NorthStar brand manual: Sirius is the primary client-setup action color. */
+button[class~="bg-brand-500"][class*="hover:bg-[#188a89]"] {
+  background-color: #188a89 !important;
+  color: #ffffff !important;
+}
+
+button[class~="bg-brand-500"][class*="hover:bg-[#188a89]"]:hover {
+  background-color: #1db8b9 !important;
+}
+
+/* Client-list hover state uses Sirius lite. Keep every piece of client
+ * identity/meta copy explicitly white while that overlay is rendered; this
+ * also prevents broader light-theme text rules from overriding the intended
+ * hover treatment. */
+ul.divide-y > li.group:hover {
+  background-color: #1db8b9 !important;
+}
+
 .light ul.divide-y > li.group:hover span[class*="text-[#102a3a]"],
 .light ul.divide-y > li.group:hover div[class*="text-[#607583]"] {
   color: #ffffff !important;
