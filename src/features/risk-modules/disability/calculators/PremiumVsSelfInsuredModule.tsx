@@ -15,6 +15,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
+import { financialBarChartTheme } from "@/components/charts/financialBarChartTheme"
 import { calculateBreakEven } from "./calculateBreakEven"
 import type { DisabilityInputs } from "../types"
 
@@ -119,7 +120,7 @@ function SliderRow({
           aria-label={label}
           onChange={(event) => onChange(Number(event.target.value))}
           style={{ "--slider-progress": `${progress}%` } as CSSProperties}
-          className="premium-slider-control h-2 w-full min-w-0 cursor-pointer appearance-none rounded-full outline-none transition focus-visible:ring-2 focus-visible:ring-[#188a89]/40 focus-visible:ring-offset-2"
+          className="premium-slider-control h-2 w-full min-w-0 cursor-pointer appearance-none rounded-full outline-none transition focus-visible:ring-2 focus-visible:ring-[#1db8b9]/45 focus-visible:ring-offset-2"
         />
         <span className="w-27 text-right font-mono text-xs font-semibold tabular-nums text-[#102a3a] dark:text-[#f7fafb]">{displayValue}</span>
         {helperText ? <p className="col-start-2 col-end-4 text-[11px] leading-snug text-[#607583] dark:text-[#b5c1c8]">{helperText}</p> : null}
@@ -160,6 +161,7 @@ function PremiumTooltip({ active, payload, label }: any) {
 export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProps) {
   const mode = props.mode ?? "builder"
   const isPresentationMode = mode === "presentation"
+  const animateChart = !isPresentationMode
   const [values, setValues] = useState<PremiumVsSelfInsuredState>(() => getInitialState(props))
   const [highlightMetric, setHighlightMetric] = useState<HighlightMetric>("none")
   const benefitColaRate = Number.isFinite(props.benefitColaRate) ? Math.max(0, props.benefitColaRate ?? 0) : 0
@@ -302,10 +304,10 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
             <Card className="border-gray-800 bg-gray-900/25">
               <CardContent className="p-4">
                 <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-[#607583] dark:text-[#aebdc5]">
-                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#44b649]" />Self-insurance fund</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#188a89] ring-2 ring-[#1db8b9]/20" />Self-insurance fund</span>
                   <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#f15a29]" />Benefit needed</span>
                   <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#f15a29]/25 ring-1 ring-[#f15a29]/35" />Before break-even</span>
-                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#44b649]/25 ring-1 ring-[#44b649]/35" />After break-even</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#1db8b9]/20 ring-1 ring-[#188a89]/35" />After break-even</span>
                 </div>
 
                 <div className="chart-reveal h-60 sm:h-72">
@@ -313,9 +315,9 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                     <ComposedChart data={chartData} margin={{ top: 12, right: 18, left: 8, bottom: 8 }}>
                       <defs>
                         <linearGradient id="selfInsuranceFundFill" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#44b649" stopOpacity={0.22} />
-                          <stop offset="70%" stopColor="#44b649" stopOpacity={0.07} />
-                          <stop offset="100%" stopColor="#44b649" stopOpacity={0.015} />
+                          <stop offset="0%" stopColor="#1db8b9" stopOpacity={0.34} />
+                          <stop offset="48%" stopColor="#188a89" stopOpacity={0.14} />
+                          <stop offset="100%" stopColor="#188a89" stopOpacity={0.015} />
                         </linearGradient>
                       </defs>
 
@@ -357,8 +359,8 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                         <ReferenceArea
                           x1={result.roundedBreakEvenMonths}
                           x2={chartEndMonth}
-                          fill="#44b649"
-                          fillOpacity={0.025}
+                          fill="#1db8b9"
+                          fillOpacity={0.035}
                           ifOverflow="hidden"
                         />
                       ) : null}
@@ -378,9 +380,9 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                         dataKey="Self-Insurance Fund"
                         stroke="none"
                         fill="url(#selfInsuranceFundFill)"
-                        isAnimationActive
-                        animationDuration={500}
-                        animationEasing="ease-out"
+                        isAnimationActive={animateChart}
+                        animationDuration={financialBarChartTheme.animation.duration}
+                        animationEasing={financialBarChartTheme.animation.easing}
                       />
 
                       {durationEndMonth > 0 ? (
@@ -415,13 +417,14 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                       <Line
                         type="monotone"
                         dataKey="Self-Insurance Fund"
-                        stroke="#44b649"
-                        strokeWidth={3}
+                        stroke="#188a89"
+                        strokeWidth={2.75}
                         dot={false}
-                        activeDot={{ r: 4.5, stroke: "#ffffff", strokeWidth: 2, fill: "#44b649" }}
-                        isAnimationActive
-                        animationDuration={500}
-                        animationEasing="ease-out"
+                        activeDot={{ r: 4.5, stroke: "#ffffff", strokeWidth: 2, fill: "#1db8b9" }}
+                        isAnimationActive={animateChart}
+                        animationBegin={financialBarChartTheme.animation.staggerMs}
+                        animationDuration={financialBarChartTheme.animation.duration}
+                        animationEasing={financialBarChartTheme.animation.easing}
                       />
                       <Line
                         type="monotone"
@@ -430,9 +433,10 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                         strokeWidth={2.5}
                         dot={false}
                         activeDot={false}
-                        isAnimationActive
-                        animationDuration={500}
-                        animationEasing="ease-out"
+                        isAnimationActive={animateChart}
+                        animationBegin={financialBarChartTheme.animation.staggerMs * 2}
+                        animationDuration={financialBarChartTheme.animation.duration}
+                        animationEasing={financialBarChartTheme.animation.easing}
                       />
                     </ComposedChart>
                   </ResponsiveContainer>

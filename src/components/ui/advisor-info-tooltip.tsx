@@ -81,7 +81,7 @@ export function AdvisorInfoTooltip({
         aria-label={ariaLabel}
         aria-describedby={open ? tooltipId : undefined}
         aria-expanded={open}
-        className="inline-flex size-4 items-center justify-center rounded-full text-slate-500 outline-none transition-colors hover:text-[#188a89] focus-visible:text-[#188a89] focus-visible:ring-2 focus-visible:ring-[#188a89]/35"
+        className="inline-flex size-4 items-center justify-center rounded-full text-slate-500 outline-none transition-colors hover:text-[#1db8b9] focus-visible:text-[#1db8b9] focus-visible:ring-2 focus-visible:ring-[#1db8b9]/40"
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         onClick={() => setOpen((current) => !current)}

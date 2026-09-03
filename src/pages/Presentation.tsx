@@ -447,7 +447,7 @@ export function Presentation() {
         />
       )
     }
-    if (module === "liability" && liabilityOutputs) return <LiabilityOutputView outputs={liabilityOutputs} />
+    if (module === "liability" && liabilityOutputs) return <LiabilityOutputView outputs={liabilityOutputs} animate={false} />
     return null
   }
 

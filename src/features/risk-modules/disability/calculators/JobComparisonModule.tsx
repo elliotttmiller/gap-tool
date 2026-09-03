@@ -8,6 +8,7 @@ import type { DisabilityInputs } from "../types"
 
 interface JobComparisonModuleProps {
   inputs?: DisabilityInputs
+  animate?: boolean
 }
 
 interface JobState {
@@ -100,10 +101,10 @@ function formatWholeNumberInput(value: number | string, showZeroAsEmpty = false)
 }
 
 function binaryOptionClass(selected: boolean): string {
-  return `rounded-md px-3 py-1 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#188a89] ${
+  return `rounded-md px-3 py-1 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db8b9] ${
     selected
-      ? "bg-[#188a89] text-white shadow-sm"
-      : "bg-gray-800 text-gray-400 hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"
+      ? "bg-[#1db8b9] text-[#071f27] shadow-sm"
+      : "bg-gray-800 text-gray-400 hover:bg-[#1db8b9]/15 hover:text-[#1db8b9] dark:hover:text-white"
   }`
 }
 
@@ -196,7 +197,7 @@ function ComparisonTooltip({ active, payload, label }: any) {
   )
 }
 
-export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
+export function JobComparisonModule({ inputs, animate = true }: JobComparisonModuleProps) {
   const initial = useMemo(() => getInitialJobs(inputs), [inputs])
   const [jobA, setJobA] = useState<JobState>(initial.jobA)
   const [jobB, setJobB] = useState<JobState>(initial.jobB)
@@ -236,7 +237,7 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
           <Card className="border-t-4 border-gray-800 border-t-[#188a89] bg-gray-900/25">
             <CardContent className="p-4">
               <div className="mb-3 flex items-center justify-between">
-                <p className="text-sm font-semibold text-[#188a89] dark:text-[#1db8b9]">Job A</p>
+                <p className="text-sm font-semibold text-black dark:text-white">Job A</p>
                 <span className="text-[11px] font-medium text-gray-400">Group LTD only</span>
               </div>
               <div className="grid grid-cols-3 gap-3">
@@ -250,7 +251,7 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
           <Card className="border-t-4 border-gray-800 border-t-[#188a89] bg-gray-900/25">
             <CardContent className="p-4">
               <div className="mb-3 flex items-center justify-between">
-                <p className="text-sm font-semibold text-[#188a89] dark:text-[#1db8b9]">Job B</p>
+                <p className="text-sm font-semibold text-black dark:text-white">Job B</p>
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] text-gray-400">Has IDI policy?</span>
                   <div className="flex gap-1">
@@ -328,15 +329,15 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
                       label={{ value: "Annual Income ($)", angle: -90, position: "insideLeft", offset: 2, fill: financialBarChartTheme.axis.tickFill, fontSize: 10, fontWeight: 600 }}
                     />
                     <Tooltip content={<ComparisonTooltip />} cursor={{ fill: financialBarChartTheme.cursor.fill }} />
-                    <Bar dataKey="Group LTD" stackId="stack" fill="#1b75bc" shapeRendering="geometricPrecision">
+                    <Bar dataKey="Group LTD" stackId="stack" fill="#1b75bc" shapeRendering="geometricPrecision" isAnimationActive={animate} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
                       {roundedStackCells(chartData, "Group LTD", (row) => row["IDI Benefit"] <= 0 && row["Income Gap"] <= 0)}
                       <LabelList dataKey="Group LTD" position="center" formatter={(value: number) => value > 0 ? formatCurrency(value) : ""} style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }} />
                     </Bar>
-                    <Bar dataKey="IDI Benefit" stackId="stack" fill="#1db8b9" shapeRendering="geometricPrecision">
+                    <Bar dataKey="IDI Benefit" stackId="stack" fill="#1db8b9" shapeRendering="geometricPrecision" isAnimationActive={animate} animationBegin={financialBarChartTheme.animation.staggerMs} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
                       {roundedStackCells(chartData, "IDI Benefit", (row) => row["Income Gap"] <= 0)}
                       <LabelList dataKey="IDI Benefit" position="center" formatter={(value: number) => value > 0 ? formatCurrency(value) : ""} style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }} />
                     </Bar>
-                    <Bar dataKey="Income Gap" stackId="stack" fill="#f15a29" shapeRendering="geometricPrecision">
+                    <Bar dataKey="Income Gap" stackId="stack" fill="#f15a29" shapeRendering="geometricPrecision" isAnimationActive={animate} animationBegin={financialBarChartTheme.animation.staggerMs * 1.6} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
                       {roundedStackCells(chartData, "Income Gap", (row) => row["Income Gap"] > 0)}
                       <LabelList dataKey="Income Gap" position="center" formatter={(value: number) => value > 0 ? formatCurrency(value) : ""} style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }} />
                     </Bar>

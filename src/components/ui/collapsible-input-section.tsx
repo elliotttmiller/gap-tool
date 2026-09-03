@@ -29,14 +29,14 @@ export function CollapsibleInputSection({
           aria-expanded={isOpen}
           aria-controls={contentId}
           onClick={() => setIsOpen((open) => !open)}
-          className="flex w-full items-center justify-between gap-3 border-b border-[#d7e5e7] bg-linear-to-r from-[#f2f9f9] to-white px-5 py-4 text-left transition-colors hover:from-[#188a89]/15 hover:to-[#188a89]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#188a89] motion-reduce:transition-none dark:border-transparent dark:bg-none dark:bg-transparent dark:hover:bg-[#188a89]/15"
+          className="flex w-full items-center justify-between gap-3 border-b border-[#d7e5e7] bg-linear-to-r from-[#f2f9f9] to-white px-5 py-4 text-left transition-colors hover:from-[#1db8b9]/15 hover:to-[#1db8b9]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1db8b9] motion-reduce:transition-none dark:border-transparent dark:bg-none dark:bg-transparent dark:hover:bg-[#1db8b9]/15"
         >
-          <CardTitle className="text-xs font-bold uppercase tracking-wider text-[#176371] dark:text-gray-500">
+          <CardTitle className="text-xs font-bold uppercase tracking-wider text-[#1b75bc]">
             {title}
           </CardTitle>
           <RiArrowDownSLine
             className={cn(
-              "size-5 shrink-0 text-brand-600 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none dark:text-gray-500",
+              "size-5 shrink-0 text-[#1b75bc] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
               isOpen ? "rotate-180" : "rotate-0",
             )}
             aria-hidden="true"

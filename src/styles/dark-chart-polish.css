@@ -86,16 +86,24 @@
 .disability-chart-panel .recharts-rectangle[fill="#f15a29"],
 .liability-visual-dashboard .recharts-rectangle[fill="#f15a29"],
 .module-output-container .recharts-rectangle[fill="#f15a29"],
-.module-output-container .recharts-area-area[fill="#f15a29"],
-.module-output-container .recharts-line-curve[stroke="#f15a29"] {
+.module-output-container .recharts-area-area[fill="#f15a29"] {
   fill: var(--financial-chart-gap) !important;
   stroke: var(--financial-chart-gap) !important;
 }
 
+.module-output-container .recharts-line-curve[stroke="#f15a29"] {
+  fill: none !important;
+  stroke: var(--financial-chart-gap) !important;
+}
+
 .liability-visual-dashboard .recharts-rectangle[fill="#44b649"],
-.module-output-container .recharts-line-curve[stroke="#44b649"],
 .module-output-container .recharts-area-area[fill="#22d3ee"] {
   fill: var(--financial-chart-supported) !important;
+  stroke: var(--financial-chart-supported) !important;
+}
+
+.module-output-container .recharts-line-curve[stroke="#44b649"] {
+  fill: none !important;
   stroke: var(--financial-chart-supported) !important;
 }
 

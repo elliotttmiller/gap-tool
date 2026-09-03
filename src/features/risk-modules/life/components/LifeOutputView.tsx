@@ -166,6 +166,7 @@ function ChartPanel({ title, subtitle, coveredLabel, data, ticks, selectedAge, o
 }
 
 export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onActiveTabChange, mode = "builder" }: LifeOutputViewProps) {
+  const animateChart = mode === "builder"
   const [activeTabInternal, setActiveTabInternal] = useState<"safe" | "runway">("safe")
   const [selectedSafeAge, setSelectedSafeAge] = useState<number | null>(null)
   const [selectedRunwayAge, setSelectedRunwayAge] = useState<number | null>(null)
@@ -201,22 +202,22 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
   return (
     <div className="life-output-container">
       <div className="mb-2 flex flex-wrap gap-1">
-        <button onClick={() => setActiveTab("safe")} className={`rounded-md border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors ${activeTab === "safe" ? "border-[#188a89] bg-[#188a89] text-white shadow-sm ring-1 ring-[#188a89]" : "border-slate-800 bg-slate-900/40 text-slate-400 hover:border-[#188a89] hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"}`}>Safe Income Coverage</button>
-        <button onClick={() => setActiveTab("runway")} className={`rounded-md border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors ${activeTab === "runway" ? "border-[#188a89] bg-[#188a89] text-white shadow-sm ring-1 ring-[#188a89]" : "border-slate-800 bg-slate-900/40 text-slate-400 hover:border-[#188a89] hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"}`}>Covered Runway Scenario</button>
+        <button onClick={() => setActiveTab("safe")} className={`rounded-md border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors ${activeTab === "safe" ? "border-[#188a89] bg-[#188a89] text-white shadow-sm ring-1 ring-[#188a89]" : "border-slate-800 bg-slate-900/40 text-slate-400 hover:border-[#1db8b9] hover:bg-[#1db8b9]/15 hover:text-[#1db8b9] dark:hover:text-white"}`}>Safe Income Coverage</button>
+        <button onClick={() => setActiveTab("runway")} className={`rounded-md border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors ${activeTab === "runway" ? "border-[#188a89] bg-[#188a89] text-white shadow-sm ring-1 ring-[#188a89]" : "border-slate-800 bg-slate-900/40 text-slate-400 hover:border-[#1db8b9] hover:bg-[#1db8b9]/15 hover:text-[#1db8b9] dark:hover:text-white"}`}>Covered Runway Scenario</button>
       </div>
 
       {activeTab === "safe" && (
-        <AnimatedSection>
+        <AnimatedSection key="safe-income-coverage">
           <div className="life-visual-dashboard">
             <ChartPanel title={`Safe Income Coverage — Target Annual Net Income to Age ${retirementAge}`} subtitle={`${formatRatePctOneDecimal(module1.netIncomeFactor)} net income factor; capital required uses ${formatRatePctOneDecimal(module1.roi)} PV reference rate`} coveredLabel="Income Supported" data={module1.yearlyData} ticks={safeTicks} selectedAge={selectedSafeAge} onSelectAge={setSelectedSafeAge} onReset={() => setSelectedSafeAge(null)}>
               <Tooltip content={SafeTooltip} cursor={{ fill: financialBarChartTheme.cursor.fill }} />
-              <Bar dataKey="safeIncomeCoverage" name="Income Supported" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.supported} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>
+              <Bar dataKey="safeIncomeCoverage" name="Income Supported" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.supported} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={animateChart} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
                 {module1.yearlyData.map((point) => {
                   const visual = projectionCellVisualState(selectedSafeAge, point.age, financialBarChartTheme.semantic.supportedGlow)
                   return <Cell key={`safe-covered-${point.age}`} radius={topStackCellRadius(point.incomeGap <= 0 && point.safeIncomeCoverage > 0)} opacity={visual.opacity} style={visual.style} />
                 })}
               </Bar>
-              <Bar dataKey="incomeGap" name="Income Gap" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.gap} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>
+              <Bar dataKey="incomeGap" name="Income Gap" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.gap} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={animateChart} animationBegin={financialBarChartTheme.animation.staggerMs} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
                 {module1.yearlyData.map((point) => {
                   const visual = projectionCellVisualState(selectedSafeAge, point.age, financialBarChartTheme.semantic.gapGlow)
                   return <Cell key={`safe-gap-${point.age}`} radius={topStackCellRadius(point.incomeGap > 0)} opacity={visual.opacity} style={visual.style} />
@@ -229,17 +230,17 @@ export function LifeOutputView({ incomeGapOutputs, activeTab: activeTabProp, onA
       )}
 
       {activeTab === "runway" && (
-        <AnimatedSection>
+        <AnimatedSection key="covered-runway">
           <div className="life-visual-dashboard">
             <ChartPanel title="Covered Runway Scenario — Resource Drawdown Coverage" subtitle={`Existing coverage resources modeled at the shared ${formatRatePctOneDecimal(module2.roi)} PV reference rate while funding projected net income`} coveredLabel="Net Income Covered" data={module2.yearlyData} ticks={runwayTicks} selectedAge={selectedRunwayAge} onSelectAge={setSelectedRunwayAge} onReset={() => setSelectedRunwayAge(null)}>
               <Tooltip content={RunwayTooltip} cursor={{ fill: financialBarChartTheme.cursor.fill }} />
-              <Bar dataKey="runwayIncomeCovered" name="Net Income Covered" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.supported} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>
+              <Bar dataKey="runwayIncomeCovered" name="Net Income Covered" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.supported} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={animateChart} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
                 {module2.yearlyData.map((point) => {
                   const visual = projectionCellVisualState(selectedRunwayAge, point.age, financialBarChartTheme.semantic.supportedGlow)
                   return <Cell key={`runway-covered-${point.age}`} radius={topStackCellRadius(point.runwayIncomeGap <= 0 && point.runwayIncomeCovered > 0)} opacity={visual.opacity} style={visual.style} />
                 })}
               </Bar>
-              <Bar dataKey="runwayIncomeGap" name="Income Gap" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.gap} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>
+              <Bar dataKey="runwayIncomeGap" name="Income Gap" stackId="income" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.gap} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={animateChart} animationBegin={financialBarChartTheme.animation.staggerMs} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
                 {module2.yearlyData.map((point) => {
                   const visual = projectionCellVisualState(selectedRunwayAge, point.age, financialBarChartTheme.semantic.gapGlow)
                   return <Cell key={`runway-gap-${point.age}`} radius={topStackCellRadius(point.runwayIncomeGap > 0)} opacity={visual.opacity} style={visual.style} />

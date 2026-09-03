@@ -99,6 +99,7 @@ export function DisabilityOutputView({
   visualization: visualizationProp,
   onVisualizationChange,
 }: DisabilityOutputViewProps) {
+  const animateChart = mode === "builder"
   const chartData = transformDisabilityChartData(outputs)
   const ageTicks = buildProjectionAgeTicks(chartData.projectionChartData, 8)
   const [selectedAge, setSelectedAge] = useState<number | null>(null)
@@ -211,7 +212,7 @@ export function DisabilityOutputView({
       )
     }
 
-    if (visualization === "jobComparison") return <JobComparisonModule inputs={inputs} />
+    if (visualization === "jobComparison") return <JobComparisonModule inputs={inputs} animate={animateChart} />
     if (visualization === "assetComparison") return <AssetComparisonModule inputs={inputs} onInputsChange={onInputsChange} />
 
     return (
@@ -272,16 +273,16 @@ export function DisabilityOutputView({
                 <div className="flex min-h-8 items-center gap-3">
                   {selectedAge !== null ? <div className="flex items-center gap-2"><span className="rounded-full border border-blue-700 bg-blue-900/40 px-3 py-1 text-xs font-semibold text-blue-300">Age {selectedAge}</span><button onClick={() => setSelectedAge(null)} className="text-xs text-gray-400 transition-colors hover:text-gray-100" aria-label="Reset to current age">× Reset</button></div> : null}
                   {onAssumptionsChange ? (
-                    <button type="button" onClick={toggleCola} aria-pressed={colaRemoved} title={colaRemoved ? "Restore COLA benefit growth" : "Remove COLA from this comparison"} className="group ml-auto flex shrink-0 items-center gap-2.5 rounded-full border border-slate-700/80 bg-slate-900/70 py-1.5 pr-1.5 pl-3 text-left text-slate-200 shadow-sm transition-colors hover:border-[#188a89] hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white">
+                    <button type="button" onClick={toggleCola} aria-pressed={colaRemoved} title={colaRemoved ? "Restore COLA benefit growth" : "Remove COLA from this comparison"} className="group ml-auto flex shrink-0 items-center gap-2.5 rounded-full border border-slate-700/80 bg-slate-900/70 py-1.5 pr-1.5 pl-3 text-left text-slate-200 shadow-sm transition-colors hover:border-[#1db8b9] hover:bg-[#1db8b9]/15 hover:text-[#1db8b9] dark:hover:text-white">
                       <span className="text-xs font-semibold whitespace-nowrap">{colaCurrentMode}</span>
-                      <span className={`relative h-5 w-9 shrink-0 rounded-full shadow-inner transition-colors ${colaRemoved ? "bg-[#fbb040]" : "bg-[#188a89]"}`}><span className={`absolute top-0.5 size-4 rounded-full bg-white shadow-sm transition-all ${colaRemoved ? "left-0.5" : "left-4.5"}`} /></span>
+                      <span className={`relative h-5 w-9 shrink-0 rounded-full shadow-inner transition-colors ${colaRemoved ? "bg-[#fbb040]" : "bg-[#1db8b9]"}`}><span className={`absolute top-0.5 size-4 rounded-full bg-white shadow-sm transition-all ${colaRemoved ? "left-0.5" : "left-4.5"}`} /></span>
                     </button>
                   ) : null}
                 </div>
                 <div className="flex justify-center sm:justify-end">
                   <div className="flex shrink-0 overflow-hidden rounded-md border border-gray-700 text-xs">
-                    <button onClick={() => setChartView("net")} className={`px-3 py-1 transition-colors ${chartView === "net" ? "bg-[#188a89] text-white shadow-sm ring-1 ring-inset ring-[#188a89]" : "bg-gray-900 text-gray-400 hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"}`}>Net</button>
-                    <button onClick={() => setChartView("gross")} className={`px-3 py-1 transition-colors ${chartView === "gross" ? "bg-[#188a89] text-white shadow-sm ring-1 ring-inset ring-[#188a89]" : "bg-gray-900 text-gray-400 hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"}`}>Gross</button>
+                    <button onClick={() => setChartView("net")} className={`px-3 py-1 transition-colors ${chartView === "net" ? "bg-[#1db8b9] text-[#071f27] shadow-sm ring-1 ring-inset ring-[#1db8b9]" : "bg-gray-900 text-gray-400 hover:bg-[#1db8b9]/15 hover:text-[#1db8b9] dark:hover:text-white"}`}>Net</button>
+                    <button onClick={() => setChartView("gross")} className={`px-3 py-1 transition-colors ${chartView === "gross" ? "bg-[#1db8b9] text-[#071f27] shadow-sm ring-1 ring-inset ring-[#1db8b9]" : "bg-gray-900 text-gray-400 hover:bg-[#1db8b9]/15 hover:text-[#1db8b9] dark:hover:text-white"}`}>Gross</button>
                   </div>
                 </div>
               </div>
@@ -293,21 +294,21 @@ export function DisabilityOutputView({
                   <div className="chart-reveal financial-projection-plot min-h-52 w-full flex-1">
                     <FinancialProjectionChart data={chartData.projectionChartData} ticks={ageTicks} onSelectAge={setSelectedAge}>
                       <Tooltip content={CustomTooltip} cursor={{ fill: financialBarChartTheme.cursor.fill }} />
-                      <Bar dataKey={ltdLabel} stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.primaryCoverage} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>
+                      <Bar dataKey={ltdLabel} stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.primaryCoverage} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={animateChart} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
                         {chartData.projectionChartData.map((point) => {
                           const visual = projectionCellVisualState(selectedAge, point.age, financialBarChartTheme.semantic.primaryCoverageGlow)
                           const isTopSegment = Number(point["Individual DI"]) <= 0 && Number(point["Income Gap"]) <= 0
                           return <Cell key={`ltd-${point.age}`} radius={topStackCellRadius(isTopSegment)} opacity={visual.opacity} style={visual.style} />
                         })}
                       </Bar>
-                      <Bar dataKey="Individual DI" stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.secondaryCoverage} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>
+                      <Bar dataKey="Individual DI" stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.secondaryCoverage} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={animateChart} animationBegin={financialBarChartTheme.animation.staggerMs} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
                         {chartData.projectionChartData.map((point) => {
                           const visual = projectionCellVisualState(selectedAge, point.age, financialBarChartTheme.semantic.secondaryCoverageGlow)
                           const isTopSegment = Number(point["Individual DI"]) > 0 && Number(point["Income Gap"]) <= 0
                           return <Cell key={`idi-${point.age}`} radius={topStackCellRadius(isTopSegment)} opacity={visual.opacity} style={visual.style} />
                         })}
                       </Bar>
-                      <Bar dataKey="Income Gap" stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.gap} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={false}>
+                      <Bar dataKey="Income Gap" stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.gap} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={animateChart} animationBegin={financialBarChartTheme.animation.staggerMs * 1.6} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
                         {chartData.projectionChartData.map((point) => {
                           const visual = projectionCellVisualState(selectedAge, point.age, financialBarChartTheme.semantic.gapGlow)
                           const isTopSegment = Number(point["Income Gap"]) > 0
@@ -343,7 +344,7 @@ export function DisabilityOutputView({
 
   return (
     <div className="flex h-full flex-col space-y-6">
-      <AnimatedSection delay={0.3}>
+      <AnimatedSection key={visualization} delay={0.3}>
         <div className="mb-4 flex flex-wrap gap-1">
           {([
             { value: "incomeGap", label: "Income Gap" },
@@ -355,7 +356,7 @@ export function DisabilityOutputView({
               key={value}
               type="button"
               onClick={() => setVisualization(value)}
-              className={`rounded-md px-4 py-2 text-xs font-bold tracking-wider uppercase transition-colors ${visualization === value ? "border border-[#188a89] bg-[#188a89] text-white shadow-sm ring-1 ring-[#188a89]" : "border border-slate-800 bg-slate-900/40 text-slate-400 hover:border-[#188a89] hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"}`}
+              className={`rounded-md px-4 py-2 text-xs font-bold tracking-wider uppercase transition-colors ${visualization === value ? "border border-[#188a89] bg-[#188a89] text-white shadow-sm ring-1 ring-[#188a89]" : "border border-slate-800 bg-slate-900/40 text-slate-400 hover:border-[#1db8b9] hover:bg-[#1db8b9]/15 hover:text-[#1db8b9] dark:hover:text-white"}`}
             >
               {label}
             </button>

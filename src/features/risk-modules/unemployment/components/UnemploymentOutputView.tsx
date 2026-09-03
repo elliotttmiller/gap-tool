@@ -192,10 +192,10 @@ function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOut
           <div className="flex min-w-0 items-center justify-center py-1">
             <div className="relative h-[22rem] w-full max-w-[26rem]" role="img" aria-label={`Current liquid emergency savings cover ${displayedReserveMonths.toFixed(1)} months; the minimum is 3 months and the ideal is ${idealMonths} months`}>
               <div ref={barRef} className="absolute bottom-3 left-1/2 top-3 w-28 -translate-x-1/2 overflow-hidden rounded-[1.5rem] border border-slate-700/80 bg-slate-900 shadow-[inset_0_1px_2px_rgba(255,255,255,0.08),0_18px_38px_rgba(2,6,23,0.32)]">
-                <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-[#ed5a46] to-[#f47a5f] transition-[height] duration-500 ease-out" style={{ height: `${dangerPct}%` }} />
-                <div className="absolute inset-x-0 bg-linear-to-t from-[#f2aa45] to-[#f8c76b] transition-[bottom,height] duration-500 ease-out" style={{ bottom: `${dangerPct}%`, height: `${Math.max(0, minimumPct - dangerPct)}%` }} />
-                <div className="absolute inset-x-0 bg-linear-to-t from-[#4eb979] to-[#79cf95] transition-[bottom,height] duration-500 ease-out" style={{ bottom: `${minimumPct}%`, height: `${Math.max(0, idealPct - minimumPct)}%` }} />
-                <div className="absolute inset-x-0 top-0 bg-linear-to-t from-[#5279d8] to-[#7399e8] transition-[height] duration-500 ease-out" style={{ height: `${Math.max(0, 100 - idealPct)}%` }} />
+                <div className="reserve-gauge-band absolute inset-x-0 bottom-0 bg-linear-to-t from-[#ed5a46] to-[#f47a5f] transition-[height] duration-500 ease-out" style={{ height: `${dangerPct}%`, animationDelay: "0ms" }} />
+                <div className="reserve-gauge-band absolute inset-x-0 bg-linear-to-t from-[#f2aa45] to-[#f8c76b] transition-[bottom,height] duration-500 ease-out" style={{ bottom: `${dangerPct}%`, height: `${Math.max(0, minimumPct - dangerPct)}%`, animationDelay: "100ms" }} />
+                <div className="reserve-gauge-band absolute inset-x-0 bg-linear-to-t from-[#4eb979] to-[#79cf95] transition-[bottom,height] duration-500 ease-out" style={{ bottom: `${minimumPct}%`, height: `${Math.max(0, idealPct - minimumPct)}%`, animationDelay: "200ms" }} />
+                <div className="reserve-gauge-band absolute inset-x-0 top-0 bg-linear-to-t from-[#5279d8] to-[#7399e8] transition-[height] duration-500 ease-out" style={{ height: `${Math.max(0, 100 - idealPct)}%`, animationDelay: "300ms" }} />
                 <div className="absolute inset-x-0 border-t border-dashed border-white/60" style={{ bottom: `${minimumPct}%` }} />
                 <div className="absolute inset-x-0 border-t border-dashed border-white/70" style={{ bottom: `${idealPct}%` }} />
                 <ReserveBandLabel label="Danger" lowerPct={0} upperPct={dangerPct} />
@@ -251,7 +251,7 @@ function ReservePositionPanel({ outputs, onReserveLevelChange }: UnemploymentOut
               ))}
 
               <div className="pointer-events-none absolute bottom-3 left-[calc(50%-3.5rem)] right-0 top-3 z-10">
-                <div className={`absolute inset-x-0 flex translate-y-1/2 items-center ${dragScale !== null ? "transition-none" : "transition-[bottom] duration-150 ease-out"}`} style={{ bottom: `${markerPct}%` }}>
+                <div className={`reserve-gauge-marker absolute inset-x-0 flex translate-y-1/2 items-center ${dragScale !== null ? "transition-none" : "transition-[bottom] duration-150 ease-out"}`} style={{ bottom: `${markerPct}%` }}>
                   <span className={`h-[3px] w-28 rounded-full bg-gradient-to-r from-cyan-400/10 via-cyan-300/70 to-cyan-200 shadow-[0_0_10px_rgba(34,211,238,0.4)] transition-all duration-150 peer-hover:h-1 peer-hover:shadow-[0_0_16px_rgba(34,211,238,0.65)] ${dragScale !== null ? "h-1 shadow-[0_0_18px_rgba(34,211,238,0.8)]" : ""}`} />
                   <span className={`relative -ml-2 flex size-5 items-center justify-center rounded-full border-2 border-cyan-100 bg-slate-950 shadow-[0_0_0_4px_rgba(34,211,238,0.12),0_0_16px_rgba(34,211,238,0.75)] transition-transform duration-150 peer-hover:scale-110 ${dragScale !== null ? "scale-110" : ""}`}>
                     <span className="size-2 rounded-full bg-cyan-300" />

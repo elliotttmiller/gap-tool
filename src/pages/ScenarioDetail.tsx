@@ -78,7 +78,9 @@ export function ScenarioDetailShell() {
   return (
     <div className="space-y-6">
       <ModuleErrorBoundary>
-        <Outlet />
+        {/* A fresh route key intentionally remounts the active module canvas so
+            every advisor navigation replays its visualization entrance. */}
+        <Outlet key={location.key} />
       </ModuleErrorBoundary>
     </div>
   )

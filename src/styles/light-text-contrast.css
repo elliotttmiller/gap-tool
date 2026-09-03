@@ -8,9 +8,9 @@
  */
 
 .light {
-  --light-text-secondary-strong: #2f4856;
-  --light-text-muted-strong: #405966;
-  --light-text-subtle-strong: #526a75;
+  --light-text-secondary-strong: #000000;
+  --light-text-muted-strong: #000000;
+  --light-text-subtle-strong: #000000;
   --light-text-placeholder: #667d88;
 }
 
@@ -37,7 +37,24 @@
 
 .light [class~="text-gray-700"],
 .light [class~="text-slate-700"] {
-  color: #334955 !important;
+  color: #000000 !important;
+}
+
+/* Normalize legacy arbitrary neutral colors used by older page and module
+   components. Brand/status colors and white text on filled controls remain
+   intentionally untouched. */
+.light [class~="text-[#102a3a]"],
+.light [class~="text-[#10283b]"],
+.light [class~="text-[#607583]"],
+.light [class~="text-[#415b6d]"],
+.light [class~="text-[#94a3b8]"],
+.light [class~="text-[#9fb8c4]"],
+.light [class~="text-[#aebdc5]"],
+.light [class~="text-[#7896a5]"],
+.light [class~="text-[#29495b]"],
+.light [class~="text-[#13283a]"],
+.light [class~="text-[#b5c1c8]"] {
+  color: #000000 !important;
 }
 
 /* Metric cards are high-frequency advisor reading surfaces. Keep labels and
@@ -45,30 +62,30 @@
    colors and semantic accents. */
 .light .module-metric-card .module-metric-label,
 .light .module-kpi-card [class~="text-slate-500"] {
-  color: #3b5562 !important;
+  color: #000000 !important;
 }
 
 .light .module-metric-card .module-metric-description,
 .light .module-metric-card .module-metric-disclosure,
 .light .module-kpi-card [class~="text-slate-600"],
 .light .module-kpi-card [class~="text-slate-700"] {
-  color: #4a626e !important;
+  color: #000000 !important;
 }
 
 .light .module-metric-card .module-metric-value [class~="text-gray-400"] {
-  color: #4a626e !important;
+  color: #000000 !important;
 }
 
 /* SVG chart labels do not inherit normal text color utilities. Use the same
    readable neutral tone for axis ticks while leaving semantic series colors
    unchanged. */
 .light .recharts-cartesian-axis-tick-value {
-  fill: #405966 !important;
+  fill: #000000 !important;
 }
 
 .light .recharts-label,
 .light .recharts-text.recharts-label {
-  fill: #405966 !important;
+  fill: #000000 !important;
 }
 
 /* Form helper/placeholder copy should remain visually secondary, but not fade
@@ -86,7 +103,7 @@
 .light .presentation-input-rail [class~="text-slate-400"],
 .light .presentation-input-rail [class~="text-gray-500"],
 .light .presentation-input-rail [class~="text-slate-500"] {
-  color: #b7d9de !important;
+  color: #000000 !important;
 }
 
 .light .analysis-module-summary [class~="text-gray-400"],

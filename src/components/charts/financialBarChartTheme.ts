@@ -52,6 +52,11 @@ export const financialBarChartTheme = {
     transition: "opacity 180ms ease, filter 180ms ease",
     selectedGlowRadius: 5,
   },
+  animation: {
+    duration: 1200,
+    easing: "ease-out",
+    staggerMs: 100,
+  },
 } as const
 
 export type ProjectionBarRadius = [number, number, number, number]

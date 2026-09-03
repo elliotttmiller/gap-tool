@@ -179,12 +179,14 @@
     --light-surface-muted: #eef4f5;
     --light-border: #cbdadd;
     --light-border-soft: #dce7e9;
-    --light-text: #102a3a;
-    --light-text-muted: #607583;
+    --light-text: #000000;
+    --light-text-muted: #000000;
     --light-accent-soft: #e8f7f7;
     --light-accent-border: #b8e1e3;
     --light-shadow-sm: 0 1px 2px rgb(15 42 58 / 0.05), 0 6px 18px rgb(15 42 58 / 0.06);
     --light-shadow-lg: 0 18px 50px rgb(15 42 58 / 0.10), 0 2px 8px rgb(15 42 58 / 0.05);
+    --visualization-load-duration: 1200ms;
+    --visualization-load-easing: cubic-bezier(0.16, 1, 0.3, 1);
     background: var(--light-canvas);
   }
   :root.dark {
@@ -470,8 +472,8 @@
   }
   .light input:not([type="checkbox"]):not([type="radio"]):focus,
   .light textarea:focus {
-    border-color: #188a89 !important;
-    box-shadow: 0 0 0 3px rgb(0 153 168 / 0.12) !important;
+    border-color: #1db8b9 !important;
+    box-shadow: 0 0 0 3px rgb(29 184 185 / 0.14) !important;
   }
 
   .light .builder-mode [class~="rounded-xl"][class*="border"],
@@ -562,8 +564,8 @@
   }
   .presentation-mode .presentation-input-control:focus,
   .dark .presentation-mode .presentation-input-control:focus {
-    border-color: #188a89 !important;
-    box-shadow: 0 0 0 2px rgb(24 138 137 / 0.14) !important;
+    border-color: #1db8b9 !important;
+    box-shadow: 0 0 0 2px rgb(29 184 185 / 0.16) !important;
   }
   .presentation-mode .presentation-input-control option,
   .dark .presentation-mode .presentation-input-control option {
@@ -655,8 +657,8 @@
   border-radius: 9999px !important;
   background: linear-gradient(
     to right,
-    #188a89 0%,
-    #188a89 var(--slider-progress),
+    #1db8b9 0%,
+    #1db8b9 var(--slider-progress),
     #d5e2e5 var(--slider-progress),
     #d5e2e5 100%
   ) !important;
@@ -680,7 +682,7 @@ input.premium-slider-control::-webkit-slider-thumb {
   appearance: none;
   border: 3px solid #ffffff;
   border-radius: 9999px;
-  background: #188a89;
+  background: #1db8b9;
   box-shadow: 0 1px 4px rgb(15 42 58 / 0.24), 0 0 0 1px rgb(24 138 137 / 0.2);
 }
 
@@ -689,7 +691,7 @@ input.premium-slider-control::-moz-range-thumb {
   height: 0.8rem;
   border: 3px solid #ffffff;
   border-radius: 9999px;
-  background: #188a89;
+  background: #1db8b9;
   box-shadow: 0 1px 4px rgb(15 42 58 / 0.24), 0 0 0 1px rgb(24 138 137 / 0.2);
 }
 
@@ -764,11 +766,26 @@ input.premium-slider-control::-moz-range-thumb {
 
   .asset-comparison-bar {
     transform-origin: center bottom;
-    animation: asset-comparison-bar-grow 850ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: asset-comparison-bar-grow var(--visualization-load-duration) var(--visualization-load-easing) both;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .asset-comparison-bar { animation: none; }
+  @keyframes reserve-gauge-band-grow {
+    from { transform: scaleY(0); opacity: 0.25; }
+    to   { transform: scaleY(1); opacity: 1; }
+  }
+
+  @keyframes reserve-gauge-marker-enter {
+    from { opacity: 0; filter: blur(3px); }
+    to   { opacity: 1; filter: blur(0); }
+  }
+
+  .reserve-gauge-band {
+    transform-origin: center bottom;
+    animation: reserve-gauge-band-grow var(--visualization-load-duration) var(--visualization-load-easing) both;
+  }
+
+  .reserve-gauge-marker {
+    animation: reserve-gauge-marker-enter 520ms ease-out 520ms both;
   }
 
   .module-visual-dashboard {
