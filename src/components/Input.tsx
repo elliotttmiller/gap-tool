@@ -56,7 +56,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         ? "text"
         : (isPassword ? typeState : type)
     const renderedValue = shouldGroupThousands
-      ? formatGroupedNumberInput(value)
+      ? isEditingNumber
+        ? normalizeGroupedNumberInput(String(value ?? ""))
+        : formatGroupedNumberInput(value)
       : isNumber && !isEditingNumber
         ? formatNumberInputValue(value)
         : value
@@ -77,11 +79,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           value={renderedValue}
           onChange={handleChange}
           onFocus={(event) => {
-            if (isNumber && !shouldGroupThousands) setIsEditingNumber(true)
+            if (isNumber) setIsEditingNumber(true)
             onFocus?.(event)
           }}
           onBlur={(event) => {
-            if (isNumber && !shouldGroupThousands) setIsEditingNumber(false)
+            if (isNumber) setIsEditingNumber(false)
             onBlur?.(event)
           }}
           placeholder={placeholder}

@@ -147,8 +147,9 @@ function SnapshotNumberInput({ label, value, onCommit, percent = false, currency
 }) {
   const displayValue = percent ? value * 100 : value
   const [draft, setDraft] = useState(String(displayValue))
+  const [isEditingNumber, setIsEditingNumber] = useState(false)
   const focused = useRef(false)
-  const renderedDraft = currency ? formatGroupedNumberInput(draft) : draft
+  const renderedDraft = currency && !isEditingNumber ? formatGroupedNumberInput(draft) : draft
 
   useEffect(() => {
     if (!focused.current) setDraft(String(percent ? value * 100 : value))
@@ -164,7 +165,10 @@ function SnapshotNumberInput({ label, value, onCommit, percent = false, currency
         min={0}
         step={percent ? 0.1 : 1}
         value={renderedDraft}
-        onFocus={() => { focused.current = true }}
+        onFocus={() => {
+          focused.current = true
+          setIsEditingNumber(true)
+        }}
         onChange={(event) => {
           const next = currency ? normalizeGroupedNumberInput(event.target.value) : event.target.value
           setDraft(next)
@@ -172,6 +176,7 @@ function SnapshotNumberInput({ label, value, onCommit, percent = false, currency
         }}
         onBlur={() => {
           focused.current = false
+          setIsEditingNumber(false)
           if (draft === "") {
             setDraft("0")
             onCommit(0)
