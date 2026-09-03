@@ -95,11 +95,10 @@
   color: #1db8b9 !important;
 }
 
-/* Recharts can inherit light-theme text fills after SVG hydration. Keep all
- * values rendered inside the Job A vs Job B stacked bars explicitly white. */
+/* Recharts can inherit light-theme text fills after SVG hydration. Keep only
+ * the values rendered inside the Job A vs Job B stacked bars explicitly white. */
 .job-comparison-results .recharts-label-list text,
-.job-comparison-results .recharts-label-list tspan,
-.job-comparison-results text.recharts-label {
+.job-comparison-results .recharts-label-list tspan {
   fill: #ffffff !important;
   color: #ffffff !important;
 }
