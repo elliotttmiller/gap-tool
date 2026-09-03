@@ -49,3 +49,12 @@
   background-color: #eaf7f6 !important;
   border-color: #188a89 !important;
 }
+
+/* Client-list hover state uses a saturated teal overlay. Keep every piece of
+ * client identity/meta copy explicitly white while that overlay is rendered;
+ * this also prevents broader light-theme text rules from overriding the
+ * component's group-hover utilities. */
+.light ul.divide-y > li.group:hover span[class*="text-[#102a3a]"],
+.light ul.divide-y > li.group:hover div[class*="text-[#607583]"] {
+  color: #ffffff !important;
+}
