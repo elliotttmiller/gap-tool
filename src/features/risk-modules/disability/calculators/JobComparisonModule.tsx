@@ -89,7 +89,14 @@ function calcGroupLTDAnnual(salary: number, groupPct: number, groupCap: number):
 }
 
 function parseWholeNumberInput(value: string): number {
-  return Number(value) || 0
+  return Number(value.replace(/[^\d]/g, "")) || 0
+}
+
+function formatWholeNumberInput(value: number | string, showZeroAsEmpty = false): string {
+  const numeric = typeof value === "number" ? value : parseWholeNumberInput(value)
+  if (showZeroAsEmpty && numeric === 0) return ""
+  if (!Number.isFinite(numeric)) return ""
+  return Math.max(0, Math.round(numeric)).toLocaleString("en-US")
 }
 
 function binaryOptionClass(selected: boolean): string {
@@ -119,7 +126,10 @@ function NumberField({
   showZeroAsEmpty?: boolean
   onChange: (value: number) => void
 }) {
-  const displayValue = showZeroAsEmpty && value === 0 ? "" : value
+  const currencyLike = Boolean(prefix)
+  const displayValue = currencyLike
+    ? formatWholeNumberInput(value, showZeroAsEmpty)
+    : showZeroAsEmpty && value === 0 ? "" : value
 
   return (
     <label className="flex flex-col gap-1">
@@ -127,11 +137,15 @@ function NumberField({
       <div className="relative flex items-center">
         {prefix ? <span className="pointer-events-none absolute left-2.5 text-xs text-gray-500">{prefix}</span> : null}
         <input
-          type="number"
+          type={currencyLike ? "text" : "number"}
+          inputMode={currencyLike ? "numeric" : undefined}
           value={displayValue}
-          min={min}
-          step={step}
-          onChange={(event) => onChange(Number(event.target.value) || 0)}
+          min={currencyLike ? undefined : min}
+          step={currencyLike ? undefined : step}
+          onChange={(event) => {
+            const rawValue = currencyLike ? event.target.value.replace(/[^\d]/g, "") : event.target.value
+            onChange(Math.max(min, Number(rawValue) || 0))
+          }}
           className={`h-9 w-full rounded-md border border-gray-700 bg-gray-950 text-sm text-gray-100 outline-none transition focus:border-brand-600 ${prefix ? "pl-6 pr-2.5" : suffix ? "pl-2.5 pr-6" : "px-2.5"}`}
         />
         {suffix ? <span className="pointer-events-none absolute right-2.5 text-xs text-gray-500">{suffix}</span> : null}
@@ -149,7 +163,7 @@ function GroupCapField({ label, value, onChange }: { label: string; value: strin
         <input
           type="text"
           inputMode="numeric"
-          value={value}
+          value={formatWholeNumberInput(value, true)}
           onChange={(event) => onChange(event.target.value.replace(/[^\d]/g, ""))}
           className="h-9 w-full rounded-md border border-gray-700 bg-gray-950 pl-6 pr-2.5 text-sm text-gray-100 outline-none transition focus:border-brand-600"
         />
@@ -223,33 +237,13 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
             <CardContent className="p-4">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-sm font-semibold text-[#188a89] dark:text-[#1db8b9]">Job A</p>
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-gray-400">Has IDI policy?</span>
-                  <div className="flex gap-1">
-                    {(["Yes", "No"] as const).map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() => setJobA({ ...jobA, hasIdi: option === "Yes" })}
-                        className={binaryOptionClass((option === "Yes") === jobA.hasIdi)}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <span className="text-[11px] font-medium text-gray-400">Group LTD only</span>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <NumberField label="Annual income" value={jobA.salary} step={5000} prefix="$" onChange={(salary) => setJobA({ ...jobA, salary })} />
                 <NumberField label="Group LTD (% of income)" value={jobA.groupPct} step={1} suffix="%" onChange={(groupPct) => setJobA({ ...jobA, groupPct })} />
                 <GroupCapField label="Group LTD cap ($/mo)" value={jobA.groupCap} onChange={(groupCap) => setJobA({ ...jobA, groupCap })} />
               </div>
-              {jobA.hasIdi ? (
-                <div className="mt-3 grid grid-cols-2 gap-3">
-                  <NumberField label="IDI monthly premium" value={jobA.monthlyPremium} step={50} prefix="$" showZeroAsEmpty onChange={(monthlyPremium) => setJobA({ ...jobA, monthlyPremium })} />
-                  <NumberField label="IDI monthly benefit" value={jobA.idiBenefit} step={500} prefix="$" showZeroAsEmpty onChange={(idiBenefit) => setJobA({ ...jobA, idiBenefit })} />
-                </div>
-              ) : null}
             </CardContent>
           </Card>
 
