@@ -124,6 +124,167 @@
   background-color: #fbb040 !important;
 }
 
+/* Glass tab system: mirror the transparent Net/Gross segmented-control visual
+ * language across the primary module navigation and the Life/Disability
+ * visualization selectors. Interaction/state behavior is unchanged. */
+.builder-mode .scrollbar-hide:has(> a[href*="/scenarios/"]) {
+  gap: 0.125rem !important;
+  border-color: rgb(203 218 221 / 0.9) !important;
+  background: rgb(255 255 255 / 0.55) !important;
+  padding: 0.125rem !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.72), 0 3px 12px rgb(15 42 58 / 0.08) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .builder-mode .scrollbar-hide:has(> a[href*="/scenarios/"]) {
+  border-color: rgb(255 255 255 / 0.1) !important;
+  background: rgb(255 255 255 / 0.05) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 4px 14px rgb(0 0 0 / 0.18) !important;
+}
+
+.builder-mode .scrollbar-hide:has(> a[href*="/scenarios/"]) > a {
+  position: relative;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  ring: none !important;
+  transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease, box-shadow 180ms ease, transform 180ms ease !important;
+}
+
+.light .builder-mode .scrollbar-hide:has(> a[href*="/scenarios/"]) > a:not([aria-current="page"]) {
+  color: #607583 !important;
+}
+
+.dark .builder-mode .scrollbar-hide:has(> a[href*="/scenarios/"]) > a:not([aria-current="page"]) {
+  color: #cbd5e1 !important;
+}
+
+.builder-mode .scrollbar-hide:has(> a[href*="/scenarios/"]) > a:not([aria-current="page"]):hover {
+  border-color: rgb(29 184 185 / 0.3) !important;
+  background: rgb(29 184 185 / 0.1) !important;
+  color: #188a89 !important;
+}
+
+.dark .builder-mode .scrollbar-hide:has(> a[href*="/scenarios/"]) > a:not([aria-current="page"]):hover {
+  color: #8de3e3 !important;
+}
+
+.builder-mode .scrollbar-hide:has(> a[href*="/scenarios/"]) > a[aria-current="page"] {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.builder-mode .scrollbar-hide > a[aria-current="page"][href$="/life"] {
+  border-color: rgb(29 184 185 / 0.65) !important;
+  background: rgb(29 184 185 / 0.14) !important;
+  color: #0b6667 !important;
+  box-shadow: 0 3px 12px rgb(29 184 185 / 0.16), inset 0 1px 0 rgb(255 255 255 / 0.8) !important;
+}
+.builder-mode .scrollbar-hide > a[aria-current="page"][href$="/liability"] {
+  border-color: rgb(39 170 225 / 0.65) !important;
+  background: rgb(39 170 225 / 0.14) !important;
+  color: #176a8d !important;
+  box-shadow: 0 3px 12px rgb(39 170 225 / 0.16), inset 0 1px 0 rgb(255 255 255 / 0.8) !important;
+}
+.builder-mode .scrollbar-hide > a[aria-current="page"][href$="/unemployment"] {
+  border-color: rgb(241 90 41 / 0.62) !important;
+  background: rgb(241 90 41 / 0.13) !important;
+  color: #a13c1e !important;
+  box-shadow: 0 3px 12px rgb(241 90 41 / 0.15), inset 0 1px 0 rgb(255 255 255 / 0.8) !important;
+}
+.builder-mode .scrollbar-hide > a[aria-current="page"][href$="/disability"] {
+  border-color: rgb(68 182 73 / 0.62) !important;
+  background: rgb(68 182 73 / 0.13) !important;
+  color: #28782d !important;
+  box-shadow: 0 3px 12px rgb(68 182 73 / 0.15), inset 0 1px 0 rgb(255 255 255 / 0.8) !important;
+}
+
+.dark .builder-mode .scrollbar-hide > a[aria-current="page"][href$="/life"] {
+  background: rgb(29 184 185 / 0.12) !important;
+  color: #8de3e3 !important;
+  box-shadow: 0 3px 14px rgb(29 184 185 / 0.12), inset 0 1px 0 rgb(255 255 255 / 0.1) !important;
+}
+.dark .builder-mode .scrollbar-hide > a[aria-current="page"][href$="/liability"] {
+  background: rgb(39 170 225 / 0.12) !important;
+  color: #8ed7f6 !important;
+  box-shadow: 0 3px 14px rgb(39 170 225 / 0.12), inset 0 1px 0 rgb(255 255 255 / 0.1) !important;
+}
+.dark .builder-mode .scrollbar-hide > a[aria-current="page"][href$="/unemployment"] {
+  background: rgb(241 90 41 / 0.12) !important;
+  color: #ff9b7a !important;
+  box-shadow: 0 3px 14px rgb(241 90 41 / 0.11), inset 0 1px 0 rgb(255 255 255 / 0.1) !important;
+}
+.dark .builder-mode .scrollbar-hide > a[aria-current="page"][href$="/disability"] {
+  background: rgb(68 182 73 / 0.12) !important;
+  color: #8bdd8f !important;
+  box-shadow: 0 3px 14px rgb(68 182 73 / 0.11), inset 0 1px 0 rgb(255 255 255 / 0.1) !important;
+}
+
+.life-output-container > .mb-2.flex.flex-wrap.gap-1,
+.builder-mode .mb-4.flex.flex-wrap.gap-1:has(> button[class*="uppercase"]) {
+  width: fit-content;
+  gap: 0.125rem !important;
+  border: 1px solid rgb(203 218 221 / 0.9);
+  border-radius: 0.5rem;
+  background: rgb(255 255 255 / 0.55);
+  padding: 0.125rem;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.72), 0 3px 12px rgb(15 42 58 / 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .life-output-container > .mb-2.flex.flex-wrap.gap-1,
+.dark .builder-mode .mb-4.flex.flex-wrap.gap-1:has(> button[class*="uppercase"]) {
+  border-color: rgb(255 255 255 / 0.1);
+  background: rgb(255 255 255 / 0.05);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 4px 14px rgb(0 0 0 / 0.18);
+}
+
+.life-output-container > .mb-2.flex.flex-wrap.gap-1 > button,
+.builder-mode .mb-4.flex.flex-wrap.gap-1:has(> button[class*="uppercase"]) > button {
+  position: relative;
+  border-color: transparent !important;
+  background: transparent !important;
+  color: #607583 !important;
+  box-shadow: none !important;
+  transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease, box-shadow 180ms ease !important;
+}
+
+.dark .life-output-container > .mb-2.flex.flex-wrap.gap-1 > button,
+.dark .builder-mode .mb-4.flex.flex-wrap.gap-1:has(> button[class*="uppercase"]) > button {
+  color: #cbd5e1 !important;
+}
+
+.life-output-container > .mb-2.flex.flex-wrap.gap-1 > button:hover,
+.builder-mode .mb-4.flex.flex-wrap.gap-1:has(> button[class*="uppercase"]) > button:hover {
+  border-color: rgb(29 184 185 / 0.3) !important;
+  background: rgb(29 184 185 / 0.1) !important;
+  color: #188a89 !important;
+}
+
+.dark .life-output-container > .mb-2.flex.flex-wrap.gap-1 > button:hover,
+.dark .builder-mode .mb-4.flex.flex-wrap.gap-1:has(> button[class*="uppercase"]) > button:hover {
+  color: #8de3e3 !important;
+}
+
+.life-output-container > .mb-2.flex.flex-wrap.gap-1 > button[class*="bg-[#188a89]"],
+.builder-mode .mb-4.flex.flex-wrap.gap-1:has(> button[class*="uppercase"]) > button[class*="bg-[#188a89]"] {
+  border-color: rgb(29 184 185 / 0.65) !important;
+  background: rgb(29 184 185 / 0.14) !important;
+  color: #0b6667 !important;
+  box-shadow: 0 3px 12px rgb(29 184 185 / 0.16), inset 0 1px 0 rgb(255 255 255 / 0.8) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .life-output-container > .mb-2.flex.flex-wrap.gap-1 > button[class*="bg-[#188a89]"],
+.dark .builder-mode .mb-4.flex.flex-wrap.gap-1:has(> button[class*="uppercase"]) > button[class*="bg-[#188a89]"] {
+  background: rgb(29 184 185 / 0.12) !important;
+  color: #8de3e3 !important;
+  box-shadow: 0 3px 14px rgb(29 184 185 / 0.12), inset 0 1px 0 rgb(255 255 255 / 0.1) !important;
+}
+
 /* Presentation Input Snapshot mirrors the active Builder theme instead of
  * forcing a single color scheme. Keep the PDF block treatment controlled by
  * print.css; these rules apply to the live presentation workspace. */
