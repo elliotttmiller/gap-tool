@@ -102,6 +102,39 @@ html[data-theme="dark"] .presentation-mode .presentation-input-control:focus-vis
   box-shadow: 0 0 0 3px rgb(29 184 185 / 0.14) !important;
 }
 
+/* Presentation.tsx still carries light utility classes on the live Input
+ * Snapshot rail/items. In dark mode, override those exact utility-bearing
+ * nodes at a higher specificity so no generated light utility or stale
+ * light-theme rule can repaint the rail white. */
+html.dark body .presentation-mode aside.presentation-input-rail[class*="bg-[#f2f2f2]"],
+html[data-theme="dark"] body .presentation-mode aside.presentation-input-rail[class*="bg-[#f2f2f2]"] {
+  background-color: #32373f !important;
+  background-image: none !important;
+  border-color: #4b535d !important;
+  color: #f7fafb !important;
+}
+
+html.dark body .presentation-mode .presentation-input-rail .presentation-input-item[class~="bg-white"],
+html[data-theme="dark"] body .presentation-mode .presentation-input-rail .presentation-input-item[class~="bg-white"] {
+  background-color: #2b3037 !important;
+  background-image: none !important;
+  border-color: #4b535d !important;
+  color: #f7fafb !important;
+}
+
+html.dark body .presentation-mode .presentation-input-rail .presentation-input-title,
+html[data-theme="dark"] body .presentation-mode .presentation-input-rail .presentation-input-title {
+  color: #ffffff !important;
+}
+
+html.dark body .presentation-mode .presentation-input-rail .presentation-input-control,
+html[data-theme="dark"] body .presentation-mode .presentation-input-rail .presentation-input-control {
+  background-color: #292e35 !important;
+  background-image: none !important;
+  border-color: #59616b !important;
+  color: #ffffff !important;
+}
+
 /* The select menu is portaled outside .presentation-mode, so scope it to the
  * resolved document theme rather than the presentation container. */
 html.dark .presentation-policy-menu,
