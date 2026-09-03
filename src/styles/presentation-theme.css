@@ -38,8 +38,7 @@ html.light .presentation-mode .presentation-input-control:focus-visible {
 
 /* Dark Presentation Input Snapshot intentionally mirrors the Builder input
  * hierarchy: section surface #32373f, inset item surface #2b3037 and control
- * surface #292e35. Use both the theme class and data-theme hook so the live
- * presentation cannot fall back to its light utility backgrounds. */
+ * surface #292e35. */
 html.dark .presentation-mode .presentation-input-rail,
 html[data-theme="dark"] .presentation-mode .presentation-input-rail {
   color-scheme: dark !important;
@@ -102,37 +101,58 @@ html[data-theme="dark"] .presentation-mode .presentation-input-control:focus-vis
   box-shadow: 0 0 0 3px rgb(29 184 185 / 0.14) !important;
 }
 
-/* Presentation.tsx still carries light utility classes on the live Input
- * Snapshot rail/items. In dark mode, override those exact utility-bearing
- * nodes at a higher specificity so no generated light utility or stale
- * light-theme rule can repaint the rail white. */
-html.dark body .presentation-mode aside.presentation-input-rail[class*="bg-[#f2f2f2]"],
-html[data-theme="dark"] body .presentation-mode aside.presentation-input-rail[class*="bg-[#f2f2f2]"] {
-  background-color: #32373f !important;
-  background-image: none !important;
-  border-color: #4b535d !important;
-  color: #f7fafb !important;
-}
+/* index.css contains legacy light Presentation Snapshot declarations inside
+ * Tailwind's utilities cascade layer and marks them !important. Important
+ * declarations reverse cascade-layer priority, so an unlayered override cannot
+ * reliably beat those rules. Put the dark correction in the earlier base layer
+ * so it wins the important-layer cascade and the live rail cannot render white. */
+@layer base {
+  html.dark .presentation-mode aside.presentation-input-rail,
+  html[data-theme="dark"] .presentation-mode aside.presentation-input-rail {
+    color-scheme: dark !important;
+    background-color: #32373f !important;
+    background-image: none !important;
+    border-color: #4b535d !important;
+    color: #f7fafb !important;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.16) !important;
+  }
 
-html.dark body .presentation-mode .presentation-input-rail .presentation-input-item[class~="bg-white"],
-html[data-theme="dark"] body .presentation-mode .presentation-input-rail .presentation-input-item[class~="bg-white"] {
-  background-color: #2b3037 !important;
-  background-image: none !important;
-  border-color: #4b535d !important;
-  color: #f7fafb !important;
-}
+  html.dark .presentation-mode aside.presentation-input-rail > div:first-child,
+  html[data-theme="dark"] .presentation-mode aside.presentation-input-rail > div:first-child {
+    border-color: #4b535d !important;
+    background-color: transparent !important;
+  }
 
-html.dark body .presentation-mode .presentation-input-rail .presentation-input-title,
-html[data-theme="dark"] body .presentation-mode .presentation-input-rail .presentation-input-title {
-  color: #ffffff !important;
-}
+  html.dark .presentation-mode aside.presentation-input-rail .presentation-input-item,
+  html[data-theme="dark"] .presentation-mode aside.presentation-input-rail .presentation-input-item {
+    background-color: #2b3037 !important;
+    background-image: none !important;
+    border-color: #4b535d !important;
+    color: #f7fafb !important;
+    box-shadow: none !important;
+  }
 
-html.dark body .presentation-mode .presentation-input-rail .presentation-input-control,
-html[data-theme="dark"] body .presentation-mode .presentation-input-rail .presentation-input-control {
-  background-color: #292e35 !important;
-  background-image: none !important;
-  border-color: #59616b !important;
-  color: #ffffff !important;
+  html.dark .presentation-mode aside.presentation-input-rail .presentation-input-title,
+  html[data-theme="dark"] .presentation-mode aside.presentation-input-rail .presentation-input-title {
+    color: #ffffff !important;
+  }
+
+  html.dark .presentation-mode aside.presentation-input-rail .presentation-input-label,
+  html.dark .presentation-mode aside.presentation-input-rail .presentation-input-affix,
+  html[data-theme="dark"] .presentation-mode aside.presentation-input-rail .presentation-input-label,
+  html[data-theme="dark"] .presentation-mode aside.presentation-input-rail .presentation-input-affix {
+    color: #98a8b2 !important;
+  }
+
+  html.dark .presentation-mode aside.presentation-input-rail .presentation-input-control,
+  html[data-theme="dark"] .presentation-mode aside.presentation-input-rail .presentation-input-control {
+    color-scheme: dark !important;
+    background-color: #292e35 !important;
+    background-image: none !important;
+    border-color: #59616b !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+  }
 }
 
 /* The select menu is portaled outside .presentation-mode, so scope it to the
