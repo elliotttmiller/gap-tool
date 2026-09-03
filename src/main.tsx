@@ -9,6 +9,7 @@ import './styles/print-runtime.css';
 import './styles/review-ui-corrections.css';
 import './styles/client-setup-theme.css';
 import './styles/presentation-theme.css';
+import './styles/presentation-glass-tabs.css';
 import { ThemeProvider } from './lib/theme';
 
 // Permanently decommission workers and Workbox caches issued by earlier Gap
