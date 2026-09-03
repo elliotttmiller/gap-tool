@@ -1,4 +1,3 @@
-import { UsersRound, CalendarDays, Shield } from "lucide-react"
 import type { ClientRecord } from "@/lib/store-types"
 import "@/styles/print-runtime.css"
 
@@ -85,7 +84,6 @@ export function ReportCoverPage({ client, reportDate }: ReportCoverPageProps) {
 
         <div className="report-cover-details">
           <div className="report-cover-detail-row">
-            <UsersRound className="report-cover-detail-icon" aria-hidden="true" />
             <div>
               <p className="report-cover-detail-label">Client</p>
               <p className="report-cover-detail-value">{clientNames}</p>
@@ -93,24 +91,18 @@ export function ReportCoverPage({ client, reportDate }: ReportCoverPageProps) {
           </div>
 
           <div className="report-cover-detail-row">
-            <CalendarDays className="report-cover-detail-icon" aria-hidden="true" />
             <div>
               <p className="report-cover-detail-label">Report Date</p>
               <p className="report-cover-detail-value">{formattedReportDate}</p>
             </div>
           </div>
 
-          <div className="report-cover-detail-row report-cover-confidential-row">
-            <Shield className="report-cover-detail-icon" aria-hidden="true" />
-            <div>
-              <p className="report-cover-detail-label">Confidential</p>
-              <p className="report-cover-confidential-copy">
-                This report is confidential and intended solely for the use of the named client and their advisor. It may not be distributed or reproduced without written permission.
-              </p>
-            </div>
-          </div>
         </div>
       </div>
+
+      <p className="report-cover-confidential-footer">
+        This report is confidential and intended solely for the use of the named client and their advisor. It may not be distributed or reproduced without written permission.
+      </p>
     </section>
   )
 }

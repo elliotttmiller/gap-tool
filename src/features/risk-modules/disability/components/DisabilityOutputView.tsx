@@ -11,6 +11,7 @@ import {
   topStackCellRadius,
   topStackRadius,
 } from "@/components/charts/financialBarChartTheme"
+import { UniformStackedBar } from "@/components/charts/UniformStackedBar"
 import { formatCurrency } from "@/lib/utils"
 import { getDisabilityNarrative } from "../constants/moduleCopy"
 import { AnimatedSection } from "@/components/ui/animated-section"
@@ -38,7 +39,7 @@ interface DisabilityOutputViewProps {
   onAssumptionsChange?: (updates: Partial<DisabilityAssumptions>) => void
   onInputsChange?: (next: DisabilityInputs) => void
   formOpen?: boolean
-  mode?: "builder" | "presentation"
+  mode?: "builder" | "presentation" | "report"
   visualization?: DisabilityVisualization
   onVisualizationChange?: (v: any) => void
 }
@@ -100,6 +101,7 @@ export function DisabilityOutputView({
   onVisualizationChange,
 }: DisabilityOutputViewProps) {
   const animateChart = mode === "builder"
+  const projectionBarSize = mode === "report" ? financialBarChartTheme.geometry.reportProjectionBarSize : financialBarChartTheme.geometry.projectionBarSize
   const chartData = transformDisabilityChartData(outputs)
   const ageTicks = buildProjectionAgeTicks(chartData.projectionChartData, 8)
   const [selectedAge, setSelectedAge] = useState<number | null>(null)
@@ -206,7 +208,7 @@ export function DisabilityOutputView({
           annualRateOfReturn={inputs?.breakEvenRateOfReturn ?? 0.06}
           monthsWithoutIncome={inputs?.breakEvenMonthsWithoutIncome ?? 12}
           benefitColaRate={colaRate}
-          mode={mode}
+          mode={mode === "report" ? "presentation" : mode}
           inputs={inputs}
         />
       )
@@ -280,9 +282,9 @@ export function DisabilityOutputView({
                   ) : null}
                 </div>
                 <div className="flex justify-center sm:justify-end">
-                  <div className="flex shrink-0 overflow-hidden rounded-md border border-gray-700 text-xs">
-                    <button onClick={() => setChartView("net")} className={`px-3 py-1 transition-colors ${chartView === "net" ? "bg-[#1db8b9] text-[#071f27] shadow-sm ring-1 ring-inset ring-[#1db8b9]" : "bg-gray-900 text-gray-400 hover:bg-[#1db8b9]/15 hover:text-[#1db8b9] dark:hover:text-white"}`}>Net</button>
-                    <button onClick={() => setChartView("gross")} className={`px-3 py-1 transition-colors ${chartView === "gross" ? "bg-[#1db8b9] text-[#071f27] shadow-sm ring-1 ring-inset ring-[#1db8b9]" : "bg-gray-900 text-gray-400 hover:bg-[#1db8b9]/15 hover:text-[#1db8b9] dark:hover:text-white"}`}>Gross</button>
+                  <div className="flex shrink-0 gap-0.5 rounded-lg border border-[#cbdadd]/90 bg-white/55 p-0.5 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_3px_12px_rgba(15,42,58,0.08)] backdrop-blur-md dark:border-white/10 dark:bg-white/5 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_4px_14px_rgba(0,0,0,0.18)]" role="group" aria-label="Income display basis">
+                    <button type="button" onClick={() => setChartView("net")} aria-pressed={chartView === "net"} className={`relative rounded-md border px-3 py-1 font-semibold transition-all duration-200 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db8b9] ${chartView === "net" ? "border-[#1db8b9]/65 bg-[#1db8b9]/14 text-[#0b6667] shadow-[0_3px_12px_rgba(29,184,185,0.16),inset_0_1px_0_rgba(255,255,255,0.8)] ring-1 ring-[#1db8b9]/20 backdrop-blur-md dark:bg-[#1db8b9]/12 dark:text-[#8de3e3] dark:shadow-[0_3px_14px_rgba(29,184,185,0.12),inset_0_1px_0_rgba(255,255,255,0.1)]" : "border-transparent bg-transparent text-[#607583] hover:border-[#1db8b9]/30 hover:bg-[#1db8b9]/10 hover:text-[#188a89] dark:text-gray-300 dark:hover:text-[#8de3e3]"}`}>Net</button>
+                    <button type="button" onClick={() => setChartView("gross")} aria-pressed={chartView === "gross"} className={`relative rounded-md border px-3 py-1 font-semibold transition-all duration-200 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db8b9] ${chartView === "gross" ? "border-[#1db8b9]/65 bg-[#1db8b9]/14 text-[#0b6667] shadow-[0_3px_12px_rgba(29,184,185,0.16),inset_0_1px_0_rgba(255,255,255,0.8)] ring-1 ring-[#1db8b9]/20 backdrop-blur-md dark:bg-[#1db8b9]/12 dark:text-[#8de3e3] dark:shadow-[0_3px_14px_rgba(29,184,185,0.12),inset_0_1px_0_rgba(255,255,255,0.1)]" : "border-transparent bg-transparent text-[#607583] hover:border-[#1db8b9]/30 hover:bg-[#1db8b9]/10 hover:text-[#188a89] dark:text-gray-300 dark:hover:text-[#8de3e3]"}`}>Gross</button>
                   </div>
                 </div>
               </div>
@@ -294,21 +296,21 @@ export function DisabilityOutputView({
                   <div className="chart-reveal financial-projection-plot min-h-52 w-full flex-1">
                     <FinancialProjectionChart data={chartData.projectionChartData} ticks={ageTicks} onSelectAge={setSelectedAge}>
                       <Tooltip content={CustomTooltip} cursor={{ fill: financialBarChartTheme.cursor.fill }} />
-                      <Bar dataKey={ltdLabel} stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.primaryCoverage} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={animateChart} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
+                      <Bar dataKey={ltdLabel} stackId="a" barSize={projectionBarSize} fill={financialBarChartTheme.semantic.primaryCoverage} radius={topStackRadius(false)} shape={<UniformStackedBar />} isAnimationActive={animateChart} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
                         {chartData.projectionChartData.map((point) => {
                           const visual = projectionCellVisualState(selectedAge, point.age, financialBarChartTheme.semantic.primaryCoverageGlow)
                           const isTopSegment = Number(point["Individual DI"]) <= 0 && Number(point["Income Gap"]) <= 0
                           return <Cell key={`ltd-${point.age}`} radius={topStackCellRadius(isTopSegment)} opacity={visual.opacity} style={visual.style} />
                         })}
                       </Bar>
-                      <Bar dataKey="Individual DI" stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.secondaryCoverage} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={animateChart} animationBegin={financialBarChartTheme.animation.staggerMs} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
+                      <Bar dataKey="Individual DI" stackId="a" barSize={projectionBarSize} fill={financialBarChartTheme.semantic.secondaryCoverage} radius={topStackRadius(false)} shape={<UniformStackedBar />} isAnimationActive={animateChart} animationBegin={financialBarChartTheme.animation.staggerMs} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
                         {chartData.projectionChartData.map((point) => {
                           const visual = projectionCellVisualState(selectedAge, point.age, financialBarChartTheme.semantic.secondaryCoverageGlow)
                           const isTopSegment = Number(point["Individual DI"]) > 0 && Number(point["Income Gap"]) <= 0
                           return <Cell key={`idi-${point.age}`} radius={topStackCellRadius(isTopSegment)} opacity={visual.opacity} style={visual.style} />
                         })}
                       </Bar>
-                      <Bar dataKey="Income Gap" stackId="a" barSize={financialBarChartTheme.geometry.projectionBarSize} fill={financialBarChartTheme.semantic.gap} radius={topStackRadius(false)} shapeRendering="geometricPrecision" isAnimationActive={animateChart} animationBegin={financialBarChartTheme.animation.staggerMs * 1.6} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
+                      <Bar dataKey="Income Gap" stackId="a" barSize={projectionBarSize} fill={financialBarChartTheme.semantic.gap} radius={topStackRadius(false)} shape={<UniformStackedBar />} isAnimationActive={animateChart} animationBegin={financialBarChartTheme.animation.staggerMs * 1.6} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
                         {chartData.projectionChartData.map((point) => {
                           const visual = projectionCellVisualState(selectedAge, point.age, financialBarChartTheme.semantic.gapGlow)
                           const isTopSegment = Number(point["Income Gap"]) > 0

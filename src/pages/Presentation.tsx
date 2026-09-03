@@ -16,7 +16,7 @@ import { calculateUnemploymentGap } from "@/features/risk-modules/unemployment/c
 import { LiabilityOutputView } from "@/features/risk-modules/liability/components/LiabilityOutputView"
 import { calculateLiabilityGap } from "@/features/risk-modules/liability/calculations/calculateLiabilityGap"
 import { RiskModuleType, ScenarioModuleRecords, useAppStore } from "@/lib/store"
-import { formatGapCurrency, getModuleGapValue } from "@/lib/scenarioMetrics"
+import { formatGapCurrency } from "@/lib/scenarioMetrics"
 import { formatCurrency, formatPercent } from "@/lib/utils"
 import { formatGroupedNumberInput, normalizeGroupedNumberInput } from "@/lib/numberInput"
 import "@/styles/print.css"
@@ -46,8 +46,53 @@ interface ReportSection {
   disabilityVisualization?: DisabilityVisualization
 }
 
-function formatModuleGap(module: RiskModuleType, record: ScenarioModuleRecords) {
-  return formatGapCurrency(getModuleGapValue(module, record))
+const presentationModuleTabClasses: Record<RiskModuleType, { active: string; inactive: string }> = {
+  life: {
+    active: "bg-[#1db8b9] text-white shadow-sm ring-1 ring-[#1db8b9]",
+    inactive: "text-gray-400 hover:bg-[#1db8b9]/15 hover:text-[#1db8b9]",
+  },
+  liability: {
+    active: "bg-[#27aae1] text-white shadow-sm ring-1 ring-[#27aae1]",
+    inactive: "text-gray-400 hover:bg-[#27aae1]/15 hover:text-[#27aae1]",
+  },
+  unemployment: {
+    active: "bg-[#f15a29] text-white shadow-sm ring-1 ring-[#f15a29]",
+    inactive: "text-gray-400 hover:bg-[#f15a29]/15 hover:text-[#f15a29]",
+  },
+  disability: {
+    active: "bg-[#44b649] text-white shadow-sm ring-1 ring-[#44b649]",
+    inactive: "text-gray-400 hover:bg-[#44b649]/15 hover:text-[#44b649]",
+  },
+}
+
+const moduleGapLabels: Record<RiskModuleType, string> = {
+  life: "Remaining protection gap",
+  disability: "Modeled income gap",
+  unemployment: "Uncovered liquidity shortfall",
+  liability: "Unprotected liability exposure",
+}
+
+function ReportModeledGap({ module, value }: { module: RiskModuleType; value?: number }) {
+  const hasGap = typeof value === "number" && value > 0
+  const isCalculated = typeof value === "number"
+  const stateClass = !isCalculated
+    ? "report-modeled-gap--neutral"
+    : hasGap
+      ? "report-modeled-gap--shortfall"
+      : "report-modeled-gap--covered"
+
+  return (
+    <div className={`report-modeled-gap ${stateClass}`}>
+      <div className="report-modeled-gap-copy">
+        <span className="report-modeled-gap-eyebrow">Primary modeled outcome</span>
+        <span className="report-modeled-gap-label">{moduleGapLabels[module]}</span>
+      </div>
+      <strong className="report-modeled-gap-value">{formatGapCurrency(value)}</strong>
+      <span className="report-modeled-gap-status">
+        {!isCalculated ? "Calculation unavailable" : hasGap ? "Remaining modeled need" : "Modeled need covered"}
+      </span>
+    </div>
+  )
 }
 
 type InputSpec = {
@@ -295,6 +340,12 @@ export function Presentation() {
     () => records?.liability ? (records.liability.output ?? calculateLiabilityGap(records.liability.inputs)) : null,
     [records?.liability],
   )
+  const modeledGapValues: Partial<Record<RiskModuleType, number>> = {
+    life: lifeOutputs?.remainingGap,
+    disability: disabilityOutputs?.totalGap,
+    unemployment: unemploymentOutputs?.totalUncoveredShortfall,
+    liability: liabilityOutputs?.exposureGap,
+  }
   const [activeModule, setActiveModule] = useState<RiskModuleType | null>(null)
   const [disabilityVisualization, setDisabilityVisualization] = useState<DisabilityVisualization>("incomeGap")
   const [reportDate, setReportDate] = useState(() => new Date())
@@ -418,7 +469,7 @@ export function Presentation() {
           inputs={records.life.inputs}
           assumptions={records.life.assumptions}
           incomeGapOutputs={lifeIncomeGapOutputs}
-          mode="presentation"
+          mode={reportSection ? "report" : "presentation"}
           activeTab={reportSection?.lifeVisualization}
         />
       )
@@ -431,7 +482,7 @@ export function Presentation() {
           assumptions={records?.disability?.assumptions}
           onAssumptionsChange={(updates) => updateDisabilityAssumptions(scenarioId, updates)}
           onInputsChange={(next) => updateDisabilityInputs(scenarioId, next)}
-          mode="presentation"
+          mode={reportSection ? "report" : "presentation"}
           visualization={reportSection?.disabilityVisualization ?? disabilityVisualization}
           onVisualizationChange={reportSection ? undefined : setDisabilityVisualization}
         />
@@ -493,7 +544,7 @@ export function Presentation() {
                   <Button
                     type="button"
                     variant="secondary"
-                    className="h-8 shrink-0 gap-2 border border-slate-700 bg-slate-900/70 px-3 text-gray-100 shadow-none hover:border-[#188a89] hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"
+                    className="h-8 shrink-0 gap-2 border border-[#188a89] bg-[#188a89] px-3 text-white shadow-sm hover:border-[#1db8b9] hover:bg-[#1db8b9] hover:text-[#071f27] focus-visible:ring-[#1db8b9]/40"
                     onClick={exportPdf}
                     disabled={isPreparingPdf}
                     title="Open the print dialog to save this report as a PDF for AdviceWorks"
@@ -507,13 +558,14 @@ export function Presentation() {
                   {visibleModules.map((module) => {
                     const Icon = moduleIcons[module]
                     const selected = module === selectedModule
+                    const tabClasses = presentationModuleTabClasses[module]
                     return (
                       <button
                         key={module}
                         type="button"
                         onClick={() => setActiveModule(module)}
                         className={`flex min-w-max items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
-                          selected ? "bg-[#188a89] text-white shadow-sm ring-1 ring-[#188a89]" : "text-gray-400 hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white"
+                          selected ? tabClasses.active : tabClasses.inactive
                         }`}
                       >
                         <Icon className="h-3.5 w-3.5" />
@@ -551,9 +603,7 @@ export function Presentation() {
                 <h2 className="mb-2 border-b border-gray-800 pb-2 text-xl font-semibold text-gray-50">
                   {section.title}
                 </h2>
-                <p className="mb-6 text-sm text-gray-400">
-                  Modeled gap: {formatModuleGap(section.module, records)}
-                </p>
+                <ReportModeledGap module={section.module} value={modeledGapValues[section.module]} />
                 <ModuleInputSpecs module={section.module} records={records} />
                 {renderModule(section.module, section)}
               </div>

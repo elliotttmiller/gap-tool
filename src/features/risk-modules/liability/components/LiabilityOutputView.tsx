@@ -6,6 +6,7 @@ import { transformLiabilityChartData } from "../transformers/transformLiabilityC
 import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
 import { advisorSafeCopy } from "@/domain/copy/advisorSafeCopy"
 import { financialBarChartTheme } from "@/components/charts/financialBarChartTheme"
+import { UniformStackedBar } from "@/components/charts/UniformStackedBar"
 
 interface LiabilityOutputViewProps {
   outputs: LiabilityOutputs
@@ -102,9 +103,9 @@ export function LiabilityOutputView({ outputs, animate = true }: LiabilityOutput
                           label={{ value: `Auto limit ${formatLiabilityMetric(outputs.householdAutoLiabilityCoverage)}`, position: "insideBottomLeft", fill: financialBarChartTheme.semantic.supported, fontSize: 10 }}
                         />
                       ) : null}
-                      <Bar dataKey="AutoCoverage" name="Auto Liability Coverage" stackId="a" fill={financialBarChartTheme.semantic.supported} minPointSize={6} radius={[0, 0, 0, 0]} shapeRendering="geometricPrecision" isAnimationActive={animateChart} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing} />
-                      <Bar dataKey="UmbrellaCoverage" name="Umbrella Coverage" stackId="a" fill={financialBarChartTheme.semantic.secondaryCoverage} radius={[0, 0, 0, 0]} shapeRendering="geometricPrecision" isAnimationActive={animateChart} animationBegin={financialBarChartTheme.animation.staggerMs} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing} />
-                      <Bar dataKey="ExposureGap" name="Unprotected Liability Gap" stackId="a" fill={financialBarChartTheme.semantic.gap} radius={[financialBarChartTheme.geometry.stackRadius, financialBarChartTheme.geometry.stackRadius, 0, 0]} shapeRendering="geometricPrecision" isAnimationActive={animateChart} animationBegin={financialBarChartTheme.animation.staggerMs * 1.6} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing} />
+                      <Bar dataKey="AutoCoverage" name="Auto Liability Coverage" stackId="a" fill={financialBarChartTheme.semantic.supported} minPointSize={6} radius={[0, 0, 0, 0]} shape={<UniformStackedBar />} isAnimationActive={animateChart} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing} />
+                      <Bar dataKey="UmbrellaCoverage" name="Umbrella Coverage" stackId="a" fill={financialBarChartTheme.semantic.secondaryCoverage} radius={[0, 0, 0, 0]} shape={<UniformStackedBar />} isAnimationActive={animateChart} animationBegin={financialBarChartTheme.animation.staggerMs} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing} />
+                      <Bar dataKey="ExposureGap" name="Unprotected Liability Gap" stackId="a" fill={financialBarChartTheme.semantic.gap} radius={[financialBarChartTheme.geometry.stackRadius, financialBarChartTheme.geometry.stackRadius, 0, 0]} shape={<UniformStackedBar />} isAnimationActive={animateChart} animationBegin={financialBarChartTheme.animation.staggerMs * 1.6} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

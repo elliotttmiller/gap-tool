@@ -3,6 +3,7 @@ import { Bar, BarChart, CartesianGrid, Cell, LabelList, ResponsiveContainer, Too
 import { Card, CardContent } from "@/components/ui/card"
 import { ModuleMetricCard } from "@/features/risk-modules/core/ModuleMetricCard"
 import { financialBarChartTheme, topStackCellRadius } from "@/components/charts/financialBarChartTheme"
+import { UniformStackedBar } from "@/components/charts/UniformStackedBar"
 import { formatCurrency } from "@/lib/utils"
 import type { DisabilityInputs } from "../types"
 
@@ -101,10 +102,10 @@ function formatWholeNumberInput(value: number | string, showZeroAsEmpty = false)
 }
 
 function binaryOptionClass(selected: boolean): string {
-  return `rounded-md px-3 py-1 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db8b9] ${
+  return `relative rounded-md border px-3 py-1 text-xs font-semibold transition-all duration-200 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1db8b9] ${
     selected
-      ? "bg-[#1db8b9] text-[#071f27] shadow-sm"
-      : "bg-gray-800 text-gray-400 hover:bg-[#1db8b9]/15 hover:text-[#1db8b9] dark:hover:text-white"
+      ? "border-[#1db8b9]/65 bg-[#1db8b9]/14 text-[#0b6667] shadow-[0_3px_12px_rgba(29,184,185,0.16),inset_0_1px_0_rgba(255,255,255,0.8)] ring-1 ring-[#1db8b9]/20 backdrop-blur-md dark:bg-[#1db8b9]/12 dark:text-[#8de3e3] dark:shadow-[0_3px_14px_rgba(29,184,185,0.12),inset_0_1px_0_rgba(255,255,255,0.1)]"
+      : "border-transparent bg-transparent text-[#607583] shadow-none hover:border-[#1db8b9]/30 hover:bg-[#1db8b9]/10 hover:text-[#188a89] dark:text-gray-300 dark:hover:text-[#8de3e3]"
   }`
 }
 
@@ -254,12 +255,13 @@ export function JobComparisonModule({ inputs, animate = true }: JobComparisonMod
                 <p className="text-sm font-semibold text-black dark:text-white">Job B</p>
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] text-gray-400">Has IDI policy?</span>
-                  <div className="flex gap-1">
+                  <div className="flex gap-0.5 rounded-lg border border-[#cbdadd]/90 bg-white/55 p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_3px_12px_rgba(15,42,58,0.08)] backdrop-blur-md dark:border-white/10 dark:bg-white/5 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_4px_14px_rgba(0,0,0,0.18)]" role="group" aria-label="Has individual disability insurance policy">
                     {(["Yes", "No"] as const).map((option) => (
                       <button
                         key={option}
                         type="button"
                         onClick={() => setJobB({ ...jobB, hasIdi: option === "Yes" })}
+                        aria-pressed={(option === "Yes") === jobB.hasIdi}
                         className={binaryOptionClass((option === "Yes") === jobB.hasIdi)}
                       >
                         {option}
@@ -329,15 +331,15 @@ export function JobComparisonModule({ inputs, animate = true }: JobComparisonMod
                       label={{ value: "Annual Income ($)", angle: -90, position: "insideLeft", offset: 2, fill: financialBarChartTheme.axis.tickFill, fontSize: 10, fontWeight: 600 }}
                     />
                     <Tooltip content={<ComparisonTooltip />} cursor={{ fill: financialBarChartTheme.cursor.fill }} />
-                    <Bar dataKey="Group LTD" stackId="stack" fill="#1b75bc" shapeRendering="geometricPrecision" isAnimationActive={animate} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
+                    <Bar dataKey="Group LTD" stackId="stack" fill="#1b75bc" shape={<UniformStackedBar />} isAnimationActive={animate} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
                       {roundedStackCells(chartData, "Group LTD", (row) => row["IDI Benefit"] <= 0 && row["Income Gap"] <= 0)}
                       <LabelList dataKey="Group LTD" position="center" formatter={(value: number) => value > 0 ? formatCurrency(value) : ""} style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }} />
                     </Bar>
-                    <Bar dataKey="IDI Benefit" stackId="stack" fill="#1db8b9" shapeRendering="geometricPrecision" isAnimationActive={animate} animationBegin={financialBarChartTheme.animation.staggerMs} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
+                    <Bar dataKey="IDI Benefit" stackId="stack" fill="#1db8b9" shape={<UniformStackedBar />} isAnimationActive={animate} animationBegin={financialBarChartTheme.animation.staggerMs} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
                       {roundedStackCells(chartData, "IDI Benefit", (row) => row["Income Gap"] <= 0)}
                       <LabelList dataKey="IDI Benefit" position="center" formatter={(value: number) => value > 0 ? formatCurrency(value) : ""} style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }} />
                     </Bar>
-                    <Bar dataKey="Income Gap" stackId="stack" fill="#f15a29" shapeRendering="geometricPrecision" isAnimationActive={animate} animationBegin={financialBarChartTheme.animation.staggerMs * 1.6} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
+                    <Bar dataKey="Income Gap" stackId="stack" fill="#f15a29" shape={<UniformStackedBar />} isAnimationActive={animate} animationBegin={financialBarChartTheme.animation.staggerMs * 1.6} animationDuration={financialBarChartTheme.animation.duration} animationEasing={financialBarChartTheme.animation.easing}>
                       {roundedStackCells(chartData, "Income Gap", (row) => row["Income Gap"] > 0)}
                       <LabelList dataKey="Income Gap" position="center" formatter={(value: number) => value > 0 ? formatCurrency(value) : ""} style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }} />
                     </Bar>

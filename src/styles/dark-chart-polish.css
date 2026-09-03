@@ -107,6 +107,19 @@
   stroke: var(--financial-chart-supported) !important;
 }
 
+/* Stacked bar segments must remain geometrically identical. Semantic color
+   normalization previously added a default-width SVG stroke to only the green
+   and Polaris rectangles, making unstroked Sirius/Pegasi layers look narrower
+   in Chromium and especially in PDF rasterization. */
+.life-chart-area .recharts-bar-rectangle .recharts-rectangle,
+.disability-chart-panel .recharts-bar-rectangle .recharts-rectangle,
+.liability-visual-dashboard .recharts-bar-rectangle .recharts-rectangle,
+.module-output-container .recharts-bar-rectangle .recharts-rectangle {
+  stroke: none !important;
+  stroke-width: 0 !important;
+  shape-rendering: crispEdges !important;
+}
+
 .liability-visual-dashboard .recharts-reference-line-line[stroke="#44b649"] {
   stroke: var(--financial-chart-supported) !important;
 }

@@ -5,6 +5,10 @@ export const financialBarChartTheme = {
     // of isolated sticks. Life and Disability both consume these values,
     // including the off-canvas report tree used for browser PDF export.
     projectionBarSize: 30,
+    // PDF charts have roughly half the horizontal canvas of presentation mode.
+    // A fixed narrow width prevents Recharts from compressing dense annual
+    // categories into alternating fractional-width columns.
+    reportProjectionBarSize: 14,
     comparisonBarSize: 88,
     projectionCategoryGap: "8%",
     comparisonCategoryGap: "50%",

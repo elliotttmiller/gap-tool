@@ -110,7 +110,7 @@ function SliderRow({
   return (
     <div className="premium-slider-row rounded-xl border border-[#cbdadd] bg-[#f8fbfb] px-3 py-2.5 shadow-[0_1px_2px_rgba(15,42,58,0.05)] dark:border-[#59616b] dark:bg-[#343a42] dark:shadow-[0_5px_14px_rgba(0,0,0,0.14)]">
       <div className="grid grid-cols-[minmax(7.75rem,8.75rem)_minmax(0,1fr)_max-content] items-center gap-x-3 gap-y-1.5">
-        <span className="truncate text-xs font-medium text-[#415b6d] dark:text-[#d9e1e5]">{label}</span>
+        <span className="premium-slider-label truncate text-xs font-medium text-[#415b6d] dark:text-[#d9e1e5]">{label}</span>
         <input
           type="range"
           min={min}
@@ -122,8 +122,8 @@ function SliderRow({
           style={{ "--slider-progress": `${progress}%` } as CSSProperties}
           className="premium-slider-control h-2 w-full min-w-0 cursor-pointer appearance-none rounded-full outline-none transition focus-visible:ring-2 focus-visible:ring-[#1db8b9]/45 focus-visible:ring-offset-2"
         />
-        <span className="w-27 text-right font-mono text-xs font-semibold tabular-nums text-[#102a3a] dark:text-[#f7fafb]">{displayValue}</span>
-        {helperText ? <p className="col-start-2 col-end-4 text-[11px] leading-snug text-[#607583] dark:text-[#b5c1c8]">{helperText}</p> : null}
+        <span className="premium-slider-value w-27 text-right font-mono text-xs font-semibold tabular-nums text-[#102a3a] dark:text-[#f7fafb]">{displayValue}</span>
+        {helperText ? <p className="premium-slider-helper col-start-2 col-end-4 text-[11px] leading-snug text-[#607583] dark:text-[#b5c1c8]">{helperText}</p> : null}
       </div>
     </div>
   )
@@ -252,13 +252,13 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
   return (
     <div className="module-output-container">
       <div className="space-y-4">
-        <Card className="border-gray-800 bg-gray-900/25">
-          <CardContent className="p-4">
-            <div className="mb-3">
+        <Card className="premium-policy-parameters border-gray-800 bg-gray-900/25">
+          <CardContent className="premium-policy-parameters-content p-4">
+            <div className="premium-policy-parameters-heading mb-3">
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-gray-400">Policy Parameters</p>
               <p className="mt-1 text-sm text-gray-500">Move the sliders live with the client to compare policy protection against self-funding the same disability event.</p>
             </div>
-            <div className="grid gap-3 xl:grid-cols-2">
+            <div className="premium-policy-parameters-grid grid gap-3 xl:grid-cols-2">
               <SliderRow
                 label="Monthly premium"
                 min={100}
