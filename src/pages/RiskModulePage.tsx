@@ -14,11 +14,31 @@ import {
 import { useAppStore, RiskModuleType } from "@/lib/store"
 import { cx } from "@/lib/utils"
 
-const tabConfig: Record<RiskModuleType, { label: string; icon: typeof RiUmbrellaLine }> = {
-  life: { label: "Life Insurance", icon: RiHeartPulseLine },
-  disability: { label: "Disability", icon: RiUmbrellaLine },
-  unemployment: { label: "Unemployment", icon: RiShieldCheckLine },
-  liability: { label: "Liability / Lawsuit", icon: RiScalesLine },
+const tabConfig: Record<RiskModuleType, { label: string; icon: typeof RiUmbrellaLine; activeClass: string; inactiveClass: string }> = {
+  life: {
+    label: "Life Insurance",
+    icon: RiHeartPulseLine,
+    activeClass: "bg-[#1db8b9] text-white shadow-sm ring-1 ring-[#1db8b9]",
+    inactiveClass: "text-slate-400 hover:bg-[#1db8b9]/15 hover:text-[#188a89] dark:hover:text-[#1db8b9]",
+  },
+  liability: {
+    label: "Liability / Lawsuit",
+    icon: RiScalesLine,
+    activeClass: "bg-[#27aae1] text-white shadow-sm ring-1 ring-[#27aae1]",
+    inactiveClass: "text-slate-400 hover:bg-[#27aae1]/15 hover:text-[#27aae1]",
+  },
+  unemployment: {
+    label: "Unemployment",
+    icon: RiShieldCheckLine,
+    activeClass: "bg-[#f15a29] text-white shadow-sm ring-1 ring-[#f15a29]",
+    inactiveClass: "text-slate-400 hover:bg-[#f15a29]/15 hover:text-[#f15a29]",
+  },
+  disability: {
+    label: "Disability",
+    icon: RiUmbrellaLine,
+    activeClass: "bg-[#44b649] text-white shadow-sm ring-1 ring-[#44b649]",
+    inactiveClass: "text-slate-400 hover:bg-[#44b649]/15 hover:text-[#44b649]",
+  },
 }
 
 // ── Not-included fallback ─────────────────────────────────────────────────────
@@ -130,9 +150,7 @@ export function RiskModulePage({ title, subtitle, headerActions, compactForm = f
                     className={({ isActive }) =>
                       cx(
                         "inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold transition-all",
-                        isActive
-                          ? "bg-[#188a89] text-white shadow-sm ring-1 ring-[#188a89]"
-                          : "text-slate-400 hover:bg-[#188a89]/15 hover:text-[#188a89] dark:hover:text-white",
+                        isActive ? tab.activeClass : tab.inactiveClass,
                       )
                     }
                   >

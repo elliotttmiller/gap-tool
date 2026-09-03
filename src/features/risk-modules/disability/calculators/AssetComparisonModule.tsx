@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react"
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { ModuleMetricCard, type MetricCardAccent } from "@/features/risk-modules/core/ModuleMetricCard"
 import { formatCurrency } from "@/lib/utils"
 import type { DisabilityInputs, DisabilityOtherAsset } from "../types"
@@ -25,11 +26,14 @@ const DEFAULT_ASSET_ROWS: AssetPremiumRow[] = [
   { id: "asset-default-auto", label: "Auto", assetValue: 0, annualPremium: 0 },
 ]
 
-const PAIR_COLORS = [
-  { valueColor: "#93c5fd", premiumColor: "#f87171" },
-  { valueColor: "#67e8f9", premiumColor: "#fb923c" },
-  { valueColor: "#34d399", premiumColor: "#fbbf24" },
-]
+// Brand-manual color roles for the paired comparison. The two source groups
+// use primary/lite partners from the blue and teal families; the calculated
+// difference uses green for value and Polaris for the premium variance.
+const ASSET_COMPARISON_COLORS = {
+  otherAssets: { valueColor: "#1b75bc", premiumColor: "#188a89" },
+  incomeAsset: { valueColor: "#27aae1", premiumColor: "#1db8b9" },
+  difference: { valueColor: "#44b649", premiumColor: "#f15a29" },
+} as const
 
 function nextRowId(): string {
   return typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `asset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -156,9 +160,9 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
   const costRatio = otherCostPerThousand !== null && incomeCostPerThousand !== null && incomeCostPerThousand > 0 ? otherCostPerThousand / incomeCostPerThousand : null
 
   const chartData: ComparisonDatum[] = [
-    { name: "Other Assets", value: safeAmount(totalAssetValue), premium: safeAmount(annualOtherAssetInsuranceCost), ...PAIR_COLORS[0] },
-    { name: "Income Asset", value: safeAmount(netIncomeAsset), premium: safeAmount(annualIncomeInsuranceCost), ...PAIR_COLORS[1] },
-    { name: "Difference", value: valueDifference, premium: costDifference, ...PAIR_COLORS[2] },
+    { name: "Other Assets", value: safeAmount(totalAssetValue), premium: safeAmount(annualOtherAssetInsuranceCost), ...ASSET_COMPARISON_COLORS.otherAssets },
+    { name: "Income Asset", value: safeAmount(netIncomeAsset), premium: safeAmount(annualIncomeInsuranceCost), ...ASSET_COMPARISON_COLORS.incomeAsset },
+    { name: "Difference", value: valueDifference, premium: costDifference, ...ASSET_COMPARISON_COLORS.difference },
   ]
   const valueMax = Math.max(...chartData.map((row) => row.value), 1)
   const premiumMax = Math.max(...chartData.map((row) => row.premium), 1)
@@ -193,8 +197,8 @@ export function AssetComparisonModule({ inputs, onInputsChange }: AssetCompariso
             {visibleAssetRows.map((row) => (
               <div key={row.id} className="asset-entry-row group grid grid-cols-[minmax(8rem,1fr)_minmax(6rem,.7fr)_minmax(6rem,.7fr)_1.75rem] items-center gap-2 rounded-lg border border-[#cbdadd] bg-[#f4f8f9] px-2.5 py-2 shadow-[0_1px_2px_rgba(15,42,58,0.04)] transition duration-200 focus-within:border-[#188a89] focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(24,138,137,0.10)] dark:border-[#59616b] dark:bg-[#343a42] dark:focus-within:bg-[#3a4048] xl:grid-cols-[minmax(12rem,1fr)_11rem_11rem_1.75rem]">
                 <input type="text" value={row.label} onChange={(event) => updateAssetRowLabel(row.id, event.target.value)} disabled={!canEditAssets} placeholder="Asset name" className="h-7 min-w-0 w-full rounded-md border border-transparent bg-transparent px-1.5 text-sm font-semibold text-gray-100 outline-none transition focus:border-gray-700 focus:bg-gray-950 disabled:opacity-60" />
-                <div className="relative min-w-0" title="Value of asset"><span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-gray-500">$</span><input type="number" min={0} step={1000} value={row.assetValue || ""} onChange={(event) => updateAssetRowValue(row.id, Math.max(0, Number(event.target.value) || 0))} disabled={!canEditAssets} placeholder="0" className="h-7 w-full appearance-none rounded-md border border-transparent bg-transparent pl-5 pr-2 text-right text-sm text-gray-100 outline-none transition focus:border-gray-700 focus:bg-gray-950 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none disabled:opacity-60" /></div>
-                <div className="relative min-w-0" title="Annual cost to insure"><span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-gray-500">$</span><input type="number" min={0} step={50} value={row.annualPremium || ""} onChange={(event) => updateAssetRowPremium(row.id, Math.max(0, Number(event.target.value) || 0))} disabled={!canEditAssets} placeholder="0" className="h-7 w-full appearance-none rounded-md border border-transparent bg-transparent pl-5 pr-2 text-right text-sm font-semibold text-gray-100 outline-none transition focus:border-gray-700 focus:bg-gray-950 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none disabled:opacity-60" /></div>
+                <Input type="number" min={0} step={1000} prefix="$" groupThousands value={row.assetValue || ""} onChange={(event) => updateAssetRowValue(row.id, Math.max(0, Number(event.target.value) || 0))} disabled={!canEditAssets} placeholder="0" aria-label={`${row.label || "Asset"} value`} title="Value of asset" className="min-w-0" inputClassName="h-7 border-transparent bg-transparent pr-2 text-right text-sm outline-none focus:border-gray-700 focus:bg-gray-950" />
+                <Input type="number" min={0} step={50} prefix="$" groupThousands value={row.annualPremium || ""} onChange={(event) => updateAssetRowPremium(row.id, Math.max(0, Number(event.target.value) || 0))} disabled={!canEditAssets} placeholder="0" aria-label={`${row.label || "Asset"} annual insurance cost`} title="Annual cost to insure" className="min-w-0" inputClassName="h-7 border-transparent bg-transparent pr-2 text-right text-sm font-semibold outline-none focus:border-gray-700 focus:bg-gray-950" />
                 <button type="button" onClick={() => removeAssetRow(row.id)} disabled={!canEditAssets} aria-label="Remove asset" className="flex h-7 w-7 items-center justify-center rounded text-gray-600 opacity-0 transition hover:bg-[#fde9e6] hover:text-[#a92d20] group-hover:opacity-100 focus-visible:opacity-100 disabled:pointer-events-none disabled:opacity-0 dark:hover:bg-[#8f3124]/45 dark:hover:text-[#ffc7bf]"><Trash2 className="h-3.5 w-3.5" /></button>
               </div>
             ))}

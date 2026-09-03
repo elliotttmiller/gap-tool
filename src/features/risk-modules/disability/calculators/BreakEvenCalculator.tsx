@@ -259,11 +259,11 @@ function BuilderBreakEvenCalculator({
                             />
                             <ReferenceLine
                               x={result.roundedBreakEvenMonths}
-                              stroke="#f59e0b"
+                              stroke="#f15a29"
                               strokeDasharray="4 4"
                               label={{
                                 value: "Break-even",
-                                fill: "#fbbf24",
+                                fill: "#f15a29",
                                 fontSize: 11,
                                 position: "insideTopRight",
                               }}
@@ -271,16 +271,16 @@ function BuilderBreakEvenCalculator({
                             <Line
                               type="monotone"
                               dataKey="Self-Insurance Balance"
-                              stroke="#60a5fa"
+                              stroke="#27aae1"
                               strokeWidth={3}
                               dot={false}
                               isAnimationActive={false}
-                              activeDot={{ r: 4, stroke: "#bfdbfe", strokeWidth: 2, fill: "#2563eb" }}
+                              activeDot={{ r: 4, stroke: "#27aae1", strokeWidth: 2, fill: "#1b75bc" }}
                             />
                             <Line
                               type="monotone"
                               dataKey="Benefit Need"
-                              stroke="#34d399"
+                              stroke="#44b649"
                               strokeWidth={2}
                               dot={false}
                               isAnimationActive={false}
@@ -294,11 +294,11 @@ function BuilderBreakEvenCalculator({
                       </div>
                       <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
                         <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400">
-                          <svg width="16" height="3"><line x1="0" y1="1.5" x2="16" y2="1.5" stroke="#60a5fa" strokeWidth="2.5" /></svg>
+                          <svg width="16" height="3"><line x1="0" y1="1.5" x2="16" y2="1.5" stroke="#27aae1" strokeWidth="2.5" /></svg>
                           Self-Insurance Balance
                         </span>
                         <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400">
-                          <svg width="16" height="3"><line x1="0" y1="1.5" x2="16" y2="1.5" stroke="#34d399" strokeWidth="2" strokeDasharray="4 3" /></svg>
+                          <svg width="16" height="3"><line x1="0" y1="1.5" x2="16" y2="1.5" stroke="#44b649" strokeWidth="2" strokeDasharray="4 3" /></svg>
                           Benefit Need
                         </span>
                       </div>
@@ -613,11 +613,11 @@ function PresentationBreakEvenCalculator(props: Omit<BreakEvenCalculatorProps, "
                 </div>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-gray-400">
                   <span className="inline-flex items-center gap-1.5">
-                    <svg width="18" height="3"><line x1="0" y1="1.5" x2="18" y2="1.5" stroke="#1D9E75" strokeWidth="2.5" /></svg>
+                    <svg width="18" height="3"><line x1="0" y1="1.5" x2="18" y2="1.5" stroke="#44b649" strokeWidth="2.5" /></svg>
                     Self-insurance savings
                   </span>
                   <span className="inline-flex items-center gap-1.5">
-                    <svg width="18" height="3"><line x1="0" y1="1.5" x2="18" y2="1.5" stroke="#D85A30" strokeWidth="2.5" /></svg>
+                    <svg width="18" height="3"><line x1="0" y1="1.5" x2="18" y2="1.5" stroke="#f15a29" strokeWidth="2.5" /></svg>
                     Benefit needed
                   </span>
                 </div>
@@ -656,11 +656,11 @@ function PresentationBreakEvenCalculator(props: Omit<BreakEvenCalculatorProps, "
                         {result.roundedBreakEvenMonths <= chartEndMonth ? (
                           <ReferenceLine
                             x={result.roundedBreakEvenMonths}
-                            stroke="#f59e0b"
+                            stroke="#f15a29"
                             strokeDasharray="4 4"
                             label={{
                               value: "Break-even",
-                              fill: "#fbbf24",
+                              fill: "#f15a29",
                               fontSize: 11,
                               position: "insideTopRight",
                             }}
@@ -669,17 +669,17 @@ function PresentationBreakEvenCalculator(props: Omit<BreakEvenCalculatorProps, "
                         <Line
                           type="monotone"
                           dataKey="Self-Insurance Savings"
-                          stroke="#1D9E75"
+                          stroke="#44b649"
                           strokeWidth={3}
                           dot={false}
-                          activeDot={{ r: 4, stroke: "#a7f3d0", strokeWidth: 2, fill: "#1D9E75" }}
+                          activeDot={{ r: 4, stroke: "#44b649", strokeWidth: 2, fill: "#44b649" }}
                           isAnimationActive
                           animationDuration={650}
                         />
                         <Line
                           type="monotone"
                           dataKey="Benefit Needed"
-                          stroke="#D85A30"
+                          stroke="#f15a29"
                           strokeWidth={3}
                           dot={false}
                           activeDot={false}

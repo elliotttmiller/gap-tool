@@ -328,15 +328,15 @@ export function JobComparisonModule({ inputs }: JobComparisonModuleProps) {
                       label={{ value: "Annual Income ($)", angle: -90, position: "insideLeft", offset: 2, fill: financialBarChartTheme.axis.tickFill, fontSize: 10, fontWeight: 600 }}
                     />
                     <Tooltip content={<ComparisonTooltip />} cursor={{ fill: financialBarChartTheme.cursor.fill }} />
-                    <Bar dataKey="Group LTD" stackId="stack" fill="#3b82f6" shapeRendering="geometricPrecision">
+                    <Bar dataKey="Group LTD" stackId="stack" fill="#1b75bc" shapeRendering="geometricPrecision">
                       {roundedStackCells(chartData, "Group LTD", (row) => row["IDI Benefit"] <= 0 && row["Income Gap"] <= 0)}
                       <LabelList dataKey="Group LTD" position="center" formatter={(value: number) => value > 0 ? formatCurrency(value) : ""} style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }} />
                     </Bar>
-                    <Bar dataKey="IDI Benefit" stackId="stack" fill="#06b6d4" shapeRendering="geometricPrecision">
+                    <Bar dataKey="IDI Benefit" stackId="stack" fill="#1db8b9" shapeRendering="geometricPrecision">
                       {roundedStackCells(chartData, "IDI Benefit", (row) => row["Income Gap"] <= 0)}
                       <LabelList dataKey="IDI Benefit" position="center" formatter={(value: number) => value > 0 ? formatCurrency(value) : ""} style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }} />
                     </Bar>
-                    <Bar dataKey="Income Gap" stackId="stack" fill="#ef4444" shapeRendering="geometricPrecision">
+                    <Bar dataKey="Income Gap" stackId="stack" fill="#f15a29" shapeRendering="geometricPrecision">
                       {roundedStackCells(chartData, "Income Gap", (row) => row["Income Gap"] > 0)}
                       <LabelList dataKey="Income Gap" position="center" formatter={(value: number) => value > 0 ? formatCurrency(value) : ""} style={{ fill: "#fff", fontSize: 11, fontWeight: 600 }} />
                     </Bar>

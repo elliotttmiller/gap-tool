@@ -46,7 +46,7 @@ export function LiabilityOutputView({ outputs }: LiabilityOutputViewProps) {
     ?? (outputs.householdLiabilityGap > 0 ? Math.ceil(outputs.householdLiabilityGap / 1_000_000) * 1_000_000 : 0)
   const coverageLayers = [
     { label: "Auto Liability", value: outputs.householdAutoLiabilityCoverage, color: financialBarChartTheme.semantic.supported, text: "text-emerald-600 dark:text-emerald-400" },
-    { label: "Existing Umbrella", value: outputs.householdUmbrellaCoverage, color: financialBarChartTheme.semantic.secondaryCoverage, text: "text-[#1b75bc] dark:text-[#27aae1]" },
+    { label: "Existing Umbrella", value: outputs.householdUmbrellaCoverage, color: financialBarChartTheme.semantic.secondaryCoverage, text: "text-[#1db8b9]" },
     { label: "Unprotected Gap", value: outputs.householdLiabilityGap, color: financialBarChartTheme.semantic.gap, text: "text-red-600 dark:text-red-400" },
   ]
 

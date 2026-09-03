@@ -34,7 +34,7 @@
 .light [role="dialog"][class~="sm:max-w-5xl"] input:not([type="checkbox"]):not([type="radio"]):focus,
 .light [role="dialog"][class~="sm:max-w-5xl"] textarea:focus {
   background-color: #f1f6f7 !important;
-  border-color: #0099a8 !important;
+  border-color: #188a89 !important;
   box-shadow: 0 0 0 3px rgb(0 153 168 / 0.12) !important;
 }
 

@@ -31,7 +31,7 @@ html.light .presentation-mode .presentation-input-control:hover {
 
 html.light .presentation-mode .presentation-input-control:focus,
 html.light .presentation-mode .presentation-input-control:focus-visible {
-  border-color: #0099a8 !important;
+  border-color: #188a89 !important;
   background-color: #f1f6f7 !important;
   box-shadow: 0 0 0 3px rgb(0 153 168 / 0.12) !important;
 }

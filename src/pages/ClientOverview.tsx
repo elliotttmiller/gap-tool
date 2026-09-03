@@ -23,7 +23,7 @@ const BENEFIT_PERIOD_OPTIONS: { value: DiBenefitPeriod | ""; label: string }[] =
 function SectionTitle({ title, description }: { title: string; description?: string }) {
   return (
     <div className="border-b border-[#d5e2e5] pb-3 dark:border-gray-800">
-      <h2 className="text-sm font-semibold uppercase tracking-widest text-[#0e9f9a] dark:text-cyan-500">{title}</h2>
+      <h2 className="text-sm font-semibold uppercase tracking-widest text-[#188a89] dark:text-cyan-500">{title}</h2>
       {description ? <p className="mt-1 text-sm text-[#607583] dark:text-gray-500">{description}</p> : null}
     </div>
   )

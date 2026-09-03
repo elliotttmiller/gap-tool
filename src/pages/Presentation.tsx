@@ -18,6 +18,7 @@ import { calculateLiabilityGap } from "@/features/risk-modules/liability/calcula
 import { RiskModuleType, ScenarioModuleRecords, useAppStore } from "@/lib/store"
 import { formatGapCurrency, getModuleGapValue } from "@/lib/scenarioMetrics"
 import { formatCurrency, formatPercent } from "@/lib/utils"
+import { formatGroupedNumberInput, normalizeGroupedNumberInput } from "@/lib/numberInput"
 import "@/styles/print.css"
 
 const moduleCopy: Record<RiskModuleType, { title: string; tabLabel: string }> = {
@@ -147,6 +148,7 @@ function SnapshotNumberInput({ label, value, onCommit, percent = false, currency
   const displayValue = percent ? value * 100 : value
   const [draft, setDraft] = useState(String(displayValue))
   const focused = useRef(false)
+  const renderedDraft = currency ? formatGroupedNumberInput(draft) : draft
 
   useEffect(() => {
     if (!focused.current) setDraft(String(percent ? value * 100 : value))
@@ -157,13 +159,14 @@ function SnapshotNumberInput({ label, value, onCommit, percent = false, currency
       {currency ? <span className={`presentation-input-affix absolute left-2 top-1/2 -translate-y-1/2 ${compact ? "text-[10px]" : "text-xs"}`}>$</span> : null}
       <input
         aria-label={label}
-        type="number"
+        type={currency ? "text" : "number"}
+        inputMode="decimal"
         min={0}
         step={percent ? 0.1 : 1}
-        value={draft}
+        value={renderedDraft}
         onFocus={() => { focused.current = true }}
         onChange={(event) => {
-          const next = event.target.value
+          const next = currency ? normalizeGroupedNumberInput(event.target.value) : event.target.value
           setDraft(next)
           if (next !== "" && Number.isFinite(Number(next))) onCommit(Math.max(0, Number(next)) / (percent ? 100 : 1))
         }}

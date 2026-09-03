@@ -302,10 +302,10 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
             <Card className="border-gray-800 bg-gray-900/25">
               <CardContent className="p-4">
                 <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-[#607583] dark:text-[#aebdc5]">
-                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#12b981]" />Self-insurance fund</span>
-                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#ef4444]" />Benefit needed</span>
-                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#ef4444]/25 ring-1 ring-[#ef4444]/35" />Before break-even</span>
-                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#12b981]/25 ring-1 ring-[#12b981]/35" />After break-even</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#44b649]" />Self-insurance fund</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#f15a29]" />Benefit needed</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#f15a29]/25 ring-1 ring-[#f15a29]/35" />Before break-even</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#44b649]/25 ring-1 ring-[#44b649]/35" />After break-even</span>
                 </div>
 
                 <div className="chart-reveal h-60 sm:h-72">
@@ -313,9 +313,9 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                     <ComposedChart data={chartData} margin={{ top: 12, right: 18, left: 8, bottom: 8 }}>
                       <defs>
                         <linearGradient id="selfInsuranceFundFill" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#12b981" stopOpacity={0.22} />
-                          <stop offset="70%" stopColor="#12b981" stopOpacity={0.07} />
-                          <stop offset="100%" stopColor="#12b981" stopOpacity={0.015} />
+                          <stop offset="0%" stopColor="#44b649" stopOpacity={0.22} />
+                          <stop offset="70%" stopColor="#44b649" stopOpacity={0.07} />
+                          <stop offset="100%" stopColor="#44b649" stopOpacity={0.015} />
                         </linearGradient>
                       </defs>
 
@@ -347,7 +347,7 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                         <ReferenceArea
                           x1={0}
                           x2={breakEvenMonth}
-                          fill="#ef4444"
+                          fill="#f15a29"
                           fillOpacity={0.025}
                           ifOverflow="hidden"
                         />
@@ -357,7 +357,7 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                         <ReferenceArea
                           x1={result.roundedBreakEvenMonths}
                           x2={chartEndMonth}
-                          fill="#12b981"
+                          fill="#44b649"
                           fillOpacity={0.025}
                           ifOverflow="hidden"
                         />
@@ -405,20 +405,20 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                       {result.roundedBreakEvenMonths <= chartEndMonth ? (
                         <ReferenceLine
                           x={result.roundedBreakEvenMonths}
-                          stroke="#f59e0b"
+                          stroke="#f15a29"
                           strokeWidth={1.5}
                           strokeDasharray="5 5"
-                          label={{ value: "Break-even", fill: "#d97706", fontSize: 11, position: "insideTopRight" }}
+                          label={{ value: "Break-even", fill: "#f15a29", fontSize: 11, position: "insideTopRight" }}
                         />
                       ) : null}
 
                       <Line
                         type="monotone"
                         dataKey="Self-Insurance Fund"
-                        stroke="#12b981"
+                        stroke="#44b649"
                         strokeWidth={3}
                         dot={false}
-                        activeDot={{ r: 4.5, stroke: "#ffffff", strokeWidth: 2, fill: "#12b981" }}
+                        activeDot={{ r: 4.5, stroke: "#ffffff", strokeWidth: 2, fill: "#44b649" }}
                         isAnimationActive
                         animationDuration={500}
                         animationEasing="ease-out"
@@ -426,7 +426,7 @@ export function PremiumVsSelfInsuredModule(props: PremiumVsSelfInsuredModuleProp
                       <Line
                         type="monotone"
                         dataKey="Benefit Needed"
-                        stroke="#ef4444"
+                        stroke="#f15a29"
                         strokeWidth={2.5}
                         dot={false}
                         activeDot={false}

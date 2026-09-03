@@ -205,9 +205,8 @@
   .print-report-body [class*="text-gray-300"], .print-report-body [class*="text-gray-400"], .print-report-body [class*="text-gray-500"], .print-report-body [class*="text-gray-600"], .print-report-body [class*="text-slate-300"], .print-report-body [class*="text-slate-400"], .print-report-body [class*="text-slate-500"] { color: #607583 !important; }
   .print-report-body [class*="text-brand-"], .print-report-body [class*="text-cyan-"], .print-report-body [class*="text-teal-"] { color: #188a89 !important; }
   .print-report-body [class*="text-blue-"] { color: #1b75bc !important; }
-  .print-report-body [class*="text-emerald-"], .print-report-body [class*="text-green-"] { color: #2f7d59 !important; }
-  .print-report-body [class*="text-red-"], .print-report-body [class*="text-orange-"], .print-report-body [class*="text-rose-"] { color: #b5543c !important; }
-  .print-report-body [class*="text-amber-"] { color: #9a6b17 !important; }
+  .print-report-body [class*="text-emerald-"], .print-report-body [class*="text-green-"] { color: #148f45 !important; }
+  .print-report-body [class*="text-red-"], .print-report-body [class*="text-orange-"], .print-report-body [class*="text-rose-"], .print-report-body [class*="text-amber-"] { color: #f15a29 !important; }
 
   /* Explicit print sizing replaces responsive/container-query layouts. */
   .print-report-body .life-visual-dashboard,

@@ -5,10 +5,10 @@ export type MetricCardAccent = "neutral" | "primary" | "positive" | "warning" | 
 
 const TONES: Record<MetricCardAccent, { bar: string; value: string; border: string }> = {
   neutral:  { bar: "bg-slate-500", value: "text-slate-50", border: "border-slate-800/80" },
-  primary:  { bar: "bg-[#188a89]", value: "text-[#1b75bc] dark:text-[#7fccef]", border: "border-slate-800/80" },
-  positive: { bar: "bg-[#44b649]", value: "text-[#148f45] dark:text-[#75d27a]", border: "border-slate-800/80" },
-  warning:  { bar: "bg-[#fbb040]", value: "text-[#9a4a14] dark:text-[#ffd084]", border: "border-slate-800/80" },
-  negative: { bar: "bg-[#f15a29]", value: "text-[#c13f17] dark:text-[#ff9a78]", border: "border-slate-800/80" },
+  primary:  { bar: "bg-[#1db8b9]", value: "text-[#27aae1]", border: "border-slate-800/80" },
+  positive: { bar: "bg-[#44b649]", value: "text-[#44b649]", border: "border-slate-800/80" },
+  warning:  { bar: "bg-[#f15a29]", value: "text-[#f15a29]", border: "border-slate-800/80" },
+  negative: { bar: "bg-[#f15a29]", value: "text-[#f15a29]", border: "border-slate-800/80" },
 }
 
 interface ModuleMetricCardProps {
@@ -73,10 +73,10 @@ interface CompactMetricProps {
 export function CompactMetric({ label, value, accent = "neutral" }: CompactMetricProps) {
   const valueColor: Record<MetricCardAccent, string> = {
     neutral: "text-slate-200",
-    primary: "text-[#1b75bc] dark:text-[#7fccef]",
-    positive: "text-[#148f45] dark:text-[#75d27a]",
-    warning: "text-[#9a4a14] dark:text-[#ffd084]",
-    negative: "text-[#c13f17] dark:text-[#ff9a78]",
+    primary: "text-[#27aae1]",
+    positive: "text-[#44b649]",
+    warning: "text-[#f15a29]",
+    negative: "text-[#f15a29]",
   }
   return (
     <div className="flex items-baseline justify-between gap-2 border-b border-slate-800/40 py-1.5 last:border-0">

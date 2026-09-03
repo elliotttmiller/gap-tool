@@ -253,13 +253,21 @@ function prefillLiabilityInputs(profile: ClientFinancialProfile): LiabilityInput
 }
 
 type SharedProjectionInputs = { annualIncome: number; currentAge: number; retirementAge: number }
-function syncSharedProjectionInputs(records: ScenarioModuleRecords, shared: SharedProjectionInputs, timestamp: string): ScenarioModuleRecords {
+function syncSharedAnnualIncome(records: ScenarioModuleRecords, annualIncome: number, timestamp: string): ScenarioModuleRecords {
   const synced: ScenarioModuleRecords = { ...records }
+  if (synced.life) synced.life = { ...synced.life, inputs: { ...synced.life.inputs, annualIncome }, output: null, updatedAt: timestamp, lastCalculatedAt: undefined }
+  if (synced.disability) synced.disability = { ...synced.disability, inputs: { ...synced.disability.inputs, annualEarnedIncome: annualIncome }, output: null, updatedAt: timestamp, lastCalculatedAt: undefined }
+  if (synced.unemployment) synced.unemployment = { ...synced.unemployment, inputs: { ...synced.unemployment.inputs, annualIncome }, output: null, updatedAt: timestamp, lastCalculatedAt: undefined }
+  if (synced.liability) synced.liability = { ...synced.liability, inputs: { ...synced.liability.inputs, annualIncome }, output: null, updatedAt: timestamp, lastCalculatedAt: undefined }
+  return synced
+}
+
+function syncSharedProjectionInputs(records: ScenarioModuleRecords, shared: SharedProjectionInputs, timestamp: string): ScenarioModuleRecords {
+  const synced = syncSharedAnnualIncome(records, shared.annualIncome, timestamp)
   const incomeReplacementYears = Math.max(0, shared.retirementAge - shared.currentAge)
-  if (synced.life) synced.life = { ...synced.life, inputs: { ...synced.life.inputs, annualIncome: shared.annualIncome, currentAge: shared.currentAge, retirementAge: shared.retirementAge, incomeReplacementYears }, output: null, updatedAt: timestamp, lastCalculatedAt: undefined }
-  if (synced.disability) synced.disability = { ...synced.disability, inputs: { ...synced.disability.inputs, annualEarnedIncome: shared.annualIncome, currentAge: shared.currentAge, retirementAge: shared.retirementAge }, output: null, updatedAt: timestamp, lastCalculatedAt: undefined }
-  if (synced.unemployment) synced.unemployment = { ...synced.unemployment, inputs: { ...synced.unemployment.inputs, annualIncome: shared.annualIncome }, output: null, updatedAt: timestamp, lastCalculatedAt: undefined }
-  if (synced.liability) synced.liability = { ...synced.liability, inputs: { ...synced.liability.inputs, annualIncome: shared.annualIncome, currentAge: shared.currentAge, retirementAge: shared.retirementAge }, output: null, updatedAt: timestamp, lastCalculatedAt: undefined }
+  if (synced.life) synced.life = { ...synced.life, inputs: { ...synced.life.inputs, currentAge: shared.currentAge, retirementAge: shared.retirementAge, incomeReplacementYears } }
+  if (synced.disability) synced.disability = { ...synced.disability, inputs: { ...synced.disability.inputs, currentAge: shared.currentAge, retirementAge: shared.retirementAge } }
+  if (synced.liability) synced.liability = { ...synced.liability, inputs: { ...synced.liability.inputs, currentAge: shared.currentAge, retirementAge: shared.retirementAge } }
   return synced
 }
 
@@ -436,14 +444,20 @@ export const useAppStore = create<AppState>()(
         return { moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: synced } }
       }),
       updateUnemploymentInputs: (scenarioId, inputs) => set((state) => {
-        const record = state.moduleRecordsByScenarioId[scenarioId]?.unemployment
-        if (!record) return state
-        return { moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: { ...state.moduleRecordsByScenarioId[scenarioId], unemployment: { ...record, inputs, output: null, updatedAt: nowIso(), lastCalculatedAt: undefined } } } }
+        const scenarioRecords = state.moduleRecordsByScenarioId[scenarioId]
+        const record = scenarioRecords?.unemployment
+        if (!scenarioRecords || !record) return state
+        const timestamp = nowIso()
+        const synced = syncSharedAnnualIncome({ ...scenarioRecords, unemployment: { ...record, inputs, output: null, updatedAt: timestamp, lastCalculatedAt: undefined } }, inputs.annualIncome, timestamp)
+        return { moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: synced } }
       }),
       updateLiabilityInputs: (scenarioId, inputs) => set((state) => {
-        const record = state.moduleRecordsByScenarioId[scenarioId]?.liability
-        if (!record) return state
-        return { moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: { ...state.moduleRecordsByScenarioId[scenarioId], liability: { ...record, inputs, output: null, updatedAt: nowIso(), lastCalculatedAt: undefined } } } }
+        const scenarioRecords = state.moduleRecordsByScenarioId[scenarioId]
+        const record = scenarioRecords?.liability
+        if (!scenarioRecords || !record) return state
+        const timestamp = nowIso()
+        const synced = syncSharedProjectionInputs({ ...scenarioRecords, liability: { ...record, inputs, output: null, updatedAt: timestamp, lastCalculatedAt: undefined } }, { annualIncome: inputs.annualIncome ?? 0, currentAge: inputs.currentAge ?? 0, retirementAge: inputs.retirementAge ?? 0 }, timestamp)
+        return { moduleRecordsByScenarioId: { ...state.moduleRecordsByScenarioId, [scenarioId]: synced } }
       }),
 
       saveLifeCalculation: (scenarioId, output) => {
