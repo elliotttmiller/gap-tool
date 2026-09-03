@@ -89,6 +89,42 @@
   }
 }
 
+/* Final advisor review: the liability coverage summary must use the same teal
+ * as the Existing Umbrella segment in the protection stack. */
+.liability-chart-panel-compact [class~="sm:grid-cols-3"] > div:nth-child(2) > span:last-child {
+  color: #1db8b9 !important;
+}
+
+/* Recharts can inherit light-theme text fills after SVG hydration. Keep all
+ * values rendered inside the Job A vs Job B stacked bars explicitly white. */
+.job-comparison-results .recharts-label-list text,
+.job-comparison-results .recharts-label-list tspan,
+.job-comparison-results text.recharts-label {
+  fill: #ffffff !important;
+  color: #ffffff !important;
+}
+
+/* Asset Comparison uses only the approved NorthStar brand palette. The six
+ * visible value/premium bars intentionally map to distinct official colors. */
+.asset-comparison-columns > .asset-comparison-column:nth-child(1) .asset-comparison-bars > div:nth-child(1) .asset-comparison-bar {
+  background-color: #1b75bc !important;
+}
+.asset-comparison-columns > .asset-comparison-column:nth-child(1) .asset-comparison-bars > div:nth-child(2) .asset-comparison-bar {
+  background-color: #f15a29 !important;
+}
+.asset-comparison-columns > .asset-comparison-column:nth-child(2) .asset-comparison-bars > div:nth-child(1) .asset-comparison-bar {
+  background-color: #27aae1 !important;
+}
+.asset-comparison-columns > .asset-comparison-column:nth-child(2) .asset-comparison-bars > div:nth-child(2) .asset-comparison-bar {
+  background-color: #188a89 !important;
+}
+.asset-comparison-columns > .asset-comparison-column:nth-child(3) .asset-comparison-bars > div:nth-child(1) .asset-comparison-bar {
+  background-color: #44b649 !important;
+}
+.asset-comparison-columns > .asset-comparison-column:nth-child(3) .asset-comparison-bars > div:nth-child(2) .asset-comparison-bar {
+  background-color: #fbb040 !important;
+}
+
 /* Presentation Input Snapshot mirrors the active Builder theme instead of
  * forcing a single color scheme. Keep the PDF block treatment controlled by
  * print.css; these rules apply to the live presentation workspace. */
