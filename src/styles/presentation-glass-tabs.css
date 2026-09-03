@@ -1,0 +1,164 @@
+/* Presentation-mode glass segmented controls.
+ * Mirrors the Net/Gross control without changing routing, visualization state,
+ * report rendering, or module calculations. */
+.presentation-mode .presentation-module-tabs {
+  gap: 0.125rem !important;
+  border: 1px solid rgb(203 218 221 / 0.9) !important;
+  background: rgb(255 255 255 / 0.55) !important;
+  padding: 0.125rem !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.72), 0 3px 12px rgb(15 42 58 / 0.08) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .presentation-mode .presentation-module-tabs {
+  border-color: rgb(255 255 255 / 0.1) !important;
+  background: rgb(255 255 255 / 0.05) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 4px 14px rgb(0 0 0 / 0.18) !important;
+}
+
+.presentation-mode .presentation-module-tabs > button {
+  position: relative;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease, box-shadow 180ms ease !important;
+}
+
+.light .presentation-mode .presentation-module-tabs > button {
+  color: #607583 !important;
+}
+
+.dark .presentation-mode .presentation-module-tabs > button {
+  color: #cbd5e1 !important;
+}
+
+.presentation-mode .presentation-module-tabs > button:hover {
+  border-color: rgb(29 184 185 / 0.3) !important;
+  background: rgb(29 184 185 / 0.1) !important;
+  color: #188a89 !important;
+}
+
+.dark .presentation-mode .presentation-module-tabs > button:hover {
+  color: #8de3e3 !important;
+}
+
+.presentation-mode .presentation-module-tabs > button[class*="bg-[#1db8b9]"] {
+  border-color: rgb(29 184 185 / 0.65) !important;
+  background: rgb(29 184 185 / 0.14) !important;
+  color: #0b6667 !important;
+  box-shadow: 0 3px 12px rgb(29 184 185 / 0.16), inset 0 1px 0 rgb(255 255 255 / 0.8) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.presentation-mode .presentation-module-tabs > button[class*="bg-[#27aae1]"] {
+  border-color: rgb(39 170 225 / 0.65) !important;
+  background: rgb(39 170 225 / 0.14) !important;
+  color: #176a8d !important;
+  box-shadow: 0 3px 12px rgb(39 170 225 / 0.16), inset 0 1px 0 rgb(255 255 255 / 0.8) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.presentation-mode .presentation-module-tabs > button[class*="bg-[#f15a29]"] {
+  border-color: rgb(241 90 41 / 0.62) !important;
+  background: rgb(241 90 41 / 0.13) !important;
+  color: #a13c1e !important;
+  box-shadow: 0 3px 12px rgb(241 90 41 / 0.15), inset 0 1px 0 rgb(255 255 255 / 0.8) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.presentation-mode .presentation-module-tabs > button[class*="bg-[#44b649]"] {
+  border-color: rgb(68 182 73 / 0.62) !important;
+  background: rgb(68 182 73 / 0.13) !important;
+  color: #28782d !important;
+  box-shadow: 0 3px 12px rgb(68 182 73 / 0.15), inset 0 1px 0 rgb(255 255 255 / 0.8) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .presentation-mode .presentation-module-tabs > button[class*="bg-[#1db8b9]"] {
+  background: rgb(29 184 185 / 0.12) !important;
+  color: #8de3e3 !important;
+  box-shadow: 0 3px 14px rgb(29 184 185 / 0.12), inset 0 1px 0 rgb(255 255 255 / 0.1) !important;
+}
+
+.dark .presentation-mode .presentation-module-tabs > button[class*="bg-[#27aae1]"] {
+  background: rgb(39 170 225 / 0.12) !important;
+  color: #8ed7f6 !important;
+  box-shadow: 0 3px 14px rgb(39 170 225 / 0.12), inset 0 1px 0 rgb(255 255 255 / 0.1) !important;
+}
+
+.dark .presentation-mode .presentation-module-tabs > button[class*="bg-[#f15a29]"] {
+  background: rgb(241 90 41 / 0.12) !important;
+  color: #ff9b7a !important;
+  box-shadow: 0 3px 14px rgb(241 90 41 / 0.11), inset 0 1px 0 rgb(255 255 255 / 0.1) !important;
+}
+
+.dark .presentation-mode .presentation-module-tabs > button[class*="bg-[#44b649]"] {
+  background: rgb(68 182 73 / 0.12) !important;
+  color: #8bdd8f !important;
+  box-shadow: 0 3px 14px rgb(68 182 73 / 0.11), inset 0 1px 0 rgb(255 255 255 / 0.1) !important;
+}
+
+/* Life and Disability visualization selectors in Presentation Mode. */
+.presentation-mode .life-output-container > .mb-2.flex.flex-wrap.gap-1,
+.presentation-mode .mb-4.flex.flex-wrap.gap-1:has(> button[class*="uppercase"]) {
+  width: fit-content;
+  gap: 0.125rem !important;
+  border: 1px solid rgb(203 218 221 / 0.9);
+  border-radius: 0.5rem;
+  background: rgb(255 255 255 / 0.55);
+  padding: 0.125rem;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.72), 0 3px 12px rgb(15 42 58 / 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .presentation-mode .life-output-container > .mb-2.flex.flex-wrap.gap-1,
+.dark .presentation-mode .mb-4.flex.flex-wrap.gap-1:has(> button[class*="uppercase"]) {
+  border-color: rgb(255 255 255 / 0.1);
+  background: rgb(255 255 255 / 0.05);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 4px 14px rgb(0 0 0 / 0.18);
+}
+
+.presentation-mode .life-output-container > .mb-2.flex.flex-wrap.gap-1 > button,
+.presentation-mode .mb-4.flex.flex-wrap.gap-1:has(> button[class*="uppercase"]) > button {
+  position: relative;
+  border-color: transparent !important;
+  background: transparent !important;
+  color: #607583 !important;
+  box-shadow: none !important;
+  transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease, box-shadow 180ms ease !important;
+}
+
+.dark .presentation-mode .life-output-container > .mb-2.flex.flex-wrap.gap-1 > button,
+.dark .presentation-mode .mb-4.flex.flex-wrap.gap-1:has(> button[class*="uppercase"]) > button {
+  color: #cbd5e1 !important;
+}
+
+.presentation-mode .life-output-container > .mb-2.flex.flex-wrap.gap-1 > button:hover,
+.presentation-mode .mb-4.flex.flex-wrap.gap-1:has(> button[class*="uppercase"]) > button:hover {
+  border-color: rgb(29 184 185 / 0.3) !important;
+  background: rgb(29 184 185 / 0.1) !important;
+  color: #188a89 !important;
+}
+
+.presentation-mode .life-output-container > .mb-2.flex.flex-wrap.gap-1 > button[class*="bg-[#188a89]"],
+.presentation-mode .mb-4.flex.flex-wrap.gap-1:has(> button[class*="uppercase"]) > button[class*="bg-[#188a89]"] {
+  border-color: rgb(29 184 185 / 0.65) !important;
+  background: rgb(29 184 185 / 0.14) !important;
+  color: #0b6667 !important;
+  box-shadow: 0 3px 12px rgb(29 184 185 / 0.16), inset 0 1px 0 rgb(255 255 255 / 0.8) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .presentation-mode .life-output-container > .mb-2.flex.flex-wrap.gap-1 > button[class*="bg-[#188a89]"],
+.dark .presentation-mode .mb-4.flex.flex-wrap.gap-1:has(> button[class*="uppercase"]) > button[class*="bg-[#188a89]"] {
+  background: rgb(29 184 185 / 0.12) !important;
+  color: #8de3e3 !important;
+  box-shadow: 0 3px 14px rgb(29 184 185 / 0.12), inset 0 1px 0 rgb(255 255 255 / 0.1) !important;
+}
