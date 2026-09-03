@@ -36,71 +36,97 @@ html.light .presentation-mode .presentation-input-control:focus-visible {
   box-shadow: 0 0 0 3px rgb(0 153 168 / 0.12) !important;
 }
 
-html.dark .presentation-mode .presentation-input-rail {
+/* Dark Presentation Input Snapshot intentionally mirrors the Builder input
+ * hierarchy: section surface #32373f, inset item surface #2b3037 and control
+ * surface #292e35. Use both the theme class and data-theme hook so the live
+ * presentation cannot fall back to its light utility backgrounds. */
+html.dark .presentation-mode .presentation-input-rail,
+html[data-theme="dark"] .presentation-mode .presentation-input-rail {
+  color-scheme: dark !important;
   border-color: var(--dark-border-soft) !important;
-  background-color: var(--dark-surface) !important;
+  background: #32373f !important;
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.16) !important;
 }
 
-html.dark .presentation-mode .presentation-input-rail > div:first-child {
+html.dark .presentation-mode .presentation-input-rail > div:first-child,
+html[data-theme="dark"] .presentation-mode .presentation-input-rail > div:first-child {
   border-color: var(--dark-border-soft) !important;
+  background: transparent !important;
 }
 
-html.dark .presentation-mode .presentation-input-item {
+html.dark .presentation-mode .presentation-input-item,
+html[data-theme="dark"] .presentation-mode .presentation-input-item {
   border-color: var(--dark-border-soft) !important;
-  background-color: var(--dark-surface-inset) !important;
+  background: #2b3037 !important;
   box-shadow: none !important;
 }
 
 html.dark .presentation-mode .presentation-input-title,
+html[data-theme="dark"] .presentation-mode .presentation-input-title {
+  color: #ffffff !important;
+}
+
 html.dark .presentation-mode .presentation-input-label,
-html.dark .presentation-mode .presentation-input-affix {
+html.dark .presentation-mode .presentation-input-affix,
+html[data-theme="dark"] .presentation-mode .presentation-input-label,
+html[data-theme="dark"] .presentation-mode .presentation-input-affix {
   color: var(--dark-text-subtle) !important;
 }
 
-html.dark .presentation-mode .presentation-input-value {
+html.dark .presentation-mode .presentation-input-value,
+html[data-theme="dark"] .presentation-mode .presentation-input-value {
   color: var(--dark-text) !important;
 }
 
-html.dark .presentation-mode .presentation-input-control {
+html.dark .presentation-mode .presentation-input-control,
+html[data-theme="dark"] .presentation-mode .presentation-input-control {
   color-scheme: dark !important;
   border-color: var(--dark-border) !important;
-  background-color: #292e35 !important;
-  color: var(--dark-text) !important;
+  background: #292e35 !important;
+  color: #ffffff !important;
   box-shadow: none !important;
 }
 
-html.dark .presentation-mode .presentation-input-control:hover {
+html.dark .presentation-mode .presentation-input-control:hover,
+html[data-theme="dark"] .presentation-mode .presentation-input-control:hover {
   border-color: #71808a !important;
-  background-color: #2e343b !important;
+  background: #2e343b !important;
 }
 
 html.dark .presentation-mode .presentation-input-control:focus,
-html.dark .presentation-mode .presentation-input-control:focus-visible {
+html.dark .presentation-mode .presentation-input-control:focus-visible,
+html[data-theme="dark"] .presentation-mode .presentation-input-control:focus,
+html[data-theme="dark"] .presentation-mode .presentation-input-control:focus-visible {
   border-color: #1db8b9 !important;
+  background: #292e35 !important;
   box-shadow: 0 0 0 3px rgb(29 184 185 / 0.14) !important;
 }
 
 /* The select menu is portaled outside .presentation-mode, so scope it to the
  * resolved document theme rather than the presentation container. */
-html.dark .presentation-policy-menu {
+html.dark .presentation-policy-menu,
+html[data-theme="dark"] .presentation-policy-menu {
   color-scheme: dark !important;
   border-color: var(--dark-border) !important;
   background-color: var(--dark-surface-raised) !important;
   color: var(--dark-text) !important;
 }
 
-html.dark .presentation-policy-menu [role="option"] {
+html.dark .presentation-policy-menu [role="option"],
+html[data-theme="dark"] .presentation-policy-menu [role="option"] {
   color: var(--dark-text-secondary) !important;
 }
 
 html.dark .presentation-policy-menu [role="option"]:hover,
-html.dark .presentation-policy-menu [role="option"]:focus-visible {
+html.dark .presentation-policy-menu [role="option"]:focus-visible,
+html[data-theme="dark"] .presentation-policy-menu [role="option"]:hover,
+html[data-theme="dark"] .presentation-policy-menu [role="option"]:focus-visible {
   background-color: rgb(29 184 185 / 0.12) !important;
   color: var(--dark-text) !important;
 }
 
-html.dark .presentation-policy-menu [role="option"][data-state="checked"] {
+html.dark .presentation-policy-menu [role="option"][data-state="checked"],
+html[data-theme="dark"] .presentation-policy-menu [role="option"][data-state="checked"] {
   background-color: rgb(29 184 185 / 0.18) !important;
   color: var(--dark-text) !important;
 }
